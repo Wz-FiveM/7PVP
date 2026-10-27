@@ -1,0 +1,112 @@
+/* Profil --------------------------------------------------------------------------- */
+
+.profile {
+  display: grid;
+  grid-template-columns: 420px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.profile__name {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+.profile__level {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--hazard);
+}
+.profile__xp {
+  font-size: 12px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.stat .panel__body {
+  gap: 8px;
+}
+.stat__value {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+/* Classement ------------------------------------------------------------------------- */
+
+.leaderboard {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.leaderboard th {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--trait);
+  text-align: left;
+}
+.leaderboard td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--trait);
+}
+.leaderboard__rank {
+  font-weight: 700;
+  color: var(--brume);
+}
+.leaderboard__row--top .leaderboard__rank {
+  color: var(--hazard);
+}
+.leaderboard__name {
+  font-weight: 600;
+}
+.leaderboard__online {
+  margin-left: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--brume-hi);
+}
+
+/* Boutique ----------------------------------------------------------------------- */
+
+.shop__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* Aide ------------------------------------------------------------------------------ */
+
+.help {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+.help__rules {
+  grid-column: 1 / -1;
+}
+.help__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+}
+.help__list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--trait);
+  font-size: 15px;
+}
+.help__key {
+  min-width: 70px;
+}
+.help__chip {
+  min-width: 56px;
+  justify-content: center;
+}
+.help__index {
+  font-weight: 700;
+  color: var(--hazard);
+}

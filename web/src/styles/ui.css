@@ -1,0 +1,203 @@
+/* Briques visuelles communes de la D.A Frontline. */
+
+/* Typographies ---------------------------------------------------------------- */
+
+.disp {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brume);
+}
+.muted {
+  color: var(--brume-hi);
+}
+
+/* Coins coupés à 45° (haut gauche, bas droite) ------------------------------- */
+
+.cut {
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+.cut-s {
+  clip-path: polygon(
+    var(--cut-s) 0, 100% 0, 100% calc(100% - var(--cut-s)), calc(100% - var(--cut-s)) 100%, 0 100%, 0 var(--cut-s)
+  );
+}
+
+/* Couleur de zone : définit --zone pour les enfants ---------------------------- */
+
+.zone-safe { --zone: var(--abri); }
+.zone-pve { --zone: var(--toxine); }
+.zone-pvp { --zone: var(--hazard); }
+
+/* Bandes d'alerte dans la couleur de la zone */
+.stripes {
+  height: 10px;
+  background: repeating-linear-gradient(135deg, var(--zone, var(--hazard)) 0 8px, transparent 8px 16px);
+}
+
+/* Motif des emplacements vides */
+.hatched {
+  background: repeating-linear-gradient(135deg, #171b1d 0 6px, #191e20 6px 12px);
+}
+
+/* Panneau ------------------------------------------------------------------- */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--carbone);
+}
+.panel__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+  padding: 20px;
+}
+.panel__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.panel__title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.panel__aside {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Puces --------------------------------------------------------------------- */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--nuit);
+  background: var(--zone, var(--os));
+}
+.chip--outline {
+  padding: 3px 8px;
+  border: 1px solid var(--hazard);
+  font-size: 11px;
+  color: var(--hazard);
+  background: none;
+}
+
+/* Boutons -------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--trait);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--os);
+  background: var(--acier);
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  background: var(--acier-hi);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.btn--primary {
+  border: 0;
+  font-weight: 700;
+  color: var(--nuit);
+  background: var(--hazard);
+}
+.btn--primary:hover:not(:disabled) {
+  background: #ff8a47;
+}
+.btn--danger {
+  color: var(--hazard);
+  background: transparent;
+}
+.btn--small {
+  min-height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+}
+.btn--active,
+.btn--active:hover:not(:disabled) {
+  border-color: var(--os);
+  font-weight: 700;
+  color: var(--nuit);
+  background: var(--os);
+}
+
+/* Touche [X] ---------------------------------------------------------------- */
+
+.keycap {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--hazard);
+}
+.keycap--solid {
+  padding: 3px 7px;
+  color: var(--nuit);
+  background: var(--os);
+}
+
+/* Jauge à segments ---------------------------------------------------------- */
+
+.segments {
+  display: grid;
+  gap: 3px;
+}
+.segments__cell {
+  height: 6px;
+  background: var(--trait);
+}
+.segments__cell--on {
+  background: var(--segment-color, var(--os));
+}
+.segments__cell--warn {
+  background: var(--hazard);
+  opacity: 0.6;
+}
+
+/* Crochets de visée (sélection) ------------------------------------------------- */
+
+.brackets {
+  position: absolute;
+  inset: -5px;
+  pointer-events: none;
+}
+.brackets span {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 0 solid var(--hazard);
+}
+.brackets span:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
+.brackets span:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
+.brackets span:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
+.brackets span:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }

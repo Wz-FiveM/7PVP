@@ -1,0 +1,63 @@
+/* Direction artistique FRONTLINE ------------------------------------------------
+ * Neutres : Nuit, Carbone, Acier, Trait, Brume, Os
+ * Zones   : Abri (safe), Toxine (PvE), Hazard (PvP + marque + actions)
+ * Ces trois couleurs de zone ne servent à rien d'autre.
+ */
+:root {
+  --nuit: #0b0d0e;
+  --carbone: #14181a;
+  --acier: #1e2427;
+  --acier-hi: #262d31;
+  --trait: #2e363a;
+  --brume: #8c969b;
+  --brume-hi: #a3acb0;
+  --os: #e9ece6;
+
+  --abri: #4cc9e0;
+  --toxine: #b5f23d;
+  --hazard: #ff6b1a;
+
+  --font-display: 'Chakra Petch', sans-serif;
+  --font-body: 'Barlow', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --cut: 12px;
+  --cut-s: 6px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root,
+.app {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--os);
+  background: transparent;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Fond de remplacement quand on développe dans le navigateur (pas de jeu derrière) */
+.app--browser {
+  background-color: #1a1f1d;
+  background-image: linear-gradient(#1f2522 1px, transparent 1px),
+    linear-gradient(90deg, #1f2522 1px, transparent 1px);
+  background-size: 80px 80px;
+}

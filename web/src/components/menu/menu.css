@@ -1,0 +1,106 @@
+.menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--nuit);
+  background-image: linear-gradient(#111517 1px, transparent 1px), linear-gradient(90deg, #111517 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.menu__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+
+/* Barre du haut --------------------------------------------------------------- */
+
+.topbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 36px;
+  height: 68px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--trait);
+  background: var(--nuit);
+}
+
+.topbar__tabs {
+  display: flex;
+  gap: 4px;
+  height: 100%;
+}
+.topbar__tab {
+  height: 100%;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--brume);
+  background: none;
+  cursor: pointer;
+}
+.topbar__tab:hover {
+  color: var(--os);
+}
+.topbar__tab--active {
+  border-bottom-color: var(--hazard);
+  font-weight: 700;
+  color: var(--os);
+}
+
+.topbar__status {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-left: auto;
+}
+.topbar__money {
+  font-size: 18px;
+  font-weight: 700;
+}
+.topbar__level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.topbar__xp {
+  display: block;
+  width: 80px;
+  height: 4px;
+  background: var(--trait);
+}
+.topbar__xp span {
+  display: block;
+  height: 100%;
+  background: var(--os);
+}
+
+/* Titres de section --------------------------------------------------------- */
+
+.section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.section-title__aside {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hint {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--nuit);
+  background: var(--abri);
+}

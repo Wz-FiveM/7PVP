@@ -1,0 +1,20 @@
+-- item : clé de Config.Items ; count : quantité reçue ; price : prix
+Config.Shop = {
+    { item = 'weapon_knife', count = 1, price = 200 },
+    { item = 'weapon_pistol', count = 1, price = 400 },
+    { item = 'weapon_combatpistol', count = 1, price = 900 },
+    { item = 'weapon_microsmg', count = 1, price = 1800 },
+    { item = 'weapon_smg', count = 1, price = 2600 },
+    { item = 'weapon_pumpshotgun', count = 1, price = 3200 },
+    { item = 'weapon_carbinerifle', count = 1, price = 5500 },
+    { item = 'weapon_assaultrifle', count = 1, price = 6000 },
+    { item = 'weapon_sniperrifle', count = 1, price = 9000 },
+    { item = 'ammo_9mm', count = 48, price = 80 },
+    { item = 'ammo_45acp', count = 60, price = 150 },
+    { item = 'ammo_12g', count = 16, price = 120 },
+    { item = 'ammo_556', count = 60, price = 250 },
+    { item = 'ammo_762', count = 10, price = 300 },
+    { item = 'bandage', count = 1, price = 100 },
+    { item = 'medkit', count = 1, price = 350 },
+    { item = 'armor', count = 1, price = 800 },
+}

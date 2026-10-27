@@ -1,0 +1,304 @@
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Zone (haut gauche) ------------------------------------------------------------- */
+
+.zone-banner {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 400px;
+}
+.zone-banner .stripes {
+  height: 6px;
+}
+.zone-banner__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 12px 16px;
+  background: rgba(11, 13, 14, 0.92);
+}
+.zone-banner__body .chip {
+  align-self: flex-start;
+}
+.zone-banner__name {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+.zone-banner__detail {
+  font-size: 13px;
+}
+
+/* Statut + killfeed (haut droite) ---------------------------------------------- */
+
+.hud__top-right {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 12px 16px;
+  background: rgba(11, 13, 14, 0.92);
+}
+.status__money {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.status__level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.status__xp {
+  display: block;
+  width: 110px;
+  height: 4px;
+  background: var(--trait);
+}
+.status__xp span {
+  display: block;
+  height: 100%;
+  background: var(--os);
+}
+
+.killfeed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.killfeed__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: rgba(11, 13, 14, 0.88);
+}
+.killfeed__killer {
+  font-weight: 600;
+  color: var(--hazard);
+}
+
+/* Santé / armure (bas gauche) ---------------------------------------------------- */
+
+.vitals {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 300px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.vitals .vital {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+.vitals .vital__row {
+  display: flex;
+  justify-content: space-between;
+}
+.vitals .vital__label {
+  font-weight: 700;
+}
+.vitals__weight {
+  font-size: 11px;
+}
+
+/* Raccourcis (bas centre) ------------------------------------------------------- */
+
+.hotbar {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+.hotbar__slot {
+  position: relative;
+}
+.hotbar__tile {
+  position: relative;
+  width: 64px;
+  height: 56px;
+  background: rgba(30, 36, 39, 0.92);
+}
+.hotbar__tile--empty {
+  background: rgba(20, 24, 26, 0.7);
+}
+.hotbar__tile--missing {
+  opacity: 0.4;
+}
+.hotbar__slot--active .hotbar__tile {
+  width: 76px;
+  height: 64px;
+  background: rgba(38, 45, 49, 0.96);
+}
+.hotbar__tile .item-icon {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  display: flex;
+  height: 32px;
+  transform: translateX(-50%);
+  color: var(--os);
+}
+.hotbar__tile .item-icon svg {
+  width: 32px;
+  height: 32px;
+}
+.hotbar__tile .item-icon--consumable {
+  color: var(--hazard);
+}
+.hotbar__key,
+.hotbar__count {
+  position: absolute;
+  bottom: 3px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.hotbar__key {
+  left: 6px;
+  color: var(--brume-hi);
+}
+.hotbar__slot--active .hotbar__key {
+  color: var(--hazard);
+}
+.hotbar__count {
+  right: 6px;
+}
+.hotbar .brackets {
+  inset: -4px;
+}
+.hotbar .brackets span {
+  width: 10px;
+  height: 10px;
+}
+
+/* Munitions (bas droite) ------------------------------------------------------------ */
+
+.ammo {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 12px 18px;
+  background: rgba(11, 13, 14, 0.92);
+}
+.ammo__weapon {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brume-hi);
+}
+.ammo__count {
+  font-size: 30px;
+  font-weight: 700;
+}
+.ammo__reserve {
+  font-size: 18px;
+  color: var(--brume);
+}
+
+/* Notifications (au-dessus des raccourcis) --------------------------------------- */
+
+.toasts {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
+  white-space: nowrap;
+  background: rgba(11, 13, 14, 0.95);
+}
+.toast__icon {
+  color: var(--brume-hi);
+}
+.toast--success .toast__icon {
+  color: var(--toxine);
+}
+.toast--error .toast__icon {
+  color: var(--hazard);
+}
+
+/* Écran de mort ------------------------------------------------------------------ */
+
+.death {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(11, 13, 14, 0.88);
+}
+.death__stripes {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 12px;
+  background: repeating-linear-gradient(135deg, var(--hazard) 0 10px, transparent 10px 20px);
+}
+.death__tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--hazard);
+}
+.death__title {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 0.95;
+}
+.death__text {
+  font-size: 17px;
+  color: var(--brume-hi);
+}
+.death__timer {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--trait);
+  font-size: 15px;
+  font-weight: 700;
+}
