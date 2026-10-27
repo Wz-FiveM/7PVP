@@ -21,6 +21,8 @@ Events.client = {
     openCreator = '7pvp:client:openCreator',
     openLobby = '7pvp:client:openLobby',
     chatMessage = '7pvp:client:chatMessage',
+    adminStatus = '7pvp:client:adminStatus',
+    adminCommand = '7pvp:client:adminCommand',
     dead = '7pvp:client:dead',
     killfeed = '7pvp:client:killfeed',
     applyItem = '7pvp:client:applyItem',
@@ -50,5 +52,7 @@ Events.callbacks = {
     saveAppearance = 'appearance:save',
     joinMode = 'lobby:join',
     leaveMode = 'lobby:leave',
+    adminPlayers = 'admin:players',
+    adminAction = 'admin:action',
     leaderboard = 'leaderboard:get',
 }

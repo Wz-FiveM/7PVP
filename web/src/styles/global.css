@@ -23,6 +23,9 @@
   --toxine: #b5f23d;
   --hazard: #ff6b1a;
 
+  /* Jauges du personnage (distinctes des couleurs de zone) */
+  --armure: #6ec6ff;
+
   --font-display: 'Chakra Petch', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;

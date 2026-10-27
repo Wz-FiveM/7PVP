@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react';
+import type { AdminActionPayload } from '../types/admin';
 import type { ContainerId, ToastKind } from '../types/game';
 import type { GameState } from './gameReducer';
 
@@ -12,6 +13,9 @@ export interface GameActions {
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   refreshLeaderboard: () => Promise<void>;
+  /** Admin : exécute une action (vérifiée côté serveur) ; renvoie true si réussie */
+  adminAction: (payload: AdminActionPayload) => Promise<boolean>;
+  closeAdmin: () => void;
   /** Chat : envoie le message (ou la commande « / ») et ferme la saisie */
   sendChat: (text: string) => void;
   closeChat: () => void;

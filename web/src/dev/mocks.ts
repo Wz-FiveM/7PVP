@@ -1,4 +1,12 @@
+import type { AdminPlayer } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
+
+export const mockAdminPlayers: AdminPlayer[] = [
+  { id: 1, name: 'Wezor', mode: 'pvp', dead: false, money: 33851, level: 3 },
+  { id: 2, name: 'Alpha', mode: 'pvp', dead: true, money: 1200, level: 8 },
+  { id: 4, name: 'Bravo', mode: false, dead: false, money: 500, level: 1 },
+  { id: 7, name: 'Kilo', mode: 'pvp', dead: false, money: 7400, level: 5 },
+];
 import type { LeaderboardRow, LobbyMode, Vitals } from '../types/game';
 
 export const mockLobbyModes: LobbyMode[] = [

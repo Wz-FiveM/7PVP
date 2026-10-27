@@ -15,6 +15,7 @@ function resetScreens(): void {
   sendNui({ action: 'lobby', data: { open: false } });
   sendNui({ action: 'menu', data: { open: false, inSafe: true } });
   sendNui({ action: 'chat', data: { open: false } });
+  sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'alive' });
 }
 
@@ -81,6 +82,14 @@ export const DEV_SCREENS: DevScreen[] = [
     open: () => {
       enterPvp();
       sendNui({ action: 'death', data: { seconds: 8 } });
+    },
+  },
+  {
+    id: 'admin',
+    label: 'Panneau admin',
+    open: () => {
+      enterPvp();
+      sendNui({ action: 'admin', data: { open: true, self: { noclip: false, god: false, invisible: false } } });
     },
   },
   {

@@ -71,7 +71,8 @@ end
 
 ---@param enabled boolean
 function Zone.setSafe(enabled)
-    SetEntityInvincible(PlayerPedId(), enabled)
+    -- Les options admin (invincible, noclip) gardent l'invincibilité hors zone safe
+    SetEntityInvincible(PlayerPedId(), enabled or State.godmode or State.noclip)
     SetPlayerCanDoDriveBy(PlayerId(), not enabled)
 end
 

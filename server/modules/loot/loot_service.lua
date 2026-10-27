@@ -70,6 +70,17 @@ function LootService.remove(id)
     TriggerClientEvent(Events.client.lootRemove, -1, id)
 end
 
+---Supprime tous les sacs au sol (action admin).
+---@return integer nombre de sacs supprimés
+function LootService.clearAll()
+    local count = 0
+    for id in pairs(LootService.bags) do
+        LootService.remove(id)
+        count = count + 1
+    end
+    return count
+end
+
 ---@param source integer
 function LootService.syncTo(source)
     local list = {}

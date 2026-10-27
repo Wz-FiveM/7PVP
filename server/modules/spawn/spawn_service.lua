@@ -22,8 +22,8 @@ end
 ---@param delay integer secondes
 function SpawnService.scheduleRespawn(player, delay)
     SetTimeout(delay * 1000, function()
-        -- Le joueur a pu se déconnecter (et revenir) entre-temps
-        if PlayerService.get(player.source) == player then
+        -- Le joueur a pu se déconnecter (et revenir), ou être réanimé par un admin entre-temps
+        if PlayerService.get(player.source) == player and player.dead then
             SpawnService.respawn(player)
         end
     end)

@@ -1,3 +1,4 @@
+import { AdminPanel } from './components/admin/AdminPanel';
 import { Chat } from './components/chat/Chat';
 import { CharacterCreator } from './components/creator/CharacterCreator';
 import { DeathScreen } from './components/hud/DeathScreen';
@@ -27,6 +28,7 @@ export function App() {
       {inPvp && state.menu.open && <Menu />}
       {inPvp && state.death.active && <DeathScreen />}
       {inPvp && !state.menu.open && <Chat />}
+      {!creating && !inLobby && state.admin.open && <AdminPanel />}
       <Toasts />
       {isEnvBrowser() && <DevPanel />}
     </div>

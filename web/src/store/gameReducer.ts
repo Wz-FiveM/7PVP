@@ -10,6 +10,7 @@ import type {
   Vitals,
   ZoneInfo,
 } from '../types/game';
+import type { AdminSelf } from '../types/admin';
 import type { InitPayload } from '../types/nui';
 
 /** Nombre de messages du chat gardés en mémoire */
@@ -29,6 +30,7 @@ export interface GameState {
   mode: string | null;
   lobby: { open: boolean; modes: LobbyMode[] };
   chat: { open: boolean; messages: ChatMessage[] };
+  admin: { open: boolean; self: AdminSelf };
   menu: { open: boolean; inSafe: boolean };
   death: { active: boolean; seconds: number; key: number };
   toasts: Toast[];
@@ -47,6 +49,9 @@ export type GameAction =
   | { type: 'lobby'; open: boolean; modes?: LobbyMode[] }
   | { type: 'chat/open'; open: boolean }
   | { type: 'chat/message'; message: ChatMessage }
+  | { type: 'admin'; open: boolean; self?: AdminSelf }
+  /** Navigateur uniquement : simule une option admin activée / coupée */
+  | { type: 'admin/toggle'; key: keyof AdminSelf }
   | { type: 'menu'; open: boolean; inSafe: boolean }
   | { type: 'death'; seconds: number }
   | { type: 'alive' }
@@ -73,6 +78,7 @@ export const initialState: GameState = {
   mode: null,
   lobby: { open: false, modes: [] },
   chat: { open: false, messages: [] },
+  admin: { open: false, self: { noclip: false, god: false, invisible: false } },
   menu: { open: false, inSafe: false },
   death: { active: false, seconds: 0, key: 0 },
   toasts: [],
@@ -102,6 +108,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, minimap: action.minimap };
     case 'mode':
       return { ...state, mode: action.mode };
+    case 'admin':
+      return { ...state, admin: { open: action.open, self: action.self ?? state.admin.self } };
+    case 'admin/toggle':
+      return {
+        ...state,
+        admin: { ...state.admin, self: { ...state.admin.self, [action.key]: !state.admin.self[action.key] } },
+      };
     case 'chat/open':
       return { ...state, chat: { ...state.chat, open: action.open } };
     case 'chat/message':

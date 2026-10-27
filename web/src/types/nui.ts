@@ -1,3 +1,4 @@
+import type { AdminSelf } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
   ChatMessageData, GameConfig, KillfeedEntry, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
@@ -14,6 +15,7 @@ export type NuiMessage =
   /** mode de jeu en cours, `false` au lobby */
   | { action: 'mode'; data: { mode: string | false } }
   | { action: 'chat'; data: { open: boolean } }
+  | { action: 'admin'; data: { open: boolean; self?: AdminSelf } }
   | { action: 'chatMessage'; data: ChatMessageData }
   | { action: 'creator'; data: CreatorPayload }
   | { action: 'menu'; data: { open: boolean; inSafe: boolean } }

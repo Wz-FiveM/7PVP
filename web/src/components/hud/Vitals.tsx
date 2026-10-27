@@ -36,7 +36,7 @@ export function Vitals() {
           <span className="disp vital__label">Armure</span>
           <span className="mono">{vitals.armor}</span>
         </div>
-        <SegmentBar value={vitals.armor} max={100} segments={10} color="var(--brume)" height={6} />
+        <SegmentBar value={vitals.armor} max={100} segments={10} color="var(--armure)" height={6} />
       </div>
       <span className="mono muted vitals__weight">
         SAC {bagWeight.toFixed(1)} / {config.containers.bag.capacity.toFixed(1)} KG

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
+import { adminApi } from '../api/adminApi';
 import { gameApi } from '../api/gameApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockLobbyModes, mockVitals } from '../dev/mocks';
@@ -46,6 +47,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'lobby', open: message.data.open, modes: message.data.modes });
         case 'chat':
           return dispatch({ type: 'chat/open', open: message.data.open });
+        case 'admin':
+          return dispatch({ type: 'admin', open: message.data.open, self: message.data.self });
         case 'chatMessage':
           return dispatch({ type: 'chat/message', message: { ...message.data, id: ++nextId.current } });
         case 'menu':
@@ -140,6 +143,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
           });
         }
         gameApi.chatSend(text);
+      },
+      adminAction: async (payload) => {
+        const result = await adminApi.action(payload);
+        if (result?.message) notify(result.message, result.ok ? 'success' : 'error');
+        if (result?.self) dispatch({ type: 'admin', open: true, self: result.self });
+        if (isEnvBrowser() && (payload.action === 'noclip' || payload.action === 'god' || payload.action === 'invisible')) {
+          dispatch({ type: 'admin/toggle', key: payload.action });
+        }
+        return result?.ok ?? false;
+      },
+      closeAdmin: () => {
+        if (isEnvBrowser()) dispatch({ type: 'admin', open: false });
+        adminApi.close();
       },
       closeChat: () => {
         if (isEnvBrowser()) dispatch({ type: 'chat/open', open: false });

@@ -13,6 +13,11 @@ State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
 State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam'), nil = lobby ou création
 
+-- Options admin (voir client/modules/admin)
+State.noclip = false
+State.godmode = false
+State.invisible = false
+
 function State.init()
     RegisterNetEvent(Events.client.sync, function(data)
         State.setPlayer(data)
