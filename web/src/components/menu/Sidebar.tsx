@@ -1,4 +1,5 @@
 import { PAGES, type PageId } from '../../pages';
+import { useGame } from '../../store/GameContext';
 import { Icon } from '../icons/Icon';
 import { Logo } from '../ui/Logo';
 
@@ -8,10 +9,12 @@ interface SidebarProps {
 }
 
 export function Sidebar({ active, onSelect }: SidebarProps) {
+  const { actions } = useGame();
+
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
-        <Logo size={22} />
+        <Logo size={92} />
       </div>
       <nav className="sidebar__nav">
         {PAGES.map((page) => (
@@ -25,6 +28,10 @@ export function Sidebar({ active, onSelect }: SidebarProps) {
           </button>
         ))}
       </nav>
+      <button className="sidebar__item sidebar__lobby disp" onClick={actions.leaveToLobby}>
+        <Icon name="exit" size={16} strokeWidth={1.8} />
+        Retour au lobby
+      </button>
       <span className="mono sidebar__hint">[F2] FERMER</span>
     </aside>
   );

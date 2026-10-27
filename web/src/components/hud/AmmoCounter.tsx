@@ -11,7 +11,7 @@ export function AmmoCounter() {
   if (!item) return null;
 
   return (
-    <div className="ammo cut">
+    <div className="ammo">
       <span className="disp ammo__weapon">
         {item.label}
         {item.ammo && ` · ${itemLabel(config, item.ammo)}`}

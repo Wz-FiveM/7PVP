@@ -13,7 +13,7 @@ export function StatusPanel() {
   const progress = ((player.xp % config.xpPerLevel) / config.xpPerLevel) * 100;
 
   return (
-    <div className="status cut">
+    <div className="status">
       <span className="mono status__money">{formatMoney(bagMoney)}</span>
       <span className="label">Dans le sac</span>
       <div className="status__level">

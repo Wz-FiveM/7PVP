@@ -7,9 +7,10 @@ local Zones = PVP.use('Zones')
 
 Zone.CHECK_INTERVAL = 500
 
+-- Zone safe : on peut viser (25) mais pas tirer ni frapper
 Zone.SAFE_DISABLED_CONTROLS = {
-    24, 25, 47, 58, -- tir, visée, armes
-    140, 141, 142, 143, 257, 263, 264, -- corps à corps
+    24, 47, 58, 257, -- tir, détonation, lancer
+    140, 141, 142, 143, 263, 264, -- corps à corps
     69, 70, 92, 114, -- tir en véhicule
 }
 

@@ -18,7 +18,7 @@
 .sidebar__brand {
   display: flex;
   justify-content: center;
-  margin-bottom: 7.5rem;
+  margin-bottom: 4.5rem;
 }
 .sidebar__nav {
   display: flex;
@@ -47,8 +47,12 @@
   color: var(--os);
   background: rgba(255, 255, 255, 0.06);
 }
-.sidebar__hint {
+.sidebar__lobby {
   margin-top: auto;
+  margin-bottom: 1rem;
+  color: var(--hazard);
+}
+.sidebar__hint {
   text-align: center;
   font-size: 0.6875rem;
   color: var(--brume);
@@ -70,14 +74,18 @@
   gap: 1rem;
   margin-bottom: 0.875rem;
 }
+/* La zone défile (overflow), ce qui rogne aussi ce qui dépasse sur les côtés :
+   la marge intérieure laisse la place aux crochets de sélection des tuiles,
+   la marge négative garde l'alignement avec l'en-tête. */
 .menu__content {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 0.875rem;
   min-height: 0;
+  margin: 0 -0.75rem;
+  padding: 0.375rem 0.75rem 0.75rem;
   overflow-y: auto;
-  padding-right: 0.25rem;
 }
 
 .breadcrumb {

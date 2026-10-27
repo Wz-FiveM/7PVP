@@ -46,16 +46,37 @@ export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }:
           onChange={(event) => setCount(clamp(Number(event.target.value)))}
         />
         <div className="modal__row">
-          <input
-            ref={inputRef}
-            className="modal__input"
-            type="number"
-            min={1}
-            max={max}
-            value={count}
-            onChange={(event) => setCount(Number(event.target.value))}
-            onBlur={() => setCount(clamp(count))}
-          />
+          {/* Champ numérique avec nos propres boutons − / + (les flèches natives sont masquées) */}
+          <div className="qty">
+            <button
+              type="button"
+              className="qty__btn"
+              onClick={() => setCount(clamp(count - 1))}
+              disabled={count <= 1}
+              aria-label="Diminuer"
+            >
+              −
+            </button>
+            <input
+              ref={inputRef}
+              className="qty__input mono"
+              type="number"
+              min={1}
+              max={max}
+              value={count}
+              onChange={(event) => setCount(Number(event.target.value))}
+              onBlur={() => setCount(clamp(count))}
+            />
+            <button
+              type="button"
+              className="qty__btn"
+              onClick={() => setCount(clamp(count + 1))}
+              disabled={count >= max}
+              aria-label="Augmenter"
+            >
+              +
+            </button>
+          </div>
           <span className="modal__max">/ {max}</span>
           <button type="button" className="btn btn--small cut-s" onClick={() => setCount(max)}>
             Tout

@@ -80,5 +80,8 @@ function Spawn.resetPed(ped)
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
     SetPedArmour(ped, 0)
     SetEntityVisible(ped, true, false)
+    -- Le lobby cache le ped et retire ses collisions
+    SetEntityCollision(ped, true, true)
+    SetEntityInvincible(ped, false)
     SetCanAttackFriendly(ped, true, false)
 end

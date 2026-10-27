@@ -69,6 +69,21 @@
 .tile--protected {
   box-shadow: inset 0 -0.125rem 0 var(--abri);
 }
+.tile--dragging {
+  opacity: 0.35;
+}
+
+/* Copie de la tuile qui suit le curseur pendant un glisser */
+.drag-ghost {
+  position: fixed;
+  z-index: 60;
+  width: 8.5rem;
+  opacity: 0.92;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: rgba(38, 45, 49, 0.96);
+  box-shadow: inset 0 0 0 0.0625rem var(--hazard);
+}
 .tile--disabled {
   opacity: 0.4;
   cursor: default;
@@ -184,15 +199,53 @@
   align-items: center;
   gap: 0.5rem;
 }
-.modal__input {
-  width: 6rem;
-  min-height: 2.5rem;
-  padding: 0 0.625rem;
-  border: 0.0625rem solid var(--trait);
-  font-family: var(--font-mono);
-  font-size: 0.9375rem;
-  color: var(--os);
+/* Champ de quantité : − [ 12 ] + */
+.qty {
+  display: flex;
+  height: 2.5rem;
   background: var(--acier);
+}
+.qty__btn {
+  width: 2.25rem;
+  border: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--os);
+  background: var(--acier-hi);
+  cursor: pointer;
+}
+.qty__btn:hover:not(:disabled) {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+.qty__btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.qty__input {
+  width: 4rem;
+  border: 0;
+  border-bottom: 0.125rem solid transparent;
+  outline: none;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--os);
+  background: transparent;
+  appearance: textfield;
+}
+.qty__input:focus {
+  border-bottom-color: var(--hazard);
+}
+.qty__input::selection {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+/* Masque les flèches natives du champ numérique */
+.qty__input::-webkit-inner-spin-button,
+.qty__input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
 }
 .modal__max {
   flex: 1;

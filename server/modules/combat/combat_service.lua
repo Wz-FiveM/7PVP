@@ -4,6 +4,7 @@ local CombatService = PVP.define('CombatService')
 local PlayerService = PVP.use('PlayerService')
 local SpawnService = PVP.use('SpawnService')
 local LootService = PVP.use('LootService')
+local ModeRegistry = PVP.use('ModeRegistry')
 local Events = PVP.use('Events')
 
 function CombatService.init()
@@ -84,5 +85,5 @@ end
 ---@param killerName string|nil
 ---@param victimName string
 function CombatService.broadcastKill(killerName, victimName)
-    TriggerClientEvent(Events.client.killfeed, -1, { killer = killerName, victim = victimName })
+    ModeRegistry.broadcast('pvp', Events.client.killfeed, { killer = killerName, victim = victimName })
 end

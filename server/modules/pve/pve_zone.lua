@@ -11,6 +11,7 @@ local PveZone = PVP.define('PveZone')
 local CombatService = PVP.use('CombatService')
 local LootService = PVP.use('LootService')
 local Utils = PVP.use('Utils')
+local ModeRegistry = PVP.use('ModeRegistry')
 
 PveZone.__index = PveZone
 
@@ -26,10 +27,11 @@ function PveZone.new(zone)
     }, PveZone)
 end
 
+---Seuls les joueurs du mode PvP comptent (ceux du lobby ou du Freeroam sont ailleurs).
 ---@param extra number distance ajoutée au rayon de la zone
 ---@return boolean
 function PveZone:hasPlayersNear(extra)
-    for _, id in ipairs(GetPlayers()) do
+    for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
         local ped = GetPlayerPed(id)
         if ped ~= 0 and #(GetEntityCoords(ped) - self.zone.coords) <= self.zone.radius + extra then
             return true

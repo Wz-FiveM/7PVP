@@ -4,15 +4,31 @@ local Shortcuts = PVP.define('Shortcuts')
 local State = PVP.use('State')
 local Inventory = PVP.use('Inventory')
 local Items = PVP.use('Items')
+local Nui = PVP.use('Nui')
 
--- Sélection d'armes par catégorie de GTA, remplacée par les raccourcis
-Shortcuts.DISABLED_CONTROLS = { 157, 158, 159, 160, 161, 162, 163, 164, 165 }
+-- Sélection d'armes de GTA (roue sur TAB, catégories sur 1-9), remplacée par les raccourcis
+Shortcuts.DISABLED_CONTROLS = { 37, 157, 158, 159, 160, 161, 162, 163, 164, 165 }
 
 function Shortcuts.init()
     for slot = 1, Config.ShortcutSlots do
         Shortcuts.registerSlot(slot)
     end
+
+    -- Barre de raccourcis du HUD : visible tant que la touche est maintenue
+    RegisterCommand('+pvp_hotbar', function()
+        Shortcuts.setHotbarVisible(true)
+    end, false)
+    RegisterCommand('-pvp_hotbar', function()
+        Shortcuts.setHotbarVisible(false)
+    end, false)
+    RegisterKeyMapping('+pvp_hotbar', 'Afficher les raccourcis', 'keyboard', Config.HotbarKey)
+
     CreateThread(Shortcuts.controlLoop)
+end
+
+---@param visible boolean
+function Shortcuts.setHotbarVisible(visible)
+    Nui.send('hotbar', { visible = visible and State.isAlive() })
 end
 
 ---@param slot integer

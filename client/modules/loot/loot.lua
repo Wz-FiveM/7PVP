@@ -115,7 +115,8 @@ end
 function Loot.renderBag(id, bag, pos)
     local dist = #(pos - bag.coords)
 
-    if dist >= Loot.STREAM_DISTANCE then
+    -- Les sacs n'existent que dans le monde PvP
+    if not State.inPvp() or dist >= Loot.STREAM_DISTANCE then
         if bag.object then Loot.deleteObject(bag) end
         return false
     end

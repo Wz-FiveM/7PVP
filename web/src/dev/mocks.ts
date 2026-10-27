@@ -1,5 +1,24 @@
 import type { CreatorPayload, Rgb } from '../types/appearance';
-import type { LeaderboardRow, Vitals } from '../types/game';
+import type { LeaderboardRow, LobbyMode, Vitals } from '../types/game';
+
+export const mockLobbyModes: LobbyMode[] = [
+  {
+    id: 'pvp',
+    label: 'PvP',
+    tagline: 'Survie & butin',
+    description: 'Zones PvE, combats entre joueurs, inventaire perdu à la mort. Protège ce qui compte.',
+    enabled: true,
+    players: 12,
+  },
+  {
+    id: 'freeroam',
+    label: 'Freeroam',
+    tagline: 'Liberté totale',
+    description: 'Explore Los Santos librement, sans perte d\'équipement.',
+    enabled: false,
+    players: 0,
+  },
+];
 import type { InitPayload } from '../types/nui';
 
 export const mockVitals: Vitals = {

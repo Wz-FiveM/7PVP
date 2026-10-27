@@ -12,6 +12,10 @@ export interface GameActions {
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   refreshLeaderboard: () => Promise<void>;
+  /** Lobby : rejoindre un mode */
+  joinMode: (mode: string) => Promise<void>;
+  /** Retour au lobby (refusé hors zone safe en PvP) */
+  leaveToLobby: () => Promise<void>;
 }
 
 export interface GameContextValue {

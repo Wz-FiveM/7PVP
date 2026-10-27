@@ -11,6 +11,7 @@ State.dead = false
 State.zone = nil -- entrée de Config.Zones, nil = PvP libre, false = à recalculer
 State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
+State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam'), nil = lobby ou création
 
 function State.init()
     RegisterNetEvent(Events.client.sync, function(data)
@@ -28,6 +29,11 @@ end
 ---@return boolean
 function State.isInSafeZone()
     return type(State.zone) == 'table' and State.zone.type == 'safe'
+end
+
+---@return boolean
+function State.inPvp()
+    return State.mode == 'pvp'
 end
 
 ---@return boolean

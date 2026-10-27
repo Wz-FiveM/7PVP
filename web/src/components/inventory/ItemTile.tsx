@@ -1,4 +1,4 @@
-import type { DragEvent, MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
 import type { ItemDefinition } from '../../types/game';
 import { Brackets } from '../ui/Brackets';
 import { ItemIcon } from './ItemIcon';
@@ -11,27 +11,20 @@ interface ItemTileProps {
   selected?: boolean;
   /** Liseré cyan : objet dans le conteneur protégé */
   protectedItem?: boolean;
+  /** Tuile en cours de glisser : affichée en retrait */
+  dragging?: boolean;
   disabled?: boolean;
   onClick?: () => void;
   onDoubleClick?: () => void;
   onContextMenu?: (event: MouseEvent) => void;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
+  /** Appui de la souris : point de départ d'un glisser (voir DragProvider) */
+  onDragBegin?: (event: MouseEvent) => void;
 }
 
 export function ItemTile({
-  name, item, corner, selected, protectedItem, disabled,
-  onClick, onDoubleClick, onContextMenu, onDragStart, onDragEnd,
+  name, item, corner, selected, protectedItem, dragging, disabled,
+  onClick, onDoubleClick, onContextMenu, onDragBegin,
 }: ItemTileProps) {
-  const draggable = Boolean(onDragStart) && !disabled;
-
-  const handleDragStart = (event: DragEvent) => {
-    // Chromium (CEF) exige des données pour démarrer un glisser-déposer
-    event.dataTransfer.setData('text/plain', name);
-    event.dataTransfer.effectAllowed = 'move';
-    onDragStart?.();
-  };
-
   const handleContextMenu = (event: MouseEvent) => {
     event.preventDefault();
     onContextMenu?.(event);
@@ -42,15 +35,14 @@ export function ItemTile({
     'cut',
     selected && 'tile--selected',
     protectedItem && 'tile--protected',
+    dragging && 'tile--dragging',
     disabled && 'tile--disabled',
   ].filter(Boolean).join(' ');
 
   return (
     <div
       className="tile-wrap"
-      draggable={draggable}
-      onDragStart={draggable ? handleDragStart : undefined}
-      onDragEnd={onDragEnd}
+      onMouseDown={disabled ? undefined : onDragBegin}
       onClick={disabled ? undefined : onClick}
       onDoubleClick={disabled ? undefined : onDoubleClick}
       onContextMenu={handleContextMenu}
@@ -61,7 +53,7 @@ export function ItemTile({
         <span className="tile__label">{item.label}</span>
         {corner && <span className="tile__corner mono">{corner}</span>}
       </div>
-      {selected && <Brackets />}
+      {selected && !dragging && <Brackets />}
     </div>
   );
 }

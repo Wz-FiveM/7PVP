@@ -1,23 +1,15 @@
 import { useGame } from '../../store/GameContext';
-import { isShortcutItem } from '../../utils/inventory';
 import { SectionTitle } from '../menu/SectionTitle';
-import type { DragSource } from './drag';
+import { useDrag } from './DragProvider';
 import { DropZone } from './DropZone';
 import { EmptyTile } from './EmptyTile';
 import { ItemTile } from './ItemTile';
 
-interface ShortcutBarProps {
-  drag: DragSource | null;
-  onDragStart: (source: DragSource) => void;
-  onDragEnd: () => void;
-  onDrop: (slot: number) => void;
-}
-
-export function ShortcutBar({ drag, onDragStart, onDragEnd, onDrop }: ShortcutBarProps) {
+export function ShortcutBar() {
   const { state, actions } = useGame();
+  const { drag, begin } = useDrag();
   const { config, player } = state;
   const shortcuts = player?.inventory.shortcuts ?? [];
-  const accepts = drag !== null && isShortcutItem(config.items[drag.item]?.type);
 
   return (
     <section className="container">
@@ -27,16 +19,17 @@ export function ShortcutBar({ drag, onDragStart, onDragEnd, onDrop }: ShortcutBa
           const slot = i + 1;
           const name = shortcuts[i] || null;
           const item = name ? config.items[name] : undefined;
+          const isDragged = drag?.source.kind === 'shortcut' && drag.source.slot === slot;
 
           return (
-            <DropZone key={slot} className="shortcut-slot" accepts={accepts} onDrop={() => onDrop(slot)}>
+            <DropZone key={slot} target={{ kind: 'shortcut', slot }} className="shortcut-slot">
               {name && item ? (
                 <ItemTile
                   name={name}
                   item={item}
                   corner={String(slot)}
-                  onDragStart={() => onDragStart({ kind: 'shortcut', slot, item: name })}
-                  onDragEnd={onDragEnd}
+                  dragging={isDragged}
+                  onDragBegin={(event) => begin({ kind: 'shortcut', slot, item: name }, event)}
                   onContextMenu={() => actions.setShortcut(slot, null)}
                 />
               ) : (

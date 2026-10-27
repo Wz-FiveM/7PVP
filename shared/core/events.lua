@@ -18,6 +18,7 @@ Events.client = {
     notify = '7pvp:client:notify',
     spawn = '7pvp:client:spawn',
     openCreator = '7pvp:client:openCreator',
+    openLobby = '7pvp:client:openLobby',
     dead = '7pvp:client:dead',
     killfeed = '7pvp:client:killfeed',
     applyItem = '7pvp:client:applyItem',
@@ -40,5 +41,7 @@ Events.callbacks = {
     dropItem = 'inventory:drop',
     setShortcut = 'inventory:setShortcut',
     saveAppearance = 'appearance:save',
+    joinMode = 'lobby:join',
+    leaveMode = 'lobby:leave',
     leaderboard = 'leaderboard:get',
 }

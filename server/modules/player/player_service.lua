@@ -4,9 +4,9 @@ local PlayerService = PVP.define('PlayerService')
 local PlayerObject = PVP.use('PlayerObject')
 local PlayerRepository = PVP.use('PlayerRepository')
 local InventoryObject = PVP.use('InventoryObject')
-local SpawnService = PVP.use('SpawnService')
 local LootService = PVP.use('LootService')
 local AppearanceService = PVP.use('AppearanceService')
+local LobbyService = PVP.use('LobbyService')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
 
@@ -95,9 +95,9 @@ function PlayerService.onReady(source)
     if not player then return end
     LootService.syncTo(source)
 
-    -- Premier passage : le joueur crée son personnage avant d'apparaître
+    -- Premier passage : le joueur crée son personnage, puis choisit son mode au lobby
     if player.appearance then
-        SpawnService.spawn(player)
+        LobbyService.open(player)
     else
         AppearanceService.startCreator(player)
     end

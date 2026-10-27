@@ -5,7 +5,7 @@ import { stacksOf, weightOf } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 import { SectionTitle } from '../menu/SectionTitle';
 import { SegmentBar } from '../ui/SegmentBar';
-import type { DragSource } from './drag';
+import { useDrag } from './DragProvider';
 import { DropZone } from './DropZone';
 import { ItemTile } from './ItemTile';
 
@@ -17,26 +17,21 @@ export interface Selection {
 interface ContainerSectionProps {
   id: ContainerId;
   stacks: ItemStacks;
-  drag: DragSource | null;
   selection: Selection | null;
   onSelect: (selection: Selection) => void;
-  onDragStart: (source: DragSource) => void;
-  onDragEnd: () => void;
-  onDrop: (target: ContainerId) => void;
   onItemContextMenu: (event: MouseEvent, stack: ItemStack, container: ContainerId) => void;
   onItemDoubleClick: (stack: ItemStack) => void;
 }
 
 export function ContainerSection({
-  id, stacks, drag, selection,
-  onSelect, onDragStart, onDragEnd, onDrop, onItemContextMenu, onItemDoubleClick,
+  id, stacks, selection, onSelect, onItemContextMenu, onItemDoubleClick,
 }: ContainerSectionProps) {
   const { state } = useGame();
+  const { drag, begin } = useDrag();
   const { config } = state;
   const definition = config.containers[id];
   const weight = weightOf(stacks, config);
   const isProtected = id === 'protected';
-  const accepts = drag?.kind === 'container' && drag.container !== id;
 
   return (
     <section className={isProtected ? 'container container--protected' : 'container'}>
@@ -58,22 +53,27 @@ export function ContainerSection({
         warnFrom={0.9}
         height={3}
       />
-      <DropZone className="tile-grid container__grid" accepts={accepts} onDrop={() => onDrop(id)}>
-        {stacksOf(stacks, config).map((stack) => (
-          <ItemTile
-            key={stack.name}
-            name={stack.name}
-            item={stack.item}
-            corner={stack.item.type === 'money' ? `$${stack.count.toLocaleString('fr-FR')}` : `x${stack.count}`}
-            selected={selection?.name === stack.name && selection.container === id}
-            protectedItem={isProtected}
-            onClick={() => onSelect({ name: stack.name, container: id })}
-            onDragStart={() => onDragStart({ kind: 'container', container: id, item: stack.name, count: stack.count })}
-            onDragEnd={onDragEnd}
-            onDoubleClick={() => onItemDoubleClick(stack)}
-            onContextMenu={(event) => onItemContextMenu(event, stack, id)}
-          />
-        ))}
+      <DropZone target={{ kind: 'container', container: id }} className="tile-grid container__grid">
+        {stacksOf(stacks, config).map((stack) => {
+          const isDragged = drag?.source.kind === 'container' && drag.source.container === id && drag.source.item === stack.name;
+          return (
+            <ItemTile
+              key={stack.name}
+              name={stack.name}
+              item={stack.item}
+              corner={stack.item.type === 'money' ? `$${stack.count.toLocaleString('fr-FR')}` : `x${stack.count}`}
+              selected={selection?.name === stack.name && selection.container === id}
+              protectedItem={isProtected}
+              dragging={isDragged}
+              onClick={() => onSelect({ name: stack.name, container: id })}
+              onDragBegin={(event) =>
+                begin({ kind: 'container', container: id, item: stack.name, count: stack.count }, event)
+              }
+              onDoubleClick={() => onItemDoubleClick(stack)}
+              onContextMenu={(event) => onItemContextMenu(event, stack, id)}
+            />
+          );
+        })}
       </DropZone>
     </section>
   );

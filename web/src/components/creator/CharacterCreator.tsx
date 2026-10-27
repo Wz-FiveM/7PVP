@@ -38,7 +38,7 @@ export function CharacterCreator() {
     <div className="creator">
       <aside className="creator-panel">
         <header className="creator-panel__header">
-          <Logo size={20} />
+          <Logo size={52} />
           <div className="creator-panel__titles">
             <span className="label">{isEdit ? 'Apparence' : 'Nouvel opérateur'}</span>
             <h1 className="disp creator-panel__title">{isEdit ? 'Modifier le personnage' : 'Création du personnage'}</h1>

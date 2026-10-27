@@ -12,6 +12,7 @@
 ---@field ammoSeq integer dernier rapport de munitions traité
 ---@field appearance table|nil apparence du personnage (nil = pas encore créé)
 ---@field creating boolean dans le créateur de personnage
+---@field mode string|nil mode de jeu en cours ('pvp', 'freeroam'), nil = au lobby
 ---@field dead boolean
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
@@ -39,6 +40,7 @@ function PlayerObject.new(source, identifier, row)
         inventory = InventoryObject.decode(row.inventory),
         appearance = AppearanceSchema.decode(row.appearance),
         creating = false,
+        mode = nil,
         ammoSeq = 0,
         dead = false,
     }, PlayerObject)

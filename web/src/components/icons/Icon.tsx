@@ -13,7 +13,8 @@ export type IconName =
   | 'profile'
   | 'leaderboard'
   | 'shop'
-  | 'help';
+  | 'help'
+  | 'exit';
 
 /** Icônes au trait (viewBox 24x24), dans le style de la D.A Frontline. */
 const PATHS: Record<IconName, string> = {
@@ -32,6 +33,7 @@ const PATHS: Record<IconName, string> = {
   leaderboard: 'M4 20V12h4v8M10 20V6h4v14M16 20v-6h4v6',
   shop: 'M3 4h2l2 11h11l2-8H6.5M9 20h.01M17 20h.01',
   help: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 11v6M12 7h.01',
+  exit: 'M10 4H5v16h5M14 8l4 4-4 4M18 12H9',
 };
 
 interface IconProps {

@@ -3,11 +3,11 @@ import { entriesOf } from '../../utils/inventory';
 import { ItemIcon } from '../inventory/ItemIcon';
 import { Brackets } from '../ui/Brackets';
 
-/** Raccourcis 1 à 7, en bas au centre. L'arme en main est encadrée. */
+/** Raccourcis 1 à 7, en bas au centre, visibles tant que TAB est maintenu. L'arme en main est encadrée. */
 export function HotbarHud() {
   const { state } = useGame();
-  const { player, config, vitals } = state;
-  if (!player) return null;
+  const { player, config, vitals, hotbarVisible } = state;
+  if (!player || !hotbarVisible) return null;
 
   const owned = new Map<string, number>();
   for (const stacks of [player.inventory.bag, player.inventory.protected]) {

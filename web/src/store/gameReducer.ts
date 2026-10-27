@@ -2,7 +2,9 @@ import type {
   GameConfig,
   KillfeedItem,
   LeaderboardRow,
+  LobbyMode,
   PlayerState,
+  MinimapAnchor,
   Toast,
   Vitals,
   ZoneInfo,
@@ -15,6 +17,13 @@ export interface GameState {
   player: PlayerState | null;
   zone: ZoneInfo;
   vitals: Vitals;
+  /** Barre de raccourcis du HUD (TAB maintenu) */
+  hotbarVisible: boolean;
+  /** Position de la minimap GTA (null tant que le jeu ne l'a pas envoyée) */
+  minimap: MinimapAnchor | null;
+  /** Mode de jeu en cours ('pvp', 'freeroam'), null au lobby */
+  mode: string | null;
+  lobby: { open: boolean; modes: LobbyMode[] };
   menu: { open: boolean; inSafe: boolean };
   death: { active: boolean; seconds: number; key: number };
   toasts: Toast[];
@@ -27,6 +36,10 @@ export type GameAction =
   | { type: 'sync'; player: PlayerState }
   | { type: 'zone'; zone: ZoneInfo }
   | { type: 'vitals'; vitals: Vitals }
+  | { type: 'hotbar'; visible: boolean }
+  | { type: 'minimap'; minimap: MinimapAnchor }
+  | { type: 'mode'; mode: string | null }
+  | { type: 'lobby'; open: boolean; modes?: LobbyMode[] }
   | { type: 'menu'; open: boolean; inSafe: boolean }
   | { type: 'death'; seconds: number }
   | { type: 'alive' }
@@ -48,6 +61,10 @@ export const initialState: GameState = {
   player: null,
   zone: { label: 'Zone PvP', type: 'pvp' },
   vitals: { health: 100, maxHealth: 100, armor: 0, weapon: false, clip: 0, reserve: 0 },
+  hotbarVisible: false,
+  minimap: null,
+  mode: null,
+  lobby: { open: false, modes: [] },
   menu: { open: false, inSafe: false },
   death: { active: false, seconds: 0, key: 0 },
   toasts: [],
@@ -71,6 +88,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, zone: action.zone };
     case 'vitals':
       return { ...state, vitals: action.vitals };
+    case 'hotbar':
+      return { ...state, hotbarVisible: action.visible };
+    case 'minimap':
+      return { ...state, minimap: action.minimap };
+    case 'mode':
+      return { ...state, mode: action.mode };
+    case 'lobby':
+      return {
+        ...state,
+        lobby: { open: action.open, modes: action.modes ?? state.lobby.modes },
+        menu: action.open ? { ...state.menu, open: false } : state.menu,
+      };
     case 'menu':
       return { ...state, menu: { open: action.open, inSafe: action.inSafe } };
     case 'death':

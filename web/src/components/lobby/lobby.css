@@ -1,0 +1,105 @@
+/* Lobby : la vue de la ville reste visible, assombrie vers la gauche ----------- */
+
+.lobby {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, rgba(5, 6, 7, 0.88) 0%, rgba(5, 6, 7, 0.6) 55%, rgba(5, 6, 7, 0.15) 100%);
+}
+
+.lobby__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  margin-left: 7rem;
+}
+
+.lobby__header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.lobby__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.lobby__title {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lobby__modes {
+  display: flex;
+  gap: 1.75rem;
+}
+
+/* Carte d'un mode ----------------------------------------------------------- */
+
+.lobby-card {
+  position: relative;
+  width: 24rem;
+}
+.lobby-card .brackets {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.lobby-card:hover .brackets {
+  opacity: 1;
+}
+
+.lobby-card__panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(14, 17, 19, 0.9);
+}
+.lobby-card__panel .stripes {
+  height: 0.5rem;
+}
+
+.lobby-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem 1.625rem 1.75rem;
+}
+.lobby-card__tagline {
+  color: var(--zone);
+}
+.lobby-card__name {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.lobby-card__description {
+  min-height: 4.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--brume-hi);
+}
+.lobby-card__players {
+  font-size: 0.75rem;
+}
+.lobby-card__join {
+  margin-top: 0.5rem;
+  min-height: 3rem;
+  font-size: 1rem;
+}
+
+/* Mode pas encore disponible */
+.lobby-card--locked .lobby-card__panel {
+  background: rgba(14, 17, 19, 0.7);
+}
+.lobby-card--locked .lobby-card__name,
+.lobby-card--locked .lobby-card__description {
+  opacity: 0.55;
+}
+
+.lobby__hint {
+  font-size: 0.75rem;
+  color: var(--brume);
+}

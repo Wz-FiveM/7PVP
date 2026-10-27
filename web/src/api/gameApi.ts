@@ -29,4 +29,8 @@ export const gameApi = {
     fetchNui<ActionResult>('setShortcut', { slot, item }, { ok: true }),
 
   leaderboard: () => fetchNui<LeaderboardRow[]>('leaderboard', {}, mockLeaderboard),
+
+  joinMode: (mode: string) => fetchNui<ActionResult>('lobbyJoin', { mode }, { ok: true }),
+
+  leaveToLobby: () => fetchNui<ActionResult>('lobbyLeave', {}, { ok: true }),
 };

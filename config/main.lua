@@ -42,7 +42,20 @@ Config.NpcCorpseTime = 20 -- secondes avant suppression du corps
 Config.NpcAggroRange = 70.0
 
 -- ---------------------------------------------------------------------------
+-- Monde
+-- Population ambiante de GTA (piétons, trafic, véhicules garés, police).
+-- Les PNJ des zones PvE sont créés par le gamemode et ne sont pas concernés.
+-- ---------------------------------------------------------------------------
+
+Config.World = {
+    ambientPeds = false, -- piétons
+    traffic = false, -- véhicules qui roulent
+    parkedVehicles = false, -- véhicules garés
+}
+
+-- ---------------------------------------------------------------------------
 -- Interface
 -- ---------------------------------------------------------------------------
 
 Config.MenuKey = 'F2'
+Config.HotbarKey = 'TAB' -- maintenir pour afficher la barre de raccourcis (remplace la roue des armes)

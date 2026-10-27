@@ -97,6 +97,26 @@ export interface Vitals {
   reserve: number;
 }
 
+/** Mode proposé au lobby (voir config/lobby.lua) */
+export interface LobbyMode {
+  id: string;
+  label: string;
+  tagline: string;
+  description: string;
+  /** false : affiché comme « bientôt disponible » */
+  enabled: boolean;
+  players: number;
+}
+
+/** Position de la minimap GTA, en fractions de l'écran (0 à 1) */
+export interface MinimapAnchor {
+  visible: boolean;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 /** Une pile d'objets prête à afficher */
 export interface ItemStack {
   name: string;

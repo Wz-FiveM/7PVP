@@ -1,0 +1,30 @@
+Icônes de munitions, soins, gilet et argent :
+SwisserDev/fivem-inventory-icons — https://github.com/SwisserDev/fivem-inventory-icons
+Licence : Creative Commons CC0 1.0 Universal (domaine public, aucune attribution requise).
+
+Fichiers renommés d'après les objets de 7PVP :
+  ammo_9mm.png   <- pistol_ammo.png
+  ammo_45acp.png <- smg_ammo.png
+  ammo_556.png   <- rifle_ammo.png
+  ammo_12g.png   <- shotgun_ammo.png
+  ammo_762.png   <- snp_ammo.png
+  bandage.png    <- bandage.png
+  medkit.png     <- medkit.png
+  armor.png      <- armor.png
+  money.png      <- cash.png
+
+Icônes d'armes :
+Bibliothèque ai.swisser.dev — https://ai.swisser.dev/fivem-inventory-icons
+Téléchargement gratuit, sans compte ; aucune licence écrite pour la bibliothèque complète
+(seul le pack de 232 icônes ci-dessus est en CC0). Converties en PNG 256x256.
+
+  weapon_pistol.png        <- beretta
+  weapon_combatpistol.png  <- combat-pistol
+  weapon_microsmg.png      <- fn-smg-tbogt (Uzi)
+  weapon_smg.png           <- combat-pdw
+  weapon_carbinerifle.png  <- 762-carbine-rifle
+  weapon_assaultrifle.png  <- ak47
+  weapon_sniperrifle.png   <- gta5-heavy-sniper-inventory-icon
+  weapon_knife.png         <- combat-knife
+
+weapon_pumpshotgun : pas d'icône dans la bibliothèque, l'interface affiche l'icône au trait.
