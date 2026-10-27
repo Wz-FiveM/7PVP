@@ -1,15 +1,12 @@
 import { useCallback, useState, type MouseEvent } from 'react';
-import { BagFilters, type BagFilter } from '../components/inventory/BagFilters';
-import { ContainerPanel, type Selection } from '../components/inventory/ContainerPanel';
+import { ContainerSection, type Selection } from '../components/inventory/ContainerSection';
 import { ContextMenu, type ContextMenuAction } from '../components/inventory/ContextMenu';
 import type { DragSource } from '../components/inventory/drag';
-import { ItemDetail } from '../components/inventory/ItemDetail';
-import { OperatorPanel } from '../components/inventory/OperatorPanel';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
-import { itemLabel, otherContainer, stacksOf } from '../utils/inventory';
+import { CONTAINERS, itemLabel, otherContainer } from '../utils/inventory';
 import '../components/inventory/inventory.css';
 
 interface PendingQuantity {
@@ -30,7 +27,6 @@ export function InventoryPage() {
   const { state, actions } = useGame();
   const { player, config } = state;
   const [drag, setDrag] = useState<DragSource | null>(null);
-  const [filter, setFilter] = useState<BagFilter>('all');
   const [selection, setSelection] = useState<Selection | null>(null);
   const [quantity, setQuantity] = useState<PendingQuantity | null>(null);
   const [contextMenu, setContextMenu] = useState<OpenContextMenu | null>(null);
@@ -40,10 +36,6 @@ export function InventoryPage() {
   const endDrag = useCallback(() => setDrag(null), []);
 
   if (!player) return null;
-
-  const selectedStack = selection
-    ? stacksOf(player.inventory[selection.container], config).find((stack) => stack.name === selection.name) ?? null
-    : null;
 
   /** Déplace directement s'il n'y a qu'un objet, sinon demande la quantité. */
   const requestMove = (item: string, from: ContainerId, count: number) => {
@@ -110,43 +102,29 @@ export function InventoryPage() {
     if (stack.item.type === 'weapon') actions.equip(stack.name);
   };
 
-  const containerProps = {
-    drag,
-    selection,
-    onSelect: setSelection,
-    onDragStart: setDrag,
-    onDragEnd: endDrag,
-    onDrop: handleContainerDrop,
-    onItemContextMenu: handleContextMenu,
-    onItemDoubleClick: handleDoubleClick,
-  };
-
   return (
     <div className="inventory">
-      <div className="inventory__columns">
-        <OperatorPanel />
-
-        <ContainerPanel
-          id="bag"
-          stacks={player.inventory.bag}
-          filter={filter}
-          toolbar={<BagFilters value={filter} onChange={setFilter} />}
-          className="inventory__bag"
-          {...containerProps}
+      {CONTAINERS.map((id) => (
+        <ContainerSection
+          key={id}
+          id={id}
+          stacks={player.inventory[id]}
+          drag={drag}
+          selection={selection}
+          onSelect={setSelection}
+          onDragStart={setDrag}
+          onDragEnd={endDrag}
+          onDrop={handleContainerDrop}
+          onItemContextMenu={handleContextMenu}
+          onItemDoubleClick={handleDoubleClick}
         />
-
-        <div className="inventory__side">
-          <ContainerPanel id="protected" stacks={player.inventory.protected} {...containerProps} />
-          <ItemDetail
-            stack={selectedStack}
-            container={selection?.container ?? null}
-            onMove={() => selectedStack && requestMove(selectedStack.name, selection!.container, selectedStack.count)}
-            onDrop={() => selectedStack && requestDrop(selectedStack.name, selection!.container, selectedStack.count)}
-          />
-        </div>
-      </div>
+      ))}
 
       <ShortcutBar drag={drag} onDragStart={setDrag} onDragEnd={endDrag} onDrop={handleShortcutDrop} />
+
+      <p className="mono inventory__help">
+        [GLISSER] DÉPLACER · [DOUBLE-CLIC] UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS
+      </p>
 
       {contextMenu && (
         <ContextMenu

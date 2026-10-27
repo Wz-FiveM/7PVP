@@ -10,9 +10,12 @@
 ---@field npcKills integer
 ---@field inventory PvpInventory
 ---@field ammoSeq integer dernier rapport de munitions traité
+---@field appearance table|nil apparence du personnage (nil = pas encore créé)
+---@field creating boolean dans le créateur de personnage
 ---@field dead boolean
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
+local AppearanceSchema = PVP.use('AppearanceSchema')
 local Items = PVP.use('Items')
 local Progression = PVP.use('Progression')
 local Zones = PVP.use('Zones')
@@ -34,6 +37,8 @@ function PlayerObject.new(source, identifier, row)
         deaths = row.deaths,
         npcKills = row.npc_kills,
         inventory = InventoryObject.decode(row.inventory),
+        appearance = AppearanceSchema.decode(row.appearance),
+        creating = false,
         ammoSeq = 0,
         dead = false,
     }, PlayerObject)

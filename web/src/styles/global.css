@@ -2,6 +2,12 @@
  * Neutres : Nuit, Carbone, Acier, Trait, Brume, Os
  * Zones   : Abri (safe), Toxine (PvE), Hazard (PvP + marque + actions)
  * Ces trois couleurs de zone ne servent à rien d'autre.
+ *
+ * Règles NUI (CEF de FiveM) :
+ *  - JAMAIS de blur / backdrop-filter / filter : ça affiche des carrés noirs en jeu.
+ *    La transparence se fait uniquement avec des couleurs rgba().
+ *  - Toutes les tailles sont en rem (1rem = 16px en 1080p) : l'échelle suit la
+ *    résolution (voir src/utils/scale.ts). Ne pas écrire de px.
  */
 :root {
   --nuit: #0b0d0e;
@@ -21,8 +27,8 @@
   --font-body: 'Barlow', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --cut: 12px;
-  --cut-s: 6px;
+  --cut: 0.75rem;
+  --cut-s: 0.375rem;
 }
 
 * {
@@ -42,7 +48,7 @@ body,
 body {
   overflow: hidden;
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--os);
   background: transparent;
   user-select: none;
@@ -57,7 +63,7 @@ button {
 /* Fond de remplacement quand on développe dans le navigateur (pas de jeu derrière) */
 .app--browser {
   background-color: #1a1f1d;
-  background-image: linear-gradient(#1f2522 1px, transparent 1px),
-    linear-gradient(90deg, #1f2522 1px, transparent 1px);
-  background-size: 80px 80px;
+  background-image: linear-gradient(#1f2522 0.0625rem, transparent 0.0625rem),
+    linear-gradient(90deg, #1f2522 0.0625rem, transparent 0.0625rem);
+  background-size: 5rem 5rem;
 }

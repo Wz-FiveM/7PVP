@@ -2,13 +2,17 @@ import type { ReactNode } from 'react';
 
 interface SectionTitleProps {
   title: string;
+  icon?: ReactNode;
+  badge?: ReactNode;
   aside?: ReactNode;
 }
 
-export function SectionTitle({ title, aside }: SectionTitleProps) {
+export function SectionTitle({ title, icon, badge, aside }: SectionTitleProps) {
   return (
     <div className="section-title">
-      <span className="label">{title}</span>
+      {icon}
+      <span className="section-title__text">{title}</span>
+      {badge}
       {aside && <span className="mono section-title__aside">{aside}</span>}
     </div>
   );

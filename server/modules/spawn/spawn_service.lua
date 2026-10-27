@@ -9,7 +9,7 @@ local Events = PVP.use('Events')
 function SpawnService.spawn(player)
     player.dead = false
     player:sync()
-    TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn())
+    TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn(), player.appearance)
 end
 
 ---@param player PvpPlayer

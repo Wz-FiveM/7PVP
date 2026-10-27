@@ -1,14 +1,14 @@
 interface EmptyTileProps {
-  keyLabel?: string;
-  compact?: boolean;
+  /** Texte en bas à droite (ex : numéro de touche) */
+  corner?: string;
 }
 
-/** Emplacement vide, hachuré. */
-export function EmptyTile({ keyLabel, compact }: EmptyTileProps) {
+/** Emplacement vide. */
+export function EmptyTile({ corner }: EmptyTileProps) {
   return (
     <div className="tile-wrap">
-      <div className={compact ? 'tile tile--compact tile--empty cut hatched' : 'tile tile--empty cut hatched'}>
-        {keyLabel && <span className="tile__key tile__key--off">{keyLabel}</span>}
+      <div className="tile tile--empty cut">
+        {corner && <span className="tile__corner mono">{corner}</span>}
       </div>
     </div>
   );

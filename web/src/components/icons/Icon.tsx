@@ -1,6 +1,19 @@
 import type { ItemType } from '../../types/game';
+import { rem } from '../../utils/scale';
 
-export type IconName = ItemType | 'knife' | 'armor' | 'bandage' | 'lock' | 'check' | 'crosshair';
+export type IconName =
+  | ItemType
+  | 'knife'
+  | 'armor'
+  | 'bandage'
+  | 'lock'
+  | 'check'
+  | 'crosshair'
+  | 'inventory'
+  | 'profile'
+  | 'leaderboard'
+  | 'shop'
+  | 'help';
 
 /** Icônes au trait (viewBox 24x24), dans le style de la D.A Frontline. */
 const PATHS: Record<IconName, string> = {
@@ -14,11 +27,17 @@ const PATHS: Record<IconName, string> = {
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
   check: 'M4 12l5 5L20 6',
   crosshair: 'M12 2v6M12 16v6M2 12h6M16 12h6M18 12a6 6 0 1 1-12 0 6 6 0 0 1 12 0z',
+  inventory: 'M5 8h14v12H5zM9 8V5h6v3M5 13h14M11 13v2h2v-2',
+  profile: 'M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM4 21c0-4 3.6-6 8-6s8 2 8 6',
+  leaderboard: 'M4 20V12h4v8M10 20V6h4v14M16 20v-6h4v6',
+  shop: 'M3 4h2l2 11h11l2-8H6.5M9 20h.01M17 20h.01',
+  help: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0zM12 11v6M12 7h.01',
 };
 
 interface IconProps {
   name: IconName;
   className?: string;
+  /** Taille en px à 1080p (mise à l'échelle avec la résolution) */
   size?: number;
   strokeWidth?: number;
 }
@@ -27,8 +46,7 @@ export function Icon({ name, className, size = 24, strokeWidth = 1.5 }: IconProp
   return (
     <svg
       className={className}
-      width={size}
-      height={size}
+      style={{ width: rem(size), height: rem(size), flex: 'none' }}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

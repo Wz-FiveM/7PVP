@@ -3,10 +3,18 @@
 local PlayerRepository = PVP.define('PlayerRepository')
 local Logger = PVP.use('Logger')
 
+-- Évolutions du schéma pour les bases créées avant l'ajout d'une colonne
+PlayerRepository.MIGRATIONS = {
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS appearance LONGTEXT NULL AFTER inventory',
+}
+
 function PlayerRepository.init()
     local schema = LoadResourceFile(GetCurrentResourceName(), 'sql/7pvp.sql')
     MySQL.ready(function()
         MySQL.query.await(schema)
+        for _, migration in ipairs(PlayerRepository.MIGRATIONS) do
+            MySQL.query.await(migration)
+        end
         Logger.info('Base de données prête')
     end)
 end
@@ -29,10 +37,10 @@ end
 ---@param player PvpPlayer
 function PlayerRepository.save(player)
     MySQL.update(
-        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ? WHERE identifier = ?',
+        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ? WHERE identifier = ?',
         {
             player.name, player.xp, player.kills, player.deaths, player.npcKills,
-            player.inventory:encode(), player.identifier,
+            player.inventory:encode(), player.appearance and json.encode(player.appearance) or nil, player.identifier,
         }
     )
 end

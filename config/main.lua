@@ -6,7 +6,6 @@ Config.Debug = false
 -- Joueur
 -- ---------------------------------------------------------------------------
 
-Config.PlayerModel = 'mp_m_freemode_01'
 Config.AutoSaveInterval = 5 * 60 -- secondes
 Config.RespawnDelay = 8 -- secondes avant de réapparaître
 Config.XpPerLevel = 1000 -- niveau = floor(xp / XpPerLevel) + 1

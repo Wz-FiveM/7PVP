@@ -6,15 +6,12 @@ import { ItemIcon } from './ItemIcon';
 interface ItemTileProps {
   name: string;
   item: ItemDefinition;
-  /** Texte en bas à droite (quantité, prix...) */
+  /** Texte en bas à droite (quantité, prix, numéro de touche...) */
   corner?: string;
-  /** Texte en bas à gauche, à la place du nom (ex : touche [1]) */
-  keyLabel?: string;
   selected?: boolean;
   /** Liseré cyan : objet dans le conteneur protégé */
   protectedItem?: boolean;
   disabled?: boolean;
-  compact?: boolean;
   onClick?: () => void;
   onDoubleClick?: () => void;
   onContextMenu?: (event: MouseEvent) => void;
@@ -23,7 +20,7 @@ interface ItemTileProps {
 }
 
 export function ItemTile({
-  name, item, corner, keyLabel, selected, protectedItem, disabled, compact,
+  name, item, corner, selected, protectedItem, disabled,
   onClick, onDoubleClick, onContextMenu, onDragStart, onDragEnd,
 }: ItemTileProps) {
   const draggable = Boolean(onDragStart) && !disabled;
@@ -43,7 +40,6 @@ export function ItemTile({
   const classes = [
     'tile',
     'cut',
-    compact && 'tile--compact',
     selected && 'tile--selected',
     protectedItem && 'tile--protected',
     disabled && 'tile--disabled',
@@ -62,7 +58,7 @@ export function ItemTile({
     >
       <div className={classes}>
         <ItemIcon name={name} type={item.type} />
-        {keyLabel ? <span className="tile__key">{keyLabel}</span> : <span className="tile__label">{item.label}</span>}
+        <span className="tile__label">{item.label}</span>
         {corner && <span className="tile__corner mono">{corner}</span>}
       </div>
       {selected && <Brackets />}

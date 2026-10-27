@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS `pvp_players` (
     `deaths` INT NOT NULL DEFAULT 0,
     `npc_kills` INT NOT NULL DEFAULT 0,
     `inventory` LONGTEXT NULL,
+    `appearance` LONGTEXT NULL,
     `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`identifier`),
     KEY `idx_kills` (`kills`)

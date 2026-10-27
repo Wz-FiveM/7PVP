@@ -1,0 +1,235 @@
+/* Créateur de personnage : panneau à gauche, personnage visible au centre ------------- */
+
+.creator {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.creator-panel {
+  display: flex;
+  flex-direction: column;
+  width: 25rem;
+  height: 100%;
+  border-right: 0.0625rem solid var(--trait);
+  background: rgba(11, 13, 14, 0.92);
+}
+
+.creator-panel__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.375rem 1.375rem 1.125rem;
+  border-bottom: 0.125rem solid var(--hazard);
+}
+.creator-panel__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.creator-panel__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.creator-tabs {
+  display: flex;
+  border-bottom: 0.0625rem solid var(--trait);
+}
+.creator-tabs__tab {
+  flex: 1;
+  padding: 0.75rem 0;
+  border: 0;
+  border-bottom: 0.1875rem solid transparent;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--brume);
+  background: none;
+  cursor: pointer;
+}
+.creator-tabs__tab:hover {
+  color: var(--os);
+}
+.creator-tabs__tab--active {
+  border-bottom-color: var(--hazard);
+  font-weight: 700;
+  color: var(--os);
+}
+
+.creator-panel__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+  padding: 1.125rem 1.375rem;
+  overflow-y: auto;
+}
+
+.creator-panel__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem 1.375rem 1.25rem;
+  border-top: 0.0625rem solid var(--trait);
+}
+.creator-panel__error {
+  font-size: 0.8125rem;
+  color: var(--hazard);
+}
+.creator-panel__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.creator-panel__confirm {
+  flex: 1;
+}
+
+/* Contrôles --------------------------------------------------------------------- */
+
+.ctl,
+.ctl-group,
+.ctl-section {
+  display: flex;
+  flex-direction: column;
+}
+.ctl {
+  gap: 0.375rem;
+}
+.ctl-group {
+  gap: 0.625rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 0.0625rem solid var(--trait);
+}
+.ctl-section {
+  gap: 0.75rem;
+}
+.ctl__row {
+  display: flex;
+  justify-content: space-between;
+}
+.ctl__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.ctl__value {
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.ctl__ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: var(--brume);
+}
+.ctl__note {
+  font-size: 0.75rem;
+}
+
+.segmented {
+  display: flex;
+  gap: 0.375rem;
+}
+.segmented .btn {
+  flex: 1;
+}
+
+/* Curseur */
+.slider {
+  width: 100%;
+  height: 1.125rem;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+}
+.slider::-webkit-slider-runnable-track {
+  height: 0.25rem;
+  background: linear-gradient(to right, var(--hazard) var(--progress), var(--trait) var(--progress));
+}
+.slider::-webkit-slider-thumb {
+  width: 0.75rem;
+  height: 1.125rem;
+  margin-top: -0.4375rem;
+  border: 0;
+  background: var(--os);
+  appearance: none;
+}
+
+/* Sélecteur ‹ › */
+.stepper {
+  display: flex;
+  align-items: stretch;
+  height: 2.125rem;
+  background: var(--acier);
+}
+.stepper__btn {
+  width: 2.5rem;
+  border: 0;
+  font-size: 1.25rem;
+  color: var(--os);
+  background: var(--acier-hi);
+  cursor: pointer;
+}
+.stepper__btn:hover:not(:disabled) {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+.stepper__btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.stepper__value {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+}
+
+/* Nuancier */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 0.1875rem;
+}
+.swatch {
+  aspect-ratio: 1;
+  border: 0;
+  cursor: pointer;
+}
+.swatch--active {
+  outline: 0.125rem solid var(--os);
+  outline-offset: 0.0625rem;
+}
+
+/* Scène (personnage) ------------------------------------------------------------- */
+
+.creator-stage {
+  position: relative;
+  flex: 1;
+  cursor: grab;
+}
+.creator-stage:active {
+  cursor: grabbing;
+}
+.creator-stage__bar {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  transform: translateX(-50%);
+  background: rgba(11, 13, 14, 0.85);
+  cursor: default;
+}
+.creator-stage__hint {
+  position: absolute;
+  bottom: 1.125rem;
+  left: 50%;
+  font-size: 0.6875rem;
+  color: var(--os);
+  text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.9);
+  transform: translateX(-50%);
+}

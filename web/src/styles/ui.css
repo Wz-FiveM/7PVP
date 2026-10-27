@@ -12,7 +12,7 @@
 }
 .label {
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -41,43 +41,44 @@
 
 /* Bandes d'alerte dans la couleur de la zone */
 .stripes {
-  height: 10px;
-  background: repeating-linear-gradient(135deg, var(--zone, var(--hazard)) 0 8px, transparent 8px 16px);
+  height: 0.625rem;
+  background: repeating-linear-gradient(135deg, var(--zone, var(--hazard)) 0 0.5rem, transparent 0.5rem 1rem);
 }
 
 /* Motif des emplacements vides */
 .hatched {
-  background: repeating-linear-gradient(135deg, #171b1d 0 6px, #191e20 6px 12px);
+  background: repeating-linear-gradient(135deg, rgba(30, 36, 39, 0.35) 0 0.375rem, rgba(30, 36, 39, 0.55) 0.375rem 0.75rem);
 }
 
 /* Panneau ------------------------------------------------------------------- */
 
+/* Panneaux semi-transparents : le jeu reste visible derrière */
 .panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--carbone);
+  background: rgba(20, 24, 26, 0.86);
 }
 .panel__body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.75rem;
   min-height: 0;
-  padding: 20px;
+  padding: 1rem;
 }
 .panel__header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
 }
 .panel__title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 700;
 }
 .panel__aside {
   margin-left: auto;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
 }
 
@@ -86,18 +87,18 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  padding: 5px 11px;
+  padding: 0.3125rem 0.6875rem;
   font-family: var(--font-display);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   color: var(--nuit);
   background: var(--zone, var(--os));
 }
 .chip--outline {
-  padding: 3px 8px;
-  border: 1px solid var(--hazard);
-  font-size: 11px;
+  padding: 0.1875rem 0.5rem;
+  border: 0.0625rem solid var(--hazard);
+  font-size: 0.6875rem;
   color: var(--hazard);
   background: none;
 }
@@ -108,12 +109,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--trait);
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 0.0625rem solid var(--trait);
   font-family: var(--font-display);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
   color: var(--os);
@@ -141,9 +142,9 @@
   background: transparent;
 }
 .btn--small {
-  min-height: 32px;
-  padding: 0 14px;
-  font-size: 12px;
+  min-height: 2rem;
+  padding: 0 0.875rem;
+  font-size: 0.75rem;
 }
 .btn--active,
 .btn--active:hover:not(:disabled) {
@@ -161,7 +162,7 @@
   color: var(--hazard);
 }
 .keycap--solid {
-  padding: 3px 7px;
+  padding: 0.1875rem 0.4375rem;
   color: var(--nuit);
   background: var(--os);
 }
@@ -170,10 +171,10 @@
 
 .segments {
   display: grid;
-  gap: 3px;
+  gap: 0.1875rem;
 }
 .segments__cell {
-  height: 6px;
+  height: 0.375rem;
   background: var(--trait);
 }
 .segments__cell--on {
@@ -188,16 +189,16 @@
 
 .brackets {
   position: absolute;
-  inset: -5px;
+  inset: -0.3125rem;
   pointer-events: none;
 }
 .brackets span {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   border: 0 solid var(--hazard);
 }
-.brackets span:nth-child(1) { top: 0; left: 0; border-top-width: 2px; border-left-width: 2px; }
-.brackets span:nth-child(2) { top: 0; right: 0; border-top-width: 2px; border-right-width: 2px; }
-.brackets span:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 2px; border-left-width: 2px; }
-.brackets span:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 2px; border-right-width: 2px; }
+.brackets span:nth-child(1) { top: 0; left: 0; border-top-width: 0.125rem; border-left-width: 0.125rem; }
+.brackets span:nth-child(2) { top: 0; right: 0; border-top-width: 0.125rem; border-right-width: 0.125rem; }
+.brackets span:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 0.125rem; border-left-width: 0.125rem; }
+.brackets span:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 0.125rem; border-right-width: 0.125rem; }

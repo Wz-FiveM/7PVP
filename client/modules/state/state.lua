@@ -10,6 +10,7 @@ State.spawned = false
 State.dead = false
 State.zone = nil -- entrée de Config.Zones, nil = PvP libre, false = à recalculer
 State.menuOpen = false
+State.appearance = nil -- apparence du personnage, reçue au spawn
 
 function State.init()
     RegisterNetEvent(Events.client.sync, function(data)

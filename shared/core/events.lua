@@ -17,6 +17,7 @@ Events.client = {
     sync = '7pvp:client:sync',
     notify = '7pvp:client:notify',
     spawn = '7pvp:client:spawn',
+    openCreator = '7pvp:client:openCreator',
     dead = '7pvp:client:dead',
     killfeed = '7pvp:client:killfeed',
     applyItem = '7pvp:client:applyItem',
@@ -38,5 +39,6 @@ Events.callbacks = {
     moveItem = 'inventory:move',
     dropItem = 'inventory:drop',
     setShortcut = 'inventory:setShortcut',
+    saveAppearance = 'appearance:save',
     leaderboard = 'leaderboard:get',
 }

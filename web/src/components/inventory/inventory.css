@@ -1,125 +1,54 @@
-/* Mise en page de l'inventaire ------------------------------------------------- */
+/* Inventaire : sections empilées (sac, conteneur protégé, raccourcis) ---------------- */
 
 .inventory {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 20px;
-  min-height: 0;
+  gap: 1.375rem;
 }
 
-.inventory__columns {
-  display: grid;
-  flex: 1;
-  grid-template-columns: 280px minmax(0, 1fr) 380px;
-  gap: 20px;
-  min-height: 0;
-}
-
-.inventory__side {
+.container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  min-height: 0;
+  gap: 0.5rem;
 }
-
-.inventory__bag .container__grid {
-  align-content: start;
-  overflow-y: auto;
-}
-
-/* Opérateur -------------------------------------------------------------------- */
-
-.operator__identity {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.operator__name {
-  font-size: 28px;
-  font-weight: 700;
-}
-.operator__xp {
-  font-size: 12px;
-}
-.operator__preview {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-height: 140px;
-  border: 1px dashed var(--trait);
-  font-size: 11px;
-  color: var(--brume);
-}
-.operator__vitals {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.vital {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 12px;
-}
-.vital__row {
-  display: flex;
-  justify-content: space-between;
-}
-.vital__label {
-  font-weight: 700;
-}
-.operator__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--trait);
-}
-.operator__stats div {
-  display: flex;
-  flex-direction: column;
-}
-.operator__stat {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-/* Conteneurs ---------------------------------------------------------------------- */
-
-.container__grid {
-  display: grid;
-  gap: 12px;
-  padding: 6px;
-  margin: -6px;
-  outline: 1px dashed transparent;
-  outline-offset: -1px;
-}
-.container__hint {
-  font-size: 13px;
+.container__note {
+  font-size: 0.75rem;
 }
 .protected-icon {
   color: var(--abri);
 }
 
+.inventory__help {
+  font-size: 0.6875rem;
+  color: var(--brume);
+}
+
+/* Grilles de 7 tuiles ------------------------------------------------------------ */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+
+.container__grid {
+  min-height: 5.125rem;
+  padding: 0.25rem;
+  margin: -0.25rem;
+  outline: 0.0625rem dashed transparent;
+  outline-offset: -0.0625rem;
+  align-content: start;
+}
+
 .drop-zone--ready {
-  outline-color: var(--trait);
+  outline-color: rgba(233, 236, 230, 0.25);
 }
 .drop-zone--over {
   outline-color: var(--hazard);
-  background: rgba(255, 107, 26, 0.06);
+  background: rgba(255, 107, 26, 0.08);
 }
 
-.bag-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* Tuiles ------------------------------------------------------------------------- */
+/* Tuile (semi-transparente : le jeu reste visible) --------------------------------- */
 
 .tile-wrap {
   position: relative;
@@ -127,21 +56,18 @@
 }
 .tile {
   position: relative;
-  height: 100px;
-  background: var(--acier);
+  height: 4.625rem;
+  background: rgba(20, 24, 26, 0.78);
   cursor: grab;
 }
 .tile:hover {
-  background: var(--acier-hi);
-}
-.tile--compact {
-  height: 76px;
+  background: rgba(38, 45, 49, 0.9);
 }
 .tile--selected {
-  background: var(--acier-hi);
+  background: rgba(38, 45, 49, 0.92);
 }
 .tile--protected {
-  box-shadow: inset 0 -3px 0 var(--abri);
+  box-shadow: inset 0 -0.125rem 0 var(--abri);
 }
 .tile--disabled {
   opacity: 0.4;
@@ -149,142 +75,71 @@
 }
 .tile--empty,
 .tile--empty:hover {
+  background: rgba(20, 24, 26, 0.5);
   cursor: default;
 }
 
 .tile__label,
-.tile__corner,
-.tile__key {
+.tile__corner {
   position: absolute;
-  bottom: 8px;
-  font-size: 12px;
+  bottom: 0.375rem;
+  font-size: 0.6875rem;
 }
 .tile__label {
-  left: 10px;
-  right: 54px;
+  left: 0.5625rem;
+  right: 3.125rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--brume-hi);
 }
 .tile__corner {
-  right: 10px;
-}
-.tile__key {
-  left: 8px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--hazard);
-}
-.tile__key--off {
-  font-weight: 500;
-  color: var(--brume);
+  right: 0.5625rem;
+  color: var(--os);
 }
 
 .item-icon {
   position: absolute;
-  top: 14px;
+  top: 0.5rem;
   left: 50%;
   display: flex;
-  height: 44px;
+  height: 2.375rem;
   max-width: 80%;
   transform: translateX(-50%);
   object-fit: contain;
   pointer-events: none;
   color: var(--os);
 }
-.tile--compact .item-icon {
-  top: 8px;
-  height: 36px;
+.item-icon svg {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 .item-icon--consumable {
   color: var(--hazard);
 }
 
-/* Fiche objet ------------------------------------------------------------------------ */
-
-.detail {
-  flex: 1;
-}
-.detail__name {
-  font-size: 28px;
-  font-weight: 700;
-}
-.detail__meta {
-  font-size: 12px;
-}
-.detail__facts {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--trait);
-}
-.detail__facts div {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--trait);
-  font-size: 14px;
-}
-.detail__facts dd {
-  font-weight: 700;
-}
-.detail__actions {
-  display: flex;
-  gap: 8px;
-  margin-top: auto;
-}
-.detail__actions .btn {
-  flex: 1;
-  padding: 0 10px;
+.shortcut-slot {
+  outline: 0.0625rem dashed transparent;
+  outline-offset: 0.125rem;
 }
 
-/* Raccourcis ------------------------------------------------------------------------- */
-
-.shortcuts {
-  display: flex;
-  flex: none;
-  align-items: flex-end;
-  gap: 24px;
-}
-.shortcuts__slots {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.shortcuts__row {
-  display: flex;
-  gap: 10px;
-}
-.shortcuts__slot {
-  width: 96px;
-  outline: 1px dashed transparent;
-  outline-offset: 2px;
-}
-.shortcuts__help {
-  max-width: 440px;
-  margin-left: auto;
-  font-size: 13px;
-  line-height: 1.5;
-  text-align: right;
-}
-
-/* Menu contextuel ----------------------------------------------------------------------- */
+/* Menu contextuel ------------------------------------------------------------------- */
 
 .context-menu {
   position: fixed;
   z-index: 20;
-  min-width: 180px;
-  padding: 4px 0;
+  min-width: 11.25rem;
+  padding: 0.25rem 0;
   list-style: none;
-  border: 1px solid var(--trait);
+  border: 0.0625rem solid var(--trait);
   background: var(--nuit);
 }
 .context-menu__item {
   width: 100%;
-  padding: 9px 14px;
+  padding: 0.5625rem 0.875rem;
   border: 0;
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   text-align: left;
   text-transform: uppercase;
@@ -299,7 +154,7 @@
   color: var(--hazard);
 }
 
-/* Fenêtre de quantité ---------------------------------------------------------------- */
+/* Fenêtre de quantité ------------------------------------------------------------- */
 
 .modal-backdrop {
   position: fixed;
@@ -308,34 +163,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(11, 13, 14, 0.7);
+  background: rgba(11, 13, 14, 0.6);
 }
 .modal {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: 360px;
-  padding: 20px;
+  gap: 0.875rem;
+  width: 22.5rem;
+  padding: 1.25rem;
   background: var(--carbone);
 }
 .modal__title {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 700;
   text-transform: uppercase;
 }
 .modal__row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .modal__input {
-  width: 96px;
-  min-height: 40px;
-  padding: 0 10px;
-  border: 1px solid var(--trait);
+  width: 6rem;
+  min-height: 2.5rem;
+  padding: 0 0.625rem;
+  border: 0.0625rem solid var(--trait);
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--os);
   background: var(--acier);
 }
@@ -347,7 +202,7 @@
 .modal__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .modal input[type='range'] {
   accent-color: var(--hazard);

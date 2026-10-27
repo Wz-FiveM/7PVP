@@ -6,11 +6,13 @@ local Nui = PVP.use('Nui')
 local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local Loadout = PVP.use('Loadout')
+local Appearance = PVP.use('Appearance')
+local AppearanceSchema = PVP.use('AppearanceSchema')
 local Events = PVP.use('Events')
 
 function Spawn.init()
-    RegisterNetEvent(Events.client.spawn, function(spawn)
-        Spawn.spawnAt(spawn)
+    RegisterNetEvent(Events.client.spawn, function(spawn, appearance)
+        Spawn.spawnAt(spawn, appearance)
     end)
 
     CreateThread(Spawn.start)
@@ -35,25 +37,19 @@ function Spawn.configureWorld()
     end
 end
 
-function Spawn.applyModel()
-    local model = GetHashKey(Config.PlayerModel)
-    if GetEntityModel(PlayerPedId()) == model then return end
-    PedUtils.loadModel(model)
-    SetPlayerModel(PlayerId(), model)
-    SetModelAsNoLongerNeeded(model)
-    SetPedDefaultComponentVariation(PlayerPedId())
-end
-
 ---@param spawn vector4
-function Spawn.spawnAt(spawn)
+---@param appearance table|nil apparence du personnage (voir shared/modules/appearance.lua)
+function Spawn.spawnAt(spawn, appearance)
     DoScreenFadeOut(500)
     while not IsScreenFadedOut() do Wait(0) end
 
-    Spawn.applyModel()
+    State.appearance = appearance or State.appearance or AppearanceSchema.default('male')
+    Appearance.ensureModel(State.appearance.sex)
     RequestCollisionAtCoord(spawn.x, spawn.y, spawn.z)
     NetworkResurrectLocalPlayer(spawn.x, spawn.y, spawn.z, spawn.w, true, false)
 
     local ped = PlayerPedId()
+    Appearance.apply(ped, State.appearance)
     FreezeEntityPosition(ped, true)
     SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
 

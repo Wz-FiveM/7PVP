@@ -2,34 +2,34 @@
 
 .profile {
   display: grid;
-  grid-template-columns: 420px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: 26.25rem minmax(0, 1fr);
+  gap: 1.25rem;
   align-items: start;
 }
 .profile__name {
-  font-size: 40px;
+  font-size: 2.5rem;
   font-weight: 700;
   line-height: 1;
 }
 .profile__level {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--hazard);
 }
 .profile__xp {
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 1.25rem;
 }
 .stat .panel__body {
-  gap: 8px;
+  gap: 0.5rem;
 }
 .stat__value {
-  font-size: 30px;
+  font-size: 1.875rem;
   font-weight: 700;
 }
 
@@ -38,16 +38,16 @@
 .leaderboard {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .leaderboard th {
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--trait);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 0.0625rem solid var(--trait);
   text-align: left;
 }
 .leaderboard td {
-  padding: 11px 12px;
-  border-bottom: 1px solid var(--trait);
+  padding: 0.6875rem 0.75rem;
+  border-bottom: 0.0625rem solid var(--trait);
 }
 .leaderboard__rank {
   font-weight: 700;
@@ -60,9 +60,9 @@
   font-weight: 600;
 }
 .leaderboard__online {
-  margin-left: 10px;
+  margin-left: 0.625rem;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: var(--brume-hi);
 }
@@ -72,7 +72,7 @@
 .shop__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 /* Aide ------------------------------------------------------------------------------ */
@@ -80,7 +80,7 @@
 .help {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 1.25rem;
   align-items: start;
 }
 .help__rules {
@@ -94,16 +94,16 @@
 .help__list li {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--trait);
-  font-size: 15px;
+  gap: 0.875rem;
+  padding: 0.6875rem 0;
+  border-bottom: 0.0625rem solid var(--trait);
+  font-size: 0.9375rem;
 }
 .help__key {
-  min-width: 70px;
+  min-width: 4.375rem;
 }
 .help__chip {
-  min-width: 56px;
+  min-width: 3.5rem;
   justify-content: center;
 }
 .help__index {

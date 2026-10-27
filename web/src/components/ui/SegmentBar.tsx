@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { rem } from '../../utils/scale';
 
 interface SegmentBarProps {
   value: number;
@@ -8,6 +9,7 @@ interface SegmentBarProps {
   color?: string;
   /** Les derniers segments passent en hazard à partir de ce ratio (ex : sac presque plein) */
   warnFrom?: number;
+  /** Hauteur des segments en px à 1080p */
   height?: number;
 }
 
@@ -28,7 +30,7 @@ export function SegmentBar({ value, max, segments = 20, color, warnFrom, height 
         let className = 'segments__cell';
         if (i < filled) className += ' segments__cell--on';
         else if (i >= warnStart) className += ' segments__cell--warn';
-        return <span key={i} className={className} style={height ? { height } : undefined} />;
+        return <span key={i} className={className} style={height ? { height: rem(height) } : undefined} />;
       })}
     </div>
   );

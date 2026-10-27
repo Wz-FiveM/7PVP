@@ -1,5 +1,6 @@
 import { useGame } from '../../store/GameContext';
 import { isShortcutItem } from '../../utils/inventory';
+import { SectionTitle } from '../menu/SectionTitle';
 import type { DragSource } from './drag';
 import { DropZone } from './DropZone';
 import { EmptyTile } from './EmptyTile';
@@ -19,39 +20,32 @@ export function ShortcutBar({ drag, onDragStart, onDragEnd, onDrop }: ShortcutBa
   const accepts = drag !== null && isShortcutItem(config.items[drag.item]?.type);
 
   return (
-    <section className="shortcuts">
-      <div className="shortcuts__slots">
-        <span className="label">Raccourcis</span>
-        <div className="shortcuts__row">
-          {Array.from({ length: config.shortcutSlots }, (_, i) => {
-            const slot = i + 1;
-            const name = shortcuts[i] || null;
-            const item = name ? config.items[name] : undefined;
+    <section className="container">
+      <SectionTitle title="Raccourcis" aside="TOUCHES 1 – 7" />
+      <div className="tile-grid">
+        {Array.from({ length: config.shortcutSlots }, (_, i) => {
+          const slot = i + 1;
+          const name = shortcuts[i] || null;
+          const item = name ? config.items[name] : undefined;
 
-            return (
-              <DropZone key={slot} className="shortcuts__slot" accepts={accepts} onDrop={() => onDrop(slot)}>
-                {name && item ? (
-                  <ItemTile
-                    compact
-                    name={name}
-                    item={item}
-                    keyLabel={`[${slot}]`}
-                    onDragStart={() => onDragStart({ kind: 'shortcut', slot, item: name })}
-                    onDragEnd={onDragEnd}
-                    onContextMenu={() => actions.setShortcut(slot, null)}
-                  />
-                ) : (
-                  <EmptyTile compact keyLabel={`[${slot}]`} />
-                )}
-              </DropZone>
-            );
-          })}
-        </div>
+          return (
+            <DropZone key={slot} className="shortcut-slot" accepts={accepts} onDrop={() => onDrop(slot)}>
+              {name && item ? (
+                <ItemTile
+                  name={name}
+                  item={item}
+                  corner={String(slot)}
+                  onDragStart={() => onDragStart({ kind: 'shortcut', slot, item: name })}
+                  onDragEnd={onDragEnd}
+                  onContextMenu={() => actions.setShortcut(slot, null)}
+                />
+              ) : (
+                <EmptyTile corner={String(slot)} />
+              )}
+            </DropZone>
+          );
+        })}
       </div>
-      <p className="muted shortcuts__help">
-        Glisse une arme ou un soin sur un emplacement · clic droit pour le vider. En jeu, les touches 1 à{' '}
-        {config.shortcutSlots} sortent l'arme ou utilisent l'objet.
-      </p>
     </section>
   );
 }
