@@ -44,6 +44,8 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | `F2` | Menu : inventaire, profil, top joueurs, boutique (en zone safe), aide |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
 | `E` | Ramasser un sac de butin |
+| `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |
+| `/lobby` | Retour au lobby (depuis une zone safe en PvP) |
 | `/pvp_coords` | Affiche ta position en `vector4(...)` pour configurer les zones |
 
 ## Arborescence
@@ -97,7 +99,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 │       ├── components/inventory/ Tuiles, conteneurs, fiche objet, opérateur, glisser-déposer, raccourcis
 │       ├── pages/              Inventaire, Profil, Top joueurs, Boutique, Aide (+ index.ts)
 │       ├── types/              Types partagés et messages NUI
-│       └── dev/mocks.ts        Données factices pour `npm run dev`
+│       └── dev/                Panneau de dev, scénarios et données factices pour `npm run dev`
 └── sql/7pvp.sql
 ```
 
@@ -173,12 +175,21 @@ exports['7PVP']:notify('Texte', 'success')
 
 ```bash
 cd web
-npm run dev     # développement dans le navigateur avec des données factices
+npm run dev     # développement dans le navigateur avec des données factices + panneau « DEV NUI »
 npm run build   # compile dans web/build/ (chargé par FiveM)
 ```
 
 - Lua -> React : `Nui.send(action, data)`. Les messages sont typés dans `src/types/nui.ts`.
 - React -> Lua : `gameApi` (`src/api/gameApi.ts`), qui appelle les `RegisterNUICallback` de `client/modules/nui/nui.lua`.
+
+### Panneau « DEV NUI » (npm run dev)
+
+En haut de l'écran, uniquement dans le navigateur (jamais en jeu) :
+
+- **Écran** : lobby, créateur (création / édition), HUD PvP, menu (en zone safe ou non), écran de mort, chat ouvert. Le dernier écran choisi est rouvert au rechargement.
+- **Événements** : messages de chat, notifications, killfeed, raccourcis, changement de zone, santé.
+- Chaque bouton envoie de vrais messages NUI (`window.postMessage`), comme le Lua : on teste le même chemin qu'en jeu. Pour ajouter un écran ou un événement : `src/dev/devScenarios.ts`.
+- `TAB` affiche les raccourcis et `T` ouvre le chat, comme en jeu.
 
 ### Direction artistique « Frontline »
 

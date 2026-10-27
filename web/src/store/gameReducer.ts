@@ -1,4 +1,5 @@
 import type {
+  ChatMessage,
   GameConfig,
   KillfeedItem,
   LeaderboardRow,
@@ -10,6 +11,9 @@ import type {
   ZoneInfo,
 } from '../types/game';
 import type { InitPayload } from '../types/nui';
+
+/** Nombre de messages du chat gardés en mémoire */
+const CHAT_HISTORY = 60;
 
 export interface GameState {
   ready: boolean;
@@ -24,6 +28,7 @@ export interface GameState {
   /** Mode de jeu en cours ('pvp', 'freeroam'), null au lobby */
   mode: string | null;
   lobby: { open: boolean; modes: LobbyMode[] };
+  chat: { open: boolean; messages: ChatMessage[] };
   menu: { open: boolean; inSafe: boolean };
   death: { active: boolean; seconds: number; key: number };
   toasts: Toast[];
@@ -40,6 +45,8 @@ export type GameAction =
   | { type: 'minimap'; minimap: MinimapAnchor }
   | { type: 'mode'; mode: string | null }
   | { type: 'lobby'; open: boolean; modes?: LobbyMode[] }
+  | { type: 'chat/open'; open: boolean }
+  | { type: 'chat/message'; message: ChatMessage }
   | { type: 'menu'; open: boolean; inSafe: boolean }
   | { type: 'death'; seconds: number }
   | { type: 'alive' }
@@ -65,6 +72,7 @@ export const initialState: GameState = {
   minimap: null,
   mode: null,
   lobby: { open: false, modes: [] },
+  chat: { open: false, messages: [] },
   menu: { open: false, inSafe: false },
   death: { active: false, seconds: 0, key: 0 },
   toasts: [],
@@ -94,6 +102,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, minimap: action.minimap };
     case 'mode':
       return { ...state, mode: action.mode };
+    case 'chat/open':
+      return { ...state, chat: { ...state.chat, open: action.open } };
+    case 'chat/message':
+      return {
+        ...state,
+        chat: { ...state.chat, messages: [...state.chat.messages, action.message].slice(-CHAT_HISTORY) },
+      };
     case 'lobby':
       return {
         ...state,

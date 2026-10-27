@@ -44,6 +44,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'mode', mode: message.data.mode || null });
         case 'lobby':
           return dispatch({ type: 'lobby', open: message.data.open, modes: message.data.modes });
+        case 'chat':
+          return dispatch({ type: 'chat/open', open: message.data.open });
+        case 'chatMessage':
+          return dispatch({ type: 'chat/message', message: { ...message.data, id: ++nextId.current } });
         case 'menu':
           return dispatch({ type: 'menu', ...message.data });
         case 'notify':
@@ -64,26 +68,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     gameApi.ready().then((payload) => {
       dispatch({ type: 'init', payload });
-      // Dans le navigateur : données factices pour développer
-      // (#lobby ouvre le lobby, sinon on est en PvP avec le menu ouvert)
-      if (isEnvBrowser()) {
-        dispatch({ type: 'vitals', vitals: mockVitals });
-        if (window.location.hash === '#lobby') {
-          dispatch({ type: 'lobby', open: true, modes: mockLobbyModes });
-        } else {
-          dispatch({ type: 'mode', mode: 'pvp' });
-          dispatch({ type: 'menu', open: true, inSafe: true });
-          pushKill({ killer: 'Alpha', victim: 'Bravo' });
-        }
-      }
+      // Dans le navigateur : données factices ; l'écran affiché se choisit dans le panneau de dev
+      if (isEnvBrowser()) dispatch({ type: 'vitals', vitals: mockVitals });
     });
-  }, [pushKill]);
+  }, []);
 
-  // Dans le navigateur, TAB simule la touche du jeu qui affiche les raccourcis
+  // Dans le navigateur, TAB et T simulent les touches du jeu (raccourcis, chat)
   useEffect(() => {
     if (!isEnvBrowser()) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Tab' || event.repeat) return;
+      if (event.repeat) return;
+      // T ouvre le chat (sauf si on tape déjà dans un champ)
+      const typing = document.activeElement instanceof HTMLInputElement;
+      if (event.key.toLowerCase() === 't' && event.type === 'keydown' && !typing) {
+        event.preventDefault();
+        dispatch({ type: 'chat/open', open: true });
+        return;
+      }
+      if (event.key !== 'Tab') return;
       event.preventDefault();
       dispatch({ type: 'hotbar', visible: event.type === 'keydown' });
     };
@@ -120,6 +122,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
       refreshLeaderboard: async () => {
         const rows = await gameApi.leaderboard();
         dispatch({ type: 'leaderboard', rows: Array.isArray(rows) ? rows : [] });
+      },
+      sendChat: (text) => {
+        if (isEnvBrowser()) {
+          // Dans le navigateur : écho local (commandes affichées comme message système)
+          dispatch({ type: 'chat/open', open: false });
+          const command = text.startsWith('/');
+          dispatch({
+            type: 'chat/message',
+            message: {
+              id: ++nextId.current,
+              kind: command ? 'system' : 'player',
+              author: command ? undefined : 'Dev',
+              text: command ? `Commande exécutée : ${text}` : text,
+              time: Date.now() / 1000,
+            },
+          });
+        }
+        gameApi.chatSend(text);
+      },
+      closeChat: () => {
+        if (isEnvBrowser()) dispatch({ type: 'chat/open', open: false });
+        gameApi.chatClose();
       },
       joinMode: async (mode) => {
         const result = await gameApi.joinMode(mode);

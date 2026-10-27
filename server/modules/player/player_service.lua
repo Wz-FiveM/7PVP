@@ -73,6 +73,8 @@ function PlayerService.unload(source)
     local player = PlayerService.get(source)
     if not player then return end
     PlayerRepository.save(player)
+    -- Prévient les autres modules avant que le joueur disparaisse (ex : annonce dans le chat)
+    TriggerEvent(Events.internal.playerUnloading, player.source, player.name, player.mode)
     PlayerService.players[player.source] = nil
 end
 

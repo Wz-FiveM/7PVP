@@ -5,10 +5,12 @@ local ServerApi = PVP.define('ServerApi')
 local PlayerService = PVP.use('PlayerService')
 local LootService = PVP.use('LootService')
 local Zones = PVP.use('Zones')
+local ChatService = PVP.use('ChatService')
 
 ServerApi.EXPORTS = {
     'getPlayer', 'getMoney', 'addMoney', 'removeMoney', 'addXp',
     'giveItem', 'removeItem', 'getItemCount', 'getZone', 'isInSafeZone', 'dropLoot',
+    'sendSystemMessage', 'announce',
 }
 
 function ServerApi.init()
@@ -114,4 +116,18 @@ end
 ---@return integer|nil id du sac
 function ServerApi.dropLoot(coords, items)
     return LootService.drop(coords, items)
+end
+
+---Message système dans le chat d'un joueur.
+---@param source integer
+---@param text string
+function ServerApi.sendSystemMessage(source, text)
+    ChatService.system(source, tostring(text))
+end
+
+---Message système dans le chat de tous les joueurs d'un mode ('pvp', 'freeroam').
+---@param mode string
+---@param text string
+function ServerApi.announce(mode, text)
+    ChatService.announce(mode, tostring(text))
 end

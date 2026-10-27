@@ -59,3 +59,14 @@ Config.World = {
 
 Config.MenuKey = 'F2'
 Config.HotbarKey = 'TAB' -- maintenir pour afficher la barre de raccourcis (remplace la roue des armes)
+
+-- ---------------------------------------------------------------------------
+-- Chat (un salon par mode de jeu)
+-- ---------------------------------------------------------------------------
+
+Config.Chat = {
+    key = 'T', -- ouvrir la saisie
+    maxLength = 200, -- caractères par message
+    cooldown = 1000, -- ms minimum entre deux messages d'un même joueur
+    announceJoins = true, -- message système quand un joueur rejoint / quitte un mode
+}

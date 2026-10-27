@@ -4,6 +4,7 @@ local LobbyService = PVP.define('LobbyService')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local WorldService = PVP.use('WorldService')
+local ChatService = PVP.use('ChatService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
@@ -41,6 +42,9 @@ function LobbyService.join(source, modeId)
     player.mode = modeId
     SetPlayerRoutingBucket(source, config.bucket)
     ModeRegistry.get(modeId).enter(player)
+    if Config.Chat.announceJoins then
+        ChatService.announce(modeId, ('%s a rejoint le %s.'):format(player.name, config.label))
+    end
     return { ok = true, mode = modeId }
 end
 
@@ -56,7 +60,11 @@ function LobbyService.leave(source)
         if not allowed then return { ok = false, message = message } end
     end
 
+    local modeId = player.mode
     mode.leave(player)
     LobbyService.open(player)
+    if Config.Chat.announceJoins then
+        ChatService.announce(modeId, ('%s est retourné au lobby.'):format(player.name))
+    end
     return { ok = true }
 end

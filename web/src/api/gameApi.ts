@@ -30,6 +30,10 @@ export const gameApi = {
 
   leaderboard: () => fetchNui<LeaderboardRow[]>('leaderboard', {}, mockLeaderboard),
 
+  chatSend: (text: string) => fetchNui<void>('chatSend', { text }),
+
+  chatClose: () => fetchNui<void>('chatClose'),
+
   joinMode: (mode: string) => fetchNui<ActionResult>('lobbyJoin', { mode }, { ok: true }),
 
   leaveToLobby: () => fetchNui<ActionResult>('lobbyLeave', {}, { ok: true }),

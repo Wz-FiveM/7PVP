@@ -97,6 +97,19 @@ export interface Vitals {
   reserve: number;
 }
 
+/** Message du chat (envoyé par server/modules/chat/chat_service.lua) */
+export interface ChatMessageData {
+  kind: 'player' | 'system';
+  author?: string;
+  text: string;
+  /** horodatage serveur, en secondes */
+  time: number;
+}
+
+export interface ChatMessage extends ChatMessageData {
+  id: number;
+}
+
 /** Mode proposé au lobby (voir config/lobby.lua) */
 export interface LobbyMode {
   id: string;

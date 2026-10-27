@@ -1,6 +1,6 @@
 import type { CreatorPayload } from './appearance';
 import type {
-  GameConfig, KillfeedEntry, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, GameConfig, KillfeedEntry, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -13,6 +13,8 @@ export type NuiMessage =
   | { action: 'lobby'; data: { open: boolean; modes?: LobbyMode[] } }
   /** mode de jeu en cours, `false` au lobby */
   | { action: 'mode'; data: { mode: string | false } }
+  | { action: 'chat'; data: { open: boolean } }
+  | { action: 'chatMessage'; data: ChatMessageData }
   | { action: 'creator'; data: CreatorPayload }
   | { action: 'menu'; data: { open: boolean; inSafe: boolean } }
   | { action: 'notify'; data: { text: string; kind: ToastKind } }

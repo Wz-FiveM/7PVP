@@ -10,6 +10,7 @@ Events.server = {
     died = '7pvp:server:died',
     npcDied = '7pvp:server:npcDied',
     lootPickup = '7pvp:server:lootPickup',
+    chatSend = '7pvp:server:chatSend',
 }
 
 -- Serveur -> client
@@ -19,12 +20,18 @@ Events.client = {
     spawn = '7pvp:client:spawn',
     openCreator = '7pvp:client:openCreator',
     openLobby = '7pvp:client:openLobby',
+    chatMessage = '7pvp:client:chatMessage',
     dead = '7pvp:client:dead',
     killfeed = '7pvp:client:killfeed',
     applyItem = '7pvp:client:applyItem',
     lootAdd = '7pvp:client:lootAdd',
     lootRemove = '7pvp:client:lootRemove',
     lootSync = '7pvp:client:lootSync',
+}
+
+-- Événements internes (même côté, jamais réseau)
+Events.internal = {
+    playerUnloading = '7pvp:internal:playerUnloading',
 }
 
 -- Transport des callbacks (voir server/core/callback.lua et client/core/callback.lua)

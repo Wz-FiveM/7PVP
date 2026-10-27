@@ -12,6 +12,9 @@ export interface GameActions {
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   refreshLeaderboard: () => Promise<void>;
+  /** Chat : envoie le message (ou la commande « / ») et ferme la saisie */
+  sendChat: (text: string) => void;
+  closeChat: () => void;
   /** Lobby : rejoindre un mode */
   joinMode: (mode: string) => Promise<void>;
   /** Retour au lobby (refusé hors zone safe en PvP) */

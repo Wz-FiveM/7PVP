@@ -1,7 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { creatorApi } from '../api/creatorApi';
 import { isEnvBrowser } from '../api/nui';
-import { mockCreator } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
 import type {
   Appearance,
@@ -93,13 +92,6 @@ export function CreatorProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useNuiMessage(handleMessage);
-
-  // Dans le navigateur : ouvre le créateur avec des données factices via http://localhost:5173/#creator
-  useEffect(() => {
-    if (isEnvBrowser() && window.location.hash === '#creator') {
-      handleMessage({ action: 'creator', data: mockCreator });
-    }
-  }, [handleMessage]);
 
   const actions = useMemo<CreatorActions>(
     () => ({

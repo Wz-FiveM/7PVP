@@ -1,3 +1,4 @@
+import { Chat } from './components/chat/Chat';
 import { CharacterCreator } from './components/creator/CharacterCreator';
 import { DeathScreen } from './components/hud/DeathScreen';
 import { Hud } from './components/hud/Hud';
@@ -5,6 +6,7 @@ import { Toasts } from './components/hud/Toasts';
 import { Lobby } from './components/lobby/Lobby';
 import { Menu } from './components/menu/Menu';
 import { isEnvBrowser } from './api/nui';
+import { DevPanel } from './dev/DevPanel';
 import { useCreator } from './store/CreatorProvider';
 import { useGame } from './store/GameContext';
 import './components/hud/hud.css';
@@ -24,7 +26,9 @@ export function App() {
       {inPvp && state.ready && !state.menu.open && !state.death.active && <Hud />}
       {inPvp && state.menu.open && <Menu />}
       {inPvp && state.death.active && <DeathScreen />}
+      {inPvp && !state.menu.open && <Chat />}
       <Toasts />
+      {isEnvBrowser() && <DevPanel />}
     </div>
   );
 }
