@@ -40,7 +40,6 @@ function Vehicles.init()
     RegisterKeyMapping('pvp_ranger_vehicule', 'Ranger un véhicule 7PVP (assis dedans)', 'keyboard', Config.VehicleOptions.storeKey)
 
     CreateThread(Vehicles.weaponLoop)
-    CreateThread(Vehicles.driveByLoop)
     CreateThread(Vehicles.helpLoop)
 end
 
@@ -143,15 +142,35 @@ function Vehicles.store()
     if result and result.message then Nui.notify(result.message, result.ok and 'success' or 'error') end
 end
 
----Pas d'armes montées en PvP (mitrailleuses, missiles...) : seules les armes de l'inventaire comptent.
+-- Tir à bord : armes montées (mitrailleuses, missiles, tourelles, véhicules volants) et drive-by
+Vehicles.FIRE_CONTROLS = { 68, 69, 70, 91, 92, 114, 331 }
+
+---En PvP, on ne tire pas depuis un véhicule (conducteur, passager ou tourelle) : seules les armes
+---de l'inventaire comptent, à pied. Touches de tir coupées à chaque image ; armes montées
+---désactivées dès qu'on monte puis revérifiées (en plus de SetPlayerCanDoDriveBy, coupé dans Zone.setSafe).
 function Vehicles.weaponLoop()
+    local nextCheck = 0
     while true do
-        Wait(Vehicles.WEAPON_CHECK_INTERVAL)
-        if State.inPvp() then
-            local ped = PlayerPedId()
-            local vehicle = GetVehiclePedIsIn(ped, false)
-            if vehicle ~= 0 then Vehicles.disableWeapons(ped, vehicle) end
+        local ped = PlayerPedId()
+        local vehicle = State.inPvp() and GetVehiclePedIsIn(ped, false) or 0
+        if vehicle ~= 0 then
+            Vehicles.blockFiring()
+            if GetGameTimer() >= nextCheck then
+                Vehicles.disableWeapons(ped, vehicle)
+                nextCheck = GetGameTimer() + Vehicles.WEAPON_CHECK_INTERVAL
+            end
+            Wait(0)
+        else
+            nextCheck = 0
+            Wait(Vehicles.WEAPON_CHECK_INTERVAL)
         end
+    end
+end
+
+function Vehicles.blockFiring()
+    DisablePlayerFiring(PlayerId(), true)
+    for _, control in ipairs(Vehicles.FIRE_CONTROLS) do
+        DisableControlAction(0, control, true)
     end
 end
 
@@ -163,24 +182,5 @@ function Vehicles.disableWeapons(ped, vehicle)
         local hasWeapon, weapon = GetCurrentPedVehicleWeapon(ped)
         if not hasWeapon or weapon == 0 then return end
         DisableVehicleWeapon(true, weapon, vehicle, ped)
-    end
-end
-
--- Tir en véhicule (drive-by) : viser, tirer, lancer
-Vehicles.DRIVE_BY_CONTROLS = { 68, 69, 70, 91, 92, 114, 331 }
-
----Pas de tir depuis un véhicule en PvP, conducteur comme passager (en plus de
----SetPlayerCanDoDriveBy, coupé dans Zone.setSafe).
-function Vehicles.driveByLoop()
-    while true do
-        if State.inPvp() and IsPedInAnyVehicle(PlayerPedId(), false) then
-            DisablePlayerFiring(PlayerId(), true)
-            for _, control in ipairs(Vehicles.DRIVE_BY_CONTROLS) do
-                DisableControlAction(0, control, true)
-            end
-            Wait(0)
-        else
-            Wait(Vehicles.WEAPON_CHECK_INTERVAL)
-        end
     end
 end

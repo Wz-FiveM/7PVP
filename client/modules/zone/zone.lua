@@ -112,7 +112,7 @@ end
 function Zone.setSafe(enabled)
     -- Les options admin (invincible, noclip) gardent l'invincibilité hors zone safe
     SetEntityInvincible(PlayerPedId(), enabled or State.godmode or State.noclip)
-    -- En PvP, jamais de tir en véhicule (voir Vehicles.driveByLoop)
+    -- En PvP, jamais de tir en véhicule (voir Vehicles.weaponLoop)
     SetPlayerCanDoDriveBy(PlayerId(), not enabled and not State.inPvp())
 end
 
