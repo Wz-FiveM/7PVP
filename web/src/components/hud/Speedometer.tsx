@@ -8,7 +8,7 @@ const RPM_SEGMENTS = 18;
 /** Derniers segments en rouge : zone rouge du compte-tours */
 const REDLINE = 0.85;
 
-/** Compteur de vitesse, affiché en véhicule (bas droite, au-dessus des munitions). */
+/** Compteur de vitesse, affiché en véhicule en Freeroam (bas droite, au-dessus des munitions). */
 export function Speedometer() {
   const [data, setData] = useState<SpeedometerData | null>(null);
 

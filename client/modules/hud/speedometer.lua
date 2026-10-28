@@ -1,4 +1,4 @@
----Compteur de vitesse : en véhicule (PvP, Freeroam, modes de jeu), envoie vitesse, régime,
+---Compteur de vitesse : en véhicule, en Freeroam uniquement, envoie vitesse, régime,
 ---rapport et état du moteur à l'interface ; il disparaît à la sortie du véhicule.
 ---@class SpeedometerModule
 local Speedometer = PVP.define('Speedometer')
@@ -29,9 +29,9 @@ function Speedometer.loop()
     end
 end
 
----@return integer|nil véhicule où est le joueur (vivant, en jeu), sinon nil
+---@return integer|nil véhicule où est le joueur (vivant, en Freeroam), sinon nil
 function Speedometer.currentVehicle()
-    if not State.mode or not State.isAlive() then return nil end
+    if State.mode ~= 'freeroam' or not State.isAlive() then return nil end
     local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
     if vehicle == 0 then return nil end
     return vehicle
