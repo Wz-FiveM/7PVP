@@ -9,16 +9,18 @@ export interface AdminPlayer {
   level: number;
 }
 
+/** Options personnelles de l'admin qui s'activent / se coupent */
+export type AdminToggle = 'noclip' | 'god' | 'invisible';
+
 /** Options personnelles de l'admin */
-export interface AdminSelf {
-  noclip: boolean;
-  god: boolean;
-  invisible: boolean;
+export interface AdminSelf extends Record<AdminToggle, boolean> {
+  /** nom du joueur regardé en mode spectateur, `false` sinon */
+  spectating: string | false;
 }
 
 export type AdminAction =
   | 'giveItem' | 'giveMoney' | 'heal' | 'revive' | 'kill' | 'freeze'
-  | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick'
+  | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick' | 'spectate' | 'spectateStop'
   | 'announce' | 'clearLoot' | 'airdrop' | 'horde'
   | 'noclip' | 'god' | 'invisible' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle';
 
@@ -81,4 +83,50 @@ export interface LootAdminData {
   tables: LootTableData[];
   zones: LootZoneData[];
   items: { name: string; label: string; type: string }[];
+}
+
+/** Véhicule d'une liste du Freeroam (server/modules/freeroam/freeroam_config_service.lua) */
+export interface FreeroamVehicle {
+  model: string;
+  label: string;
+  /** onglet du menu Freeroam (liste avec catégories uniquement) */
+  category?: string;
+}
+
+/** Réglage de l'onglet « Freeroam » : une liste de véhicules, ou un seul modèle */
+export type FreeroamSetting = {
+  name: string;
+  label: string;
+  hint: string;
+  /** différent du fichier de config */
+  modified: boolean;
+} & (
+  | { kind: 'list'; category: boolean; value: FreeroamVehicle[] }
+  | { kind: 'model'; category: false; value: string }
+);
+
+export type ChasePhase = 'vote' | 'countdown' | 'running' | 'pause' | 'ended';
+
+/** Course poursuite en cours (ChaseService.describeMatches) */
+export interface ChaseMatchInfo {
+  id: number;
+  round: number;
+  phase: ChasePhase;
+  players: {
+    id: number;
+    name: string;
+    /** `false` pendant le vote */
+    role: 'thief' | 'cop' | false;
+    score: number;
+    warns: number;
+  }[];
+}
+
+export interface FreeroamAdminData {
+  ok: boolean;
+  message?: string;
+  settings: FreeroamSetting[];
+  chases: ChaseMatchInfo[];
+  /** joueurs dans la file de la course poursuite */
+  chaseQueue: number;
 }

@@ -86,7 +86,8 @@ function Zone.update()
     State.zone = zone
     local safe = State.isInSafeZone()
     -- Pas en partie de course ou de CVC : le départ de la partie fait aussi « sortir » de la zone
-    if wasSafe and not safe and State.isAlive() and not State.activity then
+    -- (ni en mode spectateur : le personnage de l'admin suit le joueur regardé)
+    if wasSafe and not safe and State.isAlive() and not State.activity and not State.spectating then
         Effects.start({ id = Zone.PASSIVE, duration = Config.PassiveMode.duration })
     elseif safe then
         Effects.stop(Zone.PASSIVE)
@@ -110,8 +111,8 @@ end
 
 ---@param enabled boolean
 function Zone.setSafe(enabled)
-    -- Les options admin (invincible, noclip) gardent l'invincibilité hors zone safe
-    SetEntityInvincible(PlayerPedId(), enabled or State.godmode or State.noclip)
+    -- Les options admin (invincible, noclip, spectateur) gardent l'invincibilité hors zone safe
+    SetEntityInvincible(PlayerPedId(), enabled or State.godmode or State.noclip or State.spectating)
     -- En PvP, jamais de tir en véhicule (voir Vehicles.weaponLoop)
     SetPlayerCanDoDriveBy(PlayerId(), not enabled and not State.inPvp())
 end

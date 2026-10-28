@@ -18,6 +18,7 @@ State.activity = nil -- mode de jeu du Freeroam en cours ('chase'), nil = Freero
 State.noclip = false
 State.godmode = false
 State.invisible = false
+State.spectating = false -- mode spectateur (voir client/modules/admin/spectate.lua)
 
 function State.init()
     RegisterNetEvent(Events.client.sync, function(data)

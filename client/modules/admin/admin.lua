@@ -6,6 +6,7 @@ local Admin = PVP.define('Admin')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Noclip = PVP.use('Noclip')
+local Spectate = PVP.use('Spectate')
 local Loadout = PVP.use('Loadout')
 local PedUtils = PVP.use('PedUtils')
 local Vehicles = PVP.use('Vehicles')
@@ -25,6 +26,9 @@ Admin.LOCAL_ACTIONS = {
     spawnVehicle = 'spawnVehicle',
     deleteVehicle = 'deleteVehicle',
 }
+
+-- Options qui déplacent le personnage : impossibles en mode spectateur (il suit le joueur regardé)
+Admin.SPECTATE_BLOCKED = { noclip = true, tpWaypoint = true, spawnVehicle = true, deleteVehicle = true, gotoPlayer = true }
 
 -- Commandes envoyées par le serveur : nom -> méthode
 Admin.COMMANDS = {
@@ -82,6 +86,34 @@ function Admin.init()
     RegisterNUICallback('adminLootZones', function(data, cb)
         cb(Callback.await(Events.callbacks.adminLootZones, data.zones) or { ok = false })
     end)
+
+    -- Onglet « Freeroam » : véhicules des modes de jeu et courses en cours (vérifié par le serveur)
+    RegisterNUICallback('adminFreeroam', function(_, cb)
+        cb(Callback.await(Events.callbacks.adminFreeroam) or { ok = false })
+    end)
+    RegisterNUICallback('adminFreeroamSave', function(data, cb)
+        local unknown = Admin.checkModels(data.value)
+        if unknown then return cb({ ok = false, message = ('Véhicule inconnu : %s'):format(unknown) }) end
+        cb(Callback.await(Events.callbacks.adminFreeroamSave, data.name, data.value) or { ok = false })
+    end)
+    RegisterNUICallback('adminFreeroamReset', function(data, cb)
+        cb(Callback.await(Events.callbacks.adminFreeroamReset, data.name) or { ok = false })
+    end)
+end
+
+---Le serveur ne connaît pas les modèles du jeu : on vérifie ici qu'ils existent avant d'enregistrer.
+---@param value any modèle, ou liste de { model }
+---@return string|nil premier modèle qui n'est pas un véhicule du jeu
+function Admin.checkModels(value)
+    local list = type(value) == 'table' and value or { { model = value } }
+    for _, vehicle in ipairs(list) do
+        local model = type(vehicle) == 'table' and type(vehicle.model) == 'string' and vehicle.model:lower() or ''
+        local hash = GetHashKey(model)
+        if model == '' or not IsModelInCdimage(hash) or not IsModelAVehicle(hash) then
+            return model ~= '' and model or '(vide)'
+        end
+    end
+    return nil
 end
 
 -- ---------------------------------------------------------------------------
@@ -90,7 +122,17 @@ end
 
 ---@return table
 function Admin.selfState()
-    return { noclip = State.noclip == true, god = State.godmode == true, invisible = State.invisible == true }
+    return {
+        noclip = State.noclip == true,
+        god = State.godmode == true,
+        invisible = State.invisible == true,
+        spectating = Spectate.current(),
+    }
+end
+
+---Panneau ouvert : renvoie les options personnelles (ex : mode spectateur lancé ou arrêté par le serveur).
+function Admin.refresh()
+    if Admin.open then Nui.send('admin', { open = true, self = Admin.selfState() }) end
 end
 
 function Admin.toggle()
@@ -114,6 +156,9 @@ end
 ---@return { ok: boolean, message?: string, self?: table }
 function Admin.runAction(data)
     if not Admin.isAdmin or type(data) ~= 'table' then return { ok = false, message = 'Accès refusé.' } end
+    if State.spectating and Admin.SPECTATE_BLOCKED[data.action] then
+        return { ok = false, message = 'Quitte d\'abord le mode spectateur.' }
+    end
 
     local method = Admin.LOCAL_ACTIONS[data.action]
     if method then
@@ -129,6 +174,7 @@ end
 -- ---------------------------------------------------------------------------
 
 function Admin.toggleNoclip()
+    if State.spectating then return { ok = false, message = 'Quitte d\'abord le mode spectateur.' } end -- touche F11
     Noclip.toggle()
     return { ok = true, message = Noclip.active and 'Noclip activé.' or 'Noclip désactivé.' }
 end

@@ -5,6 +5,7 @@
 ---@class ActivityServiceModule
 local ActivityService = PVP.define('ActivityService')
 local PlayerService = PVP.use('PlayerService')
+local SpectateService = PVP.use('SpectateService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
@@ -30,6 +31,9 @@ function ActivityService.start(source, id)
     local player = PlayerService.get(source)
     if not player or player.dead or player.mode ~= ActivityService.MODE then
         return { ok = false, message = 'Disponible en Freeroam.' }
+    end
+    if SpectateService.isWatching(source) then
+        return { ok = false, message = 'Quitte d\'abord le mode spectateur.' }
     end
     local activity = type(id) == 'string' and Config.FreeroamActivities[id]
     if not activity then return { ok = false, message = 'Mode de jeu inconnu.' } end

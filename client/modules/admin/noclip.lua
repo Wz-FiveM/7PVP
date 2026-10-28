@@ -86,10 +86,10 @@ function Noclip.toggle()
     Noclip.set(not Noclip.active)
 end
 
----Collisions, gel, invincibilité et visibilité selon le noclip et les options admin.
+---Collisions, gel, invincibilité et visibilité selon le noclip, le mode spectateur et les options admin.
 function Noclip.applyPedState()
     local ped = PlayerPedId()
-    local active = Noclip.active
+    local active = Noclip.active or State.spectating
     SetEntityCollision(ped, not active, not active)
     FreezeEntityPosition(ped, active)
     SetEntityInvincible(ped, active or State.godmode or State.isInSafeZone())

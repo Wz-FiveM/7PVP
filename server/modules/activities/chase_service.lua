@@ -110,6 +110,52 @@ function ChaseService.leave(source)
 end
 
 -- ---------------------------------------------------------------------------
+-- Panneau admin (onglet « Freeroam ») et mode spectateur
+-- ---------------------------------------------------------------------------
+
+---@param match ChaseMatch
+---@param source integer
+---@return 'thief'|'cop'|nil rôle dans la manche (nil pendant le vote)
+function ChaseService.roleOf(match, source)
+    if match.thief == source then return 'thief' end
+    if match.cop == source then return 'cop' end
+    return nil
+end
+
+---Parties en cours, pour les admins.
+---@return table[]
+function ChaseService.describeMatches()
+    local list = {}
+    for _, match in pairs(ChaseService.matches) do
+        local players = {}
+        for _, source in ipairs(match.players) do
+            players[#players + 1] = {
+                id = source,
+                name = GetPlayerName(source) or match.identities[source] and match.identities[source].name or '?',
+                role = ChaseService.roleOf(match, source) or false,
+                score = match.scores[source],
+                warns = match.warns[source],
+            }
+        end
+        list[#list + 1] = { id = match.id, round = match.round, phase = match.phase, players = players }
+    end
+    table.sort(list, function(a, b) return a.id < b.id end)
+    return list
+end
+
+---Situation d'un joueur dans une course, affichée au spectateur (ex : « Course n°3 · manche 1 · voleur »).
+---@param source integer
+---@return string|nil
+function ChaseService.describePlayer(source)
+    local match = ChaseService.matches[ChaseService.playerMatch[source]]
+    if not match then return nil end
+    if match.phase == 'vote' then return ('Course n°%d · vote des véhicules'):format(match.id) end
+    local role = ChaseService.roleOf(match, source) == 'thief' and 'voleur' or 'policier'
+    return ('Course n°%d · manche %d · %s · %d - %d'):format(match.id, match.round, role,
+        match.scores[source], match.scores[ChaseService.opponent(match, source)])
+end
+
+-- ---------------------------------------------------------------------------
 -- Partie
 -- ---------------------------------------------------------------------------
 

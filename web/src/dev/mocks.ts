@@ -1,4 +1,4 @@
-import type { AdminPlayer, LootAdminData } from '../types/admin';
+import type { AdminPlayer, FreeroamAdminData, LootAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -7,6 +7,50 @@ export const mockAdminPlayers: AdminPlayer[] = [
   { id: 4, name: 'Bravo', mode: false, dead: false, money: 500, level: 1 },
   { id: 7, name: 'Kilo', mode: 'pvp', dead: false, money: 7400, level: 5 },
 ];
+
+/** Onglet « Freeroam » du panneau admin (hors jeu) */
+export const mockFreeroamAdmin: FreeroamAdminData = {
+  ok: true,
+  chaseQueue: 1,
+  chases: [
+    {
+      id: 3, round: 1, phase: 'running',
+      players: [
+        { id: 2, name: 'Alpha', role: 'thief', score: 0, warns: 1 },
+        { id: 7, name: 'Kilo', role: 'cop', score: 0, warns: 0 },
+      ],
+    },
+    {
+      id: 4, round: 0, phase: 'vote',
+      players: [
+        { id: 9, name: 'Delta', role: false, score: 0, warns: 0 },
+        { id: 11, name: 'Echo', role: false, score: 0, warns: 0 },
+      ],
+    },
+  ],
+  settings: [
+    {
+      name: 'chaseVehicles', label: 'Course poursuite', kind: 'list', category: false, modified: true,
+      hint: 'Véhicules proposés au vote avant chaque partie (image : web/public/items/<modèle>.png).',
+      value: [
+        { model: 'kuruma', label: 'Kuruma' },
+        { model: 'sentinel', label: 'Sentinel' },
+        { model: 'felon', label: 'Felon' },
+        { model: 'granger', label: 'Granger' },
+      ],
+    },
+    {
+      name: 'menuVehicles', label: 'Menu Freeroam', kind: 'list', category: true, modified: false,
+      hint: 'Véhicules gratuits du menu (Tab), rangés par catégorie.',
+      value: [
+        { model: 'sultan', label: 'Sultan', category: 'Voitures' },
+        { model: 'bati', label: 'Bati 801', category: 'Motos' },
+        { model: 'buzzard2', label: 'Buzzard', category: 'Aérien' },
+      ],
+    },
+    { name: 'cvcVehicle', label: 'CVC', kind: 'model', category: false, modified: false, hint: 'Véhicule du convoi de chaque équipe.', value: 'granger' },
+  ],
+};
 import type { LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
 
 export const mockLobbyModes: LobbyMode[] = [

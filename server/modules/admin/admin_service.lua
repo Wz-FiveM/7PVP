@@ -12,6 +12,7 @@ local AntiCheatService = PVP.use('AntiCheatService')
 local AirdropService = PVP.use('AirdropService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
+local SpectateService = PVP.use('SpectateService')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
@@ -30,6 +31,8 @@ AdminService.ACTIONS = {
     bringPlayer = { method = 'bringPlayer', target = true },
     sendToLobby = { method = 'sendToLobby', target = true },
     kick = { method = 'kick', target = true },
+    spectate = { method = 'spectate', target = true },
+    spectateStop = { method = 'spectateStop', target = false },
     announce = { method = 'announce', target = false },
     clearLoot = { method = 'clearLoot', target = false },
     airdrop = { method = 'airdrop', target = false },
@@ -299,6 +302,16 @@ function AdminService.bringPlayer(source, target)
     if not AdminService.sameMode(source, target) then return false, 'Ce joueur est dans un autre mode.' end
     AdminService.command(target, 'teleport', GetEntityCoords(GetPlayerPed(source)))
     return true, ('%s ramené.'):format(target.name)
+end
+
+---Mode spectateur (voir SpectateService) : la caméra de l'admin suit le joueur, même en partie.
+---@param target PvpPlayer
+function AdminService.spectate(source, target)
+    return SpectateService.start(source, target)
+end
+
+function AdminService.spectateStop(source)
+    return SpectateService.stop(source)
 end
 
 ---@param target PvpPlayer

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { useGame } from '../../store/GameContext';
+import { FreeroamTab } from './FreeroamTab';
 import { LootTab } from './LootTab';
 import { PlayersTab } from './PlayersTab';
 import { SelfTab } from './SelfTab';
@@ -12,6 +13,7 @@ const TABS: { id: string; label: string; component: ComponentType; wide?: boolea
   { id: 'self', label: 'Moi', component: SelfTab },
   { id: 'server', label: 'Serveur', component: ServerTab },
   { id: 'loot', label: 'Butin', component: LootTab, wide: true },
+  { id: 'freeroam', label: 'Freeroam', component: FreeroamTab, wide: true },
 ];
 
 /** Panneau admin (F10), à droite pour garder le jeu visible. */

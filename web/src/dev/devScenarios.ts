@@ -151,7 +151,7 @@ export const DEV_SCREENS: DevScreen[] = [
     label: 'Panneau admin',
     open: () => {
       enterPvp();
-      sendNui({ action: 'admin', data: { open: true, self: { noclip: false, god: false, invisible: false } } });
+      sendNui({ action: 'admin', data: { open: true, self: { noclip: false, god: false, invisible: false, spectating: false } } });
     },
   },
   {

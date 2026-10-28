@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useGame } from '../../store/GameContext';
-import type { AdminSelf } from '../../types/admin';
+import type { AdminToggle } from '../../types/admin';
+import { SpectateBar } from './FreeroamTab';
 
-const TOGGLES: { key: keyof AdminSelf; label: string; hint: string }[] = [
+const TOGGLES: { key: AdminToggle; label: string; hint: string }[] = [
   { key: 'noclip', label: 'Noclip', hint: 'F11 · Z/Q/S/D, Espace / Ctrl, Maj rapide, Alt lent' },
   { key: 'god', label: 'Invincible', hint: 'Aucun dégât, même hors zone safe' },
   { key: 'invisible', label: 'Invisible', hint: 'Les autres joueurs ne te voient plus' },
@@ -16,6 +17,7 @@ export function SelfTab() {
 
   return (
     <div className="admin-self">
+      {self.spectating && <SpectateBar name={self.spectating} onStop={() => actions.adminAction({ action: 'spectateStop' })} />}
       {TOGGLES.map((toggle) => (
         <button
           key={toggle.key}

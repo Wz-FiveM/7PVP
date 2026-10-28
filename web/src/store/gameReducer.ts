@@ -25,7 +25,7 @@ import type {
   Vitals,
   ZoneInfo,
 } from '../types/game';
-import type { AdminSelf, NoclipInfo, NoclipKeyId } from '../types/admin';
+import type { AdminSelf, AdminToggle, NoclipInfo, NoclipKeyId } from '../types/admin';
 import type { InitPayload } from '../types/nui';
 
 /** Nombre de messages du chat gardés en mémoire */
@@ -94,7 +94,7 @@ export type GameAction =
   | { type: 'chat/message'; message: ChatMessage }
   | { type: 'admin'; open: boolean; self?: AdminSelf }
   /** Navigateur uniquement : simule une option admin activée / coupée */
-  | { type: 'admin/toggle'; key: keyof AdminSelf }
+  | { type: 'admin/toggle'; key: AdminToggle }
   | { type: 'noclip'; info: NoclipInfo }
   | { type: 'noclip/held'; held: NoclipKeyId[] }
   | { type: 'menu'; open: boolean; inSafe: boolean; near?: NearServices; page?: string }
@@ -141,7 +141,7 @@ export const initialState: GameState = {
   mode: null,
   lobby: { open: false, modes: [] },
   chat: { open: false, messages: [] },
-  admin: { open: false, self: { noclip: false, god: false, invisible: false } },
+  admin: { open: false, self: { noclip: false, god: false, invisible: false, spectating: false } },
   noclip: { active: false, toggleKey: 'F11', speed: 0, fastMultiplier: 1, slowMultiplier: 1, held: [] },
   menu: { open: false, inSafe: false, near: {}, page: null, key: 0 },
   death: { active: false, seconds: 0, key: 0, recap: {} },

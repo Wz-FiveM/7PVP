@@ -22,6 +22,8 @@ Events.server = {
     lootClose = '7pvp:server:lootClose',
     cvcVehicle = '7pvp:server:cvcVehicle',
     chaseReport = '7pvp:server:chaseReport',
+    spectateNext = '7pvp:server:spectateNext',
+    spectateStop = '7pvp:server:spectateStop',
 }
 
 -- Serveur -> client
@@ -73,6 +75,8 @@ Events.client = {
     cvcVehicle = '7pvp:client:cvcVehicle',
     tradeRequest = '7pvp:client:tradeRequest',
     tradeState = '7pvp:client:tradeState',
+    spectate = '7pvp:client:spectate',
+    freeroamVehicles = '7pvp:client:freeroamVehicles',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -122,6 +126,9 @@ Events.callbacks = {
     adminLootSave = 'admin:lootSave',
     adminLootReset = 'admin:lootReset',
     adminLootZones = 'admin:lootZones',
+    adminFreeroam = 'admin:freeroam',
+    adminFreeroamSave = 'admin:freeroamSave',
+    adminFreeroamReset = 'admin:freeroamReset',
     activityStart = 'activity:start',
     chaseVote = 'chase:vote',
     tradeRequest = 'trade:request',

@@ -4,6 +4,7 @@ import { useGame } from '../../store/GameContext';
 import type { AdminAction, AdminPlayer } from '../../types/admin';
 import type { ContainerId } from '../../types/game';
 import { formatMoney } from '../../utils/format';
+import { SpectateBar } from './FreeroamTab';
 
 const MODE_LABEL: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
 
@@ -40,6 +41,9 @@ export function PlayersTab() {
 
   return (
     <div className="admin-players">
+      {state.admin.self.spectating && (
+        <SpectateBar name={state.admin.self.spectating} onStop={() => actions.adminAction({ action: 'spectateStop' })} />
+      )}
       <div className="admin-row">
         <input
           className="admin-input"
@@ -114,6 +118,7 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
         <button className="btn btn--small cut-s" onClick={() => onRun('gotoPlayer')}>Aller à lui</button>
         <button className="btn btn--small cut-s" onClick={() => onRun('bringPlayer')}>Ramener</button>
         <button className="btn btn--small cut-s" onClick={() => onRun('sendToLobby')}>Envoyer au lobby</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('spectate')}>Regarder</button>
       </div>
 
       <span className="label">Donner un objet</span>
