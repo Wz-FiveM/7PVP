@@ -48,6 +48,19 @@ Config.Groups = {
 }
 
 -- ---------------------------------------------------------------------------
+-- Échanges entre joueurs (/trade) : PvP seulement, à côté l'un de l'autre, hors combat.
+-- Chacun propose des objets portés (sac + conteneur protégé), passe « Prêt », puis les deux
+-- confirment. Toute modification d'une offre retire les « Prêt » des deux joueurs.
+-- ---------------------------------------------------------------------------
+
+Config.Trade = {
+    requestTimeout = 30, -- secondes pour accepter une demande
+    maxDistance = 5.0, -- au-delà, l'échange est annulé
+    maxItems = 12, -- objets différents par offre
+    blocked = {}, -- objets interdits à l'échange, ex : { weapon_rpg = true }
+}
+
+-- ---------------------------------------------------------------------------
 -- Sacs de butin
 -- ---------------------------------------------------------------------------
 

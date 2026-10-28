@@ -20,6 +20,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Place de marché** | Auprès du commissaire-priseur : mettre en vente des objets portés (ils quittent l'inventaire), acheter ceux des autres, retirer ses annonces. L'argent des ventes (moins 5 % de taxe) est à récupérer chez lui, même si on était déconnecté. Annonces gardées en base. | `config/market.lua` |
 | **Coffre** | 3e conteneur (250 kg), conservé, utilisable seulement auprès du banquier. Son contenu n'est pas porté. | `Config.Containers.stash` (`config/items.lua`) |
 | **Équipes** | Jusqu'à 4 joueurs en PvP : pas de tir allié, vie et armure de chaque coéquipier à gauche de l'écran, repères bleus sur la carte à toute distance (positions envoyées par le serveur). Menu (Verr. Maj) > Équipe ou `/inviter ID`, `/accepter`, `/refuser`, `/quittergroupe`. | `Config.Groups` |
+| **Échanges** | `/trade ID` (ou menu d'interaction > Proposer un échange) : en PvP, à moins de 5 m, hors combat. L'inventaire s'ouvre avec les deux offres à droite ; on y glisse ses objets (argent compris), chacun passe « Prêt » puis les deux confirment. Toute modification retire les « Prêt » ; tout est revérifié et appliqué d'un coup par le serveur. Fermer le menu, s'éloigner, mourir ou entrer en combat annule. | `Config.Trade` |
 | **Largages aériens** | Une caisse tombe en parachute toutes les 20 min (2 joueurs PvP minimum), s'ouvre 60 s après l'atterrissage et se fouille avec `E`. | `Config.Airdrops`, table `airdrop` (`config/loot.lua`) |
 | **Menu pause** | Échap / P : carte, paramètres GTA, inventaire, commandes, retour au lobby, quitter. | — |
 | **Récap de mort** | Tueur, arme, distance, dégâts échangés et vie restante du tueur ; la caméra suit le tueur jusqu'à la réapparition. | — |
@@ -85,10 +86,11 @@ Directement sur le VPS : `bash /opt/7pvp/server-data/resources/7PVP/tools/update
 | --- | --- |
 | `Verr. Maj` | Menu : inventaire, groupe, profil, top joueurs, boutique, aide (en Freeroam : armes et véhicules). Le coffre, la fabrication et les contrats s'ouvrent en parlant aux PNJ de la zone safe |
 | `Échap` / `P` | Menu pause |
-| `Alt` (maintenu) | Menu d'interaction : curseur, la cible survolée est entourée, clic pour ouvrir son menu. Toi (ID, niveau, équipe), un joueur (inviter, exclure, prime), un butin (fouiller), un PNJ (parler), un véhicule (monter) |
+| `Alt` (maintenu) | Menu d'interaction : curseur, la cible survolée est entourée, clic pour ouvrir son menu. Toi (ID, niveau, équipe), un joueur (inviter, exclure, prime, échanger), un butin (fouiller), un PNJ (parler), un véhicule (monter) |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
 | `E` | Ramasser un sac de butin / fouiller un corps de zombie ou un largage |
 | `/inviter ID` | Inviter un joueur dans son groupe (`/accepter`, `/refuser`, `/quittergroupe`) |
+| `/trade ID` | Proposer un échange (sans ID : le joueur le plus proche) ; `/trade accepter`, `/trade refuser`, `/trade annuler` |
 | `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |
 | `/lobby` | Retour au lobby (depuis une zone safe en PvP) |
 | `F10` / `F11` | Admins : panneau d'administration / noclip |

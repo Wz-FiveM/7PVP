@@ -21,6 +21,7 @@ import type {
   PlayerState,
   MinimapAnchor,
   Toast,
+  TradeData,
   Vitals,
   ZoneInfo,
 } from '../types/game';
@@ -76,6 +77,8 @@ export interface GameState {
   interaction: { open: boolean; items: InteractionItem[] | null };
   /** Butin ouvert à droite de l'inventaire (largage), null sinon */
   loot: LootContainer | null;
+  /** Échange en cours avec un autre joueur (à droite de l'inventaire), null sinon */
+  trade: TradeData | null;
 }
 
 export type GameAction =
@@ -114,7 +117,8 @@ export type GameAction =
   | { type: 'freeroam'; patch: Partial<FreeroamState> }
   | { type: 'helpNotify'; help: HelpNotification | null }
   | { type: 'interaction'; open: boolean; items: InteractionItem[] | null }
-  | { type: 'loot'; loot: LootContainer | null; items?: LootContainer['items'] };
+  | { type: 'loot'; loot: LootContainer | null; items?: LootContainer['items'] }
+  | { type: 'trade'; trade: TradeData | null };
 
 export const initialState: GameState = {
   ready: false,
@@ -158,6 +162,7 @@ export const initialState: GameState = {
   helpNotify: null,
   interaction: { open: false, items: null },
   loot: null,
+  trade: null,
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -265,6 +270,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // Mise à jour du contenu seul (quelqu'un a pris un objet) : on garde le nom du butin
       if (!action.loot && action.items && state.loot) return { ...state, loot: { ...state.loot, items: action.items } };
       return { ...state, loot: action.loot };
+    case 'trade':
+      return { ...state, trade: action.trade };
     case 'freeroam':
       return { ...state, freeroam: { ...state.freeroam, ...action.patch } };
     case 'controlZone':

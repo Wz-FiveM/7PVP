@@ -2,7 +2,7 @@
 ---(Config.InteractionKey, Alt gauche), un curseur apparaît et la cible survolée est entourée.
 ---Un clic ouvre, à l'endroit du clic, le menu de ce qu'on vise :
 ---  soi-même (ou le vide) : ID, niveau, équipe
----  un joueur : ID, prime, inviter / exclure de l'équipe
+---  un joueur : ID, prime, inviter / exclure de l'équipe, proposer un échange
 ---  un sac, un corps de zombie, une caisse de largage : fouiller
 ---  un PNJ de la zone safe : lui parler ; un véhicule : monter
 ---Le menu est une liste d'éléments envoyée à l'interface ; chaque clic revient ici
@@ -277,6 +277,10 @@ function Interaction.playerItems(target)
             disabled = Group.data ~= false and not isLeader,
         }
     end
+    items[#items + 1] = {
+        kind = 'action', id = 'player:trade', label = 'Proposer un échange', icon = 'trade',
+        disabled = not Interaction.inReach(target.entity, Config.Trade.maxDistance),
+    }
     return items
 end
 
@@ -385,6 +389,8 @@ function Interaction.runOnTarget(id)
         Interaction.report(Callback.await(Events.callbacks.groupInvite, target.serverId))
     elseif id == 'player:kick' then
         Interaction.report(Callback.await(Events.callbacks.groupKick, target.serverId))
+    elseif id == 'player:trade' then
+        Interaction.report(Callback.await(Events.callbacks.tradeRequest, target.serverId))
     elseif id == 'loot:take' then
         Loot.interact(target.lootId)
     elseif id == 'npc:talk' then

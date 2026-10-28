@@ -4,6 +4,7 @@ import { gameApi } from '../api/gameApi';
 import { freeroamApi } from '../api/freeroamApi';
 import { interactionApi } from '../api/interactionApi';
 import { pauseApi } from '../api/pauseApi';
+import { tradeApi } from '../api/tradeApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockLobbyModes, mockVitals } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
@@ -90,6 +91,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           if (label !== undefined && id !== undefined) return dispatch({ type: 'loot', loot: { id, label, items: items ?? [] } });
           return dispatch({ type: 'loot', loot: null, items: items ?? [] });
         }
+        case 'trade':
+          return dispatch({ type: 'trade', trade: message.data.trade || null });
         case 'freeroamPvp':
           return dispatch({ type: 'freeroam', patch: { pvp: message.data.pvp } });
         case 'controlZone':
@@ -182,6 +185,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         if (isEnvBrowser()) {
           dispatch({ type: 'menu', open: false, inSafe: false, near: {} });
           dispatch({ type: 'loot', loot: null });
+          dispatch({ type: 'trade', trade: null });
         }
         gameApi.close();
       },
@@ -194,6 +198,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),
       dropItem: (item, container, count) => run(gameApi.dropItem(item, container, count)),
       setShortcut: (slot, item) => run(gameApi.setShortcut(slot, item)),
+      tradeOffer: (item, count) => run(tradeApi.offer(item, count)),
+      tradeReady: (ready) => run(tradeApi.ready(ready)),
+      tradeConfirm: () => run(tradeApi.confirm()),
+      tradeCancel: async () => {
+        if (isEnvBrowser()) dispatch({ type: 'trade', trade: null });
+        await run(tradeApi.cancel());
+      },
       refreshLeaderboard: async (scope) => {
         const result = await gameApi.leaderboard(scope);
         dispatch({ type: 'leaderboard', rows: Array.isArray(result?.rows) ? result.rows : [], title: result?.title ?? '' });

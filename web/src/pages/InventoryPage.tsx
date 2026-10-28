@@ -6,6 +6,7 @@ import { DragProvider } from '../components/inventory/DragProvider';
 import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
+import { TradeSection } from '../components/inventory/TradeSection';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
 import {
@@ -20,24 +21,26 @@ const CARRIED: ContainerId[] = ['bag', 'protected'];
 type TakeTarget = 'bag' | 'protected';
 
 interface PendingQuantity {
-  /** take : prendre dans le butin ouvert (largage) */
-  mode: 'move' | 'drop' | 'take';
+  /** take : prendre dans le butin ouvert (largage) ; offer : proposer à l'échange */
+  mode: 'move' | 'drop' | 'take' | 'offer';
   item: string;
   container: ContainerId;
   /** destination d'un déplacement */
   to?: ContainerId;
   max: number;
+  /** offer : quantité déjà proposée, ajoutée à celle choisie */
+  base?: number;
 }
 
 interface OpenContextMenu {
   x: number;
   y: number;
   stack: ItemStack;
-  /** 'loot' : objet du butin ouvert */
-  container: ContainerId | 'loot';
+  /** 'loot' : objet du butin ouvert ; 'trade' : objet de son offre d'échange */
+  container: ContainerId | 'loot' | 'trade';
 }
 
-const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = { move: 'Déplacer', drop: 'Jeter', take: 'Prendre' };
+const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = { move: 'Déplacer', drop: 'Jeter', take: 'Prendre', offer: 'Proposer' };
 
 export function InventoryPage() {
   const { state, actions } = useGame();
@@ -46,6 +49,7 @@ export function InventoryPage() {
   const [quantity, setQuantity] = useState<PendingQuantity | null>(null);
   const [contextMenu, setContextMenu] = useState<OpenContextMenu | null>(null);
   const [lootSelection, setLootSelection] = useState<string | null>(null);
+  const [tradeSelection, setTradeSelection] = useState<string | null>(null);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const closeQuantity = useCallback(() => setQuantity(null), []);
@@ -55,6 +59,8 @@ export function InventoryPage() {
   const atBanker = Boolean(state.menu.near.stash);
   // Butin ouvert (largage) : son contenu s'affiche à droite, à la place du coffre
   const loot = state.loot;
+  // Échange en cours (/trade) : il prend la place du butin et du coffre
+  const trade = state.trade;
 
   /** Déplace directement s'il n'y a qu'un objet, sinon demande la quantité. */
   const requestMove = (item: string, from: ContainerId, to: ContainerId, count: number) => {
@@ -86,6 +92,23 @@ export function InventoryPage() {
     }
   };
 
+  /** Quantité déjà proposée à l'échange */
+  const offeredOf = (item: string): number =>
+    trade ? (entriesOf(trade.mine.items).find(([name]) => name === item)?.[1] ?? 0) : 0;
+
+  /** Quantité portée (sac + conteneur protégé) */
+  const carriedOf = (item: string): number =>
+    CARRIED.reduce((total, id) => total + (entriesOf(player.inventory[id]).find(([name]) => name === item)?.[1] ?? 0), 0);
+
+  /** Ajoute un objet à son offre : directement s'il n'en reste qu'un, sinon demande la quantité. */
+  const requestOffer = (item: string) => {
+    const offered = offeredOf(item);
+    const available = carriedOf(item) - offered;
+    if (available <= 0) return actions.notify('Tu proposes déjà tout ce que tu portes.', 'error');
+    if (available === 1) actions.tradeOffer(item, offered + 1);
+    else setQuantity({ mode: 'offer', item, container: 'bag', max: available, base: offered });
+  };
+
   const requestDrop = (item: string, container: ContainerId, count: number) => {
     if (count === 1) actions.dropItem(item, container, 1);
     else setQuantity({ mode: 'drop', item, container, max: count });
@@ -93,6 +116,9 @@ export function InventoryPage() {
 
   /** Règles du glisser-déposer : où peut-on lâcher quoi ? */
   const acceptsDrop = (source: DragSource, target: DropTarget): boolean => {
+    // Son offre d'échange reçoit ce qu'on porte ; ses objets lâchés ailleurs sont retirés de l'offre
+    if (target.kind === 'trade') return source.kind === 'trade' || (source.kind === 'container' && source.container !== 'stash');
+    if (source.kind === 'trade') return false;
     // Objet du butin : seulement vers le sac ou le conteneur protégé
     if (source.kind === 'loot') {
       return target.kind === 'container' && (target.container === 'bag' || target.container === 'protected');
@@ -109,8 +135,15 @@ export function InventoryPage() {
     // Raccourci lâché en dehors des emplacements : on le retire
     if (!target) {
       if (source.kind === 'shortcut') actions.setShortcut(source.slot, null);
+      if (source.kind === 'trade') actions.tradeOffer(source.item, 0);
       return;
     }
+
+    if (target.kind === 'trade') {
+      if (source.kind === 'container') requestOffer(source.item);
+      return;
+    }
+    if (source.kind === 'trade') return;
 
     if (target.kind === 'container') {
       if (source.kind === 'container') requestMove(source.item, source.container, target.container, source.count);
@@ -127,7 +160,9 @@ export function InventoryPage() {
 
   const handleQuantityConfirm = (count: number) => {
     if (!quantity) return;
-    if (quantity.mode === 'take' && (quantity.to === 'bag' || quantity.to === 'protected')) {
+    if (quantity.mode === 'offer') {
+      actions.tradeOffer(quantity.item, (quantity.base ?? 0) + count);
+    } else if (quantity.mode === 'take' && (quantity.to === 'bag' || quantity.to === 'protected')) {
       actions.lootTake(quantity.item, count, quantity.to);
     } else if (quantity.mode === 'move' && quantity.to) {
       actions.moveItem(quantity.item, quantity.container, quantity.to, count);
@@ -137,7 +172,16 @@ export function InventoryPage() {
     setQuantity(null);
   };
 
-  const contextActions = (stack: ItemStack, container: ContainerId | 'loot'): ContextMenuAction[] => {
+  const contextActions = (stack: ItemStack, container: ContainerId | 'loot' | 'trade'): ContextMenuAction[] => {
+    if (container === 'trade') {
+      return [
+        {
+          label: 'Changer la quantité',
+          onSelect: () => setQuantity({ mode: 'offer', item: stack.name, container: 'bag', max: carriedOf(stack.name), base: 0 }),
+        },
+        { label: 'Retirer de l\'échange', danger: true, onSelect: () => actions.tradeOffer(stack.name, 0) },
+      ];
+    }
     if (container === 'loot') {
       return [
         { label: 'Prendre : vers le sac', onSelect: () => requestTake(stack.name, stack.count, 'bag') },
@@ -147,6 +191,7 @@ export function InventoryPage() {
     const list: ContextMenuAction[] = [];
     // Le contenu du coffre n'est pas porté : on le sort d'abord
     const carried = container !== 'stash';
+    if (trade && carried) list.push({ label: 'Proposer à l\'échange', onSelect: () => requestOffer(stack.name) });
     if (carried && stack.item.type === 'weapon') {
       list.push({ label: 'Équiper', onSelect: () => actions.equip(stack.name) });
       list.push(...attachmentActions(stack.name));
@@ -188,6 +233,8 @@ export function InventoryPage() {
    * ailleurs : du sac vers le conteneur protégé, et inversement.
    */
   const quickMove = (stack: ItemStack, from: ContainerId) => {
+    // Échange en cours : toute la pile part dans son offre
+    if (trade && from !== 'stash') return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
     const to: ContainerId = atBanker ? (from === 'stash' ? 'bag' : 'stash') : from === 'bag' ? 'protected' : 'bag';
     const target = config.containers[to];
     const free = target.capacity - weightOf(player.inventory[to] ?? [], config);
@@ -223,7 +270,24 @@ export function InventoryPage() {
   return (
     <DragProvider accepts={acceptsDrop} onDrop={handleDrop}>
       <div className="inventory">
-        {loot ? (
+        {trade ? (
+          // Échange en cours : ce qu'on porte à gauche, l'échange à droite
+          <div className="inventory__split">
+            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            <div className="inventory__column inventory__column--stash">
+              <TradeSection
+                trade={trade}
+                selected={tradeSelection}
+                onSelect={setTradeSelection}
+                onRemove={(stack) => actions.tradeOffer(stack.name, 0)}
+                onItemContextMenu={(event, stack) => {
+                  setTradeSelection(stack.name);
+                  setContextMenu({ x: event.clientX, y: event.clientY, stack, container: 'trade' });
+                }}
+              />
+            </div>
+          </div>
+        ) : loot ? (
           // Butin ouvert (largage) : ce qu'on porte à gauche, le butin à droite
           <div className="inventory__split">
             <div className="inventory__column">{CARRIED.map(renderSection)}</div>
@@ -254,7 +318,7 @@ export function InventoryPage() {
         <ShortcutBar />
 
         <p className="mono inventory__help">
-          [GLISSER] DÉPLACER · [ALT + CLIC] VERS {loot ? 'TON SAC' : atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
+          [GLISSER] {trade ? 'PROPOSER / DÉPLACER' : 'DÉPLACER'} · [ALT + CLIC] VERS {trade ? 'L\'ÉCHANGE' : loot ? 'TON SAC' : atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
           UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS · RACCOURCI LÂCHÉ HORS DE LA BARRE = RETIRÉ
         </p>
 

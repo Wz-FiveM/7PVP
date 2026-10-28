@@ -2,7 +2,7 @@ import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
   ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseElo,
-  ChaseScores, CvcHudData, CvcStateData, CvcScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChaseScores, CvcHudData, CvcStateData, CvcScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -31,6 +31,8 @@ export type NuiMessage =
   /** groupe actuel, `false` sans groupe */
   | { action: 'group'; data: { group: GroupData | false } }
   | { action: 'groupInvite'; data: GroupInvite }
+  /** échange en cours entre joueurs (à droite de l'inventaire), `false` quand il se termine */
+  | { action: 'trade'; data: { trade: TradeData | false } }
   | { action: 'groupVitals'; data: GroupVital[] }
   | { action: 'pause'; data: { open: boolean; info?: PauseInfo } }
   | { action: 'death'; data: { seconds: number; recap?: DeathRecap } }

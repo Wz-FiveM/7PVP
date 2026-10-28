@@ -310,3 +310,57 @@
 .loot-icon {
   color: var(--signal);
 }
+
+/* Échange entre joueurs (/trade) */
+.trade-icon {
+  color: var(--signal);
+}
+.trade__side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 1rem;
+}
+.trade__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.trade__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.trade__status {
+  font-size: 0.6875rem;
+}
+.trade__status--ready {
+  --zone: var(--toxine);
+}
+.trade__status--confirmed {
+  --zone: var(--abri);
+}
+.trade__empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  margin: 0;
+  padding: 1.5rem 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  color: var(--brume);
+}
+.trade__note {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+}
+.trade__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.trade__actions .btn {
+  flex: 1;
+}

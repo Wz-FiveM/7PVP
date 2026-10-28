@@ -69,6 +69,8 @@ Events.client = {
     cvcRoundEnd = '7pvp:client:cvcRoundEnd',
     cvcEnd = '7pvp:client:cvcEnd',
     cvcVehicle = '7pvp:client:cvcVehicle',
+    tradeRequest = '7pvp:client:tradeRequest',
+    tradeState = '7pvp:client:tradeState',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -120,4 +122,10 @@ Events.callbacks = {
     adminLootZones = 'admin:lootZones',
     activityStart = 'activity:start',
     chaseVote = 'chase:vote',
+    tradeRequest = 'trade:request',
+    tradeRespond = 'trade:respond',
+    tradeOffer = 'trade:offer',
+    tradeReady = 'trade:ready',
+    tradeConfirm = 'trade:confirm',
+    tradeCancel = 'trade:cancel',
 }

@@ -249,6 +249,23 @@ export interface GroupInvite {
   fromName: string;
 }
 
+/** Offre d'un des deux joueurs dans un échange */
+export interface TradeOffer {
+  items: ItemStacks;
+  /** offre validée (« Prêt ») ; toute modification d'une offre retire les deux */
+  ready: boolean;
+  /** échange confirmé (possible une fois les deux prêts) */
+  confirmed: boolean;
+}
+
+/** Échange en cours (server/modules/trade/trade_service.lua) */
+export interface TradeData {
+  id: number;
+  partner: { id: number; name: string; avatar?: string };
+  mine: TradeOffer;
+  theirs: TradeOffer;
+}
+
 /** Informations du menu pause (client/modules/pause/pause.lua) */
 export interface PauseInfo {
   name: string;

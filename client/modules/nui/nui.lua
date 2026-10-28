@@ -11,6 +11,7 @@ local Zones = PVP.use('Zones')
 local Freeroam = PVP.use('Freeroam')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Loot = PVP.use('Loot')
+local Trade = PVP.use('Trade')
 local Events = PVP.use('Events')
 
 -- Commandes coupées quand le menu laisse le clavier au jeu : caméra et roue de la souris, tir,
@@ -172,8 +173,11 @@ end
 ---@param page? string
 function Nui.setMenu(open, page)
     if open and not State.isAlive() then return end
-    -- Un butin ouvert (largage) se referme avec le menu
-    if not open then Loot.closeContainer() end
+    -- Un butin ouvert (largage) se referme avec le menu ; un échange en cours est annulé
+    if not open then
+        Loot.closeContainer()
+        Trade.closeWindow()
+    end
     State.menuOpen = open
     SetNuiFocus(open, open)
     Nui.setGameInput(open)

@@ -14,6 +14,11 @@ export interface GameActions {
   /** Prend des objets du butin ouvert (largage) et les range dans le sac ou le conteneur protégé */
   lootTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
+  /** Échange : quantité proposée d'un objet (0 = le retirer de l'offre) */
+  tradeOffer: (item: string, count: number) => Promise<void>;
+  tradeReady: (ready: boolean) => Promise<void>;
+  tradeConfirm: () => Promise<void>;
+  tradeCancel: () => Promise<void>;
   craft: (id: string) => Promise<void>;
   /** Fixe ou retire un accessoire d'une arme */
   attachment: (weapon: string, attachment: string, attach: boolean) => Promise<void>;

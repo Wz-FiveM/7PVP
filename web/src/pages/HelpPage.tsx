@@ -7,6 +7,7 @@ const CONTROLS: [string, string][] = [
   ['E', 'Ramasser un sac de butin, fouiller un corps ou un largage'],
   ['ÉCHAP', 'Fermer le menu / menu pause en jeu'],
   ['/inviter ID', 'Inviter un joueur dans ton équipe'],
+  ['/trade ID', 'Proposer un échange (sans ID : le joueur le plus proche) · /trade accepter, refuser, annuler'],
 ];
 
 const ZONES: { type: 'safe' | 'pve' | 'pvp'; title: string; text: string }[] = [

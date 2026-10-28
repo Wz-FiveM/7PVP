@@ -21,7 +21,8 @@ export type IconName =
   | 'crate'
   | 'flag'
   | 'trophy'
-  | 'moon';
+  | 'moon'
+  | 'trade';
 
 /** Icônes au trait (viewBox 24x24), dans le style de la D.A Frontline. */
 const PATHS: Record<IconName, string> = {
@@ -51,6 +52,7 @@ const PATHS: Record<IconName, string> = {
   flag: 'M5 21V3M5 4h12l-2 4 2 4H5',
   trophy: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H3c0 3 2 5 4 5M17 6h4c0 3-2 5-4 5M12 14v4M8 21h8',
   moon: 'M20 14a8 8 0 1 1-10-10 7 7 0 0 0 10 10z',
+  trade: 'M3 8h16M15 4l4 4-4 4M21 16H5M9 12l-4 4 4 4',
 };
 
 interface IconProps {

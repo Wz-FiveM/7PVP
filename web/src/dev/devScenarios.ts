@@ -16,6 +16,7 @@ function resetScreens(): void {
   sendNui({ action: 'lobby', data: { open: false } });
   sendNui({ action: 'menu', data: { open: false, inSafe: true } });
   sendNui({ action: 'lootContainer', data: { open: false } });
+  sendNui({ action: 'trade', data: { trade: false } });
   sendNui({ action: 'chaseHud', data: { open: false } });
   sendNui({ action: 'chaseVote', data: { open: false } });
   sendNui({ action: 'cvcHud', data: { open: false } });
@@ -106,6 +107,25 @@ export const DEV_SCREENS: DevScreen[] = [
           id: 1,
           label: 'Largage',
           items: { weapon_carbinerifle: 1, ammo_556: 120, medkit: 3, armor: 2, money: 1250 },
+        },
+      });
+    },
+  },
+  {
+    id: 'trade',
+    label: 'Échange (/trade)',
+    open: () => {
+      enterPvp();
+      sendNui({ action: 'menu', data: { open: true, inSafe: false, near: {}, page: 'inventory' } });
+      sendNui({
+        action: 'trade',
+        data: {
+          trade: {
+            id: 1,
+            partner: { id: 12, name: 'Kaïros' },
+            mine: { items: { money: 300, bandage: 2 }, ready: true, confirmed: false },
+            theirs: { items: { weapon_carbinerifle: 1, ammo_556: 60 }, ready: false, confirmed: false },
+          },
         },
       });
     },
