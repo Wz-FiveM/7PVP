@@ -1,6 +1,6 @@
 ---Anti-cheat côté serveur (Config.AntiCheat). Détections :
 ---  weapon    : touche avec une arme absente de l'inventaire (PvP)
----  damage    : dégâts d'une touche au-dessus du maximum
+---  damage    : dégâts d'une touche au-dessus du maximum (alerte seulement, la touche passe)
 ---  explosion : explosion d'arme (grenade, roquette...) en PvP
 ---  entity    : véhicule créé par un joueur en PvP
 ---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible hors zone safe
@@ -245,11 +245,27 @@ function AntiCheatService.onWeaponDamage(sender, data)
         return AntiCheatService.flag(sender, 'weapon', ('arme %d absente de l\'inventaire'):format(weapon))
     end
 
+    -- Jamais annulée : une touche annulée désynchronise les deux joueurs (le tireur voit sa cible
+    -- mourir, elle reste en vie chez elle et ne reçoit plus ses tirs). Des tirs légitimes dépassent
+    -- le seuil (tête, corps à corps) : on alerte avec le détail pour pouvoir trier.
     local damage = tonumber(data.weaponDamage) or 0
     if damage > Config.AntiCheat.maxWeaponDamage then
-        CancelEvent()
-        AntiCheatService.flag(sender, 'damage', ('%d dégâts en une touche'):format(math.floor(damage)))
+        AntiCheatService.flag(sender, 'damage', ('%d dégâts en une touche (%s, partie %s%s)'):format(
+            math.floor(damage), AntiCheatService.weaponLabel(weapon), tostring(data.hitComponent),
+            data.willKill and ', mortelle' or ''))
     end
+end
+
+---@param weapon integer hash non signé
+---@return string nom de l'objet de l'arme, sinon le hash
+function AntiCheatService.weaponLabel(weapon)
+    for _, name in ipairs(AntiCheatService.ALWAYS_ALLOWED) do
+        if AntiCheatService.unsigned(GetHashKey(name)) == weapon then return name end
+    end
+    for _, item in pairs(Config.Items) do
+        if item.weapon and AntiCheatService.unsigned(GetHashKey(item.weapon)) == weapon then return item.label end
+    end
+    return tostring(weapon)
 end
 
 ---@param sender integer

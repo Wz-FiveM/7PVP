@@ -12,7 +12,7 @@ Config.AntiCheat = {
 
     detections = {
         weapon = { label = 'Arme non possédée', action = 'kick', strikes = 3 },
-        damage = { label = 'Dégâts anormaux', action = 'kick', strikes = 3 },
+        damage = { label = 'Dégâts anormaux', action = 'log', strikes = 1 }, -- la touche n'est jamais annulée
         explosion = { label = 'Explosion interdite', action = 'ban', strikes = 2, banDays = 0 },
         entity = { label = 'Véhicule créé en PvP', action = 'kick', strikes = 3 },
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },
@@ -22,7 +22,8 @@ Config.AntiCheat = {
         heartbeat = { label = 'Script client arrêté', action = 'kick', strikes = 1 },
     },
 
-    -- Dégâts maximum d'une touche (le sniper fait ~100 ; au-delà, l'arme est modifiée)
+    -- Dégâts d'une touche au-delà desquels une alerte part (le sniper fait ~100). Les tirs à la tête
+    -- et le corps à corps peuvent dépasser ce seuil sans triche : alerte seulement, jamais d'annulation.
     maxWeaponDamage = 250,
     -- Vie maximum d'un joueur (200 dans GTA, dont 100 sous le seuil de mort) et armure maximum
     maxHealth = 200,
