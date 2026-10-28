@@ -366,7 +366,7 @@ export interface TeleportMenuData {
   key: string;
 }
 
-export type PauseAction = 'map' | 'settings' | 'menu' | 'lobby' | 'quit';
+export type PauseAction = 'map' | 'settings' | 'menu' | 'teleport' | 'lobby' | 'quit';
 
 /** Dégâts échangés avec un joueur pendant une vie */
 export interface DamageSummary {

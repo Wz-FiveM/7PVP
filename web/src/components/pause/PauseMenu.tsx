@@ -1,212 +1,180 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useGame } from '../../store/GameContext';
-import type { PauseInfo } from '../../types/game';
+import type { PauseAction, PauseInfo } from '../../types/game';
 import { formatKd } from '../../utils/format';
-import { Icon, type IconName } from '../icons/Icon';
-import { Logo } from '../ui/Logo';
+import { Icon } from '../icons/Icon';
 import './pause.css';
-
-type PauseTab = 'home' | 'controls';
-
-const TABS: { id: PauseTab; label: string; icon: IconName }[] = [
-  { id: 'home', label: 'Accueil', icon: 'profile' },
-  { id: 'controls', label: 'Commandes', icon: 'help' },
-];
 
 const MODE_LABELS: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
 
-/** Menu pause (Échap) : accès rapide à la carte, aux paramètres, au lobby et à la déconnexion. */
+interface Entry {
+  id: string;
+  label: string;
+  hint?: string;
+  danger?: boolean;
+  /** espace au-dessus (sépare le retour au lobby et la déconnexion) */
+  gap?: boolean;
+  run: () => void;
+}
+
+/** Menu pause (Échap) : actions à gauche, compte et touches à droite, le jeu reste visible derrière. */
 export function PauseMenu() {
   const { state, actions } = useGame();
   const info = state.pause.info;
-  const [tab, setTab] = useState<PauseTab>('home');
+  const [selected, setSelected] = useState(0);
   const [confirmQuit, setConfirmQuit] = useState(false);
 
+  const entries = info ? buildEntries(info, confirmQuit, {
+    close: actions.closePause,
+    run: (action: PauseAction) => actions.pauseAction(action),
+    askQuit: () => setConfirmQuit(true),
+  }) : [];
+
+  // Échap ferme ; flèches pour choisir, Entrée pour valider
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') actions.closePause();
+      if (event.key === 'Escape') return actions.closePause();
+      if (event.key === 'Enter') return entries[selected]?.run();
+      if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      setSelected((index) => (index + step + entries.length) % entries.length);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [actions]);
+  }, [actions, entries, selected]);
 
   if (!info) return null;
-  const inPvp = info.mode === 'pvp';
+  const player = state.player;
+  const xpPerLevel = state.config.xpPerLevel || 1;
+  const xp = player ? player.xp % xpPerLevel : 0;
+  const mode = info.mode ? MODE_LABELS[info.mode] ?? info.mode : 'Lobby';
 
   return (
     <div className="pause">
-      <aside className="pause__panel">
-        <div className="stripes pause__stripes" />
-        <header className="pause__header">
-          <Logo size={44} />
-          <div className="pause__heading">
-            <h1 className="disp pause__title">
-              Menu <span className="pause__accent">pause</span>
-            </h1>
-            <span className="muted pause__subtitle">Accès rapide et informations de ton compte</span>
-          </div>
-          <button className="btn btn--small cut-s pause__close" onClick={actions.closePause} aria-label="Fermer">
-            ✕
-          </button>
+      <aside className="pause__side">
+        <header className="pause__heading">
+          <span className="mono pause__eyebrow">7PVP · {mode.toUpperCase()} · ID #{info.serverId}</span>
+          <h1 className="disp pause__title">Pause</h1>
         </header>
 
-        <div className="pause__body">
-          <nav className="pause__nav">
-            {TABS.map((item) => (
-              <button
-                key={item.id}
-                className={item.id === tab ? 'pause__tab pause__tab--active cut-s' : 'pause__tab cut-s'}
-                onClick={() => setTab(item.id)}
-              >
-                <Icon name={item.icon} size={16} strokeWidth={2.2} />
-                {item.label}
-              </button>
-            ))}
-            <button className="pause__tab cut-s" onClick={() => actions.pauseAction('settings')}>
-              <Icon name="craft" size={16} strokeWidth={2.2} />
-              Paramètres
+        <nav className="pause__nav">
+          {entries.map((entry, index) => (
+            <button
+              key={entry.id}
+              className={[
+                'pause__entry',
+                index === selected && 'pause__entry--selected',
+                entry.danger && 'pause__entry--danger',
+                entry.gap && 'pause__entry--gap',
+              ].filter(Boolean).join(' ')}
+              onMouseEnter={() => setSelected(index)}
+              onClick={entry.run}
+            >
+              <span className="disp pause__entry-label">{entry.label}</span>
+              {entry.hint && <span className="mono pause__entry-hint">{entry.hint}</span>}
             </button>
-
-            <div className="pause__nav-bottom">
-              {info.mode && (
-                <button className="pause__tab cut-s" onClick={() => actions.pauseAction('lobby')}>
-                  <Icon name="exit" size={16} strokeWidth={2.2} />
-                  Retour au lobby
-                </button>
-              )}
-              <button
-                className="pause__tab pause__tab--danger cut-s"
-                onClick={() => (confirmQuit ? actions.pauseAction('quit') : setConfirmQuit(true))}
-              >
-                <Icon name="exit" size={16} strokeWidth={2.2} />
-                {confirmQuit ? 'Confirmer' : 'Quitter'}
-              </button>
-            </div>
-          </nav>
-
-          <main className="pause__content">
-            {tab === 'home' ? <PauseHome info={info} inPvp={inPvp} /> : <PauseControls info={info} />}
-          </main>
-        </div>
+          ))}
+        </nav>
       </aside>
+
+      <main className="pause__main">
+        <section className="pause__operator">
+          <span className="pause__avatar">
+            <Icon name="profile" size={56} strokeWidth={1.5} />
+          </span>
+          <div className="pause__operator-text">
+            <span className="mono pause__label">OPÉRATEUR · ID #{info.serverId}</span>
+            <span className="disp pause__name">{info.name}</span>
+            <div className="pause__level">
+              <span className="disp pause__level-value">NIV. {info.level}</span>
+              <span className="pause__xp">
+                <span style={{ width: `${(xp / xpPerLevel) * 100}%` }} />
+              </span>
+              <span className="mono pause__xp-text">
+                {xp.toLocaleString('fr-FR')} / {xpPerLevel.toLocaleString('fr-FR')} XP
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <div className="pause__stats">
+          <Stat label="ÉLIMINATIONS" value={info.kills.toLocaleString('fr-FR')} tone="signal" />
+          <Stat label="MORTS" value={info.deaths.toLocaleString('fr-FR')} />
+          <Stat label="RATIO" value={formatKd(info.kills, info.deaths)} />
+          <Stat label="ZOMBIES" value={info.npcKills.toLocaleString('fr-FR')} tone="toxine" />
+        </div>
+
+        <section className="pause__keys">
+          <h2 className="disp pause__keys-title">Touches principales</h2>
+          <ul className="pause__key-list">
+            {buildKeys(info).map(([key, action]) => (
+              <li key={key} className="pause__key-row">
+                <span className="mono pause__key">{key}</span>
+                <span>{action}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="pause__keys-note">Les touches se changent dans Paramètres › Raccourcis clavier › FiveM.</p>
+        </section>
+      </main>
     </div>
   );
 }
 
-function PauseHome({ info, inPvp }: { info: PauseInfo; inPvp: boolean }) {
-  const { actions } = useGame();
-
-  return (
-    <>
-      <div className="pause__shortcuts">
-        <PauseCard
-          title="Carte"
-          text="Ouvrir la carte du jeu"
-          icon="flag"
-          large
-          onClick={() => actions.pauseAction('map')}
-        />
-        {inPvp && (
-          <PauseCard
-            title="Inventaire"
-            text={`Menu ${info.keys.menu} : sac, équipe, boutique`}
-            icon="inventory"
-            onClick={() => actions.pauseAction('menu')}
-          />
-        )}
-        <PauseCard
-          title="Paramètres"
-          text="Graphismes, son, commandes de GTA"
-          icon="craft"
-          onClick={() => actions.pauseAction('settings')}
-        />
-      </div>
-
-      <PauseSection title="Mon compte" text="Informations sur ton personnage">
-        <div className="pause__tiles">
-          <PauseTile label="Personnage" value={info.name} icon="profile" />
-          <PauseTile label="ID joueur" value={`#${info.serverId}`} icon="contract" />
-          <PauseTile label="Mode" value={info.mode ? MODE_LABELS[info.mode] ?? info.mode : 'Lobby'} icon="crosshair" />
-          <PauseTile label="Niveau" value={info.level} icon="trophy" />
-          <PauseTile label="Kills / morts" value={`${info.kills} / ${info.deaths} · ${formatKd(info.kills, info.deaths)}`} icon="weapon" />
-          <PauseTile label="Zombies tués" value={info.npcKills} icon="moon" />
-        </div>
-      </PauseSection>
-    </>
-  );
+function buildEntries(
+  info: PauseInfo,
+  confirmQuit: boolean,
+  on: { close: () => void; run: (action: PauseAction) => void; askQuit: () => void },
+): Entry[] {
+  const inPvp = info.mode === 'pvp';
+  const entries: Entry[] = [
+    { id: 'resume', label: 'Reprendre', hint: 'ÉCHAP', run: on.close },
+    { id: 'map', label: 'Carte', run: () => on.run('map') },
+  ];
+  if (info.mode) {
+    entries.push({
+      id: 'menu',
+      label: inPvp ? 'Équipement' : 'Menu Freeroam',
+      hint: info.keys.menu,
+      run: () => on.run('menu'),
+    });
+  }
+  if (inPvp) entries.push({ id: 'teleport', label: 'Téléportation', hint: info.keys.teleport, run: () => on.run('teleport') });
+  entries.push({ id: 'settings', label: 'Paramètres', run: () => on.run('settings') });
+  if (info.mode) entries.push({ id: 'lobby', label: 'Retour au lobby', gap: true, run: () => on.run('lobby') });
+  entries.push({
+    id: 'quit',
+    label: confirmQuit ? 'Confirmer : quitter' : 'Quitter',
+    danger: true,
+    gap: !info.mode,
+    run: () => (confirmQuit ? on.run('quit') : on.askQuit()),
+  });
+  return entries;
 }
 
-function PauseControls({ info }: { info: PauseInfo }) {
-  const rows: [string, string][] = [
-    [info.keys.menu, 'Menu : inventaire, équipe, profil, boutique'],
-    ['1 – 7', 'Utiliser un raccourci (la barre s\'affiche)'],
-    ['E', 'Ramasser un sac, fouiller un corps ou un largage'],
-    [info.keys.teleport, 'Se téléporter dans une zone safe'],
+function buildKeys(info: PauseInfo): [string, string][] {
+  const keys: [string, string][] = [
+    [info.keys.menu, 'Équipement, équipe, boutique'],
+    ['1 – 7', 'Raccourcis (la barre s\'affiche)'],
+    ['ALT', 'Menu d\'interaction (maintenir)'],
+    [info.keys.teleport, 'Téléportation entre zones safe'],
+    ['E', 'Fouiller, parler, ramasser'],
     [info.keys.chat, 'Chat (/commande pour une commande)'],
-    ['/inviter ID', 'Inviter un joueur dans ton équipe'],
+    ['K', 'Ranger son véhicule (au volant)'],
     ['/lobby', 'Retour au lobby (en zone safe)'],
-    ['Échap', 'Menu pause'],
   ];
   if (info.isAdmin) {
-    rows.push([info.keys.admin, 'Panneau admin'], [info.keys.noclip, 'Noclip'], ['/tpm', 'Téléportation au marqueur'], ['/heure 22', "Régler l'heure du jeu pour tous (/heure reset)"]);
+    keys.push([info.keys.admin, 'Panneau admin'], [info.keys.noclip, 'Noclip'], ['/tpm', 'Téléportation au marqueur'], ['/heure 22', 'Heure du jeu (/heure reset)']);
   }
-
-  return (
-    <PauseSection title="Commandes" text="Les touches se changent dans Paramètres > Raccourcis clavier > FiveM">
-      <ul className="pause__controls">
-        {rows.map(([key, action]) => (
-          <li key={key} className="pause__control">
-            <span className="mono pause__key cut-s">{key}</span>
-            <span>{action}</span>
-          </li>
-        ))}
-      </ul>
-    </PauseSection>
-  );
+  return keys;
 }
 
-function PauseSection({ title, text, children }: { title: string; text: string; children: ReactNode }) {
+function Stat({ label, value, tone }: { label: string; value: string; tone?: 'signal' | 'toxine' }) {
   return (
-    <section className="pause__section">
-      <h2 className="disp pause__section-title">
-        <span className="pause__dot" />
-        {title}
-      </h2>
-      <p className="muted pause__section-text">{text}</p>
-      {children}
-    </section>
-  );
-}
-
-interface PauseCardProps {
-  title: string;
-  text: string;
-  icon: IconName;
-  large?: boolean;
-  onClick: () => void;
-}
-
-function PauseCard({ title, text, icon, large, onClick }: PauseCardProps) {
-  return (
-    <button className={large ? 'pause__card pause__card--large cut' : 'pause__card cut'} onClick={onClick}>
-      <Icon name={icon} size={large ? 26 : 20} strokeWidth={2} className="pause__card-icon" />
-      <span className="disp pause__card-title">{title}</span>
-      <span className="muted pause__card-text">{text}</span>
-      <span className="pause__card-arrow">›</span>
-    </button>
-  );
-}
-
-function PauseTile({ label, value, icon }: { label: string; value: ReactNode; icon: IconName }) {
-  return (
-    <div className="pause__tile cut-s">
-      <span className="pause__tile-icon cut-s">
-        <Icon name={icon} size={16} strokeWidth={2.2} />
-      </span>
-      <span className="pause__tile-text">
-        <span className="label pause__tile-label">{label}</span>
-        <span className="pause__tile-value">{value}</span>
-      </span>
+    <div className={tone ? `pause__stat pause__stat--${tone}` : 'pause__stat'}>
+      <span className="mono pause__label">{label}</span>
+      <span className="disp pause__stat-value">{value}</span>
     </div>
   );
 }

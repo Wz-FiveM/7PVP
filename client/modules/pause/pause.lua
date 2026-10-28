@@ -7,6 +7,7 @@ local Nui = PVP.use('Nui')
 local Admin = PVP.use('Admin')
 local Lobby = PVP.use('Lobby')
 local Freeroam = PVP.use('Freeroam')
+local Teleport = PVP.use('Teleport')
 local Events = PVP.use('Events')
 
 Pause.CONTROL_ESCAPE = 200 -- INPUT_FRONTEND_PAUSE_ALTERNATE (Échap)
@@ -93,6 +94,7 @@ Pause.ACTIONS = {
     map = 'openMap',
     settings = 'openSettings',
     menu = 'openGameMenu',
+    teleport = 'openTeleport',
     lobby = 'backToLobby',
     quit = 'quit',
 }
@@ -120,6 +122,14 @@ function Pause.openSettings()
     CreateThread(function()
         Wait(Pause.FRONTEND_DELAY)
         ActivateFrontendMenu(GetHashKey('FE_MENU_VERSION_MP_PAUSE'), false, -1)
+    end)
+end
+
+---Menu de téléportation entre zones safe (comme sa touche).
+function Pause.openTeleport()
+    CreateThread(function()
+        Wait(Pause.FRONTEND_DELAY)
+        Teleport.toggle()
     end)
 end
 
