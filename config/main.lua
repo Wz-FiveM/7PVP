@@ -96,13 +96,14 @@ Config.World = {
 -- Interface
 -- ---------------------------------------------------------------------------
 
--- Inventaire / menu (nom de touche FiveM : CAPITAL = Verr. Maj)
-Config.MenuKey = 'CAPITAL'
-Config.MenuKeyLabel = 'VERR. MAJ' -- nom affiché dans l'interface
+-- Inventaire / menu (nom de touche FiveM). TAB remplace aussi la roue des armes de GTA.
+Config.MenuKey = 'TAB'
+Config.MenuKeyLabel = 'TAB' -- nom affiché dans l'interface
 -- Menu d'interaction : maintenir la touche, viser une cible (soi, joueur, butin, PNJ, véhicule)
 -- et cliquer. LMENU = Alt gauche.
 Config.InteractionKey = 'LMENU'
-Config.HotbarKey = 'TAB' -- maintenir pour afficher la barre de raccourcis (remplace la roue des armes)
+-- Barre de raccourcis : affichée quelques secondes quand on utilise un raccourci (1 à 7)
+Config.HotbarShowTime = 2500 -- millisecondes
 
 -- ---------------------------------------------------------------------------
 -- Chute

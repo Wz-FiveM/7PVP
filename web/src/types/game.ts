@@ -108,7 +108,7 @@ export interface GameConfig {
   shortcutSlots: number;
   xpPerLevel: number;
   groupMaxSize?: number;
-  /** nom de la touche du menu (ex : VERR. MAJ) */
+  /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
   attachments?: Record<string, Record<string, string>>;
@@ -257,7 +257,7 @@ export interface PauseInfo {
   deaths: number;
   npcKills: number;
   isAdmin: boolean;
-  keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string; teleport: string };
+  keys: { menu: string; chat: string; admin: string; noclip: string; teleport: string };
 }
 
 /** Compteur de vitesse (client/modules/hud/speedometer.lua) */
@@ -277,6 +277,20 @@ export type ChaseRole = 'thief' | 'cop';
 export interface ChaseScores {
   me: number;
   opponent: number;
+}
+/** Changement d'ELO de la course poursuite en fin de partie */
+export interface ChaseElo {
+  before: number;
+  after: number;
+  delta: number;
+}
+/** Ligne du tableau de classement de la course poursuite (DUI de la zone safe) */
+export interface ChaseBoardRow {
+  name: string;
+  elo: number;
+  wins: number;
+  losses: number;
+  draws: number;
 }
 export interface ChaseHudData {
   round: number;

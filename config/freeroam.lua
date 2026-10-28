@@ -1,5 +1,5 @@
 -- Mode Freeroam (bac à sable) : pas d'inventaire ni de perte, armes et véhicules gratuits
--- depuis le menu (Verr. Maj), PvP désactivé par défaut (chaque joueur l'active pour lui-même :
+-- depuis le menu (Tab), PvP désactivé par défaut (chaque joueur l'active pour lui-même :
 -- les dégâts entre deux joueurs ne passent que si les deux l'ont activé). Pas de zombies.
 -- Modes de jeu lancés depuis les PNJ de la zone safe du Freeroam (config/npcs.lua, rôle 'activity').
 -- enabled = false : le PNJ est là, mais le mode est affiché « Bientôt disponible ».

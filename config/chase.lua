@@ -36,6 +36,22 @@ Config.Chase = {
     -- Véhicule sur le toit : son conducteur perd la manche
     roof = { angle = 140.0, time = 2.0 }, -- degrés de roulis, secondes sur le toit
 
+    -- Classement ELO (table pvp_chase_ratings) : recalculé à la fin de chaque partie.
+    -- Victoire 1, égalité 0,5, défaite 0 ; quitter une partie en cours compte comme une défaite.
+    elo = {
+        start = 1000, -- cote de départ
+        k = 32, -- points en jeu par partie (plus haut = la cote bouge plus vite)
+        boardSize = 10, -- joueurs affichés sur le tableau
+    },
+    -- Tableau du classement dans la zone safe du Freeroam (écran DUI posé dans le monde)
+    board = {
+        coords = vector3(216.4, -944.8, 30.7), -- pied de l'écran (juste derrière le PNJ de la course)
+        heading = 60.0, -- l'écran fait face à cette direction (vers le centre de la zone safe)
+        width = 5.0, -- mètres (la hauteur suit le format de la page : 4/3)
+        elevation = 0.6, -- mètres entre le sol et le bas de l'écran
+        drawDistance = 60.0, -- mètres : au-delà, l'écran n'est plus dessiné
+    },
+
     -- Dégâts réalistes des véhicules de la course : les chocs abîment bien plus que dans GTA,
     -- et un moteur abîmé perd de la puissance (accélère moins, ne tient plus sa vitesse)
     damageRealism = {

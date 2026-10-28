@@ -80,7 +80,6 @@ function Pause.buildInfo()
         isAdmin = Admin.isAdmin,
         keys = {
             menu = Config.MenuKeyLabel,
-            hotbar = Config.HotbarKey,
             chat = Config.Chat.key,
             admin = Config.Admin.Key,
             noclip = Config.Admin.NoclipKey,

@@ -22,7 +22,7 @@ Config.Lobby.Modes = {
         id = 'freeroam',
         label = 'Freeroam',
         tagline = 'Liberté totale',
-        description = 'Bac à sable : armes et véhicules gratuits (Verr. Maj), PvP désactivé par défaut, aucune perte.',
+        description = 'Bac à sable : armes et véhicules gratuits (Tab), PvP désactivé par défaut, aucune perte.',
         bucket = 2,
         enabled = true,
     },

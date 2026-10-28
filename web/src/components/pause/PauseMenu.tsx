@@ -139,8 +139,7 @@ function PauseHome({ info, inPvp }: { info: PauseInfo; inPvp: boolean }) {
 function PauseControls({ info }: { info: PauseInfo }) {
   const rows: [string, string][] = [
     [info.keys.menu, 'Menu : inventaire, équipe, profil, boutique'],
-    [`${info.keys.hotbar} (maintenu)`, 'Afficher les raccourcis'],
-    ['1 – 7', 'Utiliser un raccourci'],
+    ['1 – 7', 'Utiliser un raccourci (la barre s\'affiche)'],
     ['E', 'Ramasser un sac, fouiller un corps ou un largage'],
     [info.keys.teleport, 'Se téléporter dans une zone safe'],
     [info.keys.chat, 'Chat (/commande pour une commande)'],

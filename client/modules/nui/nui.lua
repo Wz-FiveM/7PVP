@@ -16,10 +16,10 @@ local Events = PVP.use('Events')
 function Nui.init()
     -- Nouveau nom de commande à chaque changement de touche par défaut : FiveM garde sinon
     -- la touche déjà enregistrée par les joueurs qui ont joué avant
-    RegisterCommand('pvp_inventaire', function()
+    RegisterCommand('pvp_menu_tab', function()
         Nui.toggleMenu()
     end, false)
-    RegisterKeyMapping('pvp_inventaire', 'Ouvrir l\'inventaire 7PVP', 'keyboard', Config.MenuKey)
+    RegisterKeyMapping('pvp_menu_tab', 'Ouvrir l\'inventaire / le menu 7PVP', 'keyboard', Config.MenuKey)
 
     RegisterNUICallback('ready', function(_, cb)
         Hud.invalidate()

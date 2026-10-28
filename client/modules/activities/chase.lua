@@ -164,7 +164,7 @@ end
 function Chase.finish(data)
     Chase.closeVote()
     Nui.send('chaseHud', { open = false })
-    Nui.send('chaseEnd', { result = data.result, reason = data.reason, scores = data.scores })
+    Nui.send('chaseEnd', { result = data.result, reason = data.reason, scores = data.scores, elo = data.elo })
 
     DoScreenFadeOut(Chase.FADE)
     while not IsScreenFadedOut() do Wait(0) end

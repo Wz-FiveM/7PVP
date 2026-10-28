@@ -153,7 +153,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           info: {
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'VERR. MAJ', hotbar: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1' },
           },
         },
       });

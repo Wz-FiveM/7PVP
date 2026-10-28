@@ -17,9 +17,11 @@
 ---@field headings table<integer, { at: integer, heading: number }[]> caps récents du véhicule de chaque joueur
 ---@field upsideSince table<integer, integer> depuis quand chaque véhicule est sur le toit
 ---@field lastPit table<integer, integer> dernier PIT compté contre chaque joueur (anti-doublon)
+---@field identities table<integer, { identifier: string, name: string }> figées au départ (ELO)
 
 ---@class ChaseServiceModule
 local ChaseService = PVP.define('ChaseService')
+local ChaseRating = PVP.use('ChaseRating')
 local ActivityService = PVP.use('ActivityService')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
@@ -132,9 +134,14 @@ function ChaseService.startMatch(a, b)
         headings = {},
         upsideSince = {},
         lastPit = {},
+        identities = {},
         round = 0,
         phase = 'vote',
     }
+    for _, source in ipairs(match.players) do
+        local player = PlayerService.get(source)
+        if player then match.identities[source] = { identifier = player.identifier, name = player.name } end
+    end
     ChaseService.matches[match.id] = match
     SetRoutingBucketPopulationEnabled(match.bucket, false)
 
@@ -436,10 +443,29 @@ end
 ---@param winner integer|nil nil = égalité
 ---@param reason string|nil
 ---@param leaver integer|nil joueur parti (déconnecté) : on ne le ramène pas
+---Met à jour l'ELO des deux joueurs ; renvoie le changement de chacun, par source.
+---@param match ChaseMatch
+---@param winner integer|nil nil = égalité
+---@return table<integer, { before: integer, after: integer, delta: integer }>
+function ChaseService.applyElo(match, winner)
+    local a, b = match.players[1], match.players[2]
+    local idA, idB = match.identities[a], match.identities[b]
+    if not idA or not idB or idA.identifier == idB.identifier then return {} end
+    local scoreA = winner == nil and 0.5 or (winner == a and 1 or 0)
+    local ok, changes = pcall(ChaseRating.applyMatch, idA, idB, scoreA)
+    if not ok then
+        Logger.error('[course] ELO non enregistré : %s', changes)
+        return {}
+    end
+    return { [a] = changes[idA.identifier], [b] = changes[idB.identifier] }
+end
+
 function ChaseService.endMatch(match, winner, reason, leaver)
     if match.phase == 'ended' then return end
+    local played = match.phase ~= 'vote' -- une partie quittée pendant le vote ne compte pas
     match.phase = 'ended'
     ChaseService.matches[match.id] = nil
+    local elo = played and ChaseService.applyElo(match, winner) or {}
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for _, source in ipairs(match.players) do
@@ -452,6 +478,7 @@ function ChaseService.endMatch(match, winner, reason, leaver)
                 reason = reason,
                 scores = { me = match.scores[source], opponent = match.scores[ChaseService.opponent(match, source)] },
                 spawn = Zones.randomSpawn('freeroam'),
+                elo = elo[source],
             })
         end
     end

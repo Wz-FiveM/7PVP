@@ -2,7 +2,7 @@ import { Panel, PanelHeader } from '../components/ui/Panel';
 import './pages.css';
 
 const CONTROLS: [string, string][] = [
-  ['VERR. MAJ', 'Ouvrir / fermer le menu'],
+  ['TAB', 'Ouvrir / fermer le menu'],
   ['1 – 7', 'Raccourcis : sortir une arme ou utiliser un soin'],
   ['E', 'Ramasser un sac de butin, fouiller un corps ou un largage'],
   ['ÉCHAP', 'Fermer le menu / menu pause en jeu'],

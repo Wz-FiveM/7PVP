@@ -256,6 +256,22 @@
   color: var(--brume-hi);
 }
 
+.chase-banner__elo {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  color: var(--signal);
+}
+
+.chase-banner__delta--up {
+  color: var(--abri);
+}
+
+.chase-banner__delta--down {
+  color: var(--hazard);
+}
+
 /* État de son véhicule et avertissements anti-PIT */
 .chase-hud__status {
   display: flex;

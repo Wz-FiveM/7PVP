@@ -131,7 +131,7 @@ export function Lobby() {
           <span className="mono keycap--solid">ENTRÉE</span>
           Déployer
         </span>
-        <span className="mono lobby__hint">Retour ici depuis une zone safe : menu [VERR. MAJ] ou /lobby</span>
+        <span className="mono lobby__hint">Retour ici depuis une zone safe : menu [TAB] ou /lobby</span>
       </footer>
     </div>
   );

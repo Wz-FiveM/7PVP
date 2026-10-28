@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { chaseApi } from '../../api/chaseApi';
 import { isEnvBrowser } from '../../api/nui';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
-import type { ChaseHudData, ChaseScores, ChaseStateData } from '../../types/game';
+import type { ChaseElo, ChaseHudData, ChaseScores, ChaseStateData } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
 import { Icon } from '../icons/Icon';
 import './chase.css';
@@ -22,6 +22,7 @@ interface Banner {
   title: string;
   text?: string;
   scores: ChaseScores;
+  elo?: ChaseElo;
   tone: 'good' | 'bad' | 'neutral';
   id: number;
 }
@@ -81,6 +82,7 @@ export function Chase() {
             title: RESULT_LABELS[message.data.result],
             text: message.data.reason,
             scores: message.data.scores,
+            elo: message.data.elo,
             tone: message.data.result === 'won' ? 'good' : message.data.result === 'lost' ? 'bad' : 'neutral',
           });
       }
@@ -106,6 +108,14 @@ export function Chase() {
           <span className="mono chase-banner__score">
             TOI {banner.scores.me} — {banner.scores.opponent} ADVERSAIRE
           </span>
+          {banner.elo && (
+            <span className="mono chase-banner__elo">
+              ELO {banner.elo.after}
+              <span className={banner.elo.delta >= 0 ? 'chase-banner__delta--up' : 'chase-banner__delta--down'}>
+                {banner.elo.delta >= 0 ? `+${banner.elo.delta}` : banner.elo.delta}
+              </span>
+            </span>
+          )}
         </div>
       )}
     </>

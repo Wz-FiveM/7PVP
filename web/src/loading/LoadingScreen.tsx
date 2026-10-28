@@ -14,8 +14,8 @@ interface Handover {
 const TIP_DURATION = 7000;
 
 const KEYS: [string, string][] = [
-  ['VERR. MAJ', 'Inventaire'],
-  ['TAB', 'Raccourcis'],
+  ['TAB', 'Inventaire'],
+  ['1 – 7', 'Raccourcis'],
   ['T', 'Chat'],
   ['E', 'Ramasser'],
 ];

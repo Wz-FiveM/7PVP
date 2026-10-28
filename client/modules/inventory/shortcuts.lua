@@ -14,21 +14,20 @@ function Shortcuts.init()
         Shortcuts.registerSlot(slot)
     end
 
-    -- Barre de raccourcis du HUD : visible tant que la touche est maintenue
-    RegisterCommand('+pvp_hotbar', function()
-        Shortcuts.setHotbarVisible(true)
-    end, false)
-    RegisterCommand('-pvp_hotbar', function()
-        Shortcuts.setHotbarVisible(false)
-    end, false)
-    RegisterKeyMapping('+pvp_hotbar', 'Afficher les raccourcis', 'keyboard', Config.HotbarKey)
-
     CreateThread(Shortcuts.controlLoop)
 end
 
----@param visible boolean
-function Shortcuts.setHotbarVisible(visible)
-    Nui.send('hotbar', { visible = visible and State.isAlive() })
+Shortcuts.hotbarToken = 0
+
+---Barre de raccourcis du HUD : affichée quelques secondes après l'utilisation d'un raccourci
+---(TAB, qui la montrait, ouvre maintenant le menu).
+function Shortcuts.flashHotbar()
+    Shortcuts.hotbarToken = Shortcuts.hotbarToken + 1
+    local token = Shortcuts.hotbarToken
+    Nui.send('hotbar', { visible = State.isAlive() })
+    SetTimeout(Config.HotbarShowTime, function()
+        if Shortcuts.hotbarToken == token then Nui.send('hotbar', { visible = false }) end
+    end)
 end
 
 ---@param slot integer
@@ -53,6 +52,7 @@ end
 function Shortcuts.use(slot)
     if not State.isAlive() or not State.player or not State.inPvp() then return end
 
+    Shortcuts.flashHotbar()
     local name = State.player.inventory.shortcuts[slot]
     local item = Items.get(name)
     if not item or Inventory.count(name) <= 0 then return end

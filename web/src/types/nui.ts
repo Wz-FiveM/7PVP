@@ -1,7 +1,8 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseScores, CvcHudData, CvcStateData, CvcScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseElo,
+  ChaseScores, CvcHudData, CvcStateData, CvcScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -58,7 +59,7 @@ export type NuiMessage =
   | { action: 'chaseHud'; data: { open: boolean } & Partial<ChaseHudData> }
   | { action: 'chaseState'; data: ChaseStateData }
   | { action: 'chaseBanner'; data: { won: boolean; reason: string; round: number; scores: ChaseScores } }
-  | { action: 'chaseEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: ChaseScores } }
+  | { action: 'chaseEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: ChaseScores; elo?: ChaseElo } }
   /** CVC : file d'attente, HUD de manche, hors zone, résultats */
   | { action: 'cvcQueue'; data: { count: number; needed?: number; max?: number; startIn?: number } }
   | { action: 'cvcHud'; data: { open: boolean } & Partial<CvcHudData> }
