@@ -9,6 +9,7 @@ Config.VehicleOptions = {
     weight = 1.0, -- poids de l'objet (une clé, pas le véhicule)
     storeDistance = 6.0, -- distance max pour ranger son véhicule
     storeKey = 'K', -- touche pour ranger son véhicule (modifiable dans Paramètres > Raccourcis > FiveM)
+    storeMaxSpeed = 3.0, -- km/h : au-dessus, le véhicule roule encore et ne peut pas être rangé
     plate = '7PVP', -- plaque des véhicules sortis
 }
 

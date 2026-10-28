@@ -97,6 +97,9 @@ function VehicleService.storeCallback(source)
     if VehicleService.isDestroyed(entity) then
         return { ok = false, message = 'Ton véhicule est détruit.' }
     end
+    if #GetEntityVelocity(entity) * 3.6 >= Config.VehicleOptions.storeMaxSpeed then
+        return { ok = false, message = ('Arrête le véhicule pour le ranger (moins de %d km/h).'):format(Config.VehicleOptions.storeMaxSpeed) }
+    end
     if VehicleService.hasOtherOccupant(entity, player:getPed()) then
         return { ok = false, message = 'Quelqu\'un est encore à bord.' }
     end

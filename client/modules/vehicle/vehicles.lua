@@ -21,7 +21,11 @@ function Vehicles.init()
     end)
 
     RegisterCommand('pvp_ranger_vehicule', function()
-        if Vehicles.canStore() then CreateThread(Vehicles.store) end
+        if not Vehicles.canStore() then return end
+        if Vehicles.isMoving() then
+            return Nui.notify(('Arrête le véhicule pour le ranger (moins de %d km/h).'):format(Config.VehicleOptions.storeMaxSpeed), 'error')
+        end
+        CreateThread(Vehicles.store)
     end, false)
     RegisterKeyMapping('pvp_ranger_vehicule', 'Ranger son véhicule 7PVP', 'keyboard', Config.VehicleOptions.storeKey)
 
@@ -39,6 +43,11 @@ function Vehicles.canStore()
     if not vehicle or not DoesEntityExist(vehicle) then return false end
     local distance = #(GetEntityCoords(vehicle) - GetEntityCoords(PlayerPedId()))
     return distance <= Config.VehicleOptions.storeDistance
+end
+
+---@return boolean le véhicule sorti roule encore (au-dessus de Config.VehicleOptions.storeMaxSpeed)
+function Vehicles.isMoving()
+    return GetEntitySpeed(Vehicles.current) * 3.6 >= Config.VehicleOptions.storeMaxSpeed
 end
 
 ---Aide « K Ranger le véhicule » tant que le joueur est à pied près de son véhicule
