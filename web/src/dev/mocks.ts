@@ -30,7 +30,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
   ],
   settings: [
     {
-      name: 'chaseVehicles', label: 'Course poursuite', kind: 'list', category: false, modified: true,
+      name: 'chaseVehicles', group: 'vehicles', label: 'Course poursuite', kind: 'vehicles', category: false, modified: true,
       hint: 'Véhicules proposés au vote avant chaque partie (image : web/public/items/<modèle>.png).',
       value: [
         { model: 'kuruma', label: 'Kuruma' },
@@ -40,7 +40,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
-      name: 'menuVehicles', label: 'Menu Freeroam', kind: 'list', category: true, modified: false,
+      name: 'menuVehicles', group: 'vehicles', label: 'Menu Freeroam', kind: 'vehicles', category: true, modified: false,
       hint: 'Véhicules gratuits du menu (Tab), rangés par catégorie.',
       value: [
         { model: 'sultan', label: 'Sultan', category: 'Voitures' },
@@ -48,7 +48,33 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { model: 'buzzard2', label: 'Buzzard', category: 'Aérien' },
       ],
     },
-    { name: 'cvcVehicle', label: 'CVC', kind: 'model', category: false, modified: false, hint: 'Véhicule du convoi de chaque équipe.', value: 'granger' },
+    { name: 'cvcVehicle', group: 'vehicles', label: 'CVC', kind: 'model', category: false, modified: false, hint: 'Véhicule du convoi de chaque équipe.', value: 'granger' },
+    {
+      name: 'places', group: 'positions', label: 'PNJ et tableau', kind: 'places', category: false, modified: false,
+      hint: 'PNJ des modes de jeu et tableau du classement. Place-toi à l\'endroit voulu : le PNJ (ou l\'écran) regardera dans la même direction que toi.',
+      value: [
+        { key: 'freeroam_hub/chase', label: 'PNJ · Course poursuite', coords: { x: 213.4, y: -943, z: 30.7, w: 60 } },
+        { key: 'freeroam_hub/cvc', label: 'PNJ · CVC', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
+        { key: 'chase/board', label: 'Tableau du classement (course poursuite)', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
+      ],
+    },
+    {
+      name: 'chaseStarts', group: 'positions', label: 'Départs course poursuite', kind: 'points', category: false, modified: true,
+      hint: 'Un départ est tiré au sort à chaque manche : le voleur part ici, dans ta direction, le policier juste derrière.',
+      value: [
+        { x: 220, y: -1040, z: 29.2, w: 160 },
+        { x: -1300, y: -420, z: 34.6, w: 125 },
+        { x: 1110, y: -760, z: 57.7, w: 0 },
+      ],
+    },
+    {
+      name: 'cvcSpawns', group: 'positions', label: 'Spawns CVC', kind: 'arenas', category: false, modified: false,
+      hint: 'Départ de chaque équipe dans chaque arène : les véhicules sont alignés derrière ce point, tournés vers le centre.',
+      value: [
+        { label: 'Désert de Senora', spawns: [{ x: 2050, y: 3050, z: 45, w: 0 }, { x: 2640, y: 3230, z: 50, w: 0 }] },
+        { label: 'Port de Los Santos', spawns: [{ x: 820, y: -3020, z: 5.9, w: 0 }, { x: 1280, y: -3190, z: 5.9, w: 0 }] },
+      ],
+    },
   ],
 };
 import type { LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';

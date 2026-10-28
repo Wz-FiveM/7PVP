@@ -76,7 +76,7 @@ Events.client = {
     tradeRequest = '7pvp:client:tradeRequest',
     tradeState = '7pvp:client:tradeState',
     spectate = '7pvp:client:spectate',
-    freeroamVehicles = '7pvp:client:freeroamVehicles',
+    freeroamSettings = '7pvp:client:freeroamSettings',
 }
 
 -- Événements internes (même côté, jamais réseau)

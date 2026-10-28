@@ -34,8 +34,8 @@ function Freeroam.init()
         Freeroam.cleanup()
     end)
     -- Liste des véhicules modifiée par un admin (voir FreeroamConfigService)
-    RegisterNetEvent(Events.client.freeroamVehicles, function(vehicles)
-        if type(vehicles) == 'table' then Config.Freeroam.vehicles = vehicles end
+    RegisterNetEvent(Events.client.freeroamSettings, function(name, vehicles)
+        if name == 'menuVehicles' and type(vehicles) == 'table' then Config.Freeroam.vehicles = vehicles end
     end)
     RegisterNUICallback('freeroamClose', function(_, cb)
         Freeroam.setMenu(false)

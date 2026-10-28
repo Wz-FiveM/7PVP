@@ -22,7 +22,7 @@ export type AdminAction =
   | 'giveItem' | 'giveMoney' | 'heal' | 'revive' | 'kill' | 'freeze'
   | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick' | 'spectate' | 'spectateStop'
   | 'announce' | 'clearLoot' | 'airdrop' | 'horde'
-  | 'noclip' | 'god' | 'invisible' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle';
+  | 'noclip' | 'god' | 'invisible' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle' | 'gotoPoint';
 
 export interface AdminActionPayload {
   action: AdminAction;
@@ -93,16 +93,41 @@ export interface FreeroamVehicle {
   category?: string;
 }
 
-/** Réglage de l'onglet « Freeroam » : une liste de véhicules, ou un seul modèle */
+/** Position sur la carte ; `w` = cap en degrés */
+export interface MapPoint {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+}
+
+/** Départs des deux équipes dans une arène du CVC */
+export interface CvcArenaSpawns {
+  label: string;
+  spawns: [MapPoint, MapPoint];
+}
+
+/** PNJ d'un mode de jeu, ou tableau du classement (shared/modules/freeroam_positions.lua) */
+export interface FreeroamPlace {
+  key: string;
+  label: string;
+  coords: MapPoint;
+}
+
+/** Réglage de l'onglet « Freeroam » (server/modules/freeroam/freeroam_config_service.lua) */
 export type FreeroamSetting = {
   name: string;
+  group: 'vehicles' | 'positions';
   label: string;
   hint: string;
   /** différent du fichier de config */
   modified: boolean;
 } & (
-  | { kind: 'list'; category: boolean; value: FreeroamVehicle[] }
+  | { kind: 'vehicles'; category: boolean; value: FreeroamVehicle[] }
   | { kind: 'model'; category: false; value: string }
+  | { kind: 'points'; category: false; value: MapPoint[] }
+  | { kind: 'arenas'; category: false; value: CvcArenaSpawns[] }
+  | { kind: 'places'; category: false; value: FreeroamPlace[] }
 );
 
 export type ChasePhase = 'vote' | 'countdown' | 'running' | 'pause' | 'ended';

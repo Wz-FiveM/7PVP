@@ -470,3 +470,50 @@
   min-width: 0;
   padding: 0;
 }
+
+/* Positions : libellé, coordonnées, « Ma position », « Y aller » (et boutons de liste) */
+.admin-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  list-style: none;
+}
+.admin-point {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr) auto auto;
+  gap: 0.375rem;
+  align-items: center;
+  padding: 0.25rem 0.375rem 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  background: var(--acier);
+}
+.admin-point--list {
+  grid-template-columns: 11rem minmax(0, 1fr) auto auto 6.5rem;
+}
+.admin-point__label {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.admin-point__coords {
+  font-size: 0.6875rem;
+}
+.admin-point .btn {
+  min-height: 1.75rem;
+  padding: 0 0.5rem;
+}
+.admin-arenas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.admin-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.admin-arena__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}

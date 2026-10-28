@@ -63,6 +63,11 @@ function ChaseBoard.destroy()
     ChaseBoard.dui = nil
 end
 
+---Écran déplacé par un admin (Config.Chase.board modifié) : coins recalculés.
+function ChaseBoard.relocate()
+    if ChaseBoard.dui then ChaseBoard.corners = ChaseBoard.computeCorners() end
+end
+
 ---@param rows table|nil top reçu (sinon celui du state bag)
 function ChaseBoard.send(rows)
     if not ChaseBoard.dui then return end

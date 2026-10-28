@@ -25,10 +25,16 @@ Admin.LOCAL_ACTIONS = {
     tpWaypoint = 'teleportToWaypoint',
     spawnVehicle = 'spawnVehicle',
     deleteVehicle = 'deleteVehicle',
+    gotoPoint = 'teleportToPoint',
 }
 
 -- Options qui déplacent le personnage : impossibles en mode spectateur (il suit le joueur regardé)
-Admin.SPECTATE_BLOCKED = { noclip = true, tpWaypoint = true, spawnVehicle = true, deleteVehicle = true, gotoPlayer = true }
+Admin.SPECTATE_BLOCKED = {
+    noclip = true, tpWaypoint = true, spawnVehicle = true, deleteVehicle = true, gotoPlayer = true, gotoPoint = true,
+}
+
+-- Réglages du Freeroam qui contiennent des modèles de véhicule (vérifiés avant l'envoi)
+Admin.MODEL_KINDS = { vehicles = true, model = true }
 
 -- Commandes envoyées par le serveur : nom -> méthode
 Admin.COMMANDS = {
@@ -92,13 +98,28 @@ function Admin.init()
         cb(Callback.await(Events.callbacks.adminFreeroam) or { ok = false })
     end)
     RegisterNUICallback('adminFreeroamSave', function(data, cb)
-        local unknown = Admin.checkModels(data.value)
+        local unknown = Admin.MODEL_KINDS[data.kind] and Admin.checkModels(data.value)
         if unknown then return cb({ ok = false, message = ('Véhicule inconnu : %s'):format(unknown) }) end
         cb(Callback.await(Events.callbacks.adminFreeroamSave, data.name, data.value) or { ok = false })
     end)
     RegisterNUICallback('adminFreeroamReset', function(data, cb)
         cb(Callback.await(Events.callbacks.adminFreeroamReset, data.name) or { ok = false })
     end)
+    -- Bouton « Ma position » des positions du Freeroam
+    RegisterNUICallback('adminPosition', function(_, cb)
+        cb(Admin.isAdmin and { ok = true, point = Admin.currentPoint() } or { ok = false })
+    end)
+end
+
+---Position de l'admin au sol et sa direction (celle de son véhicule s'il conduit).
+---@return { x: number, y: number, z: number, w: number }
+function Admin.currentPoint()
+    local ped = PlayerPedId()
+    local vehicle = GetVehiclePedIsIn(ped, false)
+    local entity = vehicle ~= 0 and vehicle or ped
+    local coords = GetEntityCoords(entity)
+    local found, ground = GetGroundZFor_3dCoord(coords.x, coords.y, coords.z + 1.0, false)
+    return { x = coords.x, y = coords.y, z = found and ground or coords.z - 1.0, w = GetEntityHeading(entity) }
 end
 
 ---Le serveur ne connaît pas les modèles du jeu : on vérifie ici qu'ils existent avant d'enregistrer.
@@ -215,6 +236,18 @@ function Admin.teleportToWaypoint()
         FreezeEntityPosition(ped, Noclip.active)
     end)
     return { ok = true, message = 'Téléporté au marqueur.' }
+end
+
+---Point des positions du Freeroam (onglet « Freeroam », bouton « Y aller »).
+---@param data { x: number, y: number, z: number, w?: number }
+function Admin.teleportToPoint(data)
+    local x, y, z = tonumber(data.x), tonumber(data.y), tonumber(data.z)
+    if not x or not y or not z then return { ok = false, message = 'Position invalide.' } end
+    CreateThread(function()
+        Admin.teleport(vector3(x, y, z + 1.0))
+        SetEntityHeading(PlayerPedId(), tonumber(data.w) or 0.0)
+    end)
+    return { ok = true, message = 'Téléporté.' }
 end
 
 ---Altitude du sol à une position dont on ne connaît pas la hauteur (ex : marqueur de carte).

@@ -1,12 +1,16 @@
----Véhicules du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») : véhicules
----proposés au vote de la course poursuite, véhicules du menu Freeroam (Tab) et véhicule du convoi CVC.
+---Réglages du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») :
+---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC ;
+---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
+---              points de départ des équipes du CVC dans chaque arène.
 ---Les changements s'appliquent tout de suite et sont enregistrés en base (pvp_freeroam_settings) :
----ils remplacent config/chase.lua, config/freeroam.lua et config/cvc.lua au démarrage.
----« Valeurs par défaut » revient au fichier.
+---ils remplacent les fichiers de config/ au démarrage. « Valeurs par défaut » revient au fichier.
+---Chaque réglage passe par une valeur « simple » (tables et nombres, sans vecteurs) : c'est elle
+---qui est validée, enregistrée en base, envoyée au panneau et aux clients.
 ---@class FreeroamConfigServiceModule
 local FreeroamConfigService = PVP.define('FreeroamConfigService')
 local AdminService = PVP.use('AdminService')
 local ChaseService = PVP.use('ChaseService')
+local FreeroamPositions = PVP.use('FreeroamPositions')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
@@ -20,56 +24,94 @@ FreeroamConfigService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_freeroam_setting
     PRIMARY KEY (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]]
 
+-- Sortes de réglages : méthodes de lecture, d'écriture et de validation de la valeur simple
+FreeroamConfigService.KINDS = {
+    vehicles = { get = 'getPath', set = 'setPath', validate = 'validateVehicles' }, -- { model, label (, category) }[]
+    model = { get = 'getPath', set = 'setPath', validate = 'model' }, -- un modèle de véhicule
+    points = { get = 'getPoints', set = 'setPoints', validate = 'validatePoints' }, -- { x, y, z, w }[]
+    arenas = { get = 'getArenas', set = 'setArenas', validate = 'validateArenas' }, -- { label, spawns }[]
+    places = { get = 'getPlaces', set = 'setPlaces', validate = 'validatePlaces' }, -- { key, label, coords }[]
+}
+
 -- Réglages modifiables, dans l'ordre du panneau.
---  path     : emplacement dans Config (Config[path[1]][path[2]])
---  list     : liste de véhicules { model, label (, category) } ; sinon un seul modèle
+--  group    : section du panneau ('vehicles' ou 'positions')
+--  path     : emplacement dans Config (Config[path[1]][path[2]]), pour les sortes qui en ont besoin
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
 --  sync     : lu par les clients (renvoyé à tous à chaque changement)
 FreeroamConfigService.SETTINGS = {
     {
         name = 'chaseVehicles',
+        group = 'vehicles',
+        kind = 'vehicles',
         label = 'Course poursuite',
         hint = 'Véhicules proposés au vote avant chaque partie (image : web/public/items/<modèle>.png).',
         path = { 'Chase', 'vehicles' },
-        list = true,
     },
     {
         name = 'menuVehicles',
+        group = 'vehicles',
+        kind = 'vehicles',
         label = 'Menu Freeroam',
         hint = 'Véhicules gratuits du menu (Tab), rangés par catégorie.',
         path = { 'Freeroam', 'vehicles' },
-        list = true,
         category = true,
         sync = true,
     },
     {
         name = 'cvcVehicle',
+        group = 'vehicles',
+        kind = 'model',
         label = 'CVC',
         hint = 'Véhicule du convoi de chaque équipe.',
         path = { 'Cvc', 'vehicle' },
     },
+    {
+        name = 'places',
+        group = 'positions',
+        kind = 'places',
+        label = 'PNJ et tableau',
+        hint = 'PNJ des modes de jeu et tableau du classement. Place-toi à l\'endroit voulu : le PNJ (ou l\'écran) regardera dans la même direction que toi. Les PNJ doivent rester dans la zone safe.',
+        sync = true,
+    },
+    {
+        name = 'chaseStarts',
+        group = 'positions',
+        kind = 'points',
+        label = 'Départs course poursuite',
+        hint = 'Un départ est tiré au sort à chaque manche : le voleur part ici, dans ta direction, le policier juste derrière. Choisis une route droite, en ville.',
+        path = { 'Chase', 'starts' },
+    },
+    {
+        name = 'cvcSpawns',
+        group = 'positions',
+        kind = 'arenas',
+        label = 'Spawns CVC',
+        hint = 'Départ de chaque équipe dans chaque arène : les véhicules sont alignés derrière ce point, tournés vers le centre de l\'arène.',
+    },
 }
 
 FreeroamConfigService.MAX_VEHICLES = 40
+FreeroamConfigService.MAX_POINTS = 30
 FreeroamConfigService.MAX_MODEL = 32
 FreeroamConfigService.MAX_LABEL = 40
+FreeroamConfigService.MAX_COORD = 10000.0 -- la carte tient dans ±10 km
 FreeroamConfigService.DEFAULT_CATEGORY = 'Autres'
 
----@type table<string, any> valeurs des fichiers de config au démarrage (« valeurs par défaut »)
+---@type table<string, any> valeurs simples des fichiers de config au démarrage (« valeurs par défaut »)
 FreeroamConfigService.defaults = {}
 ---@type table<string, boolean> réglages modifiés depuis le panneau
 FreeroamConfigService.modified = {}
 
 function FreeroamConfigService.init()
     for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
-        FreeroamConfigService.defaults[setting.name] = json.decode(json.encode({ FreeroamConfigService.get(setting) }))[1]
+        FreeroamConfigService.defaults[setting.name] = FreeroamConfigService.copy(FreeroamConfigService.get(setting))
     end
 
     Callback.register(Events.callbacks.adminFreeroam, FreeroamConfigService.getCallback)
     Callback.register(Events.callbacks.adminFreeroamSave, FreeroamConfigService.saveCallback)
     Callback.register(Events.callbacks.adminFreeroamReset, FreeroamConfigService.resetCallback)
 
-    -- Les clients lisent la liste du menu Freeroam dans leur config : on leur envoie la version modifiée
+    -- Les clients lisent certains réglages dans leur config (menu Freeroam, PNJ) : on leur envoie ceux modifiés
     AddEventHandler(Events.internal.playerLoaded, function(playerSource)
         FreeroamConfigService.sendSynced(playerSource)
     end)
@@ -86,19 +128,22 @@ function FreeroamConfigService.load()
         local ok, data = pcall(json.decode, row.data)
         local clean = setting and ok and FreeroamConfigService.validate(setting, data)
         if clean then
-            FreeroamConfigService.set(setting, clean)
             FreeroamConfigService.modified[setting.name] = true
+            FreeroamConfigService.set(setting, clean)
         end
     end
-    if #rows > 0 then
-        Logger.info('[freeroam] %d réglage(s) chargé(s) depuis la base', #rows)
-        FreeroamConfigService.sendSynced(-1)
-    end
+    if #rows > 0 then Logger.info('[freeroam] %d réglage(s) chargé(s) depuis la base', #rows) end
 end
 
 -- ---------------------------------------------------------------------------
 -- Réglages
 -- ---------------------------------------------------------------------------
+
+---@param value any
+---@return any copie profonde (tables et nombres)
+function FreeroamConfigService.copy(value)
+    return json.decode(json.encode({ value }))[1]
+end
 
 ---@param name any
 ---@return table|nil
@@ -110,28 +155,114 @@ function FreeroamConfigService.find(name)
 end
 
 ---@param setting table
----@return any
+---@return any valeur simple actuelle
 function FreeroamConfigService.get(setting)
-    return Config[setting.path[1]][setting.path[2]]
+    return FreeroamConfigService[FreeroamConfigService.KINDS[setting.kind].get](setting)
 end
 
 ---@param setting table
----@param value any
+---@param value any valeur simple déjà validée
 function FreeroamConfigService.set(setting, value)
-    Config[setting.path[1]][setting.path[2]] = value
-    if setting.sync then FreeroamConfigService.sendSynced(-1) end
+    FreeroamConfigService[FreeroamConfigService.KINDS[setting.kind].set](setting, value)
+    if setting.sync then FreeroamConfigService.sendSynced(-1, setting) end
 end
 
----Réglages lus par les clients (liste du menu Freeroam), seulement s'ils ont été modifiés.
+---@param setting table
+---@param data any
+---@return any valeur simple propre, ou nil si les données sont inutilisables
+function FreeroamConfigService.validate(setting, data)
+    return FreeroamConfigService[FreeroamConfigService.KINDS[setting.kind].validate](data, setting)
+end
+
+---Réglages lus par les clients, seulement s'ils ont été modifiés.
 ---@param target integer joueur, -1 = tout le monde
-function FreeroamConfigService.sendSynced(target)
-    if FreeroamConfigService.modified.menuVehicles then
-        TriggerClientEvent(Events.client.freeroamVehicles, target, Config.Freeroam.vehicles)
+---@param only? table un seul réglage
+function FreeroamConfigService.sendSynced(target, only)
+    for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
+        if setting.sync and (not only or only == setting) and FreeroamConfigService.modified[setting.name] then
+            TriggerClientEvent(Events.client.freeroamSettings, target, setting.name, FreeroamConfigService.get(setting))
+        end
+    end
+end
+
+-- Config[path] tel quel (véhicules, modèle) ------------------------------------------------
+
+function FreeroamConfigService.getPath(setting)
+    return Config[setting.path[1]][setting.path[2]]
+end
+
+function FreeroamConfigService.setPath(setting, value)
+    Config[setting.path[1]][setting.path[2]] = value
+end
+
+-- Positions ------------------------------------------------------------------------------
+
+---@param coords vector3|vector4
+---@return { x: number, y: number, z: number, w: number }
+function FreeroamConfigService.toPoint(coords)
+    return { x = coords.x, y = coords.y, z = coords.z, w = coords.w or 0.0 }
+end
+
+---@param point table { x, y, z, w }
+---@return vector4
+function FreeroamConfigService.toVector(point)
+    return vector4(point.x, point.y, point.z, point.w)
+end
+
+---Liste de vector4 dans Config[path] (départs de la course poursuite).
+function FreeroamConfigService.getPoints(setting)
+    local list = {}
+    for _, coords in ipairs(FreeroamConfigService.getPath(setting)) do
+        list[#list + 1] = FreeroamConfigService.toPoint(coords)
+    end
+    return list
+end
+
+function FreeroamConfigService.setPoints(setting, value)
+    local list = {}
+    for _, point in ipairs(value) do list[#list + 1] = FreeroamConfigService.toVector(point) end
+    FreeroamConfigService.setPath(setting, list)
+end
+
+---Départs des deux équipes dans chaque arène du CVC.
+function FreeroamConfigService.getArenas()
+    local list = {}
+    for _, arena in ipairs(Config.Cvc.arenas) do
+        list[#list + 1] = {
+            label = arena.label,
+            spawns = { FreeroamConfigService.toPoint(arena.spawns[1]), FreeroamConfigService.toPoint(arena.spawns[2]) },
+        }
+    end
+    return list
+end
+
+function FreeroamConfigService.setArenas(_, value)
+    for index, arena in ipairs(Config.Cvc.arenas) do
+        local spawns = value[index].spawns
+        arena.spawns = {
+            vector3(spawns[1].x, spawns[1].y, spawns[1].z),
+            vector3(spawns[2].x, spawns[2].y, spawns[2].z),
+        }
+    end
+end
+
+---PNJ des modes de jeu et tableau du classement (voir FreeroamPositions).
+function FreeroamConfigService.getPlaces()
+    local list = {}
+    for _, place in ipairs(FreeroamPositions.list()) do
+        list[#list + 1] = { key = place.key, label = place.label, coords = FreeroamConfigService.toPoint(place.coords) }
+    end
+    return list
+end
+
+function FreeroamConfigService.setPlaces(_, value)
+    for _, place in ipairs(value) do
+        FreeroamPositions.set(place.key, FreeroamConfigService.toVector(place.coords))
     end
 end
 
 -- ---------------------------------------------------------------------------
--- Validation (l'existence du modèle est vérifiée par le client de l'admin, voir Admin.checkModels)
+-- Validation (l'existence d'un modèle est vérifiée par le client de l'admin, voir Admin.checkModels)
 -- ---------------------------------------------------------------------------
 
 ---@param model any
@@ -156,14 +287,11 @@ function FreeroamConfigService.text(text, fallback)
     return text
 end
 
----Valeur propre, ou nil si les données sont inutilisables (liste vide, modèle invalide...).
----@param setting table
 ---@param data any
----@return any
-function FreeroamConfigService.validate(setting, data)
-    if not setting.list then return FreeroamConfigService.model(data) end
+---@param setting table
+---@return table[]|nil
+function FreeroamConfigService.validateVehicles(data, setting)
     if type(data) ~= 'table' then return nil end
-
     local clean, seen = {}, {}
     for _, vehicle in ipairs(data) do
         local model = type(vehicle) == 'table' and FreeroamConfigService.model(vehicle.model)
@@ -178,6 +306,77 @@ function FreeroamConfigService.validate(setting, data)
         end
     end
     if #clean == 0 or #clean > FreeroamConfigService.MAX_VEHICLES then return nil end
+    return clean
+end
+
+---@param value any
+---@param max number
+---@return number|nil nombre fini, arrondi au centième, dans [-max, max]
+function FreeroamConfigService.number(value, max)
+    value = tonumber(value)
+    if not value or value ~= value or math.abs(value) > max then return nil end
+    return math.floor(value * 100 + 0.5) / 100
+end
+
+---@param point any { x, y, z, w }
+---@return table|nil
+function FreeroamConfigService.point(point)
+    if type(point) ~= 'table' then return nil end
+    local max = FreeroamConfigService.MAX_COORD
+    local x, y = FreeroamConfigService.number(point.x, max), FreeroamConfigService.number(point.y, max)
+    local z = FreeroamConfigService.number(point.z, 3000.0)
+    local w = FreeroamConfigService.number(point.w or 0, 100000.0)
+    if not x or not y or not z or not w then return nil end
+    return { x = x, y = y, z = z, w = w % 360.0 }
+end
+
+---@param data any
+---@return table[]|nil
+function FreeroamConfigService.validatePoints(data)
+    if type(data) ~= 'table' then return nil end
+    local clean = {}
+    for _, point in ipairs(data) do
+        local coords = FreeroamConfigService.point(point)
+        if not coords then return nil end
+        clean[#clean + 1] = coords
+    end
+    if #clean == 0 or #clean > FreeroamConfigService.MAX_POINTS then return nil end
+    return clean
+end
+
+---Une entrée par arène de config/cvc.lua (les arènes elles-mêmes ne changent pas), deux départs chacune.
+---@param data any
+---@return table[]|nil
+function FreeroamConfigService.validateArenas(data)
+    if type(data) ~= 'table' or #data ~= #Config.Cvc.arenas then return nil end
+    local clean = {}
+    for index, arena in ipairs(Config.Cvc.arenas) do
+        local spawns = type(data[index]) == 'table' and data[index].spawns
+        local first = type(spawns) == 'table' and FreeroamConfigService.point(spawns[1])
+        local second = type(spawns) == 'table' and FreeroamConfigService.point(spawns[2])
+        if not first or not second then return nil end
+        clean[index] = { label = arena.label, spawns = { first, second } }
+    end
+    return clean
+end
+
+---Seulement les emplacements connus (FreeroamPositions.list) ; ceux qui manquent ne bougent pas.
+---@param data any
+---@return table[]|nil
+function FreeroamConfigService.validatePlaces(data)
+    if type(data) ~= 'table' then return nil end
+    local known = {}
+    for _, place in ipairs(FreeroamPositions.list()) do known[place.key] = place.label end
+    local clean = {}
+    for _, place in ipairs(data) do
+        local key = type(place) == 'table' and place.key
+        local coords = known[key] and FreeroamConfigService.point(place.coords)
+        if coords then
+            clean[#clean + 1] = { key = key, label = known[key], coords = coords }
+            known[key] = nil
+        end
+    end
+    if #clean == 0 then return nil end
     return clean
 end
 
@@ -202,9 +401,10 @@ function FreeroamConfigService.getCallback(source)
     for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
         settings[#settings + 1] = {
             name = setting.name,
+            group = setting.group,
+            kind = setting.kind,
             label = setting.label,
             hint = setting.hint,
-            kind = setting.list and 'list' or 'model',
             category = setting.category == true,
             value = FreeroamConfigService.get(setting),
             modified = FreeroamConfigService.modified[setting.name] == true,
@@ -222,7 +422,7 @@ function FreeroamConfigService.saveCallback(source, name, data)
     if not setting then return { ok = false, message = 'Réglage inconnu.' } end
     local clean = FreeroamConfigService.validate(setting, data)
     if not clean then
-        return { ok = false, message = setting.list and 'Liste invalide (au moins un véhicule, modèles valides).' or 'Modèle invalide.' }
+        return { ok = false, message = setting.kind == 'model' and 'Modèle invalide.' or 'Données invalides (liste vide ou valeur incorrecte).' }
     end
 
     FreeroamConfigService.modified[setting.name] = true
@@ -231,9 +431,9 @@ function FreeroamConfigService.saveCallback(source, name, data)
         'INSERT INTO pvp_freeroam_settings (name, data, updated_by) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE data = VALUES(data), updated_by = VALUES(updated_by)',
         { setting.name, json.encode(clean), GetPlayerName(source) or '' }
     )
-    local detail = setting.list and ('%d véhicule(s)'):format(#clean) or clean
-    FreeroamConfigService.log(source, ('véhicules « %s » : %s'):format(setting.label, detail))
-    return { ok = true, message = ('Véhicules « %s » enregistrés.'):format(setting.label) }
+    local detail = type(clean) == 'table' and ('%d élément(s)'):format(#clean) or clean
+    FreeroamConfigService.log(source, ('« %s » : %s'):format(setting.label, detail))
+    return { ok = true, message = ('« %s » enregistré.'):format(setting.label) }
 end
 
 ---@param source integer
@@ -243,12 +443,12 @@ function FreeroamConfigService.resetCallback(source, name)
     local setting = FreeroamConfigService.find(name)
     if not setting then return { ok = false, message = 'Réglage inconnu.' } end
 
-    -- Encore « modifié » pendant l'envoi : les clients reçoivent la liste par défaut
-    FreeroamConfigService.set(setting, json.decode(json.encode({ FreeroamConfigService.defaults[setting.name] }))[1])
+    -- Encore « modifié » pendant l'envoi : les clients reçoivent la valeur par défaut
+    FreeroamConfigService.set(setting, FreeroamConfigService.copy(FreeroamConfigService.defaults[setting.name]))
     FreeroamConfigService.modified[setting.name] = nil
     MySQL.update('DELETE FROM pvp_freeroam_settings WHERE name = ?', { setting.name })
-    FreeroamConfigService.log(source, ('véhicules « %s » remis par défaut'):format(setting.label))
-    return { ok = true, message = ('Véhicules « %s » remis par défaut.'):format(setting.label) }
+    FreeroamConfigService.log(source, ('« %s » remis par défaut'):format(setting.label))
+    return { ok = true, message = ('« %s » remis par défaut.'):format(setting.label) }
 end
 
 ---@param source integer

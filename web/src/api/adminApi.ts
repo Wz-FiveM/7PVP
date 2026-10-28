@@ -8,6 +8,7 @@ import type {
   FreeroamSetting,
   LootAdminData,
   LootTableData,
+  MapPoint,
 } from '../types/admin';
 
 /** Requêtes du panneau admin (voir client/modules/admin/admin.lua). */
@@ -29,14 +30,23 @@ export const adminApi = {
   lootZones: (zones: Record<string, string>) =>
     fetchNui<AdminActionResult>('adminLootZones', { zones }, { ok: true, message: 'Zones enregistrées (simulé)' }),
 
-  /** Onglet « Freeroam » : véhicules des modes de jeu et courses poursuite en cours */
+  /** Onglet « Freeroam » : véhicules et positions des modes de jeu, courses poursuite en cours */
   freeroam: () => fetchNui<FreeroamAdminData>('adminFreeroam', {}, mockFreeroamAdmin),
 
-  freeroamSave: (name: string, value: FreeroamSetting['value']) =>
-    fetchNui<AdminActionResult>('adminFreeroamSave', { name, value }, { ok: true, message: 'Véhicules enregistrés (simulé)' }),
+  /** `kind` : le client vérifie les modèles de véhicule avant l'envoi */
+  freeroamSave: (setting: Pick<FreeroamSetting, 'name' | 'kind' | 'value'>) =>
+    fetchNui<AdminActionResult>(
+      'adminFreeroamSave',
+      { name: setting.name, kind: setting.kind, value: setting.value },
+      { ok: true, message: 'Réglage enregistré (simulé)' },
+    ),
 
   freeroamReset: (name: string) =>
-    fetchNui<AdminActionResult>('adminFreeroamReset', { name }, { ok: true, message: 'Véhicules remis par défaut (simulé)' }),
+    fetchNui<AdminActionResult>('adminFreeroamReset', { name }, { ok: true, message: 'Réglage remis par défaut (simulé)' }),
+
+  /** Position actuelle de l'admin (bouton « Ma position ») */
+  position: () =>
+    fetchNui<{ ok: boolean; point?: MapPoint }>('adminPosition', {}, { ok: true, point: { x: 215.3, y: -930.1, z: 30.7, w: 145 } }),
 
   close: () => fetchNui<void>('adminClose'),
 };

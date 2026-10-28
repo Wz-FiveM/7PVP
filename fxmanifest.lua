@@ -37,6 +37,7 @@ shared_scripts {
     'shared/modules/safe_npcs.lua',
     'shared/modules/items.lua',
     'shared/modules/zones.lua',
+    'shared/modules/freeroam_positions.lua',
     'shared/modules/appearance.lua',
 }
 
