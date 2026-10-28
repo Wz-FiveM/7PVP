@@ -37,6 +37,24 @@ export function Chat() {
     }
   }, [open]);
 
+  // Alt seul active le « menu » de la fenêtre : le champ perd le clavier et le chat reste bloqué.
+  // On l'intercepte avant tout le monde (capture) et on rend le clavier au champ s'il le perd.
+  useEffect(() => {
+    if (!open) return;
+    const blockAlt = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Alt') event.preventDefault();
+    };
+    const refocus = () => window.setTimeout(() => inputRef.current?.focus(), 0);
+    window.addEventListener('keydown', blockAlt, true);
+    window.addEventListener('keyup', blockAlt, true);
+    window.addEventListener('focus', refocus);
+    return () => {
+      window.removeEventListener('keydown', blockAlt, true);
+      window.removeEventListener('keyup', blockAlt, true);
+      window.removeEventListener('focus', refocus);
+    };
+  }, [open]);
+
   // Toujours sur le dernier message
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
@@ -99,6 +117,7 @@ export function Chat() {
             placeholder="Message · /commande"
             onChange={(event) => setText(event.target.value)}
             onKeyDown={onKeyDown}
+            onBlur={() => window.setTimeout(() => inputRef.current?.focus(), 0)}
           />
           <span className="mono chat__count">{MAX_LENGTH - text.length}</span>
         </div>
