@@ -29,6 +29,9 @@ Chase.speedSampleAt = 0
 Chase.lastImpactAt = 0
 Chase.SPEED_SAMPLE = 100
 Chase.IMPACT_COOLDOWN = 400
+-- Départs calés sur la route : nœud de circulation cherché à moins de cette distance (m)
+Chase.ROAD_SNAP_DISTANCE = 80.0
+Chase.ROAD_WAIT = 2000 -- ms laissées au jeu pour charger les routes autour du départ
 
 function Chase.init()
     RegisterNetEvent(Events.client.chaseQueue, function(data)
@@ -121,14 +124,17 @@ function Chase.startRound(data)
     while not IsScreenFadedOut() do Wait(0) end
     Chase.deleteVehicle()
 
-    local spawn = data.spawn
+    local start = data.start or data.spawn
     local ped = PlayerPedId()
     if IsPedInAnyVehicle(ped, false) then ClearPedTasksImmediately(ped) end
-    RequestCollisionAtCoord(spawn.x, spawn.y, spawn.z)
-    SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
+    RequestCollisionAtCoord(start.x, start.y, start.z)
+    SetEntityCoordsNoOffset(ped, start.x, start.y, start.z, false, false, false)
     local timeout = GetGameTimer() + 5000
     while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < timeout do Wait(0) end
-    local ground = PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z)
+    local spawn, onRoad = Chase.roadSpawn(data)
+    RequestCollisionAtCoord(spawn.x, spawn.y, spawn.z)
+    -- Sur la route, la hauteur du nœud est celle de la chaussée (pas de toit ni de pont au-dessus)
+    local ground = onRoad and spawn.z or PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z)
 
     local hash = GetHashKey(data.model)
     if PedUtils.loadModel(hash) then
@@ -150,6 +156,45 @@ function Chase.startRound(data)
     -- Départ quand le compte à rebours du serveur est fini
     Wait(data.countdown * 1000)
     if Chase.vehicle and DoesEntityExist(Chase.vehicle) then FreezeEntityPosition(Chase.vehicle, false) end
+end
+
+---Place de départ sur la route la plus proche, dans le sens de la circulation. Les deux clients
+---font le même calcul : le voleur sur le nœud le plus proche du départ, le policier sur celui
+---qui se trouve copGap mètres derrière lui. Sans route trouvée : place calculée par le serveur.
+---@param data table manche reçue du serveur
+---@return vector4 spawn
+---@return boolean onRoad
+function Chase.roadSpawn(data)
+    local start = data.start
+    if not start then return data.spawn, false end
+    local thief
+    local timeout = GetGameTimer() + Chase.ROAD_WAIT
+    repeat
+        thief = Chase.snapToRoad(vector3(start.x, start.y, start.z), start.w)
+        if not thief then Wait(100) end
+    until thief or GetGameTimer() > timeout
+    if not thief then return data.spawn, false end
+    if data.role == 'thief' then return thief, true end
+
+    local radians = math.rad(thief.w)
+    local back = vector3(math.sin(radians), -math.cos(radians), 0.0) * (data.copGap or 15.0)
+    local cop = Chase.snapToRoad(vector3(thief.x, thief.y, thief.z) + back, thief.w)
+    if cop and #(vector3(cop.x, cop.y, cop.z) - vector3(thief.x, thief.y, thief.z)) > 5.0 then return cop, true end
+    return vector4(thief.x + back.x, thief.y + back.y, thief.z, thief.w), true
+end
+
+---Nœud de route principale le plus proche de `coords`, orienté au plus près de `heading`.
+---@param coords vector3
+---@param heading number
+---@return vector4|nil
+function Chase.snapToRoad(coords, heading)
+    local found, position, nodeHeading = GetClosestVehicleNodeWithHeading(coords.x, coords.y, coords.z, 0, 3.0, 0)
+    if not found or #(vector2(position.x, position.y) - vector2(coords.x, coords.y)) > Chase.ROAD_SNAP_DISTANCE then return nil end
+    -- Le nœud donne l'axe de la route : on garde le sens le plus proche de celui demandé
+    if math.abs((nodeHeading - heading + 180.0) % 360.0 - 180.0) > 90.0 then
+        nodeHeading = (nodeHeading + 180.0) % 360.0
+    end
+    return vector4(position.x, position.y, position.z, nodeHeading)
 end
 
 ---État envoyé par le serveur : temps, immobilisation, santé de son véhicule et avertissements.

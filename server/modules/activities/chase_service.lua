@@ -214,6 +214,8 @@ function ChaseService.startRound(match)
             role = source == match.thief and 'thief' or 'cop',
             model = model,
             spawn = spawns[source],
+            start = start, -- calé sur la route par chaque client (voir Chase.roadSpawn)
+            copGap = Config.Chase.copGap,
             countdown = Config.Chase.countdown,
             roundTime = Config.Chase.roundTime,
             escapeDistance = Config.Chase.escapeDistance,
