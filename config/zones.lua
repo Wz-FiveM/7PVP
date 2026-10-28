@@ -3,6 +3,12 @@
 -- type = 'pve'  : PvP + zombies (réglages communs dans Config.Zombie, config/main.lua)
 -- modes = modes de jeu où la zone existe (défaut { 'pvp' }) : un joueur ne voit que celles de son mode
 -- Les coordonnées sont approximatives : ajuste-les en jeu avec /pvp_coords
+-- Mode passif en sortant d'une zone safe : encore invincible et sans pouvoir tirer pendant
+-- `duration` secondes (compte à rebours affiché avec les effets). Revenir en zone safe l'arrête.
+Config.PassiveMode = {
+    duration = 5,
+}
+
 Config.Zones = {
     -- Freeroam : une seule zone safe, le point de départ, avec les PNJ qui lancent les modes de jeu
     {

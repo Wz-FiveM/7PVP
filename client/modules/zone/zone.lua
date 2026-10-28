@@ -4,6 +4,7 @@ local Zone = PVP.define('Zone')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Zones = PVP.use('Zones')
+local Effects = PVP.use('Effects')
 
 Zone.CHECK_INTERVAL = 500
 
@@ -13,6 +14,10 @@ Zone.SAFE_DISABLED_CONTROLS = {
     140, 141, 142, 143, 263, 264, -- corps à corps
     69, 70, 92, 114, -- tir en véhicule
 }
+
+Zone.PASSIVE = 'passive' -- effet du mode passif (Config.Effects)
+-- Protection appliquée au personnage (zone safe ou mode passif) : invincible, sans tir
+Zone.protected = false
 
 ---@type integer[] repères des zones du mode en cours
 Zone.blips = {}
@@ -77,12 +82,30 @@ function Zone.update()
     local zone = Zones.getAt(GetEntityCoords(PlayerPedId()), State.mode)
     if zone == State.zone then return end
 
+    local wasSafe = State.isInSafeZone()
     State.zone = zone
-    Zone.setSafe(State.isInSafeZone())
+    local safe = State.isInSafeZone()
+    -- Pas en partie de course ou de CVC : le départ de la partie fait aussi « sortir » de la zone
+    if wasSafe and not safe and State.isAlive() and not State.activity then
+        Effects.start({ id = Zone.PASSIVE, duration = Config.PassiveMode.duration })
+    elseif safe then
+        Effects.stop(Zone.PASSIVE)
+    end
+    Zone.applyProtection()
     Nui.send('zone', Zones.toInfo(zone))
     if State.menuOpen then
         Nui.sendMenuState()
     end
+end
+
+---@return boolean en zone safe ou en mode passif juste après en être sorti
+function Zone.isProtected()
+    return State.isInSafeZone() or Effects.isActive(Zone.PASSIVE)
+end
+
+function Zone.applyProtection()
+    Zone.protected = Zone.isProtected()
+    Zone.setSafe(Zone.protected)
 end
 
 ---@param enabled boolean
@@ -94,7 +117,9 @@ end
 
 function Zone.safeLoop()
     while true do
-        if State.isInSafeZone() then
+        -- Fin du mode passif : la protection tombe
+        if Zone.protected ~= Zone.isProtected() then Zone.applyProtection() end
+        if Zone.protected then
             Zone.applySafeRestrictions()
             Wait(0)
         else

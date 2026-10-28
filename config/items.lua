@@ -175,6 +175,8 @@ Config.Effects = {
     regen = { label = 'Régénération', short = 'Régén.', icon = 'drug_health' },
     stamina = { label = 'Endurance illimitée', short = 'Endurance', icon = 'drug_stamina' },
     antizin = { label = 'Immunité au vomi', short = 'Antizin', icon = 'antizin' },
+    -- Pas un objet : donné en sortant d'une zone safe (Config.PassiveMode)
+    passive = { label = 'Mode passif', short = 'Passif', icon = 'armor' },
 }
 
 -- Accessoires d'armes : accessoire -> { arme -> composant GTA }.

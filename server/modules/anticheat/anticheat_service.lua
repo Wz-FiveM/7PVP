@@ -30,6 +30,7 @@ AntiCheatService.positions = {} -- [source] = { coords, at }
 AntiCheatService.graceUntil = {} -- [source] = GetGameTimer()
 AntiCheatService.heartbeats = {} -- [source] = os.time() du dernier signal
 AntiCheatService.loadedAt = {} -- [source] = os.time() du chargement du profil
+AntiCheatService.lastSafeAt = {} -- [source] = os.time() de la dernière fois vu en zone safe
 -- Véhicule qu'un joueur a le droit de créer (objet véhicule utilisé) : [source] = { model, expires }
 AntiCheatService.allowedVehicles = {}
 AntiCheatService.VEHICLE_ALLOW_TIME = 10000
@@ -133,7 +134,7 @@ function AntiCheatService.forget(source)
     for _, map in ipairs({
         AntiCheatService.strikes, AntiCheatService.rates, AntiCheatService.positions,
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
-        AntiCheatService.allowedVehicles,
+        AntiCheatService.allowedVehicles, AntiCheatService.lastSafeAt,
     }) do
         map[source] = nil
     end
@@ -372,7 +373,15 @@ function AntiCheatService.checkVitals(source, player)
     if health > Config.AntiCheat.maxHealth or armor > Config.AntiCheat.maxArmor then
         AntiCheatService.flag(source, 'health', ('vie %d, armure %d'):format(health, armor))
     end
-    if GetPlayerInvincible(source) and not player:isInSafeZone() then
+    local now = os.time()
+    if player:isInSafeZone() then
+        AntiCheatService.lastSafeAt[source] = now
+        return
+    end
+    -- Mode passif à la sortie d'une zone safe (Config.PassiveMode) : encore invincible un moment
+    local passiveGrace = Config.PassiveMode.duration + AntiCheatService.VITALS_INTERVAL / 1000 + 1
+    if now - (AntiCheatService.lastSafeAt[source] or 0) <= passiveGrace then return end
+    if GetPlayerInvincible(source) then
         AntiCheatService.flag(source, 'godmode', 'invincible hors zone safe')
     end
 end

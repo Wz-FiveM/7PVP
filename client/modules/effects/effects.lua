@@ -37,6 +37,14 @@ function Effects.isActive(id)
     return effect ~= nil and effect.endsAt > GetGameTimer()
 end
 
+---Arrête un effet avant la fin de sa durée.
+---@param id string
+function Effects.stop(id)
+    if not Effects.active[id] then return end
+    Effects.active[id] = nil
+    Effects.send()
+end
+
 function Effects.clear()
     if next(Effects.active) == nil then return end
     Effects.active = {}
