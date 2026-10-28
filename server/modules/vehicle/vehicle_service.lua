@@ -6,7 +6,6 @@
 ---@class VehicleServiceModule
 local VehicleService = PVP.define('VehicleService')
 local PlayerService = PVP.use('PlayerService')
-local CombatTagService = PVP.use('CombatTagService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
@@ -85,9 +84,6 @@ function VehicleService.deploy(player, name)
     end
     if player:isInSafeZone() then
         return { ok = false, message = 'Impossible de sortir un véhicule en zone safe : sors de la zone.' }
-    end
-    if CombatTagService.isTagged(player) then
-        return { ok = false, message = ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player)) }
     end
     local current = VehicleService.active[player.source]
     if current and not current.netId then
