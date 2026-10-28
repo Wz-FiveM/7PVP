@@ -36,6 +36,17 @@ Config.Chase = {
     -- Véhicule sur le toit : son conducteur perd la manche
     roof = { angle = 140.0, time = 2.0 }, -- degrés de roulis, secondes sur le toit
 
+    -- Dégâts réalistes des véhicules de la course : les chocs abîment bien plus que dans GTA,
+    -- et un moteur abîmé perd de la puissance (accélère moins, ne tient plus sa vitesse)
+    damageRealism = {
+        collision = 3.0, -- dégâts des collisions (multiplie fCollisionDamageMult du véhicule)
+        deformation = 2.0, -- carrosserie qui se déforme plus (fDeformationDamageMult)
+        engine = 3.0, -- dégâts reçus par le moteur (fEngineDamageMult)
+        impactSpeed = 25.0, -- km/h perdus d'un coup : au-delà, le choc abîme en plus le moteur
+        impactDamage = 8.0, -- points de moteur perdus par km/h au-delà de impactSpeed
+        minPower = 0.35, -- puissance gardée par un moteur très abîmé (0.35 = 35 %)
+    },
+
     -- Véhicules proposés au vote (image : web/public/items/<model>.png si elle existe)
     vehicles = {
         { model = 'kuruma', label = 'Kuruma' },
@@ -50,10 +61,12 @@ Config.Chase = {
 
     -- Départs du voleur (le policier est placé `copGap` mètres derrière, dans l'axe).
     -- Coordonnées approximatives : ajuste-les en jeu avec /pvp_coords (la hauteur est recalée sur le sol).
+    -- Uniquement en ville (Los Santos) : ni l'aéroport ni le nord de la carte.
     starts = {
-        vector4(-1336.0, -2244.0, 13.9, 240.0), -- piste de l'aéroport de Los Santos
         vector4(220.0, -1040.0, 29.2, 160.0), -- centre-ville, sous Legion Square
-        vector4(1580.0, 3200.0, 40.4, 285.0), -- aérodrome de Sandy Shores
-        vector4(-430.0, 6050.0, 31.4, 45.0), -- Paleto Bay
+        vector4(-1300.0, -420.0, 34.6, 125.0), -- Del Perro, boulevard vers l'est
+        vector4(1110.0, -760.0, 57.7, 0.0), -- Mirror Park
+        vector4(170.0, -1500.0, 29.2, 140.0), -- Strawberry
+        vector4(-560.0, -230.0, 37.0, 210.0), -- Rockford Hills
     },
 }

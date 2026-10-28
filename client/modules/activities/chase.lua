@@ -23,6 +23,12 @@ Chase.runningAt = 0
 Chase.contact = nil
 Chase.airSince = nil
 Chase.stuntReported = false
+-- Dégâts réalistes : vitesse mesurée juste avant (pour repérer les chocs violents)
+Chase.lastSpeed = nil
+Chase.speedSampleAt = 0
+Chase.lastImpactAt = 0
+Chase.SPEED_SAMPLE = 100
+Chase.IMPACT_COOLDOWN = 400
 
 function Chase.init()
     RegisterNetEvent(Events.client.chaseQueue, function(data)
@@ -98,6 +104,7 @@ function Chase.startRound(data)
     Chase.contact = nil
     Chase.airSince = nil
     Chase.stuntReported = false
+    Chase.lastSpeed = nil
     Nui.send('chaseHud', {
         open = true,
         round = data.round,
@@ -134,6 +141,7 @@ function Chase.startRound(data)
             SetVehRadioStation(vehicle, 'OFF')
             SetPedIntoVehicle(ped, vehicle, -1)
             FreezeEntityPosition(vehicle, true)
+            Chase.applyDamageHandling(vehicle, data.rules.damage)
             Chase.vehicle = vehicle
         end
     end
@@ -196,6 +204,7 @@ function Chase.monitorLoop()
         if Chase.isActive() and Chase.round and vehicle and DoesEntityExist(vehicle) and GetGameTimer() >= Chase.runningAt then
             Chase.checkPit(vehicle)
             Chase.checkStunt(vehicle)
+            Chase.applyWear(vehicle)
             Wait(0)
         else
             Wait(250)
@@ -264,4 +273,53 @@ function Chase.repair()
     SetVehicleEngineHealth(vehicle, 1000.0)
     SetVehicleBodyHealth(vehicle, 1000.0)
     SetVehiclePetrolTankHealth(vehicle, 1000.0)
+end
+
+-- ---------------------------------------------------------------------------
+-- Dégâts réalistes (Config.Chase.damageRealism)
+-- ---------------------------------------------------------------------------
+
+---Les chocs abîment plus : multiplie les dégâts de collision, de déformation et du moteur
+---dans le handling de ce véhicule seulement.
+---@param vehicle integer
+---@param rules table
+function Chase.applyDamageHandling(vehicle, rules)
+    Chase.scaleHandling(vehicle, 'fCollisionDamageMult', rules.collision)
+    Chase.scaleHandling(vehicle, 'fDeformationDamageMult', rules.deformation)
+    Chase.scaleHandling(vehicle, 'fEngineDamageMult', rules.engine)
+end
+
+---@param vehicle integer
+---@param field string
+---@param factor number
+function Chase.scaleHandling(vehicle, field, factor)
+    local value = GetVehicleHandlingFloat(vehicle, 'CHandlingData', field)
+    SetVehicleHandlingFloat(vehicle, 'CHandlingData', field, value * factor)
+end
+
+---À chaque image : un choc violent (grosse perte de vitesse d'un coup) abîme en plus le moteur,
+---et un moteur abîmé perd de la puissance.
+---@param vehicle integer
+function Chase.applyWear(vehicle)
+    local rules = Chase.round.rules.damage
+    local now = GetGameTimer()
+    local speed = GetEntitySpeed(vehicle) * 3.6
+
+    if Chase.lastSpeed and now - Chase.lastImpactAt > Chase.IMPACT_COOLDOWN and HasEntityCollidedWithAnything(vehicle) then
+        local lost = Chase.lastSpeed - speed
+        if lost > rules.impactSpeed then
+            Chase.lastImpactAt = now
+            Chase.lastSpeed = speed
+            local engine = GetVehicleEngineHealth(vehicle) - (lost - rules.impactSpeed) * rules.impactDamage
+            SetVehicleEngineHealth(vehicle, math.max(-1000.0, engine))
+        end
+    end
+    if now >= Chase.speedSampleAt then
+        Chase.lastSpeed = speed
+        Chase.speedSampleAt = now + Chase.SPEED_SAMPLE
+    end
+
+    -- Puissance proportionnelle à l'état du moteur (à appliquer à chaque image)
+    local power = math.max(rules.minPower, math.min(1.0, GetVehicleEngineHealth(vehicle) / 1000.0))
+    SetVehicleEngineTorqueMultiplier(vehicle, power)
 end

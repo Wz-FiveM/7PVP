@@ -215,7 +215,7 @@ function ChaseService.startRound(match)
             opponent = GetPlayerName(ChaseService.opponent(match, source)) or 'Adversaire',
             opponentId = ChaseService.opponent(match, source),
             warns = match.warns[source],
-            rules = { pit = Config.Chase.pit, stunt = Config.Chase.stunt },
+            rules = { pit = Config.Chase.pit, stunt = Config.Chase.stunt, damage = Config.Chase.damageRealism },
         })
     end
 
