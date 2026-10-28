@@ -12,6 +12,7 @@ local Freeroam = PVP.use('Freeroam')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Loot = PVP.use('Loot')
 local Trade = PVP.use('Trade')
+local Lobby = PVP.use('Lobby')
 local Events = PVP.use('Events')
 
 -- Commandes coupées quand le menu laisse le clavier au jeu : caméra et roue de la souris, tir,
@@ -145,6 +146,8 @@ function Nui.buildInitPayload()
         zone = Zones.toInfo(State.zone),
         -- Un message « mode » envoyé avant que la page soit prête serait perdu
         mode = State.mode or false,
+        -- Idem pour l'ouverture du lobby à la connexion (page encore en chargement)
+        lobby = Lobby.active and { open = true, modes = Lobby.modes } or nil,
     }
 end
 

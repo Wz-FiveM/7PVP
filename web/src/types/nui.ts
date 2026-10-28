@@ -79,6 +79,8 @@ export interface InitPayload {
   zone: ZoneInfo;
   /** mode en cours, `false` au lobby */
   mode?: string | false;
+  /** lobby déjà ouvert avant que la page soit prête */
+  lobby?: { open: boolean; modes: LobbyMode[] };
 }
 
 /** Réponse des actions (achat, utilisation d'objet) */

@@ -9,6 +9,7 @@ local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
 Lobby.active = false
+Lobby.modes = nil
 Lobby.cam = nil
 
 function Lobby.init()
@@ -51,6 +52,7 @@ function Lobby.open(modes)
     DisplayRadar(false)
 
     Lobby.active = true
+    Lobby.modes = modes
     SetNuiFocus(true, true)
     Nui.send('lobby', { open = true, modes = modes })
     DoScreenFadeIn(500)
