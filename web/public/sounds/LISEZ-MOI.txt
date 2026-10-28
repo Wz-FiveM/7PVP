@@ -1,0 +1,11 @@
+Sons du hitmarker (optionnels)
+
+Dépose ici tes propres sons au format .ogg pour remplacer les sons synthétisés :
+  hit_body.ogg   touche sur le corps
+  hit_armor.ogg  touche encaissée par l'armure
+  hit_head.ogg   tir à la tête
+  hit_kill.ogg   coup mortel
+
+Garde-les très courts (moins de 0,3 s) et vérifie que tu as le droit de les utiliser.
+Sans fichier, le jeu joue un son synthétisé (web/src/utils/hitSound.ts).
+Après un ajout : npm run build dans web/, puis ensure 7PVP.

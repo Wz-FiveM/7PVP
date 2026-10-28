@@ -143,5 +143,6 @@ files {
     'web/build/dui.html',
     'web/build/assets/*',
     'web/build/items/*',
+    'web/build/sounds/*',
     'web/build/brand/*',
 }
