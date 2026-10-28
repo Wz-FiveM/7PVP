@@ -173,6 +173,7 @@ export const DEV_SCREENS: DevScreen[] = [
         data: {
           open: true,
           items: [
+            { kind: 'info', id: 'self:name', label: 'Dev', icon: 'profile' },
             { kind: 'info', id: 'serverId', label: 'ID Serveur', icon: 'contract', value: '1216' },
             { kind: 'info', id: 'level', label: 'Niveau', icon: 'trophy', value: '4' },
             { kind: 'separator', id: 'separator' },

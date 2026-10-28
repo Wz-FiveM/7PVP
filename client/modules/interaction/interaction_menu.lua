@@ -25,7 +25,7 @@ Interaction.RAY_DISTANCE = 60.0
 Interaction.USE_DISTANCE = 3.5
 -- Curseur affiché : on garde le clavier (marcher) mais pas la caméra ni le tir (la souris clique)
 Interaction.BLOCKED_CONTROLS = { 1, 2, 24, 25, 68, 69, 70, 91, 92, 106, 140, 141, 142, 257, 263 }
-Interaction.OUTLINE = { 255, 107, 26, 255 }
+Interaction.OUTLINE = { 240, 195, 60, 255 } -- jaune signal de la D.A
 
 Interaction.open = false -- curseur affiché (touche maintenue ou menu ouvert)
 Interaction.menuShown = false -- un menu de cible est affiché
@@ -114,7 +114,7 @@ function Interaction.cursor()
     return x / width, y / height
 end
 
----Contour orange sur la cible survolée (un seul à la fois).
+---Contour jaune sur la cible survolée (un seul à la fois).
 ---@param entity integer|nil
 function Interaction.setOutline(entity)
     if Interaction.outlined == entity then return end
@@ -241,6 +241,8 @@ end
 function Interaction.selfItems()
     local player = State.player or {}
     return {
+        -- Première ligne « :name » : affichée en en-tête du menu
+        { kind = 'info', id = 'self:name', label = player.name or GetPlayerName(PlayerId()), icon = 'profile' },
         { kind = 'info', id = 'serverId', label = 'ID Serveur', icon = 'contract', value = tostring(GetPlayerServerId(PlayerId())) },
         { kind = 'info', id = 'level', label = 'Niveau', icon = 'trophy', value = tostring(player.level or 1) },
         { kind = 'separator', id = 'separator' },
