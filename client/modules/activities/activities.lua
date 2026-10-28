@@ -17,7 +17,9 @@ function Activities.init()
     RegisterNUICallback('activityStart', function(data, cb)
         local result = Callback.await(Events.callbacks.activityStart, type(data) == 'table' and data.id or nil)
             or { ok = false, message = 'Le serveur ne répond pas.' }
-        if result.ok then Activities.close() end
+        -- Partie lancée tout de suite (2e joueur de la file) : le vote a déjà pris le curseur,
+        -- on ferme la fenêtre sans le lui retirer
+        if result.ok then Activities.close(State.activity ~= nil) end
         if result.message then Nui.notify(result.message, result.ok and 'success' or 'error') end
         cb(result)
     end)
@@ -43,9 +45,10 @@ function Activities.open(id)
     })
 end
 
-function Activities.close()
+---@param keepFocus? boolean une autre fenêtre (vote de la course) a besoin du curseur
+function Activities.close(keepFocus)
     if not Activities.isOpen then return end
     Activities.isOpen = false
-    SetNuiFocus(false, false)
+    if not keepFocus then SetNuiFocus(false, false) end
     Nui.send('activity', { open = false })
 end
