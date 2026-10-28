@@ -6,7 +6,8 @@
 -- ammo   : (armes) objet de munitions utilisé. Les armes qui partagent un objet de
 --          munitions doivent partager le même type de munitions GTA (pistolets, SMG, fusils...)
 -- heal / armor : (consommables) points de vie / d'armure rendus
--- stamina      : (consommables) secondes d'endurance illimitée
+-- effect       : (consommables) effet à durée, affiché à l'écran avec son compte à rebours :
+--                { id = clé de Config.Effects, duration = secondes, perSecond = (regen) PV par seconde }
 -- repair       : (consommables) répare le véhicule du joueur (dedans, ou à côté du dernier conduit)
 -- throwable    : (armes) arme de jet, l'objet sert lui-même de munition (`ammo` = son propre nom) :
 --                une grenade lancée retire une grenade de l'inventaire
@@ -145,9 +146,9 @@ Config.Items = {
     bandage = { label = 'Bandage', type = 'consumable', weight = 0.1, heal = 25 },
     firstaid = { label = 'Kit de premiers secours', type = 'consumable', weight = 0.3, heal = 50 },
     medkit = { label = 'Trousse de soins', type = 'consumable', weight = 0.5, heal = 100 },
-    antizin = { label = 'Antizin', type = 'consumable', weight = 0.1, heal = 35 },
-    drug_health = { label = 'Stimulant de santé', type = 'consumable', weight = 0.1, heal = 60 },
-    drug_stamina = { label = 'Stimulant d\'endurance', type = 'consumable', weight = 0.1, stamina = 60 },
+    antizin = { label = 'Antizin', type = 'consumable', weight = 0.1, heal = 15, effect = { id = 'antizin', duration = 120 } },
+    drug_health = { label = 'Stimulant de santé', type = 'consumable', weight = 0.1, effect = { id = 'regen', duration = 30, perSecond = 2 } },
+    drug_stamina = { label = 'Stimulant d\'endurance', type = 'consumable', weight = 0.1, effect = { id = 'stamina', duration = 60 } },
     light_kevlar = { label = 'Gilet léger', type = 'consumable', weight = 1.5, armor = 25 },
     armor = { label = 'Gilet pare-balles', type = 'consumable', weight = 3.0, armor = 50 },
     heavy_kevlar = { label = 'Gilet lourd', type = 'consumable', weight = 5.0, armor = 100 },
@@ -165,6 +166,15 @@ Config.Items = {
     mat_scrap = { label = 'Ferraille', type = 'material', weight = 0.2 },
     mat_powder = { label = 'Poudre', type = 'material', weight = 0.02 },
     mat_chemicals = { label = 'Produits chimiques', type = 'material', weight = 0.1 },
+}
+
+-- Effets à durée des stimulants (client/modules/effects/effects.lua), affichés à l'écran avec
+-- leur compte à rebours. Reprendre le même stimulant relance la durée ; tout s'arrête à la mort.
+-- label : nom complet ; short : nom court sous l'icône ; icon : image (web/public/items/<icon>.png)
+Config.Effects = {
+    regen = { label = 'Régénération', short = 'Régén.', icon = 'drug_health' },
+    stamina = { label = 'Endurance illimitée', short = 'Endurance', icon = 'drug_stamina' },
+    antizin = { label = 'Immunité au vomi', short = 'Antizin', icon = 'antizin' },
 }
 
 -- Accessoires d'armes : accessoire -> { arme -> composant GTA }.

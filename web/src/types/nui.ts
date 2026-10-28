@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -42,6 +42,8 @@ export type NuiMessage =
   /** `items: false` : ciblage en cours (curseur affiché, pas encore de menu) */
   | { action: 'interaction'; data: { open: boolean; items?: InteractionItem[] | false } }
   | { action: 'horde'; data: { horde: HordeState | false } }
+  /** effets à durée actifs (vide quand il n'y en a plus) */
+  | { action: 'effects'; data: EffectHud[] }
   /** menu de téléportation entre zones safe (F1) */
   | { action: 'teleport'; data: { open: boolean } & Partial<TeleportMenuData> }
   /** attente avant la téléportation (hors zone safe), `false` = terminée ou annulée */

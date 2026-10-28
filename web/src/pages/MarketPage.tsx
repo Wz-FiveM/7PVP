@@ -24,6 +24,7 @@ const FILTERS: { type: ItemType | 'all'; label: string }[] = [
   { type: 'ammo', label: 'Munitions' },
   { type: 'consumable', label: 'Soins' },
   { type: 'material', label: 'Matériaux' },
+  { type: 'vehicle', label: 'Véhicules' },
 ];
 
 interface SellChoice {

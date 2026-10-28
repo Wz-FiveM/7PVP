@@ -3,6 +3,7 @@ import { NoclipHelp } from './components/admin/NoclipHelp';
 import { Chat } from './components/chat/Chat';
 import { CharacterCreator } from './components/creator/CharacterCreator';
 import { DeathScreen } from './components/hud/DeathScreen';
+import { EffectsBar } from './components/hud/EffectsBar';
 import { HitFeedback } from './components/hud/HitFeedback';
 import { HelpNotification } from './components/hud/HelpNotification';
 import { InteractionMenu } from './components/interaction/InteractionMenu';
@@ -35,6 +36,8 @@ export function App() {
       {!creating && inLobby && <Lobby />}
       {inPvp && state.ready && !state.menu.open && !state.death.active && <Hud />}
       {!creating && !inLobby && state.mode && <HitFeedback />}
+      {/* Monté hors du HUD : les effets survivent à l'ouverture du menu (masqués pendant ce temps) */}
+      {inPvp && <EffectsBar hidden={!state.ready || state.menu.open || state.death.active} />}
       {inPvp && state.menu.open && <Menu />}
       {inPvp && state.death.active && <DeathScreen />}
       {inFreeroam && !state.freeroam.menuOpen && <FreeroamHud />}

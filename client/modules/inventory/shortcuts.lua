@@ -59,7 +59,7 @@ function Shortcuts.use(slot)
 
     if item.type == 'weapon' then
         Shortcuts.toggleWeapon(item)
-    elseif item.type == 'consumable' then
+    elseif item.type == 'consumable' or item.type == 'vehicle' then
         CreateThread(function()
             Inventory.use(name)
         end)

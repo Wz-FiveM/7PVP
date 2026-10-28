@@ -30,6 +30,9 @@ AntiCheatService.positions = {} -- [source] = { coords, at }
 AntiCheatService.graceUntil = {} -- [source] = GetGameTimer()
 AntiCheatService.heartbeats = {} -- [source] = os.time() du dernier signal
 AntiCheatService.loadedAt = {} -- [source] = os.time() du chargement du profil
+-- Véhicule qu'un joueur a le droit de créer (objet véhicule utilisé) : [source] = { model, expires }
+AntiCheatService.allowedVehicles = {}
+AntiCheatService.VEHICLE_ALLOW_TIME = 10000
 
 function AntiCheatService.init()
     -- Commandes console (et admins en jeu via command.<nom>), même si l'anti-cheat est coupé
@@ -130,6 +133,7 @@ function AntiCheatService.forget(source)
     for _, map in ipairs({
         AntiCheatService.strikes, AntiCheatService.rates, AntiCheatService.positions,
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
+        AntiCheatService.allowedVehicles,
     }) do
         map[source] = nil
     end
@@ -269,6 +273,7 @@ function AntiCheatService.onEntityCreating(entity)
     if GetEntityType(entity) ~= 2 then return end
     local owner = NetworkGetEntityOwner(entity)
     if not owner or owner <= 0 or not AntiCheatService.watched(owner, true) then return end
+    if AntiCheatService.consumeVehicleAllowance(owner, GetEntityModel(entity)) then return end
 
     CancelEvent()
     AntiCheatService.flag(owner, 'entity', ('véhicule (modèle %d)'):format(AntiCheatService.unsigned(GetEntityModel(entity))))
@@ -277,6 +282,29 @@ end
 -- ---------------------------------------------------------------------------
 -- Contrôles réguliers
 -- ---------------------------------------------------------------------------
+
+---Autorise un joueur à créer ce véhicule pendant quelques secondes (objet véhicule utilisé).
+---@param source integer
+---@param model string
+function AntiCheatService.allowVehicle(source, model)
+    AntiCheatService.allowedVehicles[source] = {
+        model = AntiCheatService.unsigned(GetHashKey(model)),
+        expires = GetGameTimer() + AntiCheatService.VEHICLE_ALLOW_TIME,
+    }
+end
+
+---Une autorisation ne sert qu'une fois.
+---@param source integer
+---@param model integer
+---@return boolean
+function AntiCheatService.consumeVehicleAllowance(source, model)
+    local allowed = AntiCheatService.allowedVehicles[source]
+    if not allowed or GetGameTimer() > allowed.expires or allowed.model ~= AntiCheatService.unsigned(model) then
+        return false
+    end
+    AntiCheatService.allowedVehicles[source] = nil
+    return true
+end
 
 ---Déplacements impossibles (téléportation, vitesse) des joueurs PvP vivants.
 function AntiCheatService.watchLoop()

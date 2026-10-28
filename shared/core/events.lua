@@ -16,6 +16,7 @@ Events.server = {
     npcHitReport = '7pvp:server:npcHitReport',
     lootPickup = '7pvp:server:lootPickup',
     chatSend = '7pvp:server:chatSend',
+    vehicleSpawned = '7pvp:server:vehicleSpawned',
 }
 
 -- Serveur -> client
@@ -48,6 +49,7 @@ Events.client = {
     freeroamCleanup = '7pvp:client:freeroamCleanup',
     teleport = '7pvp:client:teleport',
     teleportCancel = '7pvp:client:teleportCancel',
+    vehicleSpawn = '7pvp:client:vehicleSpawn',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -90,4 +92,5 @@ Events.callbacks = {
     groupKick = 'group:kick',
     teleportInfo = 'teleport:info',
     teleport = 'teleport:request',
+    vehicleStore = 'vehicle:store',
 }

@@ -149,7 +149,7 @@ function PauseControls({ info }: { info: PauseInfo }) {
     ['Échap', 'Menu pause'],
   ];
   if (info.isAdmin) {
-    rows.push([info.keys.admin, 'Panneau admin'], [info.keys.noclip, 'Noclip'], ['/tpm', 'Téléportation au marqueur']);
+    rows.push([info.keys.admin, 'Panneau admin'], [info.keys.noclip, 'Noclip'], ['/tpm', 'Téléportation au marqueur'], ['/heure 22', "Régler l'heure du jeu pour tous (/heure reset)"]);
   }
 
   return (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useGame } from '../../store/GameContext';
 import type { ItemType } from '../../types/game';
 import { Icon, itemIconName } from '../icons/Icon';
 
@@ -12,7 +13,9 @@ interface ItemIconProps {
 
 /** Image `web/public/items/<name>.png` si elle existe, sinon icône au trait selon le type. */
 export function ItemIcon({ name, type }: ItemIconProps) {
-  const [missing, setMissing] = useState(() => missingImages.has(name));
+  // Certaines images ne portent pas le nom de l'objet (véhicules : image du modèle)
+  const file = useGame().state.config.items[name]?.image ?? name;
+  const [missing, setMissing] = useState(() => missingImages.has(file));
 
   if (missing) {
     return (
@@ -25,11 +28,11 @@ export function ItemIcon({ name, type }: ItemIconProps) {
   return (
     <img
       className="item-icon"
-      src={`./items/${name}.png`}
+      src={`./items/${file}.png`}
       alt=""
       draggable={false}
       onError={() => {
-        missingImages.add(name);
+        missingImages.add(file);
         setMissing(true);
       }}
     />

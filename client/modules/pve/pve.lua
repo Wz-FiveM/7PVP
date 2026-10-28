@@ -8,6 +8,7 @@ local Zones = PVP.use('Zones')
 local PedUtils = PVP.use('PedUtils')
 local Hits = PVP.use('Hits')
 local Clock = PVP.use('Clock')
+local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
 
 Pve.SCAN_INTERVAL = 250
@@ -304,6 +305,8 @@ end
 function Pve.receiveVomit(damage)
     Wait(Config.Zombie.damageDelay)
     if not State.isAlive() or State.isInSafeZone() or State.godmode then return end
+    -- Antizin : immunisé contre le vomi tant que l'effet dure
+    if Effects.isActive('antizin') then return end
 
     ApplyDamageToPed(PlayerPedId(), damage, true, 0)
     ShakeGameplayCam('DRUNK_SHAKE', 0.6)

@@ -15,6 +15,7 @@ local Nui = PVP.use('Nui')
 local Group = PVP.use('Group')
 local Loot = PVP.use('Loot')
 local Npcs = PVP.use('Npcs')
+local Vehicles = PVP.use('Vehicles')
 local Bounty = PVP.use('Bounty')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -314,12 +315,18 @@ function Interaction.vehicleItems(target)
     local model = GetEntityModel(target.entity)
     local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
     local near = Interaction.inReach(target.entity)
-    return {
+    local items = {
         { kind = 'info', id = 'vehicle:name', label = name ~= 'NULL' and name or 'Véhicule', icon = 'crate' },
         { kind = 'separator', id = 'separator' },
         { kind = 'action', id = 'vehicle:driver', label = 'Monter (conducteur)', icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, -1) },
         { kind = 'action', id = 'vehicle:passenger', label = 'Monter (passager)', icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, 0) },
     }
+    -- Véhicule sorti d'un objet par le joueur : il peut le remettre dans son inventaire
+    if Vehicles.isMine(target.entity) then
+        items[#items + 1] = { kind = 'separator', id = 'separator:store' }
+        items[#items + 1] = { kind = 'action', id = 'vehicle:store', label = 'Ranger le véhicule', icon = 'inventory', disabled = not near }
+    end
+    return items
 end
 
 ---@return table[]
@@ -391,6 +398,8 @@ function Interaction.runOnTarget(id)
         TaskEnterVehicle(PlayerPedId(), target.entity, 10000, -1, 1.0, 1, 0)
     elseif id == 'vehicle:passenger' then
         TaskEnterVehicle(PlayerPedId(), target.entity, 10000, 0, 1.0, 1, 0)
+    elseif id == 'vehicle:store' then
+        Vehicles.store()
     end
 end
 

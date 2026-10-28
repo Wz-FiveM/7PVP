@@ -6,6 +6,7 @@ local LootService = PVP.use('LootService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
+local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
 
 function InventoryService.init()
@@ -43,6 +44,9 @@ end
 ---@return { ok: boolean, message?: string }
 function InventoryService.use(source, name)
     local player = InventoryService.getActivePlayer(source)
+    if player and Items.isType(name, 'vehicle') then
+        return VehicleService.deploy(player, name)
+    end
     if not player or not Items.isType(name, 'consumable') then
         return { ok = false, message = 'Cet objet ne s\'utilise pas.' }
     end

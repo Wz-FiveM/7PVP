@@ -105,6 +105,19 @@ Config.InteractionKey = 'LMENU'
 Config.HotbarKey = 'TAB' -- maintenir pour afficher la barre de raccourcis (remplace la roue des armes)
 
 -- ---------------------------------------------------------------------------
+-- Chute
+-- ---------------------------------------------------------------------------
+
+-- Pas de dégâts de chute, ni de chute « bras en l'air », ni de roulade ou de ragdoll à l'atterrissage
+Config.Fall = {
+    enabled = true,
+    minSpeed = 5.0, -- vitesse de descente (m/s) d'une vraie chute : les petits sauts ne sont pas concernés
+    -- Pose neutre jouée pendant la chute à la place de l'animation de GTA
+    animDict = 'move_fall',
+    animName = 'fall_low',
+}
+
+-- ---------------------------------------------------------------------------
 -- Chat (un salon par mode de jeu)
 -- ---------------------------------------------------------------------------
 

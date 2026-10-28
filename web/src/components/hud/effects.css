@@ -1,0 +1,86 @@
+/* Effets des stimulants (bas droite, au-dessus des munitions) */
+
+.effects {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 7.5rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 0.5rem;
+  text-shadow: var(--ombre-texte);
+  pointer-events: none;
+}
+
+.effect {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3125rem;
+  animation: effect-in 0.2s ease-out;
+}
+@keyframes effect-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+.effect__tile {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  background: radial-gradient(ellipse 60% 50% at 50% 40%, rgba(236, 238, 232, 0.18), transparent 75%), var(--panneau);
+  box-shadow: var(--ombre), inset 0 0 0 0.0625rem rgba(240, 195, 60, 0.45);
+}
+.effect__icon {
+  position: absolute;
+  top: 0.375rem;
+  left: 50%;
+  height: 1.875rem;
+  max-width: 85%;
+  object-fit: contain;
+  transform: translateX(-50%);
+}
+.effect__time {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Barre qui se vide au fil du temps */
+.effect__bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0.1875rem;
+  background: linear-gradient(90deg, var(--signal) var(--effect-progress), rgba(236, 238, 232, 0.14) var(--effect-progress));
+}
+
+.effect__name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* Dernières secondes : rouge et clignotant */
+.effect--ending .effect__tile {
+  box-shadow: var(--ombre), inset 0 0 0 0.0625rem var(--hazard);
+  animation: effect-blink 0.8s ease-in-out infinite;
+}
+.effect--ending .effect__bar {
+  background: linear-gradient(90deg, var(--hazard) var(--effect-progress), rgba(236, 238, 232, 0.14) var(--effect-progress));
+}
+.effect--ending .effect__time,
+.effect--ending .effect__name {
+  color: var(--hazard);
+}
+@keyframes effect-blink {
+  50% {
+    opacity: 0.45;
+  }
+}

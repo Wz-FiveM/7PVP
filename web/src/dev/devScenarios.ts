@@ -344,6 +344,19 @@ export const DEV_ACTIONS: DevAction[] = [
         },
       }),
   },
+  {
+    label: 'Stimulants (effets)',
+    run: () =>
+      sendNui({
+        action: 'effects',
+        data: [
+          { id: 'regen', label: 'Régénération', short: 'Régén.', icon: 'drug_health', remaining: 8, duration: 30 },
+          { id: 'stamina', label: 'Endurance illimitée', short: 'Endurance', icon: 'drug_stamina', remaining: 42, duration: 60 },
+          { id: 'antizin', label: 'Immunité au vomi', short: 'Antizin', icon: 'antizin', remaining: 115, duration: 120 },
+        ],
+      }),
+  },
+  { label: 'Fin des effets', run: () => sendNui({ action: 'effects', data: [] }) },
   { label: 'Interaction : ciblage', run: () => sendNui({ action: 'interaction', data: { open: true, items: false } }) },
   {
     label: 'Interaction : joueur',

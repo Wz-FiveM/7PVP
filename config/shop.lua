@@ -82,6 +82,18 @@ Config.Shop = {
     { item = 'heavy_kevlar', count = 1, price = 1800, level = 8 },
     { item = 'repairkit', count = 1, price = 500 },
 
+    -- Véhicules (config/vehicles.lua) : les autres modèles se trouvent dans les largages ou via les admins
+    { item = 'vehicle_bmx', count = 1, price = 150 },
+    { item = 'vehicle_faggio', count = 1, price = 600 },
+    { item = 'vehicle_manchez', count = 1, price = 1800, level = 3 },
+    { item = 'vehicle_emperor', count = 1, price = 1200, level = 2 },
+    { item = 'vehicle_sentinel', count = 1, price = 3500, level = 4 },
+    { item = 'vehicle_granger', count = 1, price = 4500, level = 5 },
+    { item = 'vehicle_bfinjection', count = 1, price = 3000, level = 5 },
+    { item = 'vehicle_kuruma', count = 1, price = 7500, level = 8 },
+    { item = 'vehicle_mesa3', count = 1, price = 9000, level = 10 },
+    { item = 'vehicle_frogger', count = 1, price = 25000, level = 15 },
+
     -- Accessoires
     { item = 'att_flashlight', count = 1, price = 300, level = 2 },
     { item = 'att_extclip', count = 1, price = 900, level = 4 },

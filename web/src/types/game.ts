@@ -1,6 +1,6 @@
 export type ZoneType = 'safe' | 'pve' | 'pvp';
 export type ToastKind = 'info' | 'success' | 'error';
-export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material';
+export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material' | 'vehicle';
 export type ContainerId = 'bag' | 'protected' | 'stash';
 
 export interface ZoneInfo {
@@ -50,6 +50,10 @@ export interface ItemDefinition {
   ammo?: string;
   heal?: number;
   armor?: number;
+  /** (véhicules) modèle GTA */
+  model?: string;
+  /** image web/public/items/<image>.png, si elle ne porte pas le nom de l'objet */
+  image?: string;
 }
 
 export interface ContainerDefinition {
@@ -112,6 +116,20 @@ export interface LeaderboardRow {
   deaths: number;
   npcKills: number;
   online: boolean;
+}
+
+/** Effet à durée d'un stimulant (client/modules/effects/effects.lua) */
+export interface EffectHud {
+  id: string;
+  label: string;
+  /** nom court affiché sous l'icône */
+  short: string;
+  /** image web/public/items/<icon>.png */
+  icon: string;
+  /** secondes restantes à l'envoi */
+  remaining: number;
+  /** durée totale, en secondes */
+  duration: number;
 }
 
 /** Dégâts infligés à un joueur, confirmés par le serveur (client/modules/combat/hits.lua) */

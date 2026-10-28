@@ -11,6 +11,7 @@ const SECTIONS: { type: ItemType; label: string }[] = [
   { type: 'ammo', label: 'Munitions' },
   { type: 'attachment', label: 'Accessoires' },
   { type: 'consumable', label: 'Soins & équipement' },
+  { type: 'vehicle', label: 'Véhicules' },
 ];
 
 export function ShopPage() {

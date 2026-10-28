@@ -1,19 +1,55 @@
----Horloge du jeu, commune au serveur et aux clients : l'heure du jeu dépend seulement
----de l'heure réelle (UTC), donc tout le monde voit la même heure sans synchronisation.
+---Horloge du jeu, la même pour tous les joueurs.
+---Le serveur la calcule (heure réelle + décalage réglable par les admins avec /heure) et la publie
+---dans un state bag global (server/modules/clock) ; chaque client la fait avancer lui-même
+---depuis la dernière publication, à la vitesse du cycle (Config.Time).
 ---@class ClockModule
 local Clock = PVP.define('Clock')
 
----@return integer secondes UTC
-function Clock.now()
-    if IsDuplicityVersion() then return os.time() end
-    return GetCloudTimeAsInt()
+Clock.STATE_KEY = '7pvp:clock'
+Clock.offset = 0 -- (serveur) minutes ajoutées par /heure
+---@type { minutes: number, receivedAt: integer }|nil (client) dernière heure reçue du serveur
+Clock.synced = nil
+
+function Clock.init()
+    if IsDuplicityVersion() then return end
+    Clock.receive(GlobalState[Clock.STATE_KEY])
+    AddStateBagChangeHandler(Clock.STATE_KEY, 'global', function(_, _, value)
+        Clock.receive(value)
+    end)
+end
+
+---@param value any { minutes }
+function Clock.receive(value)
+    if type(value) ~= 'table' or type(value.minutes) ~= 'number' then return end
+    Clock.synced = { minutes = value.minutes, receivedAt = GetGameTimer() }
+end
+
+---@return number minutes du jeu qui passent par seconde réelle
+function Clock.rate()
+    return 1440 / (Config.Time.cycleMinutes * 60)
+end
+
+---Heure calculée d'après l'heure réelle (UTC) : référence du serveur, et repli du client
+---tant qu'il n'a rien reçu.
+---@param now integer secondes UTC
+---@return number
+function Clock.fromRealTime(now)
+    local cycle = Config.Time.cycleMinutes * 60
+    local progress = (now % cycle) / cycle
+    return (progress * 1440 + Config.Time.offsetHours * 60 + Clock.offset) % 1440
+end
+
+---@return number minutes du jeu depuis minuit, décimales comprises (0 à 1440)
+function Clock.exactMinutes()
+    if IsDuplicityVersion() then return Clock.fromRealTime(os.time()) end
+    if not Clock.synced then return Clock.fromRealTime(GetCloudTimeAsInt()) end
+    local elapsed = (GetGameTimer() - Clock.synced.receivedAt) / 1000
+    return (Clock.synced.minutes + elapsed * Clock.rate()) % 1440
 end
 
 ---@return integer minutes du jeu depuis minuit (0 à 1439)
 function Clock.minutes()
-    local cycle = Config.Time.cycleMinutes * 60
-    local progress = (Clock.now() % cycle) / cycle
-    return math.floor(progress * 1440 + Config.Time.offsetHours * 60) % 1440
+    return math.floor(Clock.exactMinutes()) % 1440
 end
 
 ---@return integer heure, integer minute

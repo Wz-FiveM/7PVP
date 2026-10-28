@@ -253,7 +253,8 @@
   gap: 0.125rem;
   text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.9);
 }
-.status__money {
+/* Heure réelle */
+.status__time {
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1;

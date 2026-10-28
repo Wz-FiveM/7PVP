@@ -105,6 +105,9 @@ export function InventoryPage() {
     if (carried && stack.item.type === 'consumable') {
       list.push({ label: 'Utiliser', onSelect: () => actions.consumeItem(stack.name) });
     }
+    if (carried && stack.item.type === 'vehicle') {
+      list.push({ label: 'Sortir le véhicule', onSelect: () => actions.consumeItem(stack.name) });
+    }
     for (const to of moveTargets(container, atBanker)) {
       list.push({ label: MOVE_LABELS[to], onSelect: () => requestMove(stack.name, container, to, stack.count) });
     }
@@ -164,7 +167,7 @@ export function InventoryPage() {
   };
 
   const handleDoubleClick = (stack: ItemStack) => {
-    if (stack.item.type === 'consumable') actions.consumeItem(stack.name);
+    if (stack.item.type === 'consumable' || stack.item.type === 'vehicle') actions.consumeItem(stack.name);
     if (stack.item.type === 'weapon') actions.equip(stack.name);
   };
 

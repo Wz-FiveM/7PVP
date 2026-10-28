@@ -5,6 +5,7 @@ local State = PVP.use('State')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
 local Nui = PVP.use('Nui')
+local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
 
 function Inventory.init()
@@ -49,29 +50,12 @@ function Inventory.applyItem(name)
     if item.armor then
         SetPedArmour(ped, math.min(100, GetPedArmour(ped) + item.armor))
     end
-    if item.stamina then
-        Inventory.boostStamina(item.stamina)
+    if item.effect then
+        Effects.start(item.effect)
     end
     if item.repair then
         Inventory.repairVehicle(ped)
     end
-end
-
-Inventory.staminaUntil = 0
-
----Endurance illimitée pendant `seconds` secondes (prolongée si déjà active).
----@param seconds integer
-function Inventory.boostStamina(seconds)
-    local running = Inventory.staminaUntil > GetGameTimer()
-    Inventory.staminaUntil = math.max(Inventory.staminaUntil, GetGameTimer()) + seconds * 1000
-    if running then return end
-    CreateThread(function()
-        while GetGameTimer() < Inventory.staminaUntil and not State.dead do
-            RestorePlayerStamina(PlayerId(), 1.0)
-            Wait(250)
-        end
-        Inventory.staminaUntil = 0
-    end)
 end
 
 ---Répare le véhicule où est le joueur, sinon le dernier conduit (le serveur a vérifié qu'il est à côté).

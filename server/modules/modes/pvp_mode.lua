@@ -6,6 +6,7 @@ local SpawnService = PVP.use('SpawnService')
 local PlayerRepository = PVP.use('PlayerRepository')
 local CombatTagService = PVP.use('CombatTagService')
 local GroupService = PVP.use('GroupService')
+local VehicleService = PVP.use('VehicleService')
 
 PvpMode.ID = 'pvp'
 
@@ -37,5 +38,6 @@ end
 ---@param player PvpPlayer
 function PvpMode.leave(player)
     GroupService.leave(player.source)
+    VehicleService.release(player)
     PlayerRepository.save(player)
 end

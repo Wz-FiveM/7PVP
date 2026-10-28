@@ -85,6 +85,11 @@ Config.LootTables = {
             { item = 'ammo_grenade40', count = { 3, 6 }, chance = 8 },
             { item = 'weapon_rpg', count = { 1, 1 }, chance = 5 },
             { item = 'ammo_rocket', count = { 1, 3 }, chance = 6 },
+            -- Véhicules rares
+            { item = 'vehicle_nightshark', count = { 1, 1 }, chance = 4 },
+            { item = 'vehicle_insurgent', count = { 1, 1 }, chance = 3 },
+            { item = 'vehicle_buzzard2', count = { 1, 1 }, chance = 2 },
+            { item = 'vehicle_deluxo', count = { 1, 1 }, chance = 1 },
         },
     },
 }
