@@ -53,6 +53,7 @@ Events.client = {
     teleport = '7pvp:client:teleport',
     teleportCancel = '7pvp:client:teleportCancel',
     vehicleSpawn = '7pvp:client:vehicleSpawn',
+    vehicleReleased = '7pvp:client:vehicleReleased',
     lootContents = '7pvp:client:lootContents',
     chaseQueue = '7pvp:client:chaseQueue',
     chaseVote = '7pvp:client:chaseVote',

@@ -1,5 +1,7 @@
 -- Véhicules en objets : utiliser l'objet fait apparaître le véhicule et met le joueur au volant.
--- L'objet est retiré du sac ; la touche de rangement (K, à côté ou dedans) ou le menu ALT le rend.
+-- L'objet est retiré du sac. Pour le ranger : assis dedans, à l'arrêt, seul à bord, touche K.
+-- N'importe quel joueur peut ranger n'importe quel véhicule sorti d'un objet : l'objet va à celui
+-- qui range (on peut voler un véhicule laissé sans surveillance), le propriétaire est prévenu.
 -- Un seul véhicule sorti par joueur : en sortir un autre range le précédent s'il est intact.
 -- Un véhicule détruit est perdu. Déconnexion ou retour au lobby : il est rangé automatiquement.
 -- Les armes montées sur certains véhicules sont désactivées (pas d'armes hors inventaire en PvP).
@@ -7,8 +9,7 @@
 -- name : nom de l'objet (vehicle_<modèle>) ; model : modèle GTA ; image : web/public/items/<image>.png
 Config.VehicleOptions = {
     weight = 1.0, -- poids de l'objet (une clé, pas le véhicule)
-    storeDistance = 6.0, -- distance max pour ranger son véhicule
-    storeKey = 'K', -- touche pour ranger son véhicule (modifiable dans Paramètres > Raccourcis > FiveM)
+    storeKey = 'K', -- touche pour ranger le véhicule où l'on est assis (modifiable dans Paramètres > Raccourcis > FiveM)
     storeMaxSpeed = 3.0, -- km/h : au-dessus, le véhicule roule encore et ne peut pas être rangé
     plate = '7PVP', -- plaque des véhicules sortis
 }
