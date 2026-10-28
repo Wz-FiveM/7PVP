@@ -80,6 +80,11 @@
   padding: 1.75rem 3rem 1.5rem;
   overflow-y: auto;
 }
+/* Les panneaux gardent leur hauteur et c'est la page qui défile : sinon, quand le contenu
+   dépasse (boutique bien remplie), ils s'écrasent et se chevauchent */
+.menu__content > * {
+  flex-shrink: 0;
+}
 
 /* Statut (haut droite) --------------------------------------------------------- */
 
