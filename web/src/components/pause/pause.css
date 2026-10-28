@@ -21,7 +21,6 @@
 }
 .pause__stripes {
   flex: none;
-  height: 0.3125rem;
 }
 
 /* En-tête ---------------------------------------------------------------------- */
@@ -155,9 +154,7 @@
   grid-column: 1 / -1;
   justify-content: flex-end;
   min-height: 7.5rem;
-  background:
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 0.5rem, transparent 0.5rem 1rem),
-    linear-gradient(135deg, rgba(36, 42, 39, 0.95), rgba(18, 21, 20, 0.95));
+  background: linear-gradient(135deg, rgba(36, 42, 39, 0.95), rgba(18, 21, 20, 0.95));
 }
 .pause__card-icon {
   color: var(--signal);

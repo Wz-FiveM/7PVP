@@ -13,9 +13,6 @@
   left: 1.5rem;
   width: 16rem;
 }
-.zone-banner .stripes {
-  height: 0.25rem;
-}
 .zone-banner__body {
   display: flex;
   flex-direction: column;
@@ -178,9 +175,6 @@
 .horde-banner {
   width: 22rem;
 }
-.horde-banner .stripes {
-  height: 0.25rem;
-}
 .horde-banner__body {
   display: flex;
   align-items: baseline;
@@ -212,7 +206,6 @@
 }
 .combat-tag .stripes {
   align-self: stretch;
-  height: 0.25rem;
 }
 .combat-tag__body {
   display: flex;
@@ -716,8 +709,8 @@
   top: 0;
   right: 0;
   left: 0;
-  height: 0.75rem;
-  background: repeating-linear-gradient(135deg, var(--hazard) 0 0.625rem, transparent 0.625rem 1.25rem);
+  height: 0.1875rem;
+  background: var(--hazard);
 }
 .death__tag {
   font-size: 0.8125rem;

@@ -14,17 +14,10 @@
   background-size: 100% 100%, 5rem 5rem, 5rem 5rem;
 }
 
-/* Bande d'alerte qui défile en haut */
+/* Trait d'accent en haut */
 .loading__stripes {
-  height: 0.5rem;
-  background: repeating-linear-gradient(135deg, var(--signal) 0 1rem, transparent 1rem 2rem);
-  background-size: 2.83rem 100%;
-  animation: loading-stripes 1.2s linear infinite;
-}
-@keyframes loading-stripes {
-  to {
-    background-position: 2.83rem 0;
-  }
+  height: 0.1875rem;
+  background: var(--signal);
 }
 
 .loading__center {

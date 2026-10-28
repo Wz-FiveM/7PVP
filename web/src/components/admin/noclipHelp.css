@@ -8,9 +8,6 @@
   transform: translateY(-50%);
   pointer-events: none;
 }
-.noclip-help .stripes {
-  height: 0.25rem;
-}
 .noclip-help__body {
   display: flex;
   flex-direction: column;

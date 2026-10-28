@@ -39,10 +39,10 @@
 .zone-pve { --zone: var(--toxine); }
 .zone-pvp { --zone: var(--hazard); }
 
-/* Bandes d'alerte dans la couleur de la zone */
+/* Trait d'accent plein dans la couleur de la zone (la D.A n'utilise pas de bandes hachurées) */
 .stripes {
-  height: 0.625rem;
-  background: repeating-linear-gradient(135deg, var(--zone, var(--signal)) 0 0.5rem, transparent 0.5rem 1rem);
+  height: 0.1875rem;
+  background: var(--zone, var(--signal));
 }
 
 /* Motif des emplacements vides */
