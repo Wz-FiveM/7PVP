@@ -8,6 +8,8 @@ local PlayerService = PVP.use('PlayerService')
 local WorldService = PVP.use('WorldService')
 local Callback = PVP.use('Callback')
 local Utils = PVP.use('Utils')
+local Zones = PVP.use('Zones')
+local ChaseService = PVP.use('ChaseService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
@@ -29,12 +31,15 @@ function FreeroamMode.enter(player)
     player.dead = false
     AntiCheatService.grace(player.source)
     player.freeroamPvp = false
-    TriggerClientEvent(Events.client.spawn, player.source, Utils.pick(Config.Freeroam.spawns), player.appearance)
+    -- On arrive dans la zone safe du Freeroam (là où sont les PNJ des modes de jeu)
+    local spawn = Zones.randomSpawn(FreeroamMode.ID) or Utils.pick(Config.Freeroam.spawns)
+    TriggerClientEvent(Events.client.spawn, player.source, spawn, player.appearance)
 end
 
 ---@param player PvpPlayer
 function FreeroamMode.leave(player)
     player.freeroamPvp = false
+    ChaseService.leave(player.source)
     TriggerClientEvent(Events.client.freeroamCleanup, player.source)
 end
 

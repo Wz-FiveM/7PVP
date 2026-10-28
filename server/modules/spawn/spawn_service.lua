@@ -29,7 +29,7 @@ function SpawnService.spawn(player)
     AntiCheatService.grace(player.source)
     player.combatLog = { taken = {}, dealt = {} }
     player:sync()
-    TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn(), player.appearance)
+    TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn('pvp'), player.appearance)
 end
 
 ---@param player PvpPlayer

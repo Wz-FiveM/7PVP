@@ -1,0 +1,262 @@
+/* Course poursuite : file d'attente, vote, HUD de manche, compte à rebours, résultats */
+
+/* File d'attente (haut centre) */
+.chase-queue {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.125rem 0 var(--signal), var(--ombre);
+  text-shadow: var(--ombre-texte);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.chase-queue__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--signal);
+}
+.chase-queue__text {
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+
+/* Vote ------------------------------------------------------------------------------ */
+
+.chase-vote {
+  position: absolute;
+  inset: 0;
+  z-index: 58;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--grain), rgba(12, 14, 13, 0.55);
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.6);
+}
+.chase-vote__panel {
+  display: flex;
+  flex-direction: column;
+  width: 52rem;
+  max-width: 100%;
+  background: rgba(18, 21, 20, 0.94);
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.6), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.07);
+}
+.chase-vote__line {
+  flex: none;
+}
+.chase-vote__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 0.5rem;
+}
+.chase-vote__tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+.chase-vote__title {
+  margin: 0.25rem 0 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 0.9;
+}
+.chase-vote__timer {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+.chase-vote__hint {
+  padding: 0 1.5rem 1rem;
+  font-size: 0.875rem;
+}
+.chase-vote__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.625rem;
+  padding: 0 1.5rem 1.5rem;
+}
+.chase-vote__vehicle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  border: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--os);
+  background: radial-gradient(ellipse 60% 45% at 50% 35%, rgba(236, 238, 232, 0.14), transparent 75%), var(--acier);
+  box-shadow: var(--ombre);
+  cursor: pointer;
+}
+.chase-vote__vehicle:hover {
+  background: radial-gradient(ellipse 60% 45% at 50% 35%, rgba(236, 238, 232, 0.2), transparent 75%), var(--acier-hi);
+}
+.chase-vote__vehicle--chosen,
+.chase-vote__vehicle--chosen:hover {
+  color: var(--nuit);
+  text-shadow: none;
+  background: var(--signal);
+}
+.chase-vote__image {
+  height: 4rem;
+  max-width: 100%;
+  object-fit: contain;
+}
+.chase-vote__icon {
+  height: 4rem;
+  color: var(--brume-hi);
+}
+
+/* HUD de manche (haut centre) --------------------------------------------------------- */
+
+.chase-hud {
+  --role: var(--signal);
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 30rem;
+  padding: 0.75rem 1rem 0.875rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.1875rem 0 var(--role), var(--ombre);
+  text-shadow: var(--ombre-texte);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.chase-hud--thief {
+  --role: var(--hazard);
+}
+.chase-hud--cop {
+  --role: var(--abri);
+}
+.chase-hud__top {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+.chase-hud__role {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--role);
+}
+.chase-hud__round,
+.chase-hud__score {
+  font-size: 0.8125rem;
+  color: var(--brume-hi);
+}
+.chase-hud__time {
+  margin-left: auto;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.chase-hud__goal {
+  font-size: 0.875rem;
+}
+.chase-hud__bar {
+  height: 0.375rem;
+  background: rgba(236, 238, 232, 0.14);
+}
+.chase-hud__fill {
+  height: 100%;
+  background: var(--role);
+  transition: width 0.25s linear;
+}
+.chase-hud__distance {
+  align-self: flex-end;
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.chase-hud__arrest {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--critique);
+}
+.chase-hud__bar--arrest .chase-hud__fill {
+  background: var(--critique);
+}
+
+/* Compte à rebours ----------------------------------------------------------------- */
+
+.chase-countdown {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  z-index: 41;
+  font-size: 9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: var(--ombre-texte);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: chase-count 1s ease-out;
+}
+@keyframes chase-count {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+}
+
+/* Résultat d'une manche ou de la partie --------------------------------------------- */
+
+.chase-banner {
+  --tone: var(--brume-hi);
+  position: absolute;
+  top: 32%;
+  left: 50%;
+  z-index: 42;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 28rem;
+  padding: 1.25rem 2rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.1875rem 0 var(--tone), 0 1rem 2.5rem rgba(0, 0, 0, 0.55);
+  text-shadow: var(--ombre-texte);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: chase-banner-in 0.2s ease-out;
+}
+.chase-banner--good {
+  --tone: var(--signal);
+}
+.chase-banner--bad {
+  --tone: var(--hazard);
+}
+@keyframes chase-banner-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+}
+.chase-banner__title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--tone);
+}
+.chase-banner__text {
+  font-size: 1rem;
+}
+.chase-banner__score {
+  font-size: 0.875rem;
+  letter-spacing: 0.12em;
+  color: var(--brume-hi);
+}

@@ -12,6 +12,7 @@ State.zone = nil -- entrée de Config.Zones, nil = PvP libre, false = à recalcu
 State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
 State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam'), nil = lobby ou création
+State.activity = nil -- mode de jeu du Freeroam en cours ('chase'), nil = Freeroam libre
 
 -- Options admin (voir client/modules/admin)
 State.noclip = false

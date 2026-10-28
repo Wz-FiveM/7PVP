@@ -1,8 +1,26 @@
 -- Tout ce qui n'est pas dans une zone est en PvP libre.
 -- type = 'safe' : pas de tir, invincible, boutique accessible, points de spawn
 -- type = 'pve'  : PvP + zombies (réglages communs dans Config.Zombie, config/main.lua)
+-- modes = modes de jeu où la zone existe (défaut { 'pvp' }) : un joueur ne voit que celles de son mode
 -- Les coordonnées sont approximatives : ajuste-les en jeu avec /pvp_coords
 Config.Zones = {
+    -- Freeroam : une seule zone safe, le point de départ, avec les PNJ qui lancent les modes de jeu
+    {
+        id = 'freeroam_hub',
+        type = 'safe',
+        modes = { 'freeroam' },
+        label = 'Zone safe - Legion Square',
+        description = 'Point de rendez-vous du Freeroam : modes de jeu',
+        coords = vector3(195.2, -933.8, 30.7),
+        radius = 80.0,
+        blip = { sprite = 487, color = 2 },
+        spawns = {
+            vector4(195.2, -933.8, 30.7, 144.0),
+            vector4(210.0, -920.0, 30.7, 160.0),
+            vector4(180.0, -945.0, 30.1, 300.0),
+            vector4(200.0, -905.0, 30.7, 180.0),
+        },
+    },
     {
         id = 'legion',
         type = 'safe',

@@ -1,6 +1,25 @@
 -- Mode Freeroam (bac à sable) : pas d'inventaire ni de perte, armes et véhicules gratuits
 -- depuis le menu (Verr. Maj), PvP désactivé par défaut (chaque joueur l'active pour lui-même :
 -- les dégâts entre deux joueurs ne passent que si les deux l'ont activé). Pas de zombies.
+-- Modes de jeu lancés depuis les PNJ de la zone safe du Freeroam (config/npcs.lua, rôle 'activity').
+-- enabled = false : le PNJ est là, mais le mode est affiché « Bientôt disponible ».
+Config.FreeroamActivities = {
+    cvc = {
+        label = 'CVC',
+        tagline = 'Combat par équipe',
+        description = 'Deux équipes s\'affrontent en convoi : stratégie, placement et communication.',
+        icon = 'group',
+        enabled = false,
+    },
+    chase = {
+        label = 'Course poursuite',
+        tagline = '1 contre 1 · 2 manches',
+        description = "Chacun vote pour un véhicule. Le voleur doit mettre 1,5 km entre lui et le policier en 3 minutes ; le policier gagne s'il l'immobilise 5 secondes. À la deuxième manche, on inverse les rôles et les véhicules.",
+        icon = 'vehicle',
+        enabled = true,
+    },
+}
+
 Config.Freeroam = {
     respawnDelay = 3, -- secondes avant de réapparaître sur place après une mort
     spawns = {

@@ -58,7 +58,7 @@ function TeleportService.check(player, zone)
     if player.dead then
         return false, 'Attends de réapparaître.'
     end
-    if not zone or zone.type ~= 'safe' then
+    if not zone or zone.type ~= 'safe' or not Zones.inMode(zone, 'pvp') then
         return false, 'Zone safe inconnue.'
     end
     if player:getZone() == zone then

@@ -16,6 +16,8 @@ function resetScreens(): void {
   sendNui({ action: 'lobby', data: { open: false } });
   sendNui({ action: 'menu', data: { open: false, inSafe: true } });
   sendNui({ action: 'lootContainer', data: { open: false } });
+  sendNui({ action: 'chaseHud', data: { open: false } });
+  sendNui({ action: 'chaseVote', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -375,6 +377,70 @@ export const DEV_ACTIONS: DevAction[] = [
       }),
   },
   { label: 'Fin des effets', run: () => sendNui({ action: 'effects', data: [] }) },
+  {
+    label: 'Mode de jeu (PNJ)',
+    run: () =>
+      sendNui({
+        action: 'activity',
+        data: {
+          open: true,
+          activity: {
+            id: 'cvc',
+            label: 'CVC',
+            tagline: 'Combat par équipe',
+            description: "Deux équipes s'affrontent en convoi : stratégie, placement et communication.",
+            icon: 'group',
+            enabled: false,
+          },
+        },
+      }),
+  },
+  { label: 'Course : file', run: () => sendNui({ action: 'chaseQueue', data: { count: 1, needed: 2 } }) },
+  {
+    label: 'Course : vote',
+    run: () =>
+      sendNui({
+        action: 'chaseVote',
+        data: {
+          open: true,
+          seconds: 20,
+          opponent: 'Bravo',
+          vehicles: [
+            { model: 'sultan', label: 'Sultan' },
+            { model: 'kuruma', label: 'Kuruma' },
+            { model: 'elegy2', label: 'Elegy RH8' },
+            { model: 'comet2', label: 'Comet' },
+            { model: 'buffalo2', label: 'Buffalo S' },
+            { model: 'dominator', label: 'Dominator' },
+            { model: 'sandking', label: 'Sandking' },
+            { model: 'bati', label: 'Bati 801' },
+          ],
+        },
+      }),
+  },
+  {
+    label: 'Course : manche (voleur)',
+    run: () => {
+      sendNui({ action: 'chaseVote', data: { open: false } });
+      sendNui({
+        action: 'chaseHud',
+        data: {
+          open: true, round: 1, role: 'thief', scores: { me: 0, opponent: 0 }, opponent: 'Bravo',
+          countdown: 3, roundTime: 180, escapeDistance: 1500, arrestTime: 5,
+        },
+      });
+      sendNui({ action: 'chaseState', data: { distance: 640, remaining: 142, arrest: 0.4 } });
+    },
+  },
+  {
+    label: 'Course : manche gagnée',
+    run: () =>
+      sendNui({ action: 'chaseBanner', data: { won: true, reason: 'Le voleur a semé le policier.', round: 1, scores: { me: 1, opponent: 0 } } }),
+  },
+  {
+    label: 'Course : fin',
+    run: () => sendNui({ action: 'chaseEnd', data: { result: 'draw', scores: { me: 1, opponent: 1 } } }),
+  },
   { label: 'Interaction : ciblage', run: () => sendNui({ action: 'interaction', data: { open: true, items: false } }) },
   {
     label: 'Interaction : joueur',

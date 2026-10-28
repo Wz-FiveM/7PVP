@@ -14,15 +14,25 @@ Zone.SAFE_DISABLED_CONTROLS = {
     69, 70, 92, 114, -- tir en véhicule
 }
 
+---@type integer[] repères des zones du mode en cours
+Zone.blips = {}
+---@type string|nil|false mode dont les repères sont affichés (false : pas encore créés)
+Zone.blipMode = false
+
 function Zone.init()
-    Zone.createBlips()
     CreateThread(Zone.watchLoop)
     CreateThread(Zone.safeLoop)
 end
 
-function Zone.createBlips()
+---Repères des zones du mode en cours (refaits quand on change de mode).
+function Zone.refreshBlips()
+    for _, blip in ipairs(Zone.blips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+    end
+    Zone.blips = {}
+    Zone.blipMode = State.mode
     for _, zone in ipairs(Config.Zones) do
-        if zone.blip then
+        if zone.blip and Zones.inMode(zone, State.mode) then
             Zone.createBlip(zone)
         end
     end
@@ -33,6 +43,7 @@ function Zone.createBlip(zone)
     local area = AddBlipForRadius(zone.coords.x, zone.coords.y, zone.coords.z, zone.radius)
     SetBlipColour(area, zone.blip.color)
     SetBlipAlpha(area, 90)
+    Zone.blips[#Zone.blips + 1] = area
 
     local blip = AddBlipForCoord(zone.coords.x, zone.coords.y, zone.coords.z)
     SetBlipSprite(blip, zone.blip.sprite)
@@ -41,6 +52,7 @@ function Zone.createBlip(zone)
     BeginTextCommandSetBlipName('STRING')
     AddTextComponentSubstringPlayerName(zone.label)
     EndTextCommandSetBlipName(blip)
+    Zone.blips[#Zone.blips + 1] = blip
 end
 
 ---Après un respawn le ped est neuf : on force la réapplication de la zone.
@@ -51,6 +63,10 @@ end
 function Zone.watchLoop()
     while true do
         Wait(Zone.CHECK_INTERVAL)
+        if State.mode ~= Zone.blipMode then
+            Zone.refreshBlips()
+            Zone.reset()
+        end
         if State.spawned then
             Zone.update()
         end
@@ -58,7 +74,7 @@ function Zone.watchLoop()
 end
 
 function Zone.update()
-    local zone = Zones.getAt(GetEntityCoords(PlayerPedId()))
+    local zone = Zones.getAt(GetEntityCoords(PlayerPedId()), State.mode)
     if zone == State.zone then return end
 
     State.zone = zone

@@ -4,6 +4,7 @@
 local Freeroam = PVP.define('Freeroam')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
+local Chase = PVP.use('Chase')
 local Admin = PVP.use('Admin')
 local PedUtils = PVP.use('PedUtils')
 local Callback = PVP.use('Callback')
@@ -50,7 +51,8 @@ end
 
 ---@param open boolean
 function Freeroam.setMenu(open)
-    if open and (not Freeroam.isActive() or not State.isAlive()) then return end
+    -- Pendant un mode de jeu (course...), pas d'armes ni de véhicules gratuits
+    if open and (not Freeroam.isActive() or not State.isAlive() or State.activity) then return end
     -- Déjà fermé : ne pas reprendre le focus à une autre interface (ex : le lobby)
     if not open and not Freeroam.menuOpen then return end
     Freeroam.menuOpen = open
@@ -208,6 +210,10 @@ end
 function Freeroam.cleanup()
     Freeroam.setMenu(false)
     Freeroam.deleteVehicle()
+    -- Course en cours ou file d'attente : abandonnées (le serveur a déjà réglé la partie)
+    Chase.cleanup()
+    Nui.send('chaseQueue', { count = 0 })
+    Nui.send('chaseHud', { open = false })
     RemoveAllPedWeapons(PlayerPedId(), true)
     Freeroam.weapons = {}
     Freeroam.pvp = false

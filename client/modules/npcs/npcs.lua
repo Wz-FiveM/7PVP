@@ -1,6 +1,7 @@
----PNJ de service des zones safe (config/npcs.lua) : banquier, armurier, tailleur...
----Ils sont créés localement près du joueur (en PvP), avec un repère sur la carte.
----E ouvre le service : la bonne page du menu, ou l'éditeur de tenue.
+---PNJ des zones safe (config/npcs.lua) : services du PvP (banquier, armurier, tailleur...)
+---et organisateurs des modes de jeu du Freeroam. Un PNJ n'existe que dans les modes de jeu
+---de sa zone ; il est créé localement près du joueur, avec un repère sur la carte.
+---E ouvre le service : la bonne page du menu, l'éditeur de tenue, ou le mode de jeu.
 ---@class NpcsModule
 local Npcs = PVP.define('Npcs')
 local State = PVP.use('State')
@@ -9,6 +10,8 @@ local DuiLabels = PVP.use('DuiLabels')
 local HelpNotify = PVP.use('HelpNotify')
 local Creator = PVP.use('Creator')
 local PedUtils = PVP.use('PedUtils')
+local Zones = PVP.use('Zones')
+local Activities = PVP.use('Activities')
 
 Npcs.CONTROL_TALK = 38 -- E
 Npcs.LABEL_DISTANCE = 12.0
@@ -17,37 +20,76 @@ Npcs.LABEL_DISTANCE = 12.0
 Npcs.peds = {}
 ---@type integer[]
 Npcs.blips = {}
+---@type string|nil|false mode dont les repères sont affichés (false : pas encore créés)
+Npcs.blipMode = false
 
 function Npcs.init()
-    Npcs.createBlips()
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then Npcs.deleteAll() end
     end)
     CreateThread(Npcs.loop)
 end
 
-function Npcs.createBlips()
-    for _, npc in ipairs(Config.SafeNpcs.npcs) do
-        local role = Config.SafeNpcs.roles[npc.role]
-        local blip = AddBlipForCoord(npc.coords.x, npc.coords.y, npc.coords.z)
-        SetBlipSprite(blip, role.blip.sprite)
-        SetBlipColour(blip, role.blip.color)
-        SetBlipScale(blip, 0.75)
-        SetBlipAsShortRange(blip, true)
-        BeginTextCommandSetBlipName('STRING')
-        AddTextComponentSubstringPlayerName(role.label)
-        EndTextCommandSetBlipName(blip)
-        Npcs.blips[#Npcs.blips + 1] = blip
+---Nom, action, icône et repère d'un PNJ (ceux d'un organisateur viennent de son mode de jeu).
+---@param npc table
+---@return { label: string, action: string, icon: string, blip: table }
+function Npcs.describe(npc)
+    local role = Config.SafeNpcs.roles[npc.role]
+    local activity = npc.activity and Config.FreeroamActivities[npc.activity]
+    if not activity then return role end
+    return {
+        label = activity.label,
+        action = activity.enabled and 'Lancer le mode' or 'Bientôt disponible',
+        icon = activity.icon or role.icon,
+        blip = activity.blip or role.blip,
+    }
+end
+
+---@param npc table
+---@return boolean le PNJ existe dans le mode de jeu en cours
+function Npcs.visible(npc)
+    local zone = Zones.byId(npc.zone)
+    return zone ~= nil and Zones.inMode(zone, State.mode)
+end
+
+---Repères des PNJ du mode en cours (refaits quand on change de mode).
+function Npcs.refreshBlips()
+    for _, blip in ipairs(Npcs.blips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
     end
+    Npcs.blips = {}
+    Npcs.blipMode = State.mode
+    for _, npc in ipairs(Config.SafeNpcs.npcs) do
+        if Npcs.visible(npc) then Npcs.createBlip(npc) end
+    end
+end
+
+---@param npc table
+function Npcs.createBlip(npc)
+    local role = Npcs.describe(npc)
+    local blip = AddBlipForCoord(npc.coords.x, npc.coords.y, npc.coords.z)
+    SetBlipSprite(blip, role.blip.sprite)
+    SetBlipColour(blip, role.blip.color)
+    SetBlipScale(blip, 0.75)
+    SetBlipAsShortRange(blip, true)
+    BeginTextCommandSetBlipName('STRING')
+    AddTextComponentSubstringPlayerName(role.label)
+    EndTextCommandSetBlipName(blip)
+    Npcs.blips[#Npcs.blips + 1] = blip
 end
 
 function Npcs.loop()
     while true do
         local needsFrame = false
-        if State.inPvp() then
+        if State.mode ~= Npcs.blipMode then Npcs.refreshBlips() end
+        if State.mode then
             local pos = GetEntityCoords(PlayerPedId())
             for index, npc in ipairs(Config.SafeNpcs.npcs) do
-                if Npcs.update(index, npc, pos) then needsFrame = true end
+                if not Npcs.visible(npc) then
+                    Npcs.delete(index)
+                elseif Npcs.update(index, npc, pos) then
+                    needsFrame = true
+                end
             end
         elseif next(Npcs.peds) then
             Npcs.deleteAll()
@@ -70,7 +112,7 @@ function Npcs.update(index, npc, pos)
     if dist > Npcs.LABEL_DISTANCE then return false end
 
     local ped = Npcs.peds[index]
-    local role = Config.SafeNpcs.roles[npc.role]
+    local role = Npcs.describe(npc)
     local head = GetEntityCoords(ped) + vector3(0.0, 0.0, 1.25)
     DuiLabels.draw('npc:' .. index, head, { title = role.label, subtitle = role.action, accent = 'hazard', icon = role.icon })
 
@@ -86,7 +128,9 @@ end
 ---@param npc table
 function Npcs.interact(npc)
     local role = Config.SafeNpcs.roles[npc.role]
-    if npc.role == 'clothing' then
+    if npc.activity then
+        Activities.open(npc.activity)
+    elseif npc.role == 'clothing' then
         Creator.requestEdit()
     elseif role.page then
         Nui.setMenu(true, role.page)

@@ -83,12 +83,12 @@ function PlayerObject:getCoords()
 end
 
 function PlayerObject:getZone()
-    return Zones.getAt(self:getCoords())
+    return Zones.getAt(self:getCoords(), self.mode)
 end
 
 ---@return boolean
 function PlayerObject:isInSafeZone()
-    return Zones.isSafe(self:getCoords())
+    return Zones.isSafe(self:getCoords(), self.mode)
 end
 
 -- ---------------------------------------------------------------------------

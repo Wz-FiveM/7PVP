@@ -1,0 +1,92 @@
+/* Fenêtre d'un mode de jeu du Freeroam : panneau centré, le jeu reste visible autour */
+
+.activity {
+  position: absolute;
+  inset: 0;
+  z-index: 58;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--grain), rgba(12, 14, 13, 0.45);
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.6);
+}
+
+.activity__panel {
+  display: flex;
+  flex-direction: column;
+  width: 36rem;
+  max-width: 100%;
+  background: rgba(18, 21, 20, 0.94);
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.6), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.07);
+  animation: activity-in 0.15s ease-out;
+}
+@keyframes activity-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+.activity__line {
+  flex: none;
+}
+
+.activity__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1rem;
+}
+.activity__icon {
+  color: var(--signal);
+}
+.activity__heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.activity__tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+.activity__title {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 0.9;
+}
+.activity__close {
+  align-self: flex-start;
+  min-width: 2rem;
+  padding: 0;
+}
+
+.activity__description {
+  padding: 0 1.5rem 1.25rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #c4c9c0;
+}
+
+.activity__footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 0.0625rem solid rgba(236, 238, 232, 0.12);
+}
+.activity__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.activity__start {
+  min-width: 13rem;
+  min-height: 3.25rem;
+  margin-left: auto;
+  font-size: 1.25rem;
+  letter-spacing: 0.12em;
+}

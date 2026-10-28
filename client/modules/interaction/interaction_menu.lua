@@ -297,7 +297,7 @@ end
 ---@return table[]
 function Interaction.npcItems(target)
     local npc = Config.SafeNpcs.npcs[target.npcIndex]
-    local role = npc and Config.SafeNpcs.roles[npc.role] or {}
+    local role = npc and Npcs.describe(npc) or {}
     return {
         { kind = 'info', id = 'npc:name', label = role.label or 'PNJ', icon = role.icon or 'profile' },
         { kind = 'separator', id = 'separator' },

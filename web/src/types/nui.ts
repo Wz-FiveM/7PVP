@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseScores, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -50,6 +50,15 @@ export type NuiMessage =
   | { action: 'teleportChannel'; data: { seconds: number | false } }
   /** butin ouvert (largage) à droite de l'inventaire, open à false pour le fermer */
   | { action: 'lootContainer'; data: { open: boolean } & Partial<LootContainer> }
+  /** fenêtre d'un mode de jeu du Freeroam (PNJ de la zone safe) */
+  | { action: 'activity'; data: { open: boolean; activity?: ActivityInfo } }
+  /** course poursuite : file d'attente, vote, HUD de manche, résultats */
+  | { action: 'chaseQueue'; data: { count: number; needed?: number } }
+  | { action: 'chaseVote'; data: { open: boolean; vehicles?: { model: string; label: string }[]; seconds?: number; opponent?: string } }
+  | { action: 'chaseHud'; data: { open: boolean } & Partial<ChaseHudData> }
+  | { action: 'chaseState'; data: ChaseStateData }
+  | { action: 'chaseBanner'; data: { won: boolean; reason: string; round: number; scores: ChaseScores } }
+  | { action: 'chaseEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: ChaseScores } }
   | { action: 'alive'; data?: undefined };
 
 /** Réponse du callback NUI `ready` */

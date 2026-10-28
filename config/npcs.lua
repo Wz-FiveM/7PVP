@@ -15,8 +15,15 @@ Config.SafeNpcs = {
         crafting = { label = 'Artisan', action = 'Fabriquer', page = 'crafting', icon = 'craft', blip = { sprite = 566, color = 5 } },
         contracts = { label = 'Recruteur', action = 'Voir les contrats', page = 'contracts', icon = 'contract', blip = { sprite = 498, color = 47 } },
         market = { label = 'Commissaire-priseur', action = 'Ouvrir la place de marché', page = 'market', icon = 'money', blip = { sprite = 52, color = 46 } },
+        -- Freeroam : lance un mode de jeu (Config.FreeroamActivities) ; nom, icône et repère viennent du mode
+        activity = { label = 'Organisateur', action = 'Voir le mode de jeu', icon = 'flag', blip = { sprite = 280, color = 5 } },
     },
+    -- Un PNJ n'existe que dans les modes de jeu de sa zone (config/zones.lua)
     npcs = {
+        -- Freeroam : PNJ des modes de jeu (activity = clé de Config.FreeroamActivities)
+        { zone = 'freeroam_hub', role = 'activity', activity = 'chase', model = 's_m_y_cop_01', coords = vector4(213.4, -943.0, 30.7, 60.0), scenario = 'WORLD_HUMAN_COP_IDLES' },
+        { zone = 'freeroam_hub', role = 'activity', activity = 'cvc', model = 's_m_y_blackops_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
+
         { zone = 'legion', role = 'stash', model = 'cs_bankman', coords = vector4(186.8, -941.6, 30.1, 340.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'legion', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'legion', role = 'clothing', model = 's_f_y_shop_mid', coords = vector4(171.4, -925.2, 30.7, 240.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },

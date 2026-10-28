@@ -260,6 +260,40 @@ export interface PauseInfo {
   keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string; teleport: string };
 }
 
+/** Course poursuite (server/modules/activities/chase_service.lua) */
+export type ChaseRole = 'thief' | 'cop';
+export interface ChaseScores {
+  me: number;
+  opponent: number;
+}
+export interface ChaseHudData {
+  round: number;
+  role: ChaseRole;
+  scores: ChaseScores;
+  opponent: string;
+  countdown: number;
+  roundTime: number;
+  escapeDistance: number;
+  arrestTime: number;
+}
+export interface ChaseStateData {
+  distance: number;
+  remaining: number;
+  /** immobilisation du voleur, de 0 à 1 */
+  arrest: number;
+}
+
+/** Mode de jeu du Freeroam, lancé depuis son PNJ (Config.FreeroamActivities) */
+export interface ActivityInfo {
+  id: string;
+  label: string;
+  tagline?: string;
+  description?: string;
+  icon?: string;
+  /** false : « Bientôt disponible » */
+  enabled: boolean;
+}
+
 /** Zone safe proposée dans le menu de téléportation (F1) */
 export interface TeleportZone {
   id: string;

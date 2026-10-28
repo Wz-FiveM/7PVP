@@ -52,6 +52,12 @@ Events.client = {
     teleportCancel = '7pvp:client:teleportCancel',
     vehicleSpawn = '7pvp:client:vehicleSpawn',
     lootContents = '7pvp:client:lootContents',
+    chaseQueue = '7pvp:client:chaseQueue',
+    chaseVote = '7pvp:client:chaseVote',
+    chaseRound = '7pvp:client:chaseRound',
+    chaseState = '7pvp:client:chaseState',
+    chaseRoundEnd = '7pvp:client:chaseRoundEnd',
+    chaseEnd = '7pvp:client:chaseEnd',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -101,4 +107,6 @@ Events.callbacks = {
     adminLootSave = 'admin:lootSave',
     adminLootReset = 'admin:lootReset',
     adminLootZones = 'admin:lootZones',
+    activityStart = 'activity:start',
+    chaseVote = 'chase:vote',
 }
