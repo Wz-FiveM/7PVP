@@ -138,7 +138,6 @@ Config.Zones = {
 -- Téléportation entre zones safe (mode PvP) : menu ouvert avec Config.Teleport.key
 Config.Teleport = {
     key = 'F1',
-    cooldown = 120, -- secondes entre deux téléportations
     channel = 10, -- hors zone safe : secondes à attendre immobile et hors combat (instantané en zone safe)
     maxMove = 2.0, -- mètres tolérés pendant l'attente
 }

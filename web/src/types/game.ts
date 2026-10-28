@@ -379,8 +379,6 @@ export interface TeleportZone {
 
 export interface TeleportMenuData {
   zones: TeleportZone[];
-  /** secondes avant la prochaine téléportation */
-  cooldown: number;
   /** secondes d'attente avant le départ (0 depuis une zone safe) */
   channel: number;
   /** une téléportation est déjà en attente */

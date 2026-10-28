@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { isEnvBrowser } from '../../api/nui';
 import { teleportApi } from '../../api/teleportApi';
-import { useCountdown } from '../../hooks/useCountdown';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { TeleportMenuData, TeleportZone } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
@@ -46,7 +45,6 @@ interface TeleportPanelProps {
 }
 
 function TeleportPanel({ data, onClose, onChannel }: TeleportPanelProps) {
-  const cooldown = useCountdown(data.cooldown, data);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -69,7 +67,7 @@ function TeleportPanel({ data, onClose, onChannel }: TeleportPanelProps) {
     }
   };
 
-  const blocked = data.pending || cooldown > 0;
+  const blocked = data.pending;
 
   return (
     <div className="teleport" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
@@ -94,11 +92,7 @@ function TeleportPanel({ data, onClose, onChannel }: TeleportPanelProps) {
 
         {(blocked || error) && (
           <p className="mono teleport__notice">
-            {data.pending
-              ? 'Une téléportation est déjà en cours.'
-              : cooldown > 0
-                ? `Prochaine téléportation dans ${cooldown} s`
-                : error}
+            {data.pending ? 'Une téléportation est déjà en cours.' : error}
           </p>
         )}
 

@@ -51,7 +51,6 @@ function Teleport.show()
     Nui.send('teleport', {
         open = true,
         zones = Teleport.buildZones(),
-        cooldown = info.cooldown,
         channel = info.channel,
         pending = info.pending,
         key = Config.Teleport.key,

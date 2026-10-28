@@ -366,7 +366,6 @@ export const DEV_ACTIONS: DevAction[] = [
         action: 'teleport',
         data: {
           open: true,
-          cooldown: 0,
           channel: 10,
           pending: false,
           key: 'F1',
@@ -380,13 +379,12 @@ export const DEV_ACTIONS: DevAction[] = [
       }),
   },
   {
-    label: 'Téléportation : délai',
+    label: 'Téléportation : depuis une zone safe',
     run: () =>
       sendNui({
         action: 'teleport',
         data: {
           open: true,
-          cooldown: 95,
           channel: 0,
           pending: false,
           key: 'F1',

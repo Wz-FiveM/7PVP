@@ -1,6 +1,6 @@
 ---Téléportation entre zones safe (F1) en mode PvP.
 ---Instantanée depuis une zone safe ; ailleurs, le joueur doit rester immobile et hors combat
----pendant Config.Teleport.channel secondes. Un délai sépare deux téléportations.
+---pendant Config.Teleport.channel secondes.
 ---@class TeleportServiceModule
 local TeleportService = PVP.define('TeleportService')
 local PlayerService = PVP.use('PlayerService')
@@ -12,8 +12,6 @@ local Events = PVP.use('Events')
 
 TeleportService.CHECK_INTERVAL = 250
 
----@type table<integer, integer> server id -> os.time() de la dernière téléportation
-TeleportService.lastUse = {}
 ---@type table<integer, integer> server id -> numéro de la téléportation en attente
 TeleportService.pending = {}
 TeleportService.nextId = 0
@@ -24,25 +22,15 @@ function TeleportService.init()
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         TeleportService.pending[playerSource] = nil
-        TeleportService.lastUse[playerSource] = nil
     end)
 end
 
----@param source integer
----@return integer secondes avant la prochaine téléportation
-function TeleportService.cooldown(source)
-    local last = TeleportService.lastUse[source]
-    if not last then return 0 end
-    return math.max(0, Config.Teleport.cooldown - (os.time() - last))
-end
-
----Infos du menu F1 : délai restant et temps d'attente depuis la position actuelle.
+---Infos du menu F1 : temps d'attente depuis la position actuelle.
 ---@param source integer
 function TeleportService.info(source)
     local player = PlayerService.get(source)
     if not player then return nil end
     return {
-        cooldown = TeleportService.cooldown(source),
         channel = player:isInSafeZone() and 0 or Config.Teleport.channel,
         pending = TeleportService.pending[source] ~= nil,
     }
@@ -66,10 +54,6 @@ function TeleportService.check(player, zone)
     end
     if CombatTagService.isTagged(player) then
         return false, ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player))
-    end
-    local cooldown = TeleportService.cooldown(player.source)
-    if cooldown > 0 then
-        return false, ('Téléportation disponible dans %d s.'):format(cooldown)
     end
     return true
 end
@@ -154,7 +138,6 @@ end
 ---@param player PvpPlayer
 ---@param zone table
 function TeleportService.teleport(player, zone)
-    TeleportService.lastUse[player.source] = os.time()
     -- Le saut de position ne doit pas être pris pour une téléportation illégale
     AntiCheatService.grace(player.source)
     local spawns = zone.spawns or {}
