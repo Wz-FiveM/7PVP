@@ -213,6 +213,11 @@ export const mockMarket: MarketState = {
   maxListings: 10,
   listings: [
     { id: 12, item: 'weapon_carbinerifle', count: 1, price: 4200, sellerName: 'Bravo', mine: false },
+    { id: 13, item: 'weapon_carbinerifle', count: 1, price: 3900, sellerName: 'Kilo', mine: false },
+    { id: 14, item: 'weapon_carbinerifle', count: 1, price: 4999, sellerName: 'Echo', mine: false },
+    { id: 15, item: 'weapon_pistol', count: 1, price: 350, sellerName: 'Nova', mine: false },
+    { id: 16, item: 'weapon_pistol', count: 2, price: 600, sellerName: 'Delta', mine: false },
+    { id: 17, item: 'armor', count: 1, price: 750, sellerName: 'Mike', mine: false },
     { id: 11, item: 'ammo_556', count: 120, price: 450, sellerName: 'Nova', mine: false },
     { id: 10, item: 'medkit', count: 3, price: 900, sellerName: 'Kilo', mine: false },
     { id: 9, item: 'att_suppressor', count: 1, price: 2100, sellerName: 'Alpha', mine: false },
