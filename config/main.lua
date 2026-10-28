@@ -8,6 +8,8 @@ Config.Debug = false
 
 Config.AutoSaveInterval = 5 * 60 -- secondes
 Config.RespawnDelay = 8 -- secondes avant de réapparaître
+-- Repère sur la carte à l'endroit de sa dernière mort (310 = tête de mort, 4 = blanc)
+Config.DeathBlip = { duration = 60, sprite = 310, color = 4 }
 Config.XpPerLevel = 1000 -- niveau = floor(xp / XpPerLevel) + 1
 -- Kits de départ et inventaire : voir config/items.lua
 

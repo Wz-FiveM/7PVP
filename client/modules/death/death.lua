@@ -31,6 +31,8 @@ function Death.check()
     local ped = PlayerPedId()
     if not IsEntityDead(ped) then return end
 
+    Death.markPosition(GetEntityCoords(ped))
+
     -- Freeroam : pas de perte ni d'écran de mort
     if State.mode == 'freeroam' then return Freeroam.onDeath() end
 
@@ -38,6 +40,40 @@ function Death.check()
     -- Les munitions tirées sont envoyées avant la mort (les événements arrivent dans l'ordre)
     Loadout.onDeath()
     TriggerServerEvent(Events.server.died, PedUtils.getKillerServerId(ped), Death.getCause(ped))
+end
+
+-- ---------------------------------------------------------------------------
+-- Repère de la dernière mort
+-- ---------------------------------------------------------------------------
+
+Death.blip = nil
+Death.blipToken = 0 -- invalide le minuteur d'un repère remplacé par une nouvelle mort
+
+---Repère sur la carte à l'endroit de la mort, retiré après Config.DeathBlip.duration secondes.
+---@param coords vector3
+function Death.markPosition(coords)
+    Death.removeBlip()
+    local settings = Config.DeathBlip
+    local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+    SetBlipSprite(blip, settings.sprite)
+    SetBlipColour(blip, settings.color)
+    SetBlipScale(blip, 0.9)
+    SetBlipAsShortRange(blip, false)
+    BeginTextCommandSetBlipName('STRING')
+    AddTextComponentSubstringPlayerName('Dernière mort')
+    EndTextCommandSetBlipName(blip)
+    Death.blip = blip
+
+    Death.blipToken = Death.blipToken + 1
+    local token = Death.blipToken
+    SetTimeout(settings.duration * 1000, function()
+        if Death.blipToken == token then Death.removeBlip() end
+    end)
+end
+
+function Death.removeBlip()
+    if Death.blip and DoesBlipExist(Death.blip) then RemoveBlip(Death.blip) end
+    Death.blip = nil
 end
 
 ---Arme qui a tué et tueur zombie (pour le récapitulatif de mort).
