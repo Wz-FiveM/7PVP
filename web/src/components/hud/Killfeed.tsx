@@ -1,12 +1,36 @@
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useGame } from '../../store/GameContext';
 import type { KillfeedItem } from '../../types/game';
 import { Icon } from '../icons/Icon';
 
-/** Silhouette de l'arme : l'image de l'objet sert de masque, remplie d'une couleur unie. */
+/** Images d'armes introuvables : la ligne affiche l'icône de repli sans les redemander. */
+const missingImages = new Set<string>();
+
+/**
+ * Silhouette de l'arme : l'image de l'objet sert de masque, remplie d'une couleur unie.
+ * L'adresse est absolue : un url() relatif passé par une variable CSS serait résolu depuis
+ * la feuille de style (build/assets/), où le dossier items n'existe pas.
+ */
 function WeaponSilhouette({ weapon }: { weapon?: string }) {
-  if (!weapon) return <Icon name="crosshair" size={14} strokeWidth={2} className="killfeed__fallback" />;
-  return <span className="killfeed__weapon" style={{ '--weapon': `url(./items/${weapon}.png)` } as CSSProperties} />;
+  const file = useGame().state.config.items[weapon ?? '']?.image ?? weapon;
+  const [missing, setMissing] = useState(() => !file || missingImages.has(file));
+
+  if (!file || missing) return <Icon name="crosshair" size={14} strokeWidth={2} className="killfeed__fallback" />;
+  const src = new URL(`./items/${file}.png`, document.baseURI).href;
+  return (
+    <span className="killfeed__weapon" style={{ '--weapon': `url("${src}")` } as CSSProperties}>
+      {/* Sonde invisible : détecte une image absente pour passer à l'icône de repli */}
+      <img
+        src={src}
+        alt=""
+        hidden
+        onError={() => {
+          missingImages.add(file);
+          setMissing(true);
+        }}
+      />
+    </span>
+  );
 }
 
 /** Killfeed (haut droite) : tueur, silhouette de l'arme, tir à la tête, victime. */
