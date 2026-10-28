@@ -34,6 +34,8 @@ AntiCheatService.lastSafeAt = {} -- [source] = os.time() de la dernière fois vu
 -- Véhicule qu'un joueur a le droit de créer (objet véhicule utilisé) : [source] = { model, expires }
 AntiCheatService.allowedVehicles = {}
 AntiCheatService.VEHICLE_ALLOW_TIME = 10000
+-- Type de population d'une entité créée par un script (CreateVehicle) : POPTYPE_MISSION
+AntiCheatService.POPTYPE_MISSION = 7
 
 function AntiCheatService.init()
     -- Commandes console (et admins en jeu via command.<nom>), même si l'anti-cheat est coupé
@@ -285,6 +287,9 @@ end
 ---Véhicule créé par un joueur en PvP (le mode n'en donne pas : seuls les admins peuvent).
 ---Les PNJ ne sont pas contrôlés ici : le personnage d'un joueur est lui aussi créé comme un PNJ
 ---à chaque réapparition, le bloquer casserait le jeu.
+---Seuls les véhicules créés par un script comptent comme triche : ceux que GTA fait apparaître
+---lui-même (hélicoptères garés sur les héliports, véhicules de scénario...) appartiennent au
+---joueur le plus proche, qui n'y est pour rien. Ils sont refusés sans alerte (monde PvP vide).
 ---@param entity integer
 function AntiCheatService.onEntityCreating(entity)
     if GetEntityType(entity) ~= 2 then return end
@@ -293,6 +298,7 @@ function AntiCheatService.onEntityCreating(entity)
     if AntiCheatService.consumeVehicleAllowance(owner, GetEntityModel(entity)) then return end
 
     CancelEvent()
+    if GetEntityPopulationType(entity) ~= AntiCheatService.POPTYPE_MISSION then return end
     AntiCheatService.flag(owner, 'entity', ('véhicule (modèle %d)'):format(AntiCheatService.unsigned(GetEntityModel(entity))))
 end
 

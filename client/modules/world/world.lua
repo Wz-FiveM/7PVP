@@ -22,6 +22,10 @@ function World.applyOnce()
     SetRandomTrains(world.traffic)
     SetPedPopulationBudget(world.ambientPeds and 3 or 0)
     SetVehiclePopulationBudget((world.traffic or world.parkedVehicles) and 3 or 0)
+    -- Générateurs de véhicules de la carte (hélicoptères des héliports, voitures garées fixes) :
+    -- ils créent des véhicules même population coupée
+    local generators = world.parkedVehicles
+    SetAllVehicleGeneratorsActiveInArea(-10000.0, -10000.0, -1000.0, 10000.0, 10000.0, 1000.0, generators, false)
 end
 
 ---Les multiplicateurs de densité se réappliquent à chaque image.
