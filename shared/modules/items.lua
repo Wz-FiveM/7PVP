@@ -43,7 +43,7 @@ end
 ---@param id any
 ---@return boolean
 function Items.isContainer(id)
-    return id == 'bag' or id == 'protected'
+    return type(id) == 'string' and Config.Containers[id] ~= nil
 end
 
 ---Poids total d'un conteneur { [nom] = quantité }.

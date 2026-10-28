@@ -7,13 +7,17 @@ import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
-import { CONTAINERS, isShortcutItem, itemLabel, otherContainer } from '../utils/inventory';
+import {
+  compatibleAttachments, CONTAINERS, entriesOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
+} from '../utils/inventory';
 import '../components/inventory/inventory.css';
 
 interface PendingQuantity {
   mode: 'move' | 'drop';
   item: string;
   container: ContainerId;
+  /** destination d'un déplacement */
+  to?: ContainerId;
   max: number;
 }
 
@@ -35,11 +39,14 @@ export function InventoryPage() {
   const closeQuantity = useCallback(() => setQuantity(null), []);
 
   if (!player) return null;
+  const inSafe = state.menu.inSafe;
+  /** Conteneur fermé ici : le coffre hors zone safe */
+  const isLocked = (id: ContainerId) => Boolean(config.containers[id]?.safeOnly) && !inSafe;
 
   /** Déplace directement s'il n'y a qu'un objet, sinon demande la quantité. */
-  const requestMove = (item: string, from: ContainerId, count: number) => {
-    if (count === 1) actions.moveItem(item, from, otherContainer(from), 1);
-    else setQuantity({ mode: 'move', item, container: from, max: count });
+  const requestMove = (item: string, from: ContainerId, to: ContainerId, count: number) => {
+    if (count === 1) actions.moveItem(item, from, to, 1);
+    else setQuantity({ mode: 'move', item, container: from, to, max: count });
   };
 
   const requestDrop = (item: string, container: ContainerId, count: number) => {
@@ -50,9 +57,10 @@ export function InventoryPage() {
   /** Règles du glisser-déposer : où peut-on lâcher quoi ? */
   const acceptsDrop = (source: DragSource, target: DropTarget): boolean => {
     if (target.kind === 'container') {
-      return source.kind === 'container' && source.container !== target.container;
+      return source.kind === 'container' && moveTargets(source.container, inSafe).includes(target.container);
     }
     if (source.kind === 'shortcut' && source.slot === target.slot) return false;
+    if (source.kind === 'container' && source.container === 'stash') return false;
     return isShortcutItem(config.items[source.item]?.type);
   };
 
@@ -64,7 +72,7 @@ export function InventoryPage() {
     }
 
     if (target.kind === 'container') {
-      if (source.kind === 'container') requestMove(source.item, source.container, source.count);
+      if (source.kind === 'container') requestMove(source.item, source.container, target.container, source.count);
       return;
     }
 
@@ -76,8 +84,8 @@ export function InventoryPage() {
 
   const handleQuantityConfirm = (count: number) => {
     if (!quantity) return;
-    if (quantity.mode === 'move') {
-      actions.moveItem(quantity.item, quantity.container, otherContainer(quantity.container), count);
+    if (quantity.mode === 'move' && quantity.to) {
+      actions.moveItem(quantity.item, quantity.container, quantity.to, count);
     } else {
       actions.dropItem(quantity.item, quantity.container, count);
     }
@@ -86,18 +94,38 @@ export function InventoryPage() {
 
   const contextActions = (stack: ItemStack, container: ContainerId): ContextMenuAction[] => {
     const list: ContextMenuAction[] = [];
-    if (stack.item.type === 'weapon') {
+    // Le contenu du coffre n'est pas porté : on le sort d'abord
+    const carried = container !== 'stash';
+    if (carried && stack.item.type === 'weapon') {
       list.push({ label: 'Équiper', onSelect: () => actions.equip(stack.name) });
+      list.push(...attachmentActions(stack.name));
     }
-    if (stack.item.type === 'consumable') {
+    if (carried && stack.item.type === 'consumable') {
       list.push({ label: 'Utiliser', onSelect: () => actions.consumeItem(stack.name) });
     }
-    list.push({
-      label: otherContainer(container) === 'protected' ? 'Protéger' : 'Vers le sac',
-      onSelect: () => requestMove(stack.name, container, stack.count),
-    });
+    for (const to of moveTargets(container, inSafe)) {
+      list.push({ label: MOVE_LABELS[to], onSelect: () => requestMove(stack.name, container, to, stack.count) });
+    }
     list.push({ label: 'Jeter', danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
     return list;
+  };
+
+  /** Accessoires : retirer ceux qui sont fixés, fixer ceux qu'on porte et qui sont compatibles. */
+  const attachmentActions = (weapon: string): ContextMenuAction[] => {
+    const fitted = fittedAttachments(player.inventory, weapon);
+    const carried = new Set(
+      [...entriesOf(player.inventory.bag), ...entriesOf(player.inventory.protected)].map(([name]) => name),
+    );
+    return compatibleAttachments(config, weapon).flatMap((attachment): ContextMenuAction[] => {
+      const label = itemLabel(config, attachment);
+      if (fitted.includes(attachment)) {
+        return [{ label: `Retirer : ${label}`, onSelect: () => actions.attachment(weapon, attachment, false) }];
+      }
+      if (carried.has(attachment)) {
+        return [{ label: `Fixer : ${label}`, onSelect: () => actions.attachment(weapon, attachment, true) }];
+      }
+      return [];
+    });
   };
 
   const handleContextMenu = (event: MouseEvent, stack: ItemStack, container: ContainerId) => {
@@ -117,8 +145,9 @@ export function InventoryPage() {
           <ContainerSection
             key={id}
             id={id}
-            stacks={player.inventory[id]}
+            stacks={player.inventory[id] ?? []}
             selection={selection}
+            locked={isLocked(id)}
             onSelect={setSelection}
             onItemContextMenu={handleContextMenu}
             onItemDoubleClick={handleDoubleClick}

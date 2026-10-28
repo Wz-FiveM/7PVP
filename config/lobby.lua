@@ -22,8 +22,8 @@ Config.Lobby.Modes = {
         id = 'freeroam',
         label = 'Freeroam',
         tagline = 'Liberté totale',
-        description = 'Explore Los Santos librement, sans perte d\'équipement.',
+        description = 'Bac à sable : armes et véhicules gratuits (F2), PvP désactivé par défaut, aucune perte.',
         bucket = 2,
-        enabled = false,
+        enabled = true,
     },
 }

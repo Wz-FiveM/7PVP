@@ -25,6 +25,8 @@
 
   /* Jauges du personnage (distinctes des couleurs de zone) */
   --armure: #6ec6ff;
+  /* Tir à la tête (hitmarker, dégâts infligés) */
+  --critique: #ffd84a;
 
   --font-display: 'Chakra Petch', sans-serif;
   --font-body: 'Barlow', sans-serif;
@@ -61,6 +63,27 @@ body {
 button {
   font: inherit;
   color: inherit;
+}
+
+/* Barres de défilement (CEF de FiveM = Chromium) : fines, sans flèches, dans la D.A.
+   Pas de `scrollbar-color` : sur les Chromium récents, il désactive ces règles. */
+::-webkit-scrollbar {
+  width: 0.3125rem;
+  height: 0.3125rem;
+}
+::-webkit-scrollbar-track {
+  background: rgba(11, 13, 14, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--trait);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hazard);
+}
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+  display: none;
+  background: transparent;
 }
 
 /* Fond de remplacement quand on développe dans le navigateur (pas de jeu derrière) */

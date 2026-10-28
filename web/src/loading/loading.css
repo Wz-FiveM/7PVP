@@ -1,0 +1,122 @@
+/* Écran de chargement (loadscreen FiveM) -------------------------------------- */
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--nuit);
+  background-image:
+    radial-gradient(ellipse at 50% 42%, rgba(255, 107, 26, 0.14), transparent 60%),
+    linear-gradient(rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem),
+    linear-gradient(90deg, rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem);
+  background-size: 100% 100%, 5rem 5rem, 5rem 5rem;
+}
+
+/* Bande d'alerte qui défile en haut */
+.loading__stripes {
+  height: 0.5rem;
+  background: repeating-linear-gradient(135deg, var(--hazard) 0 1rem, transparent 1rem 2rem);
+  background-size: 2.83rem 100%;
+  animation: loading-stripes 1.2s linear infinite;
+}
+@keyframes loading-stripes {
+  to {
+    background-position: 2.83rem 0;
+  }
+}
+
+.loading__center {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.loading__center img {
+  animation: loading-pulse 3s ease-in-out infinite;
+}
+@keyframes loading-pulse {
+  50% {
+    transform: scale(1.03);
+  }
+}
+.loading__welcome {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--os);
+}
+.loading__players {
+  color: var(--brume);
+}
+
+.loading__tip {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 42rem;
+  margin-bottom: 2.5rem;
+  padding: 1rem 1.25rem;
+  background: rgba(20, 24, 26, 0.85);
+}
+.loading__tip-label {
+  color: var(--hazard);
+}
+.loading__tip-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  animation: loading-fade 0.4s ease-out;
+}
+@keyframes loading-fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+.loading__footer {
+  display: flex;
+  align-items: flex-end;
+  gap: 3rem;
+  padding: 0 3rem 2.5rem;
+}
+.loading__progress {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.loading__progress-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.loading__step {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.loading__percent {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--hazard);
+}
+.loading__log {
+  height: 1rem;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--brume);
+}
+
+.loading__keys {
+  display: flex;
+  gap: 1.25rem;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--brume-hi);
+}

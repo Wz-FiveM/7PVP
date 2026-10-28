@@ -4,6 +4,7 @@
 local ChatService = PVP.define('ChatService')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
+local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 
@@ -62,6 +63,7 @@ function ChatService.onMessage(source, text)
 
     ChatService.broadcast(player.mode, { kind = 'player', author = player.name, text = clean })
     Logger.info('[chat:%s] %s : %s', player.mode, player.name, clean)
+    DiscordService.chat(player, clean)
 end
 
 ---Envoie un message à tous les joueurs d'un mode.

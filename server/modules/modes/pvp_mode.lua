@@ -4,6 +4,8 @@ local PvpMode = PVP.define('PvpMode')
 local ModeRegistry = PVP.use('ModeRegistry')
 local SpawnService = PVP.use('SpawnService')
 local PlayerRepository = PVP.use('PlayerRepository')
+local CombatTagService = PVP.use('CombatTagService')
+local GroupService = PVP.use('GroupService')
 
 PvpMode.ID = 'pvp'
 
@@ -26,10 +28,14 @@ function PvpMode.canLeave(player)
     if not player:isInSafeZone() then
         return false, 'Rejoins une zone safe pour retourner au lobby.'
     end
+    if CombatTagService.isTagged(player) then
+        return false, ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player))
+    end
     return true
 end
 
 ---@param player PvpPlayer
 function PvpMode.leave(player)
+    GroupService.leave(player.source)
     PlayerRepository.save(player)
 end

@@ -1,10 +1,11 @@
----Une zone PvE : gère l'apparition, la réapparition et la mort de ses PNJ.
----Les PNJ sont créés côté serveur (OneSync) et pilotés par le client
+---Une zone PvE : gère l'apparition, la réapparition et la mort de ses zombies.
+---Les zombies sont créés côté serveur (OneSync) et pilotés par le client
 ---propriétaire de l'entité (voir client/modules/pve/pve.lua).
 ---@class PveZone
 ---@field zone table entrée de Config.Zones
 ---@field config table bloc `npc` de la zone
----@field peds table<integer, boolean>
+---@field peds table<integer, string> ped -> type de zombie (Config.ZombieTypes)
+---@field horde { endsAt: integer, kills: integer }|nil horde en cours (voir HordeService)
 ---@field respawnQueue integer[] timestamps (ms) auxquels une place se libère
 ---@field emptySince integer|nil
 local PveZone = PVP.define('PveZone')
@@ -12,6 +13,7 @@ local CombatService = PVP.use('CombatService')
 local LootService = PVP.use('LootService')
 local Utils = PVP.use('Utils')
 local ModeRegistry = PVP.use('ModeRegistry')
+local Clock = PVP.use('Clock')
 
 PveZone.__index = PveZone
 
@@ -24,6 +26,7 @@ function PveZone.new(zone)
         peds = {},
         respawnQueue = {},
         emptySince = nil,
+        horde = nil,
     }, PveZone)
 end
 
@@ -43,7 +46,7 @@ end
 ---@param ped integer
 ---@return boolean
 function PveZone:owns(ped)
-    return self.peds[ped] == true
+    return self.peds[ped] ~= nil
 end
 
 ---@param now integer
@@ -63,14 +66,40 @@ function PveZone:pruneMissingPeds()
     end
 end
 
+---Zombies en même temps : plus la nuit, beaucoup plus pendant une horde.
+---@return integer
+function PveZone:getMax()
+    local max = self.config.max
+    if Clock.isNight() then max = max * Config.Night.maxMultiplier end
+    if self.horde then max = max * Config.Hordes.maxMultiplier end
+    return math.floor(max)
+end
+
 ---@return boolean
 function PveZone:hasFreeSlot()
-    return Utils.count(self.peds) + #self.respawnQueue < self.config.max
+    -- Pendant une horde, pas d'attente de réapparition
+    local waiting = self.horde and 0 or #self.respawnQueue
+    return Utils.count(self.peds) + waiting < self:getMax()
+end
+
+---Tire un type de zombie selon les poids de Config.ZombieTypes.
+---@return string
+function PveZone.pickType()
+    local total = 0
+    for _, zombieType in pairs(Config.ZombieTypes) do total = total + zombieType.weight end
+    local roll = math.random() * total
+    for id, zombieType in pairs(Config.ZombieTypes) do
+        roll = roll - zombieType.weight
+        if roll <= 0 then return id end
+    end
+    return 'walker'
 end
 
 function PveZone:spawnNpc()
     local point = Utils.pick(self.config.spawns)
-    local model = GetHashKey(Utils.pick(self.config.models))
+    local typeId = PveZone.pickType()
+    local zombieType = Config.ZombieTypes[typeId]
+    local model = GetHashKey(Utils.pick(zombieType.models or self.config.models))
     local ped = CreatePed(4, model, point.x, point.y, point.z, point.w, true, true)
 
     local timeout = GetGameTimer() + 2000
@@ -79,13 +108,12 @@ function PveZone:spawnNpc()
 
     -- Garde l'entité même si son propriétaire se déconnecte
     SetEntityOrphanMode(ped, 2)
-    GiveWeaponToPed(ped, GetHashKey(Utils.pick(self.config.weapons)), 500, false, true)
-    if self.config.armor and self.config.armor > 0 then
-        SetPedArmour(ped, self.config.armor)
-    end
+    -- Zombie : aucune arme, il attaque en vomissant (voir client/modules/pve/pve.lua)
+    RemoveAllPedWeapons(ped, true)
     Entity(ped).state:set('pvpNpc', self.zone.id, true)
+    Entity(ped).state:set('zombieType', typeId, true)
 
-    self.peds[ped] = true
+    self.peds[ped] = typeId
 end
 
 function PveZone:despawnAll()
@@ -100,15 +128,24 @@ end
 ---@param killer PvpPlayer|nil
 function PveZone:onNpcDeath(ped, killer)
     if not self:owns(ped) then return end
+    local zombieType = Config.ZombieTypes[self.peds[ped]] or Config.ZombieTypes.walker
     self.peds[ped] = nil
     self.respawnQueue[#self.respawnQueue + 1] = GetGameTimer() + self.config.respawn * 1000
 
     if killer then
-        CombatService.rewardNpcKill(killer)
+        CombatService.rewardNpcKill(killer, self.zone.id)
     end
 
-    LootService.drop(GetEntityCoords(ped), LootService.roll(self.config.loot))
+    -- Le butin reste sur le corps : il disparaît une fois fouillé (ou à l'expiration du butin)
+    if self.horde then self.horde.kills = self.horde.kills + 1 end
 
+    -- Plus de butin la nuit et sur les zombies spéciaux
+    local rolls = 1 + (zombieType.lootRolls or 0) + (Clock.isNight() and Config.Night.extraLootRolls or 0)
+    local lootId = LootService.drop(GetEntityCoords(ped), LootService.rollMany(self.config.loot, rolls),
+        NetworkGetNetworkIdFromEntity(ped))
+    if lootId then return end
+
+    -- Rien à fouiller : le corps est supprimé rapidement
     SetTimeout(Config.NpcCorpseTime * 1000, function()
         if DoesEntityExist(ped) then DeleteEntity(ped) end
     end)
@@ -129,8 +166,10 @@ function PveZone:tick(now)
     self.emptySince = nil
     self:pruneRespawnQueue(now)
 
-    -- Un PNJ par tick pour étaler les spawns
-    if self:hasFreeSlot() then
+    -- Un zombie par tick pour étaler les spawns (plusieurs pendant une horde)
+    local count = self.horde and Config.Hordes.spawnPerTick or 1
+    for _ = 1, count do
+        if not self:hasFreeSlot() then break end
         self:spawnNpc()
     end
 end

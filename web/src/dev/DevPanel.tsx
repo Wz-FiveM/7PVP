@@ -58,6 +58,9 @@ export function DevPanel() {
               </button>
             ))}
           </div>
+          <a className="dev-panel__link" href="./loading.html">
+            Écran de chargement (page séparée) ↗
+          </a>
           <span className="dev-panel__title mono">Événements</span>
           <div className="dev-panel__buttons">
             {DEV_ACTIONS.map((action) => (

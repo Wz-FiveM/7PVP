@@ -58,6 +58,10 @@
 .dev-panel__btn:hover {
   background: rgba(255, 0, 255, 0.2);
 }
+.dev-panel__link {
+  font-size: 0.6875rem;
+  color: #f0f;
+}
 .dev-panel__btn--active {
   border-color: #f0f;
   background: #f0f;

@@ -1,0 +1,105 @@
+/* Hitmarker (centre de l'écran) et dégâts infligés --------------------------------- */
+
+.hit-feedback {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Couleur selon le coup */
+.hit--body { --hit-color: var(--os); }
+.hit--armor { --hit-color: var(--armure); }
+.hit--head { --hit-color: var(--critique); }
+.hit--kill { --hit-color: var(--hazard); }
+
+/* Quatre traits en diagonale autour du réticule */
+.hitmarker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  animation: hitmarker 0.3s ease-out forwards;
+}
+.hitmarker i {
+  position: absolute;
+  top: -0.25rem;
+  left: -0.0625rem;
+  width: 0.125rem;
+  height: 0.5rem;
+  background: var(--hit-color);
+  box-shadow: 0 0 0.125rem rgba(0, 0, 0, 0.9);
+}
+.hitmarker i:nth-child(1) { transform: rotate(45deg) translateY(-0.625rem); }
+.hitmarker i:nth-child(2) { transform: rotate(135deg) translateY(-0.625rem); }
+.hitmarker i:nth-child(3) { transform: rotate(225deg) translateY(-0.625rem); }
+.hitmarker i:nth-child(4) { transform: rotate(315deg) translateY(-0.625rem); }
+
+/* Coup mortel : plus grand et plus épais */
+.hitmarker.hit--kill i {
+  top: -0.375rem;
+  left: -0.09375rem;
+  width: 0.1875rem;
+  height: 0.75rem;
+}
+.hitmarker.hit--kill i:nth-child(1) { transform: rotate(45deg) translateY(-0.875rem); }
+.hitmarker.hit--kill i:nth-child(2) { transform: rotate(135deg) translateY(-0.875rem); }
+.hitmarker.hit--kill i:nth-child(3) { transform: rotate(225deg) translateY(-0.875rem); }
+.hitmarker.hit--kill i:nth-child(4) { transform: rotate(315deg) translateY(-0.875rem); }
+
+@keyframes hitmarker {
+  0% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Dégâts : en haut à droite du réticule, montent puis s'effacent */
+.hit-numbers {
+  position: absolute;
+  top: calc(50% - 1.25rem);
+  left: calc(50% + 1.75rem);
+}
+.hit-number {
+  position: absolute;
+  bottom: 0;
+  left: calc(var(--offset, 0) * 1.75rem);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--hit-color);
+  text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.95);
+  animation: hit-number 0.9s ease-out forwards;
+}
+.hit-number.hit--head,
+.hit-number.hit--kill {
+  font-size: 1.25rem;
+}
+
+@keyframes hit-number {
+  0% {
+    opacity: 0;
+    transform: translateY(0.25rem) scale(1.5);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-1.75rem);
+  }
+}

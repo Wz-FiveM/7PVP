@@ -7,6 +7,7 @@ local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local Loadout = PVP.use('Loadout')
 local Appearance = PVP.use('Appearance')
+local Death = PVP.use('Death')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local Events = PVP.use('Events')
 
@@ -42,6 +43,7 @@ end
 function Spawn.spawnAt(spawn, appearance)
     DoScreenFadeOut(500)
     while not IsScreenFadedOut() do Wait(0) end
+    Death.stopSpectate()
 
     State.appearance = appearance or State.appearance or AppearanceSchema.default('male')
     Appearance.ensureModel(State.appearance.sex)

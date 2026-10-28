@@ -1,7 +1,10 @@
----Affichage et ramassage des sacs de butin.
+---Affichage et ramassage du butin : sacs au sol, ou corps de zombies à fouiller.
 ---@class ClientLootBag
 ---@field coords vector3
 ---@field object integer|nil
+---@field netId integer|nil corps qui porte le butin (aucun sac n'est créé)
+---@field model integer modèle du sac ou de la caisse
+---@field label string|nil texte de l'action
 
 ---@class LootModule
 local Loot = PVP.define('Loot')
@@ -19,8 +22,8 @@ Loot.model = 0
 function Loot.init()
     Loot.model = GetHashKey(Config.LootModel)
 
-    RegisterNetEvent(Events.client.lootAdd, function(id, coords)
-        Loot.add(id, coords)
+    RegisterNetEvent(Events.client.lootAdd, function(id, info)
+        Loot.add(id, info)
     end)
     RegisterNetEvent(Events.client.lootRemove, function(id)
         Loot.remove(id)
@@ -38,9 +41,14 @@ function Loot.init()
 end
 
 ---@param id integer
----@param coords vector3
-function Loot.add(id, coords)
-    Loot.bags[id] = { coords = coords }
+---@param info { coords: vector3, netId: integer|nil, model: string|nil, label: string|nil }
+function Loot.add(id, info)
+    Loot.bags[id] = {
+        coords = info.coords,
+        netId = info.netId,
+        model = info.model and GetHashKey(info.model) or Loot.model,
+        label = info.label,
+    }
 end
 
 ---@param id integer
@@ -51,12 +59,23 @@ function Loot.remove(id)
     Loot.bags[id] = nil
 end
 
----@param list { id: integer, coords: vector3 }[]
+---@param list table[] { id, coords, netId, model, label }
 function Loot.sync(list)
     Loot.clear()
     for _, entry in ipairs(list) do
-        Loot.add(entry.id, entry.coords)
+        Loot.add(entry.id, entry)
     end
+end
+
+---Position du butin : celle du corps s'il est chargé (il a pu glisser depuis sa mort).
+---@param bag ClientLootBag
+---@return vector3
+function Loot.getCoords(bag)
+    if bag.netId and NetworkDoesEntityExistWithNetworkId(bag.netId) then
+        local entity = NetworkGetEntityFromNetworkId(bag.netId)
+        if DoesEntityExist(entity) then return GetEntityCoords(entity) end
+    end
+    return bag.coords
 end
 
 function Loot.clear()
@@ -68,14 +87,17 @@ end
 
 ---@param bag ClientLootBag
 function Loot.createObject(bag)
-    RequestModel(Loot.model)
+    RequestModel(bag.model)
     local timeout = GetGameTimer() + 2000
-    while not HasModelLoaded(Loot.model) and GetGameTimer() < timeout do Wait(0) end
+    while not HasModelLoaded(bag.model) and GetGameTimer() < timeout do Wait(0) end
 
-    bag.object = CreateObject(Loot.model, bag.coords.x, bag.coords.y, bag.coords.z, false, false, false)
+    bag.object = CreateObject(bag.model, bag.coords.x, bag.coords.y, bag.coords.z, false, false, false)
     PlaceObjectOnGroundProperly(bag.object)
     FreezeEntityPosition(bag.object, true)
     SetEntityCollision(bag.object, false, false)
+    SetModelAsNoLongerNeeded(bag.model)
+    -- Le marqueur suit l'objet posé au sol (la hauteur envoyée peut être approximative)
+    bag.coords = GetEntityCoords(bag.object)
 end
 
 ---@param bag ClientLootBag
@@ -113,22 +135,24 @@ end
 ---@param pos vector3 position du joueur
 ---@return boolean true si le sac doit être dessiné à chaque frame
 function Loot.renderBag(id, bag, pos)
-    local dist = #(pos - bag.coords)
+    local coords = Loot.getCoords(bag)
+    local dist = #(pos - coords)
 
-    -- Les sacs n'existent que dans le monde PvP
+    -- Le butin n'existe que dans le monde PvP
     if not State.inPvp() or dist >= Loot.STREAM_DISTANCE then
         if bag.object then Loot.deleteObject(bag) end
         return false
     end
 
-    if not bag.object then Loot.createObject(bag) end
+    -- Un corps de zombie porte lui-même son butin : pas de sac
+    if not bag.netId and not bag.object then Loot.createObject(bag) end
     if dist >= Loot.DRAW_DISTANCE then return false end
 
-    DrawMarker(2, bag.coords.x, bag.coords.y, bag.coords.z + 0.6, 0, 0, 0, 0, 180.0, 0, 0.25, 0.25, 0.25,
+    DrawMarker(2, coords.x, coords.y, coords.z + (bag.netId and 0.9 or 0.6), 0, 0, 0, 0, 180.0, 0, 0.25, 0.25, 0.25,
         255, 200, 60, 180, true, true, 2, false, nil, nil, false)
 
     if dist < Config.LootPickupDistance and State.isAlive() then
-        Loot.showHelp('~INPUT_CONTEXT~ Ramasser le butin')
+        Loot.showHelp('~INPUT_CONTEXT~ ' .. (bag.label or (bag.netId and 'Fouiller le corps' or 'Ramasser le butin')))
         if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
             TriggerServerEvent(Events.server.lootPickup, id)
         end

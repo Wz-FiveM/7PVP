@@ -10,14 +10,22 @@ export function ProfilePage() {
   if (!player) return null;
 
   const levelXp = player.xp % config.xpPerLevel;
+  const season = player.season;
   const stats: [string, string | number][] = [
     ['Kills', player.kills],
     ['Morts', player.deaths],
     ['K/D', formatKd(player.kills, player.deaths)],
-    ['PNJ tués', player.npcKills],
+    ['Zombies tués', player.npcKills],
     ['Argent total', formatMoney(player.money)],
     ['XP totale', player.xp.toLocaleString('fr-FR')],
   ];
+  if (season) {
+    stats.push(
+      [`${season.label} · kills`, season.kills],
+      [`${season.label} · K/D`, formatKd(season.kills, season.deaths)],
+      [`${season.label} · zombies`, season.npcKills],
+    );
+  }
 
   return (
     <div className="profile">

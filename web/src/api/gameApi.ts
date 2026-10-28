@@ -1,6 +1,6 @@
 import { fetchNui } from './nui';
 import { mockInit, mockLeaderboard } from '../dev/mocks';
-import type { ContainerId, LeaderboardRow } from '../types/game';
+import type { ContainerId, LeaderboardRow, LeaderboardScope } from '../types/game';
 import type { ActionResult, InitPayload } from '../types/nui';
 
 const MOCK_OK: ActionResult = { ok: true, message: 'Action simulée (navigateur)' };
@@ -28,7 +28,14 @@ export const gameApi = {
   setShortcut: (slot: number, item: string | null) =>
     fetchNui<ActionResult>('setShortcut', { slot, item }, { ok: true }),
 
-  leaderboard: () => fetchNui<LeaderboardRow[]>('leaderboard', {}, mockLeaderboard),
+  craft: (id: string) => fetchNui<ActionResult>('craft', { id }, MOCK_OK),
+
+  /** Fixe (`attach: true`) ou retire un accessoire d'une arme */
+  attachment: (weapon: string, attachment: string, attach: boolean) =>
+    fetchNui<ActionResult>('attachment', { weapon, attachment, attach }, MOCK_OK),
+
+  leaderboard: (scope: LeaderboardScope) =>
+    fetchNui<{ rows: LeaderboardRow[]; title: string }>('leaderboard', { scope }, { rows: mockLeaderboard, title: 'Saison octobre 2026' }),
 
   chatSend: (text: string) => fetchNui<void>('chatSend', { text }),
 

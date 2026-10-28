@@ -51,15 +51,20 @@ function Loadout.unconfirmed(ammoName)
 end
 
 function Loadout.apply()
+    -- L'inventaire n'existe qu'en PvP (le Freeroam gère ses propres armes)
+    if not State.inPvp() then return end
     local inventory = State.player and State.player.inventory
     if not inventory then return end
 
     local ped = PlayerPedId()
     Loadout.ammoWeapon = {}
 
+    local attachments = type(inventory.attachments) == 'table' and inventory.attachments or {}
     for name, item in pairs(Config.Items) do
         if item.type == 'weapon' then
-            Loadout.syncWeapon(ped, item, Items.countOwned(inventory, name) > 0)
+            local owned = Items.countOwned(inventory, name) > 0
+            Loadout.syncWeapon(ped, item, owned)
+            if owned then Loadout.syncAttachments(ped, name, item, attachments[name] or {}) end
         end
     end
 
@@ -89,10 +94,31 @@ function Loadout.syncWeapon(ped, item, owned)
     end
 end
 
+---Ajoute ou retire les composants GTA selon les accessoires fixés sur l'arme.
+---@param ped integer
+---@param name string objet de l'arme
+---@param item table
+---@param fitted table<string, boolean>
+function Loadout.syncAttachments(ped, name, item, fitted)
+    local hash = GetHashKey(item.weapon)
+    for attachment, weapons in pairs(Config.Attachments) do
+        local component = weapons[name]
+        if component then
+            local componentHash = GetHashKey(component)
+            local has = HasPedGotWeaponComponent(ped, hash, componentHash)
+            if fitted[attachment] and not has then
+                GiveWeaponComponentToPed(ped, hash, componentHash)
+            elseif not fitted[attachment] and has then
+                RemoveWeaponComponentFromPed(ped, hash, componentHash)
+            end
+        end
+    end
+end
+
 function Loadout.trackLoop()
     while true do
         Wait(Loadout.TRACK_INTERVAL)
-        if State.isAlive() then
+        if State.isAlive() and State.inPvp() then
             Loadout.track()
             if GetGameTimer() - Loadout.lastFlush >= Loadout.FLUSH_INTERVAL then
                 Loadout.flush()

@@ -3,8 +3,11 @@
 ---@class NoclipModule
 local Noclip = PVP.define('Noclip')
 local State = PVP.use('State')
+local Nui = PVP.use('Nui')
 
 Noclip.active = false
+-- Touches maintenues envoyées à l'aide à l'écran (pour n'envoyer qu'aux changements)
+Noclip.lastHeld = ''
 
 -- Contrôles GTA utilisés (désactivés pour le jeu pendant le vol)
 Noclip.CONTROL_FORWARD = 32
@@ -17,14 +20,66 @@ Noclip.CONTROL_FAST = 21
 Noclip.CONTROL_SLOW = 19
 Noclip.DISABLED_CONTROLS = { 21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 36, 19, 44, 140, 141, 142, 143 }
 
+-- Aide à l'écran : touche -> contrôle GTA. `fallback` sert si le jeu ne donne pas de lettre
+-- (les lettres suivent la disposition du clavier du joueur : ZQSD en AZERTY, WASD en QWERTY).
+Noclip.HELP_KEYS = {
+    { id = 'forward', control = Noclip.CONTROL_FORWARD, fallback = 'Z' },
+    { id = 'left', control = Noclip.CONTROL_LEFT, fallback = 'Q' },
+    { id = 'back', control = Noclip.CONTROL_BACK, fallback = 'S' },
+    { id = 'right', control = Noclip.CONTROL_RIGHT, fallback = 'D' },
+    { id = 'up', control = Noclip.CONTROL_UP, label = 'Espace' },
+    { id = 'down', control = Noclip.CONTROL_DOWN, label = 'Ctrl' },
+    { id = 'fast', control = Noclip.CONTROL_FAST, label = 'Maj' },
+    { id = 'slow', control = Noclip.CONTROL_SLOW, label = 'Alt' },
+}
+
 ---@param active boolean
 function Noclip.set(active)
     Noclip.active = active
     State.noclip = active
     Noclip.applyPedState()
+    Noclip.lastHeld = ''
+    Nui.send('noclip', {
+        active = active,
+        keys = active and Noclip.helpKeys() or nil,
+        toggleKey = Config.Admin.NoclipKey,
+        speed = Config.Admin.NoclipSpeed,
+        fastMultiplier = Config.Admin.NoclipFastMultiplier,
+        slowMultiplier = Config.Admin.NoclipSlowMultiplier,
+    })
     if active then
         CreateThread(Noclip.loop)
     end
+end
+
+---Libellés des touches telles que configurées dans le jeu.
+---@return table<string, string> id -> touche
+function Noclip.helpKeys()
+    local keys = {}
+    for _, entry in ipairs(Noclip.HELP_KEYS) do
+        local label = entry.label
+        if not label then
+            -- Le jeu renvoie « t_Z » pour une touche texte
+            local button = GetControlInstructionalButton(0, entry.control, true) or ''
+            label = button:match('^t_(.+)$') or entry.fallback
+        end
+        keys[entry.id] = label
+    end
+    return keys
+end
+
+---Envoie à l'aide à l'écran les touches maintenues, seulement quand elles changent.
+function Noclip.sendHeld()
+    local held = {}
+    for _, entry in ipairs(Noclip.HELP_KEYS) do
+        if IsDisabledControlPressed(0, entry.control) then
+            held[#held + 1] = entry.id
+        end
+    end
+    local key = table.concat(held, ',')
+    if key == Noclip.lastHeld then return end
+    Noclip.lastHeld = key
+    Nui.send('noclipHeld', { held = held })
 end
 
 function Noclip.toggle()
@@ -52,6 +107,7 @@ function Noclip.step()
     for _, control in ipairs(Noclip.DISABLED_CONTROLS) do
         DisableControlAction(0, control, true)
     end
+    Noclip.sendHeld()
 
     local ped = PlayerPedId()
     local rotation = GetGameplayCamRot(2)

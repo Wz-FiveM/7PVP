@@ -146,6 +146,23 @@
   padding: 0 0.875rem;
   font-size: 0.75rem;
 }
+
+/* Champ de saisie ------------------------------------------------------------- */
+
+.field {
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  border: 0.0625rem solid var(--trait);
+  outline: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--os);
+  background: var(--acier);
+}
+.field:focus {
+  border-color: var(--hazard);
+}
 .btn--active,
 .btn--active:hover:not(:disabled) {
   border-color: var(--os);

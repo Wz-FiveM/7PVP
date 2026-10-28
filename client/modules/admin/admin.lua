@@ -51,6 +51,11 @@ function Admin.init()
     end, false)
     RegisterKeyMapping('pvp_noclip', 'Noclip (admin)', 'keyboard', Config.Admin.NoclipKey)
 
+    -- /tpm : téléportation au marqueur de la carte
+    RegisterCommand('tpm', function()
+        Admin.commandTeleportToMarker()
+    end, false)
+
     RegisterNUICallback('adminClose', function(_, cb)
         Admin.close()
         cb({})
@@ -124,6 +129,16 @@ function Admin.toggleInvisible()
     return { ok = true, message = State.invisible and 'Tu es invisible.' or 'Tu es visible.' }
 end
 
+---/tpm, réservé aux admins en jeu (pas au lobby ni dans le créateur).
+function Admin.commandTeleportToMarker()
+    if not Admin.isAdmin then
+        return Nui.notify('Commande réservée aux admins.', 'error')
+    end
+    if not State.mode then return end
+    local result = Admin.teleportToWaypoint()
+    Nui.notify(result.message, result.ok and 'success' or 'error')
+end
+
 function Admin.teleportToWaypoint()
     local blip = GetFirstBlipInfoId(8)
     if not DoesBlipExist(blip) then
@@ -131,7 +146,11 @@ function Admin.teleportToWaypoint()
     end
     local coords = GetBlipInfoIdCoord(blip)
     CreateThread(function()
+        -- Gelé pendant la recherche du sol : pas de chute ni de dégâts entre deux hauteurs testées
+        local ped = PlayerPedId()
+        FreezeEntityPosition(ped, true)
         Admin.teleport(vector3(coords.x, coords.y, Admin.findGroundZ(coords.x, coords.y)))
+        FreezeEntityPosition(ped, Noclip.active)
     end)
     return { ok = true, message = 'Téléporté au marqueur.' }
 end

@@ -13,13 +13,25 @@
 ---@field appearance table|nil apparence du personnage (nil = pas encore créé)
 ---@field creating boolean dans le créateur de personnage
 ---@field mode string|nil mode de jeu en cours ('pvp', 'freeroam'), nil = au lobby
+---@field isAdmin boolean admin enregistré en base (colonne is_admin, commande setadmin)
 ---@field dead boolean
+---@field combatUntil integer fin du statut « en combat » (GetGameTimer), 0 = hors combat
+---@field combatNotifiedAt integer dernier envoi du statut au client
+---@field lastAttacker integer|nil server id du dernier joueur qui l'a touché en combat
+---@field lastCombatCoords vector3|nil position à la dernière touche (si le ped a disparu à la déconnexion)
+---@field contracts table progression des contrats du jour (voir ContractService)
+---@field season { id: string, kills: integer, deaths: integer, npcKills: integer }|nil stats de la saison (SeasonService)
+---@field streak integer kills de joueurs depuis la dernière mort
+---@field bounty integer prime sur sa tête ($), 0 = aucune
+---@field combatLog { taken: table<integer, table>, dealt: table<integer, table> } dégâts de la vie en cours, par joueur
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local Items = PVP.use('Items')
 local Progression = PVP.use('Progression')
 local Zones = PVP.use('Zones')
+local ContractService = PVP.use('ContractService')
+local SeasonService = PVP.use('SeasonService')
 local Events = PVP.use('Events')
 
 PlayerObject.__index = PlayerObject
@@ -41,8 +53,17 @@ function PlayerObject.new(source, identifier, row)
         appearance = AppearanceSchema.decode(row.appearance),
         creating = false,
         mode = nil,
+        isAdmin = row.is_admin == 1 or row.is_admin == true,
         ammoSeq = 0,
         dead = false,
+        combatUntil = 0,
+        combatNotifiedAt = 0,
+        lastAttacker = nil,
+        lastCombatCoords = nil,
+        contracts = ContractService.decode(row.contracts),
+        streak = 0,
+        bounty = 0,
+        combatLog = { taken = {}, dealt = {} },
     }, PlayerObject)
 end
 
@@ -95,6 +116,15 @@ function PlayerObject:serialize()
         npcKills = self.npcKills,
         inventory = self.inventory:serialize(),
         ammoSeq = self.ammoSeq,
+        streak = self.streak,
+        bounty = self.bounty,
+        contracts = ContractService.serialize(self),
+        season = self.season and {
+            label = SeasonService.label(self.season.id),
+            kills = self.season.kills,
+            deaths = self.season.deaths,
+            npcKills = self.season.npcKills,
+        } or nil,
     }
 end
 
@@ -117,6 +147,13 @@ end
 ---@return boolean
 function PlayerObject:removeMoney(amount)
     return self.inventory:remove('money', amount)
+end
+
+---Compte un kill, une mort ou un zombie tué, pour toujours et pour la saison.
+---@param stat 'kills'|'deaths'|'npcKills'
+function PlayerObject:incrementStat(stat)
+    self[stat] = self[stat] + 1
+    if self.season then self.season[stat] = self.season[stat] + 1 end
 end
 
 ---@return integer

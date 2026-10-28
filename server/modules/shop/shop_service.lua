@@ -21,6 +21,9 @@ function ShopService.buy(source, index)
     if not player:isInSafeZone() then
         return { ok = false, message = 'La boutique n\'est accessible qu\'en zone safe.' }
     end
+    if player:getLevel() < (entry.level or 1) then
+        return { ok = false, message = ('Niveau %d requis.'):format(entry.level) }
+    end
     if player:getMoney() < entry.price then
         return { ok = false, message = 'Pas assez d\'argent.' }
     end

@@ -4,10 +4,28 @@ local PlayerService = PVP.use('PlayerService')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
 
+function SpawnService.init()
+    -- Avant la sauvegarde du joueur qui quitte (voir PlayerService.unload)
+    AddEventHandler(Events.internal.playerUnloading, function(playerSource)
+        SpawnService.onPlayerLeaving(playerSource)
+    end)
+end
+
+---Parti alors qu'il était mort : son sac est déjà au sol, il revient avec le kit
+---de réapparition qu'il aurait reçu en réapparaissant.
+---@param source integer
+function SpawnService.onPlayerLeaving(source)
+    local player = PlayerService.get(source)
+    if player and player.dead then
+        player:applyRespawnKit()
+    end
+end
+
 ---Le client applique lui-même ses armes après le spawn (voir client/modules/loadout).
 ---@param player PvpPlayer
 function SpawnService.spawn(player)
     player.dead = false
+    player.combatLog = { taken = {}, dealt = {} }
     player:sync()
     TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn(), player.appearance)
 end

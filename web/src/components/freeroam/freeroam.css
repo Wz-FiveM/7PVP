@@ -1,0 +1,68 @@
+/* Menu du Freeroam : même gabarit que le menu pause, couleur « abri » (bleu) */
+
+.freeroam__accent {
+  color: var(--abri);
+}
+.freeroam__tab--active,
+.freeroam__tab--active:hover {
+  color: var(--nuit);
+  background: var(--abri);
+}
+.freeroam__dot {
+  background: var(--abri);
+}
+.freeroam__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.5rem;
+}
+.freeroam__item {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--os);
+  background: rgba(30, 36, 39, 0.85);
+  cursor: pointer;
+}
+.freeroam__item:hover {
+  color: var(--nuit);
+  background: var(--abri);
+}
+.freeroam__spawn {
+  display: flex;
+  gap: 0.5rem;
+}
+.freeroam__input {
+  flex: 1;
+}
+
+/* Badge en jeu (haut gauche) */
+.freeroam-hud {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.9);
+}
+.freeroam-hud__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--abri);
+}
+.freeroam-hud__pvp {
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.freeroam-hud__pvp--on {
+  color: var(--hazard);
+}
+.freeroam-hud__hint {
+  font-size: 0.625rem;
+  color: var(--brume-hi);
+}

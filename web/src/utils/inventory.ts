@@ -1,10 +1,20 @@
 import type { ContainerId, GameConfig, ItemStack, ItemStacks, ItemType } from '../types/game';
 
-const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, ammo: 1, consumable: 2, money: 3 };
+const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, material: 4, money: 5 };
 
-export const CONTAINERS: ContainerId[] = ['bag', 'protected'];
+export const CONTAINERS: ContainerId[] = ['bag', 'protected', 'stash'];
 
-export const otherContainer = (id: ContainerId): ContainerId => (id === 'bag' ? 'protected' : 'bag');
+/** Destinations possibles d'un objet (le coffre seulement en zone safe). */
+export function moveTargets(from: ContainerId, inSafe: boolean): ContainerId[] {
+  return CONTAINERS.filter((id) => id !== from && (inSafe || (id !== 'stash' && from !== 'stash')));
+}
+
+/** Libellé de l'action « déplacer vers » dans le menu contextuel. */
+export const MOVE_LABELS: Record<ContainerId, string> = {
+  bag: 'Vers le sac',
+  protected: 'Protéger',
+  stash: 'Ranger au coffre',
+};
 
 /** Lua encode les tables vides en `[]` : on normalise en paires [nom, quantité]. */
 export const entriesOf = (stacks: ItemStacks | undefined): [string, number][] =>
@@ -29,3 +39,17 @@ export function weightOf(stacks: ItemStacks | undefined, config: GameConfig): nu
 export const isShortcutItem = (type: ItemType | undefined): boolean => type === 'weapon' || type === 'consumable';
 
 export const itemLabel =(config: GameConfig, name: string): string => config.items[name]?.label ?? name;
+
+/** Accessoires fixés sur une arme. */
+export function fittedAttachments(inventory: { attachments?: Record<string, Record<string, boolean>> | [] }, weapon: string): string[] {
+  const all = inventory.attachments;
+  if (!all || Array.isArray(all)) return [];
+  return Object.keys(all[weapon] ?? {});
+}
+
+/** Accessoires qui vont sur cette arme. */
+export function compatibleAttachments(config: GameConfig, weapon: string): string[] {
+  return Object.entries(config.attachments ?? {})
+    .filter(([, weapons]) => weapons[weapon])
+    .map(([attachment]) => attachment);
+}

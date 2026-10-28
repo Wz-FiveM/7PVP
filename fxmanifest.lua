@@ -15,6 +15,10 @@ shared_scripts {
     'config/items.lua',
     'config/shop.lua',
     'config/loot.lua',
+    'config/crafting.lua',
+    'config/contracts.lua',
+    'config/control.lua',
+    'config/freeroam.lua',
     'config/zones.lua',
     'config/appearance.lua',
     'config/lobby.lua',
@@ -23,6 +27,7 @@ shared_scripts {
     'shared/core/events.lua',
     'shared/modules/utils.lua',
     'shared/modules/progression.lua',
+    'shared/modules/clock.lua',
     'shared/modules/items.lua',
     'shared/modules/zones.lua',
     'shared/modules/appearance.lua',
@@ -30,14 +35,25 @@ shared_scripts {
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
+    'config/discord.lua', -- côté serveur uniquement
     'server/core/callback.lua',
+    'server/modules/discord/discord_service.lua',
     'server/modules/database/player_repository.lua',
     'server/modules/inventory/inventory_object.lua',
     'server/modules/player/player_object.lua',
     'server/modules/player/player_service.lua',
+    'server/modules/connection/connection_service.lua',
     'server/modules/spawn/spawn_service.lua',
     'server/modules/loot/loot_service.lua',
     'server/modules/combat/combat_service.lua',
+    'server/modules/combat/combat_tag_service.lua',
+    'server/modules/combat/bounty_service.lua',
+    'server/modules/contracts/contract_service.lua',
+    'server/modules/crafting/crafting_service.lua',
+    'server/modules/group/group_service.lua',
+    'server/modules/airdrop/airdrop_service.lua',
+    'server/modules/control/control_service.lua',
+    'server/modules/season/season_service.lua',
     'server/modules/inventory/inventory_service.lua',
     'server/modules/world/world_service.lua',
     'server/modules/appearance/appearance_service.lua',
@@ -49,6 +65,7 @@ server_scripts {
     'server/modules/admin/admin_service.lua',
     'server/modules/pve/pve_zone.lua',
     'server/modules/pve/pve_service.lua',
+    'server/modules/pve/horde_service.lua',
     'server/modules/shop/shop_service.lua',
     'server/modules/leaderboard/leaderboard_service.lua',
     'server/api/exports.lua',
@@ -74,8 +91,17 @@ client_scripts {
     'client/modules/admin/admin.lua',
     'client/modules/spawn/spawn.lua',
     'client/modules/death/death.lua',
+    'client/modules/combat/hits.lua',
+    'client/modules/combat/bounty.lua',
+    'client/modules/group/group.lua',
+    'client/modules/airdrop/airdrop.lua',
+    'client/modules/control/control.lua',
+    'client/modules/freeroam/freeroam.lua',
+    'client/modules/pause/pause.lua',
     'client/modules/loot/loot.lua',
     'client/modules/pve/pve.lua',
+    'client/modules/pve/horde.lua',
+    'client/modules/clock/clock.lua',
     'client/modules/dev/dev.lua',
     'client/api/exports.lua',
     'client/main.lua',
@@ -84,8 +110,14 @@ client_scripts {
 -- Interface React (web/), compilée avec `npm run build`
 ui_page 'web/build/index.html'
 
+-- Écran de chargement : reste affiché jusqu'au lobby / créateur
+-- (ShutdownLoadingScreenNui dans client/modules/lobby, creator et spawn)
+loadscreen 'web/build/loading.html'
+loadscreen_manual_shutdown 'yes'
+
 files {
     'web/build/index.html',
+    'web/build/loading.html',
     'web/build/assets/*',
     'web/build/items/*',
     'web/build/brand/*',

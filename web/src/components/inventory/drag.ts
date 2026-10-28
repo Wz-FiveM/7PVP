@@ -16,7 +16,9 @@ export function targetKey(target: DropTarget): string {
 export function parseTargetKey(key: string | undefined | null): DropTarget | null {
   if (!key) return null;
   const [kind, value] = key.split(':');
-  if (kind === 'container' && (value === 'bag' || value === 'protected')) return { kind, container: value };
+  if (kind === 'container' && (value === 'bag' || value === 'protected' || value === 'stash')) {
+    return { kind, container: value };
+  }
   if (kind === 'shortcut' && Number(value) > 0) return { kind, slot: Number(value) };
   return null;
 }

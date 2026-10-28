@@ -51,7 +51,7 @@ end
 
 ---@param slot integer
 function Shortcuts.use(slot)
-    if not State.isAlive() or not State.player then return end
+    if not State.isAlive() or not State.player or not State.inPvp() then return end
 
     local name = State.player.inventory.shortcuts[slot]
     local item = Items.get(name)

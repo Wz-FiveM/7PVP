@@ -1,7 +1,7 @@
 export type ZoneType = 'safe' | 'pve' | 'pvp';
 export type ToastKind = 'info' | 'success' | 'error';
-export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money';
-export type ContainerId = 'bag' | 'protected';
+export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material';
+export type ContainerId = 'bag' | 'protected' | 'stash';
 
 export interface ZoneInfo {
   id?: string;
@@ -15,11 +15,17 @@ export type ItemStacks = Record<string, number> | [];
 export interface Inventory {
   bag: ItemStacks;
   protected: ItemStacks;
+  /** coffre : seulement en zone safe */
+  stash: ItemStacks;
   /** objet assigné à chaque touche, `false` si vide */
   shortcuts: (string | false)[];
+  /** arme -> accessoires fixés (Lua envoie `[]` s'il n'y en a aucun) */
+  attachments?: Record<string, Record<string, boolean>> | [];
 }
 
 export interface PlayerState {
+  /** server id du joueur */
+  source: number;
   name: string;
   money: number;
   xp: number;
@@ -28,6 +34,12 @@ export interface PlayerState {
   deaths: number;
   npcKills: number;
   inventory: Inventory;
+  /** kills de joueurs depuis la dernière mort */
+  streak: number;
+  /** prime sur sa tête ($), 0 = aucune */
+  bounty: number;
+  contracts?: ContractsState;
+  season?: SeasonStats;
 }
 
 export interface ItemDefinition {
@@ -43,12 +55,39 @@ export interface ItemDefinition {
 export interface ContainerDefinition {
   label: string;
   capacity: number;
+  /** utilisable seulement en zone safe (coffre) */
+  safeOnly?: boolean;
 }
 
 export interface ShopEntry {
   item: string;
   count: number;
   price: number;
+  /** niveau minimum (défaut 1) */
+  level?: number;
+}
+
+/** Recette de fabrication (config/crafting.lua) */
+export interface Recipe {
+  id: string;
+  result: { item: string; count: number };
+  ingredients: Record<string, number>;
+  level?: number;
+}
+
+export interface Contract {
+  id: string;
+  label: string;
+  goal: number;
+  progress: number;
+  done: boolean;
+  reward: { money: number; xp: number };
+}
+
+/** Contrats du jour ; `resetIn` en secondes au moment de la synchro */
+export interface ContractsState {
+  list: Contract[];
+  resetIn: number;
 }
 
 export interface GameConfig {
@@ -57,6 +96,10 @@ export interface GameConfig {
   containers: Record<ContainerId, ContainerDefinition>;
   shortcutSlots: number;
   xpPerLevel: number;
+  groupMaxSize?: number;
+  /** accessoire -> { arme -> composant GTA } */
+  attachments?: Record<string, Record<string, string>>;
+  recipes?: Recipe[];
 }
 
 export interface LeaderboardRow {
@@ -69,9 +112,21 @@ export interface LeaderboardRow {
   online: boolean;
 }
 
+/** Dégâts infligés à un joueur, confirmés par le serveur (client/modules/combat/hits.lua) */
+export interface HitEvent {
+  /** total vie + armure */
+  damage: number;
+  /** part encaissée par l'armure */
+  armor: number;
+  headshot: boolean;
+  fatal: boolean;
+}
+
 export interface KillfeedEntry {
   killer?: string;
   victim: string;
+  /** `disconnect` : la victime s'est déconnectée en plein combat */
+  reason?: 'disconnect';
 }
 
 export interface Toast {
@@ -135,4 +190,128 @@ export interface ItemStack {
   name: string;
   count: number;
   item: ItemDefinition;
+}
+
+/** Groupe (escouade) du joueur, envoyé par server/modules/group/group_service.lua */
+export interface GroupData {
+  id: number;
+  /** server id du chef */
+  leader: number;
+  members: { id: number; name: string }[];
+}
+
+/** Vie d'un coéquipier ; `health: false` s'il est trop loin pour être chargé par le jeu */
+export interface GroupVital {
+  id: number;
+  health: number | false;
+  armor: number;
+}
+
+export interface GroupInvite {
+  from: number;
+  fromName: string;
+}
+
+/** Informations du menu pause (client/modules/pause/pause.lua) */
+export interface PauseInfo {
+  name: string;
+  serverId: number;
+  /** mode en cours ('pvp', 'freeroam') */
+  mode: string | null;
+  level: number;
+  kills: number;
+  deaths: number;
+  npcKills: number;
+  isAdmin: boolean;
+  keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string };
+}
+
+export type PauseAction = 'map' | 'settings' | 'menu' | 'lobby' | 'quit';
+
+/** Dégâts échangés avec un joueur pendant une vie */
+export interface DamageSummary {
+  damage: number;
+  hits: number;
+  headshots: number;
+}
+
+/** Récapitulatif de mort (server/modules/combat/combat_service.lua) */
+export interface DeathRecap {
+  killer?: string;
+  killerId?: number;
+  /** arme ou cause (« Chute », « Véhicule »...) */
+  weapon?: string;
+  zombie?: boolean;
+  /** mètres */
+  distance?: number;
+  killerHealth?: number;
+  killerArmor?: number;
+  /** dégâts qu'il t'a infligés / que tu lui as infligés */
+  taken?: DamageSummary;
+  dealt?: DamageSummary;
+}
+
+/** Joueur dont la tête est mise à prix */
+export interface BountyEntry {
+  id: number;
+  name: string;
+  amount: number;
+  streak: number;
+}
+
+/** Heure du jeu (shared/modules/clock.lua) */
+export interface GameClock {
+  hour: number;
+  minute: number;
+  night: boolean;
+}
+
+/** Horde en cours (server/modules/pve/horde_service.lua) */
+export interface HordeState {
+  zoneId: string;
+  label: string;
+  /** secondes restantes */
+  endsIn: number;
+  kills: number;
+}
+
+export type LeaderboardScope = 'season' | 'previous' | 'all';
+
+/** Stats de la saison en cours du joueur */
+export interface SeasonStats {
+  label: string;
+  kills: number;
+  deaths: number;
+  npcKills: number;
+}
+
+/** Zone de contrôle où se trouve le joueur (client/modules/control/control.lua) */
+export interface ControlZoneHud {
+  label: string;
+  ownerLabel: string | false;
+  mine: boolean;
+  capturing: boolean;
+  enemyCapturing: boolean;
+  /** 0 à 100 */
+  progress: number;
+  contested: boolean;
+}
+
+/** Menu du Freeroam (config/freeroam.lua) */
+export interface FreeroamWeapon {
+  weapon: string;
+  label: string;
+}
+
+export interface FreeroamVehicle {
+  model: string;
+  label: string;
+  category: string;
+}
+
+export interface FreeroamState {
+  menuOpen: boolean;
+  pvp: boolean;
+  weapons: FreeroamWeapon[];
+  vehicles: FreeroamVehicle[];
 }

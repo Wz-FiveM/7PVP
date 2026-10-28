@@ -1,9 +1,11 @@
----Inventaire d'un joueur : deux conteneurs avec limite de poids + raccourcis.
+---Inventaire d'un joueur : sac, conteneur protégé et coffre (limite de poids) + raccourcis.
 ---Données pures, aucun native. Toutes les entrées venant du client sont validées ici.
 ---@class PvpInventory
 ---@field bag table<string, integer> perdu à la mort
 ---@field protected table<string, integer> conservé à la mort
+---@field stash table<string, integer> coffre : conservé, utilisable seulement en zone safe
 ---@field shortcuts (string|false)[] objet assigné à chaque touche (false = vide)
+---@field attachments table<string, table<string, boolean>> arme -> accessoires fixés dessus
 local InventoryObject = PVP.define('InventoryObject')
 local Items = PVP.use('Items')
 local Utils = PVP.use('Utils')
@@ -24,7 +26,9 @@ function InventoryObject.new(data)
     return setmetatable({
         bag = InventoryObject.sanitize(data.bag),
         protected = InventoryObject.sanitize(data.protected),
+        stash = InventoryObject.sanitize(data.stash),
         shortcuts = shortcuts,
+        attachments = InventoryObject.sanitizeAttachments(data.attachments),
     }, InventoryObject)
 end
 
@@ -38,6 +42,25 @@ function InventoryObject.sanitize(container)
         count = math.floor(tonumber(count) or 0)
         if Items.exists(name) and count > 0 then
             clean[name] = count
+        end
+    end
+    return clean
+end
+
+---Ne garde que les accessoires compatibles avec leur arme (voir Config.Attachments).
+---@param data any
+---@return table<string, table<string, boolean>>
+function InventoryObject.sanitizeAttachments(data)
+    local clean = {}
+    if type(data) ~= 'table' then return clean end
+    for weapon, list in pairs(data) do
+        if type(list) == 'table' then
+            for attachment, on in pairs(list) do
+                if on == true and Config.Attachments[attachment] and Config.Attachments[attachment][weapon] then
+                    clean[weapon] = clean[weapon] or {}
+                    clean[weapon][attachment] = true
+                end
+            end
         end
     end
     return clean
@@ -69,21 +92,27 @@ end
 
 ---@return table
 function InventoryObject:serialize()
-    return { bag = self.bag, protected = self.protected, shortcuts = self.shortcuts }
+    return {
+        bag = self.bag,
+        protected = self.protected,
+        stash = self.stash,
+        shortcuts = self.shortcuts,
+        attachments = self.attachments,
+    }
 end
 
 -- ---------------------------------------------------------------------------
 -- Lecture
 -- ---------------------------------------------------------------------------
 
----Quantité totale (sac + conteneur protégé).
+---Quantité portée (sac + conteneur protégé ; le coffre n'est pas porté).
 ---@param name string
 ---@return integer
 function InventoryObject:count(name)
     return (self.bag[name] or 0) + (self.protected[name] or 0)
 end
 
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@param name string
 ---@return integer
 function InventoryObject:countIn(container, name)
@@ -91,20 +120,20 @@ function InventoryObject:countIn(container, name)
     return self[container][name] or 0
 end
 
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@return number
 function InventoryObject:getWeight(container)
     return Items.weightOf(self[container])
 end
 
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@return number
 function InventoryObject:getCapacity(container)
     return Config.Containers[container].capacity
 end
 
 ---Nombre maximum d'unités de `name` qu'on peut encore mettre dans `container`.
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@param name string
 ---@return number
 function InventoryObject:maxFit(container, name)
@@ -120,7 +149,7 @@ end
 -- ---------------------------------------------------------------------------
 
 ---Ajoute autant d'unités que le poids le permet.
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@param name string
 ---@param count integer
 ---@return integer quantité réellement ajoutée
@@ -135,7 +164,7 @@ function InventoryObject:add(container, name, count)
     return added
 end
 
----@param container 'bag'|'protected'
+---@param container 'bag'|'protected'|'stash'
 ---@param name string
 ---@param count integer
 ---@return integer quantité réellement retirée
@@ -160,8 +189,8 @@ function InventoryObject:remove(name, count)
     return true
 end
 
----@param from 'bag'|'protected'
----@param to 'bag'|'protected'
+---@param from 'bag'|'protected'|'stash'
+---@param to 'bag'|'protected'|'stash'
 ---@param name string
 ---@param count integer
 ---@return boolean ok, string|nil message d'erreur
@@ -183,11 +212,69 @@ function InventoryObject:move(from, to, name, count)
 end
 
 ---Vide le sac et renvoie son contenu (pour le sac de butin à la mort).
+---Les accessoires d'une arme qui n'est plus possédée nulle part tombent avec elle.
 ---@return table<string, integer>
 function InventoryObject:takeBag()
     local bag = self.bag
     self.bag = {}
+    for name in pairs(Utils.shallowCopy(bag)) do
+        for attachment, count in pairs(self:releaseAttachments(name)) do
+            bag[attachment] = (bag[attachment] or 0) + count
+        end
+    end
     return bag
+end
+
+-- ---------------------------------------------------------------------------
+-- Accessoires d'armes
+-- ---------------------------------------------------------------------------
+
+---@param name string
+---@return integer quantité possédée partout (sac, conteneur protégé et coffre)
+function InventoryObject:countEverywhere(name)
+    return self:count(name) + (self.stash[name] or 0)
+end
+
+---Fixe un accessoire de l'inventaire (sac ou conteneur protégé) sur une arme portée.
+---@param weapon string
+---@param attachment string
+---@return boolean ok, string|nil message
+function InventoryObject:attach(weapon, attachment)
+    local compatible = Config.Attachments[attachment]
+    if not compatible or not compatible[weapon] then return false, 'Accessoire incompatible avec cette arme.' end
+    if self:count(weapon) <= 0 then return false, 'Tu dois porter l\'arme.' end
+    if self.attachments[weapon] and self.attachments[weapon][attachment] then return false, 'Déjà fixé.' end
+    if not self:remove(attachment, 1) then return false, 'Tu n\'as pas cet accessoire.' end
+
+    self.attachments[weapon] = self.attachments[weapon] or {}
+    self.attachments[weapon][attachment] = true
+    return true
+end
+
+---Retire un accessoire d'une arme : il revient dans le sac.
+---@param weapon string
+---@param attachment string
+---@return boolean ok, string|nil message
+function InventoryObject:detach(weapon, attachment)
+    local list = self.attachments[weapon]
+    if not list or not list[attachment] then return false, 'Accessoire absent.' end
+    if self:add('bag', attachment, 1) < 1 then return false, 'Ton sac est plein.' end
+
+    list[attachment] = nil
+    if next(list) == nil then self.attachments[weapon] = nil end
+    return true
+end
+
+---Arme plus possédée nulle part : ses accessoires sont détachés et renvoyés (pour tomber au sol).
+---@param weapon string
+---@return table<string, integer>
+function InventoryObject:releaseAttachments(weapon)
+    local released = {}
+    local list = self.attachments[weapon]
+    if not list or self:countEverywhere(weapon) > 0 then return released end
+    for attachment in pairs(list) do released[attachment] = 1 end
+    self.attachments[weapon] = nil
+    return released
 end
 
 ---@param items table<string, integer>

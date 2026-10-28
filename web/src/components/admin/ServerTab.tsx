@@ -32,6 +32,12 @@ export function ServerTab() {
       </button>
 
       <span className="label">Monde PvP</span>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'airdrop' })}>
+        Lancer un largage sur moi
+      </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'horde' })}>
+        Lancer une horde (zone PvE la plus proche)
+      </button>
       <button
         className="btn btn--small btn--danger cut-s"
         onClick={() => {

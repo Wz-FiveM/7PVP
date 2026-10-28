@@ -5,7 +5,7 @@ import type { ZoneType } from '../../types/game';
 const TAG: Record<ZoneType, string> = { safe: 'Zone safe', pve: 'Zone PvE', pvp: 'Zone PvP' };
 const DETAIL: Record<ZoneType, string> = {
   safe: 'Tir désactivé · boutique disponible',
-  pve: 'PNJ hostiles · PvP actif',
+  pve: 'Zombies · PvP actif',
   pvp: 'Combat libre entre joueurs',
 };
 

@@ -8,6 +8,7 @@ local Callback = PVP.use('Callback')
 local Inventory = PVP.use('Inventory')
 local Hud = PVP.use('Hud')
 local Zones = PVP.use('Zones')
+local Freeroam = PVP.use('Freeroam')
 local Events = PVP.use('Events')
 
 function Nui.init()
@@ -51,8 +52,16 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.setShortcut, data.slot, data.item) or { ok = false })
     end)
 
-    RegisterNUICallback('leaderboard', function(_, cb)
-        cb(Callback.await(Events.callbacks.leaderboard) or {})
+    RegisterNUICallback('craft', function(data, cb)
+        cb(Callback.await(Events.callbacks.craft, data.id) or { ok = false })
+    end)
+
+    RegisterNUICallback('attachment', function(data, cb)
+        cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
+    end)
+
+    RegisterNUICallback('leaderboard', function(data, cb)
+        cb(Callback.await(Events.callbacks.leaderboard, data.scope) or { rows = {}, title = '' })
     end)
 
     RegisterNetEvent(Events.client.notify, function(message, kind)
@@ -85,6 +94,9 @@ function Nui.buildInitPayload()
             containers = Config.Containers,
             shortcutSlots = Config.ShortcutSlots,
             xpPerLevel = Config.XpPerLevel,
+            groupMaxSize = Config.Groups.maxSize,
+            attachments = Config.Attachments,
+            recipes = Config.Recipes,
         },
         player = State.player,
         zone = Zones.toInfo(State.zone),
@@ -104,5 +116,7 @@ function Nui.setMenu(open)
 end
 
 function Nui.toggleMenu()
+    -- En Freeroam, F2 ouvre le menu des armes et véhicules
+    if State.mode == 'freeroam' then return Freeroam.toggleMenu() end
     Nui.setMenu(not State.menuOpen)
 end

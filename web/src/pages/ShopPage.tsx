@@ -9,6 +9,7 @@ import './pages.css';
 const SECTIONS: { type: ItemType; label: string }[] = [
   { type: 'weapon', label: 'Armes' },
   { type: 'ammo', label: 'Munitions' },
+  { type: 'attachment', label: 'Accessoires' },
   { type: 'consumable', label: 'Soins & équipement' },
 ];
 
@@ -37,13 +38,14 @@ export function ShopPage() {
             <div className="tile-grid shop__grid">
               {list.map(({ entry, index }) => {
                 const item = config.items[entry.item];
+                const locked = (player?.level ?? 1) < (entry.level ?? 1);
                 return (
                   <ItemTile
                     key={index}
                     name={entry.item}
                     item={entry.count > 1 ? { ...item, label: `${item.label} x${entry.count}` } : item}
-                    corner={formatMoney(entry.price)}
-                    disabled={!menu.inSafe || money < entry.price}
+                    corner={locked ? `NIV. ${entry.level}` : formatMoney(entry.price)}
+                    disabled={locked || !menu.inSafe || money < entry.price}
                     onClick={() => actions.buy(index)}
                   />
                 );

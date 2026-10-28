@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import { adminApi } from '../api/adminApi';
 import { gameApi } from '../api/gameApi';
+import { freeroamApi } from '../api/freeroamApi';
+import { pauseApi } from '../api/pauseApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockLobbyModes, mockVitals } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
@@ -49,6 +51,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'chat/open', open: message.data.open });
         case 'admin':
           return dispatch({ type: 'admin', open: message.data.open, self: message.data.self });
+        case 'noclip':
+          return dispatch({ type: 'noclip', info: message.data });
+        case 'noclipHeld':
+          return dispatch({ type: 'noclip/held', held: message.data.held });
         case 'chatMessage':
           return dispatch({ type: 'chat/message', message: { ...message.data, id: ++nextId.current } });
         case 'menu':
@@ -58,9 +64,39 @@ export function GameProvider({ children }: { children: ReactNode }) {
         case 'killfeed':
           return pushKill(message.data);
         case 'death':
-          return dispatch({ type: 'death', seconds: message.data.seconds });
+          return dispatch({ type: 'death', seconds: message.data.seconds, recap: message.data.recap });
+        case 'freeroamMenu':
+          return dispatch({
+            type: 'freeroam',
+            patch: {
+              menuOpen: message.data.open,
+              pvp: message.data.pvp,
+              weapons: message.data.weapons ?? [],
+              vehicles: message.data.vehicles ?? [],
+            },
+          });
+        case 'freeroamPvp':
+          return dispatch({ type: 'freeroam', patch: { pvp: message.data.pvp } });
+        case 'controlZone':
+          return dispatch({ type: 'controlZone', zone: message.data.zone || null });
+        case 'clock':
+          return dispatch({ type: 'clock', clock: message.data });
+        case 'horde':
+          return dispatch({ type: 'horde', horde: message.data.horde || null });
+        case 'bounties':
+          return dispatch({ type: 'bounties', list: Array.isArray(message.data) ? message.data : [] });
         case 'alive':
           return dispatch({ type: 'alive' });
+        case 'group':
+          return dispatch({ type: 'group', group: message.data.group || null });
+        case 'groupInvite':
+          return dispatch({ type: 'group/invite', invite: message.data });
+        case 'pause':
+          return dispatch({ type: 'pause', open: message.data.open, info: message.data.info });
+        case 'groupVitals':
+          return dispatch({ type: 'group/vitals', vitals: message.data });
+        case 'combat':
+          return dispatch({ type: 'combat', seconds: message.data.seconds });
       }
     },
     [notify, pushKill],
@@ -120,11 +156,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       consumeItem: (name) => run(gameApi.useItem(name)),
       equip: (name) => run(gameApi.equip(name)),
       moveItem: (item, from, to, count) => run(gameApi.moveItem(item, from, to, count)),
+      craft: (id) => run(gameApi.craft(id)),
+      attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),
       dropItem: (item, container, count) => run(gameApi.dropItem(item, container, count)),
       setShortcut: (slot, item) => run(gameApi.setShortcut(slot, item)),
-      refreshLeaderboard: async () => {
-        const rows = await gameApi.leaderboard();
-        dispatch({ type: 'leaderboard', rows: Array.isArray(rows) ? rows : [] });
+      refreshLeaderboard: async (scope) => {
+        const result = await gameApi.leaderboard(scope);
+        dispatch({ type: 'leaderboard', rows: Array.isArray(result?.rows) ? result.rows : [], title: result?.title ?? '' });
       },
       sendChat: (text) => {
         if (isEnvBrowser()) {
@@ -156,6 +194,26 @@ export function GameProvider({ children }: { children: ReactNode }) {
       closeAdmin: () => {
         if (isEnvBrowser()) dispatch({ type: 'admin', open: false });
         adminApi.close();
+      },
+      closeFreeroam: () => {
+        if (isEnvBrowser()) dispatch({ type: 'freeroam', patch: { menuOpen: false } });
+        freeroamApi.close();
+      },
+      freeroamAction: async (action, data) => {
+        const result = await freeroamApi.action(action, data);
+        if (result?.message) notify(result.message, result.ok ? 'success' : 'error');
+        if (typeof result?.pvp === 'boolean') dispatch({ type: 'freeroam', patch: { pvp: result.pvp } });
+      },
+      closePause: () => {
+        if (isEnvBrowser()) dispatch({ type: 'pause', open: false });
+        pauseApi.close();
+      },
+      pauseAction: (action) => {
+        if (isEnvBrowser()) {
+          dispatch({ type: 'pause', open: false });
+          notify(`Action simulée : ${action}`);
+        }
+        pauseApi.action(action);
       },
       closeChat: () => {
         if (isEnvBrowser()) dispatch({ type: 'chat/open', open: false });

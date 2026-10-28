@@ -1,6 +1,6 @@
 -- Tout ce qui n'est pas dans une zone est en PvP libre.
 -- type = 'safe' : pas de tir, invincible, boutique accessible, points de spawn
--- type = 'pve'  : PvP + PNJ hostiles
+-- type = 'pve'  : PvP + zombies (réglages communs dans Config.Zombie, config/main.lua)
 -- Les coordonnées sont approximatives : ajuste-les en jeu avec /pvp_coords
 Config.Zones = {
     {
@@ -25,14 +25,12 @@ Config.Zones = {
         radius = 150.0,
         blip = { sprite = 310, color = 47 },
         npc = {
-            max = 8,
-            respawn = 60, -- secondes
+            max = 10,
+            respawn = 45, -- secondes
             health = 200,
-            armor = 0,
-            accuracy = 25,
+            speed = 1.0, -- 1.0 marche, 2.0 course, 3.0 sprint
             loot = 'gang',
-            models = { 'g_m_y_mexgoon_01', 'g_m_y_mexgoon_02', 'g_m_y_mexgoon_03' },
-            weapons = { 'WEAPON_PISTOL', 'WEAPON_MICROSMG' },
+            models = { 'u_m_y_zombie_01', 'a_m_m_tramp_01', 'a_m_o_tramp_01', 'a_m_y_methhead_01', 'a_m_m_hillbilly_01' },
             spawns = {
                 vector4(1730.0, 3295.0, 41.2, 0.0),
                 vector4(1755.0, 3310.0, 41.2, 90.0),
@@ -50,14 +48,12 @@ Config.Zones = {
         radius = 140.0,
         blip = { sprite = 310, color = 1 },
         npc = {
-            max = 10,
-            respawn = 90,
-            health = 250,
-            armor = 50,
-            accuracy = 40,
+            max = 14,
+            respawn = 60,
+            health = 300,
+            speed = 2.0, -- zombies plus rapides et plus résistants : meilleur butin
             loot = 'military',
-            models = { 's_m_y_blackops_01', 's_m_y_blackops_02' },
-            weapons = { 'WEAPON_SMG', 'WEAPON_CARBINERIFLE' },
+            models = { 'u_m_y_zombie_01', 's_m_y_dockwork_01', 'a_m_m_tramp_01', 's_m_m_dockwork_01', 'a_m_y_methhead_01' },
             spawns = {
                 vector4(1020.0, -3080.0, 5.9, 0.0),
                 vector4(1060.0, -3120.0, 5.9, 90.0),

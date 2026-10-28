@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { AdminActionPayload } from '../types/admin';
-import type { ContainerId, ToastKind } from '../types/game';
+import type { ContainerId, LeaderboardScope, PauseAction, ToastKind } from '../types/game';
 import type { GameState } from './gameReducer';
 
 export interface GameActions {
@@ -12,13 +12,22 @@ export interface GameActions {
   moveItem: (item: string, from: ContainerId, to: ContainerId, count: number) => Promise<void>;
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
-  refreshLeaderboard: () => Promise<void>;
+  craft: (id: string) => Promise<void>;
+  /** Fixe ou retire un accessoire d'une arme */
+  attachment: (weapon: string, attachment: string, attach: boolean) => Promise<void>;
+  refreshLeaderboard: (scope: LeaderboardScope) => Promise<void>;
   /** Admin : exécute une action (vérifiée côté serveur) ; renvoie true si réussie */
   adminAction: (payload: AdminActionPayload) => Promise<boolean>;
   closeAdmin: () => void;
   /** Chat : envoie le message (ou la commande « / ») et ferme la saisie */
   sendChat: (text: string) => void;
   closeChat: () => void;
+  /** Freeroam : fermer le menu, ou lancer une action (arme, véhicule, soin, PvP...) */
+  closeFreeroam: () => void;
+  freeroamAction: (action: string, data?: Record<string, unknown>) => Promise<void>;
+  /** Menu pause : fermer, ou lancer une action (le menu se ferme) */
+  closePause: () => void;
+  pauseAction: (action: PauseAction) => void;
   /** Lobby : rejoindre un mode */
   joinMode: (mode: string) => Promise<void>;
   /** Retour au lobby (refusé hors zone safe en PvP) */

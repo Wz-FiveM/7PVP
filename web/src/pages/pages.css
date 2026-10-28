@@ -110,3 +110,196 @@
   font-weight: 700;
   color: var(--hazard);
 }
+
+/* Groupe ----------------------------------------------------------------------------- */
+
+.group-page {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(24rem, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+.group-invite {
+  grid-column: 1 / -1;
+}
+.group-invite .panel__body {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.group-invite__text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--hazard);
+}
+.group-invite__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+.group-panel .panel__body,
+.group-rules .panel__body {
+  gap: 0.75rem;
+}
+.group-members {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.group-member {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 7rem auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.5rem;
+  padding: 0 0.75rem;
+  background: rgba(30, 36, 39, 0.6);
+}
+.group-member__id {
+  font-size: 0.75rem;
+  color: var(--brume);
+}
+.group-member__name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+.group-member__chief {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.5625rem;
+}
+.group-member__vitals .mono {
+  font-size: 0.625rem;
+}
+.group-form {
+  display: flex;
+  gap: 0.5rem;
+}
+.group-form__input {
+  flex: 1;
+}
+.group-leave {
+  align-self: flex-start;
+}
+.group-rules__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.8125rem;
+  color: var(--brume-hi);
+}
+
+/* Fabrication ------------------------------------------------------------------------ */
+
+.crafting {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0.75rem;
+}
+.recipe .panel__body {
+  gap: 0.625rem;
+}
+.recipe--locked {
+  opacity: 0.55;
+}
+.recipe__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.recipe__icon {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  background: var(--acier);
+}
+.recipe__icon .item-icon {
+  top: 0.3125rem;
+}
+.recipe__title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.recipe__name {
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.recipe__count {
+  font-size: 0.6875rem;
+}
+.recipe__ingredients {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recipe__ingredient {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+}
+.recipe__ingredient--missing {
+  color: var(--hazard);
+}
+
+/* Contrats --------------------------------------------------------------------------- */
+
+.contracts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.contracts__reset {
+  margin: 0;
+  font-size: 0.6875rem;
+}
+.contract .panel__body {
+  gap: 0.5rem;
+}
+.contract--done {
+  opacity: 0.7;
+}
+.contract__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.contract__label {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.contract__reward {
+  font-size: 0.75rem;
+  color: var(--critique);
+}
+.contract__progress {
+  font-size: 0.6875rem;
+  color: var(--brume-hi);
+}
+.contract--done .contract__progress {
+  color: var(--toxine);
+}
+
+.leaderboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.leaderboard__empty {
+  margin: 0.75rem 0 0;
+  font-size: 0.8125rem;
+}

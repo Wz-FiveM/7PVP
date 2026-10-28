@@ -12,6 +12,7 @@ function InventoryService.init()
     Callback.register(Events.callbacks.moveItem, InventoryService.move)
     Callback.register(Events.callbacks.dropItem, InventoryService.drop)
     Callback.register(Events.callbacks.setShortcut, InventoryService.setShortcut)
+    Callback.register(Events.callbacks.attachment, InventoryService.attachment)
 end
 
 ---@param source integer
@@ -20,6 +21,20 @@ function InventoryService.getActivePlayer(source)
     local player = PlayerService.get(source)
     if not player or player.dead then return nil end
     return player
+end
+
+---Le coffre (conteneur `safeOnly`) ne s'ouvre qu'en zone safe.
+---@param player PvpPlayer
+---@param ... string conteneurs touchés par l'action
+---@return boolean ok, string|nil message
+function InventoryService.canAccess(player, ...)
+    for _, id in ipairs({ ... }) do
+        local container = Config.Containers[id]
+        if container and container.safeOnly and not player:isInSafeZone() then
+            return false, ('%s : accessible seulement en zone safe.'):format(container.label)
+        end
+    end
+    return true
 end
 
 ---@param source integer
@@ -47,6 +62,9 @@ function InventoryService.move(source, data)
     local player = InventoryService.getActivePlayer(source)
     if not player or type(data) ~= 'table' then return { ok = false } end
 
+    local allowed, denied = InventoryService.canAccess(player, data.from, data.to)
+    if not allowed then return { ok = false, message = denied } end
+
     local ok, message = player.inventory:move(data.from, data.to, data.item, data.count)
     if ok then player:sync() end
     return { ok = ok, message = message }
@@ -60,14 +78,43 @@ function InventoryService.drop(source, data)
     local player = InventoryService.getActivePlayer(source)
     if not player or type(data) ~= 'table' then return { ok = false } end
 
+    local allowed, denied = InventoryService.canAccess(player, data.container)
+    if not allowed then return { ok = false, message = denied } end
+
     local removed = player.inventory:removeFrom(data.container, data.item, data.count)
     if removed <= 0 then
         return { ok = false, message = 'Quantité invalide.' }
     end
 
-    LootService.drop(player:getCoords(), { [data.item] = removed })
+    local dropped = { [data.item] = removed }
+    for attachment, count in pairs(player.inventory:releaseAttachments(data.item)) do
+        dropped[attachment] = (dropped[attachment] or 0) + count
+    end
+    LootService.drop(player:getCoords(), dropped)
     player:sync()
     return { ok = true, message = ('Jeté : %s'):format(Items.describe({ [data.item] = removed })) }
+end
+
+---Fixe ou retire un accessoire sur une arme.
+---@param source integer
+---@param data { weapon: string, attachment: string, attach: boolean }
+---@return { ok: boolean, message?: string }
+function InventoryService.attachment(source, data)
+    local player = InventoryService.getActivePlayer(source)
+    if not player or type(data) ~= 'table' then return { ok = false } end
+
+    local inventory = player.inventory
+    local ok, message
+    if data.attach == true then
+        ok, message = inventory:attach(data.weapon, data.attachment)
+    else
+        ok, message = inventory:detach(data.weapon, data.attachment)
+    end
+    if not ok then return { ok = false, message = message } end
+
+    player:sync()
+    local verb = data.attach == true and 'fixé sur' or 'retiré de'
+    return { ok = true, message = ('%s %s : %s'):format(Items.label(data.attachment), verb, Items.label(data.weapon)) }
 end
 
 ---@param source integer

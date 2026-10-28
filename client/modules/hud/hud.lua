@@ -59,6 +59,10 @@ function Hud.nativeHudLoop()
             HideHudComponentThisFrame(component)
         end
         DisplayAmmoThisFrame(false)
+        -- La minimap ne doit jamais rester en grand (bascule du scaleform, touche Z)
+        if IsBigmapActive() then
+            SetRadarBigmapEnabled(false, false)
+        end
         Hud.hideMinimapHealthArmour()
     end
 end
@@ -68,8 +72,9 @@ function Hud.loadMinimapScaleform()
     while not HasScaleformMovieLoaded(scaleform) do Wait(0) end
 
     -- Bascule le radar en grand puis en petit pour qu'il prenne en compte le scaleform
+    -- (le retour en petit est aussi forcé à chaque image dans nativeHudLoop)
     SetRadarBigmapEnabled(true, false)
-    Wait(0)
+    Wait(100)
     SetRadarBigmapEnabled(false, false)
 
     Hud.minimapScaleform = scaleform

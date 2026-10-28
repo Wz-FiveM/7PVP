@@ -7,6 +7,7 @@ local InventoryObject = PVP.use('InventoryObject')
 local LootService = PVP.use('LootService')
 local AppearanceService = PVP.use('AppearanceService')
 local LobbyService = PVP.use('LobbyService')
+local SeasonService = PVP.use('SeasonService')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
 
@@ -64,6 +65,7 @@ function PlayerService.load(source)
     end
 
     local player = PlayerObject.new(source, identifier, row)
+    player.season = SeasonService.load(identifier)
     PlayerService.players[source] = player
     return player
 end
@@ -72,9 +74,10 @@ end
 function PlayerService.unload(source)
     local player = PlayerService.get(source)
     if not player then return end
-    PlayerRepository.save(player)
-    -- Prévient les autres modules avant que le joueur disparaisse (ex : annonce dans le chat)
+    -- Prévient les autres modules avant la sauvegarde : ils peuvent encore modifier le joueur
+    -- (déconnexion en combat, kit de réapparition) ; ex : annonce dans le chat
     TriggerEvent(Events.internal.playerUnloading, player.source, player.name, player.mode)
+    PlayerRepository.save(player)
     PlayerService.players[player.source] = nil
 end
 

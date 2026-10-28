@@ -13,12 +13,15 @@ export function Killfeed() {
               <span className="killfeed__killer">{item.killer}</span>
               <Icon name="crosshair" size={14} strokeWidth={2} />
               <span>{item.victim}</span>
+              {item.reason === 'disconnect' && <span className="mono killfeed__reason">DÉCO</span>}
             </>
           ) : (
             <>
               <Icon name="crosshair" size={14} strokeWidth={2} />
               <span>{item.victim}</span>
-              <span className="mono muted">MORT</span>
+              <span className={item.reason === 'disconnect' ? 'mono killfeed__reason' : 'mono muted'}>
+                {item.reason === 'disconnect' ? 'DÉCO EN COMBAT' : 'MORT'}
+              </span>
             </>
           )}
         </div>

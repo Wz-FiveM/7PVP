@@ -5,10 +5,35 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 ## Principe
 
 - **Toute la map est en PvP libre**, sauf les **zones safe** (spawn + boutique, tir désactivé, invincibilité).
-- Les **zones PvE** contiennent des PNJ hostiles qui réapparaissent. Le PvP y reste actif.
+- Les **zones PvE** sont infestées de **zombies** sans arme qui réapparaissent : au contact, ils vomissent sur le joueur et lui infligent des dégâts (l'armure encaisse en premier). Le PvP y reste actif. Réglages : `Config.Zombie` (`config/main.lua`) et le bloc `npc` de chaque zone.
 - **À la mort**, tout le contenu du **sac** tombe au sol dans un **sac de butin** que n'importe qui peut ramasser. Le **conteneur protégé** est conservé. Le joueur réapparaît en zone safe avec le kit de respawn.
-- Les PNJ tués lâchent aussi un sac (argent + loot aléatoire selon la zone).
-- XP/niveau, kills, morts, PNJ tués et inventaire sont sauvegardés en base.
+- Les zombies tués ne lâchent pas de sac : leur **corps porte le butin** (argent + loot aléatoire selon la zone). On le fouille avec `E`, et le corps disparaît une fois vidé (ou après `Config.LootLifetime`).
+- **Hitmarker et dégâts infligés** quand on touche un joueur ou un zombie : blanc (corps), bleu (armure), jaune (tête), orange (coup mortel). Les dégâts sont mesurés par le propriétaire de la victime et relayés par le serveur (`client/modules/combat/hits.lua`).
+- **Statut « en combat »** (`Config.CombatTagDuration`, 20 s) dès qu'on touche ou qu'on est touché par un joueur. Se déconnecter pendant ce temps compte comme une mort : sac au sol, mort comptée, kill et récompense pour le dernier attaquant, « DÉCO » dans le killfeed. Le retour au lobby est bloqué pendant le combat.
+- XP/niveau, kills, morts, zombies tués et inventaire sont sauvegardés en base.
+
+## Fonctionnalités
+
+| Fonctionnalité | En bref | Réglages |
+| --- | --- | --- |
+| **Coffre** | 3e conteneur (250 kg), conservé, utilisable seulement en zone safe. Son contenu n'est pas porté. | `Config.Containers.stash` (`config/items.lua`) |
+| **Groupes** | Jusqu'à 4 joueurs en PvP : pas de tir allié, coéquipiers en bleu sur la minimap et dans le HUD. Menu F2 > Groupe ou `/inviter ID`, `/accepter`, `/refuser`, `/quittergroupe`. | `Config.Groups` |
+| **Largages aériens** | Une caisse tombe en parachute toutes les 20 min (2 joueurs PvP minimum), s'ouvre 60 s après l'atterrissage et se fouille avec `E`. | `Config.Airdrops`, table `airdrop` (`config/loot.lua`) |
+| **Menu pause** | Échap / P : carte, paramètres GTA, menu F2, commandes, retour au lobby, quitter. | — |
+| **Récap de mort** | Tueur, arme, distance, dégâts échangés et vie restante du tueur ; la caméra suit le tueur jusqu'à la réapparition. | — |
+| **Séries et primes** | Dès 5 kills sans mourir, la tête du joueur est mise à prix (repère rouge) ; son tueur encaisse la prime. | `Config.Bounty` |
+| **Accessoires** | Silencieux, lunette, chargeur, lampe, poignée : clic droit sur une arme > Fixer / Retirer. Ils tombent avec l'arme. | `Config.Attachments` (`config/items.lua`) |
+| **Jour / nuit** | Heure commune calculée depuis l'heure réelle. La nuit : plus de zombies, plus rapides, plus résistants, plus de butin. | `Config.Time`, `Config.Night` |
+| **Zombies spéciaux** | Rôdeur, Coureur (rapide), Colosse (très résistant, ne tombe pas), Cracheur (vomit à 10 m). | `Config.ZombieTypes` |
+| **Hordes** | Toutes les 30 min, une zone PvE occupée est envahie 5 min ; les survivants dans la zone sont récompensés. | `Config.Hordes` |
+| **Fabrication** | Matériaux récupérés sur les zombies -> munitions, soins, accessoires (zone safe, niveau requis). | `config/crafting.lua` |
+| **Contrats quotidiens** | 3 contrats par jour (les mêmes pour tous), récompense versée à l'objectif. | `config/contracts.lua` |
+| **Déblocages par niveau** | Les armes et accessoires de la boutique demandent un niveau minimum. | `level` dans `config/shop.lua` |
+| **Zones de contrôle** | Reste seul (ou avec ton groupe) dans le cercle pour capturer ; la zone rapporte de l'argent à ton camp. | `config/control.lua` |
+| **Saisons** | Une par mois : classement de saison à part (onglets Saison / précédente / de tous les temps). L'inventaire, l'argent et l'XP sont gardés. | table `pvp_season_stats` |
+| **Freeroam** | Bac à sable : armes et véhicules gratuits (F2), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. | `config/freeroam.lua` |
+
+Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dans la zone PvE la plus proche, pour tester.
 
 ## Inventaire
 
@@ -41,12 +66,29 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 
 | Touche / commande | Action |
 | --- | --- |
-| `F2` | Menu : inventaire, profil, top joueurs, boutique (en zone safe), aide |
+| `F2` | Menu : inventaire, groupe, fabrication, contrats, profil, top joueurs, boutique, aide (en Freeroam : armes et véhicules) |
+| `Échap` / `P` | Menu pause |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
-| `E` | Ramasser un sac de butin |
+| `E` | Ramasser un sac de butin / fouiller un corps de zombie ou un largage |
+| `/inviter ID` | Inviter un joueur dans son groupe (`/accepter`, `/refuser`, `/quittergroupe`) |
 | `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |
 | `/lobby` | Retour au lobby (depuis une zone safe en PvP) |
+| `F10` / `F11` | Admins : panneau d'administration / noclip |
+| `/tpm` | Admins : téléportation au marqueur de la carte |
 | `/pvp_coords` | Affiche ta position en `vector4(...)` pour configurer les zones |
+
+## Administration
+
+Dans la console du serveur :
+
+```
+setadmin <id | license:xxxx>      rend admin (enregistré en base, effet immédiat, gardé au redémarrage)
+removeadmin <id | license:xxxx>   retire les droits
+admins                            liste les admins enregistrés
+```
+
+Le statut est stocké dans la colonne `is_admin` de `pvp_players` : aucune ligne `server.cfg` n'est nécessaire.
+L'ACE `7pvp.admin` (`add_ace group.admin 7pvp.admin allow`) donne aussi les droits, en plus de la base.
 
 ## Arborescence
 
@@ -182,6 +224,10 @@ npm run build   # compile dans web/build/ (chargé par FiveM)
 - Lua -> React : `Nui.send(action, data)`. Les messages sont typés dans `src/types/nui.ts`.
 - React -> Lua : `gameApi` (`src/api/gameApi.ts`), qui appelle les `RegisterNUICallback` de `client/modules/nui/nui.lua`.
 
+### Écran de chargement
+
+Deuxième page React (`web/loading.html`, code dans `src/loading/`), déclarée en `loadscreen` dans le fxmanifest. Il reste affiché jusqu'au lobby ou au créateur (`loadscreen_manual_shutdown`). Il montre la progression envoyée par FiveM, des astuces (`src/loading/tips.ts`) et le pseudo / nombre de joueurs transmis par le serveur à la connexion (`server/modules/connection`). En dev : `http://localhost:5173/loading.html` (progression simulée).
+
 ### Panneau « DEV NUI » (npm run dev)
 
 En haut de l'écran, uniquement dans le navigateur (jamais en jeu) :
@@ -196,6 +242,11 @@ En haut de l'écran, uniquement dans le navigateur (jamais en jeu) :
 - **Couleurs** (variables dans `src/styles/global.css`) : neutres Nuit `#0B0D0E`, Carbone `#14181A`, Acier `#1E2427`, Trait `#2E363A`, Brume `#8C969B`, Os `#E9ECE6`. Les couleurs de zone ne servent qu'à ça : **Abri** `#4CC9E0` (safe, conteneur protégé), **Toxine** `#B5F23D` (PvE), **Hazard** `#FF6B1A` (PvP, marque, actions).
 - **Polices** : Chakra Petch (titres, majuscules), Barlow (texte), JetBrains Mono (chiffres, poids, touches). Elles sont embarquées dans le build : aucune connexion internet n'est nécessaire en jeu.
 - **Formes** : panneaux pleins aux coins coupés à 45° (`.cut`, `.cut-s`), crochets de visée pour la sélection (`<Brackets />`), bandes d'alerte dans la couleur de la zone (`.stripes` + `.zone-safe|pve|pvp`), jauges à segments (`<SegmentBar />`).
+
+## Discord
+
+- **Bot** (`D:\7PVP\bot`, hors de la ressource) : programme Node.js qui crée le serveur Discord de 7PVP (rôles, salons, permissions, règlement, webhooks), puis gère l'accès par le règlement, les rôles, les tickets, le statut du serveur en direct et les logs. Mise en place dans son `README.md`.
+- **Logs du jeu** (`server/modules/discord/discord_service.lua`) : killfeed, connexions, actions du panneau admin et `setadmin`, kicks (salon sanctions) et chat sont envoyés par webhooks. Les URLs sont des convars serveur (`7pvp_discord_killfeed`, `_sanctions`, `_connexions`, `_admin`, `_chat`) générées par le bot dans `bot/data/webhooks.cfg`, chargé par `exec bot/data/webhooks.cfg` dans `server.cfg`. Sans convar, le salon est ignoré. Réglages : `config/discord.lua`.
 
 ## Ajouter une zone PvE
 

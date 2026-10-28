@@ -1,0 +1,266 @@
+/* Menu pause (Échap) : panneau à gauche, le jeu reste visible à droite */
+
+.pause {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  padding: 1.5rem;
+  background: linear-gradient(90deg, rgba(11, 13, 14, 0.55) 0%, rgba(11, 13, 14, 0.15) 45%, transparent 70%);
+}
+
+.pause__panel {
+  display: flex;
+  flex-direction: column;
+  width: 44rem;
+  max-width: 100%;
+  max-height: 100%;
+  background: rgba(20, 24, 26, 0.92);
+}
+.pause__stripes {
+  flex: none;
+  height: 0.3125rem;
+}
+
+/* En-tête ---------------------------------------------------------------------- */
+
+.pause__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.125rem 1.25rem 1rem;
+  border-bottom: 0.0625rem solid var(--trait);
+}
+.pause__heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.pause__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.pause__accent {
+  color: var(--hazard);
+}
+.pause__subtitle {
+  font-size: 0.8125rem;
+}
+.pause__close {
+  align-self: flex-start;
+  min-width: 2rem;
+  padding: 0;
+}
+
+/* Navigation ------------------------------------------------------------------- */
+
+.pause__body {
+  display: flex;
+  flex: 1;
+  gap: 1rem;
+  min-height: 0;
+  padding: 1rem 1.25rem 1.25rem;
+}
+.pause__nav {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 11rem;
+}
+.pause__nav-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+.pause__tab {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--brume-hi);
+  background: rgba(30, 36, 39, 0.85);
+  cursor: pointer;
+}
+.pause__tab:hover {
+  color: var(--os);
+  background: var(--acier-hi);
+}
+.pause__tab--active,
+.pause__tab--active:hover {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+.pause__tab--danger {
+  color: var(--hazard);
+  background: rgba(255, 107, 26, 0.08);
+  box-shadow: inset 0 0 0 0.0625rem rgba(255, 107, 26, 0.45);
+}
+.pause__tab--danger:hover {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+
+/* Contenu ---------------------------------------------------------------------- */
+
+.pause__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.pause__shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.625rem;
+}
+.pause__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.875rem 2.25rem 0.875rem 1rem;
+  border: 0;
+  text-align: left;
+  color: var(--os);
+  background: linear-gradient(135deg, rgba(38, 45, 49, 0.95), rgba(20, 24, 26, 0.95));
+  cursor: pointer;
+}
+.pause__card:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 26, 0.22), rgba(20, 24, 26, 0.95));
+}
+.pause__card--large {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  min-height: 7.5rem;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 0.5rem, transparent 0.5rem 1rem),
+    linear-gradient(135deg, rgba(38, 45, 49, 0.95), rgba(20, 24, 26, 0.95));
+}
+.pause__card-icon {
+  color: var(--hazard);
+}
+.pause__card-title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.pause__card--large .pause__card-title {
+  font-size: 1.25rem;
+}
+.pause__card-text {
+  font-size: 0.75rem;
+}
+.pause__card-arrow {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: var(--brume);
+  transform: translateY(-50%);
+}
+.pause__card:hover .pause__card-arrow {
+  color: var(--hazard);
+}
+
+.pause__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.pause__section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.pause__dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--hazard);
+}
+.pause__section-text {
+  margin: 0 0 0.375rem;
+  font-size: 0.75rem;
+}
+
+.pause__tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.pause__tile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  background: rgba(30, 36, 39, 0.85);
+}
+.pause__tile-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--hazard);
+  background: rgba(255, 107, 26, 0.12);
+}
+.pause__tile-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+.pause__tile-label {
+  font-size: 0.625rem;
+}
+.pause__tile-value {
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pause__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pause__control {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+.pause__key {
+  flex: none;
+  min-width: 7.5rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--os);
+  background: var(--acier-hi);
+}
