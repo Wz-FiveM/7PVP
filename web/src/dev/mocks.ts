@@ -118,8 +118,8 @@ export const mockInit: InitPayload = {
     xpPerLevel: 1000,
     shortcutSlots: 7,
     containers: {
-      bag: { label: 'Mon sac', capacity: 40 },
-      protected: { label: 'Conteneur protégé', capacity: 5 },
+      bag: { label: 'Mon sac', capacity: 50 },
+      protected: { label: 'Conteneur protégé', capacity: 40 },
       stash: { label: 'Coffre', capacity: 250, safeOnly: true },
     },
     attachments: {

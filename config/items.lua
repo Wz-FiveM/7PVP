@@ -228,8 +228,8 @@ Config.Attachments = {
 -- stash     : coffre personnel, conservé, accessible seulement près du banquier (safeOnly, config/npcs.lua).
 --             Son contenu ne compte pas comme porté (armes, munitions, argent à dépenser).
 Config.Containers = {
-    bag = { label = 'Mon sac', capacity = 40.0 },
-    protected = { label = 'Conteneur protégé', capacity = 5.0 },
+    bag = { label = 'Mon sac', capacity = 50.0 },
+    protected = { label = 'Conteneur protégé', capacity = 40.0 },
     stash = { label = 'Coffre', capacity = 250.0, safeOnly = true },
 }
 
