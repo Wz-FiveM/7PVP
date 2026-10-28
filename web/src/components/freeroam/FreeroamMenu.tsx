@@ -3,7 +3,6 @@ import { useGame } from '../../store/GameContext';
 import { useTypingFocus } from '../../hooks/useTypingFocus';
 import { isMenuCloseKey } from '../../utils/keys';
 import { Icon, type IconName } from '../icons/Icon';
-import '../pause/pause.css';
 import './freeroam.css';
 
 type FreeroamTab = 'weapons' | 'vehicles' | 'player';
@@ -44,36 +43,36 @@ export function FreeroamMenu() {
   };
 
   return (
-    <div className="pause">
-      <aside className="pause__panel freeroam">
-        <div className="stripes pause__stripes zone-safe" />
-        <header className="pause__header">
-          <div className="pause__heading">
-            <h1 className="disp pause__title">
+    <div className="freeroam-menu">
+      <aside className="freeroam__panel">
+        <div className="stripes freeroam__stripes zone-safe" />
+        <header className="freeroam__header">
+          <div className="freeroam__heading">
+            <h1 className="disp freeroam__title">
               Free<span className="freeroam__accent">roam</span>
             </h1>
-            <span className="muted pause__subtitle">Bac à sable : tout est gratuit, rien n'est perdu</span>
+            <span className="muted freeroam__subtitle">Bac à sable : tout est gratuit, rien n'est perdu</span>
           </div>
-          <button className="btn btn--small cut-s pause__close" onClick={actions.closeFreeroam} aria-label="Fermer">
+          <button className="btn btn--small cut-s freeroam__close" onClick={actions.closeFreeroam} aria-label="Fermer">
             ✕
           </button>
         </header>
 
-        <div className="pause__body">
-          <nav className="pause__nav">
+        <div className="freeroam__body">
+          <nav className="freeroam__nav">
             {TABS.map((item) => (
               <button
                 key={item.id}
-                className={item.id === tab ? 'pause__tab freeroam__tab--active cut-s' : 'pause__tab cut-s'}
+                className={item.id === tab ? 'freeroam__tab freeroam__tab--active cut-s' : 'freeroam__tab cut-s'}
                 onClick={() => setTab(item.id)}
               >
                 <Icon name={item.icon} size={16} strokeWidth={2.2} />
                 {item.label}
               </button>
             ))}
-            <div className="pause__nav-bottom">
+            <div className="freeroam__nav-bottom">
               <button
-                className={freeroam.pvp ? 'pause__tab pause__tab--danger cut-s' : 'pause__tab cut-s'}
+                className={freeroam.pvp ? 'freeroam__tab freeroam__tab--danger cut-s' : 'freeroam__tab cut-s'}
                 onClick={() => actions.freeroamAction('pvp')}
               >
                 <Icon name="crosshair" size={16} strokeWidth={2.2} />
@@ -82,7 +81,7 @@ export function FreeroamMenu() {
             </div>
           </nav>
 
-          <main className="pause__content">
+          <main className="freeroam__content">
             {tab === 'weapons' && (
               <>
                 <div className="freeroam__grid">
@@ -116,9 +115,9 @@ export function FreeroamMenu() {
                   </button>
                 </form>
                 {categories.map(([category, list]) => (
-                  <section key={category} className="pause__section">
-                    <h2 className="disp pause__section-title">
-                      <span className="pause__dot freeroam__dot" />
+                  <section key={category} className="freeroam__section">
+                    <h2 className="disp freeroam__section-title">
+                      <span className="freeroam__dot" />
                       {category}
                     </h2>
                     <div className="freeroam__grid">
