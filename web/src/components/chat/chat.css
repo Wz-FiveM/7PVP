@@ -1,8 +1,9 @@
-/* Chat : en haut à gauche, sous la bannière de zone ---------------------------- */
+/* Chat : en haut à gauche, sous la bannière de zone et sous l'équipe ----------- */
 
 .chat {
   position: absolute;
-  top: 7.5rem;
+  /* --squad-bottom est publié par SquadPanel tant que l'équipe est affichée */
+  top: max(7.5rem, calc(var(--squad-bottom, 0px) + 0.75rem));
   left: 1.5rem;
   display: flex;
   flex-direction: column;

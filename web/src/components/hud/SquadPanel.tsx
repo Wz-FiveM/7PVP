@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { useGame } from '../../store/GameContext';
 import type { GroupVital } from '../../types/game';
 import { Icon } from '../icons/Icon';
@@ -16,14 +17,34 @@ function Bar({ value, kind }: { value: number; kind: 'health' | 'armor' }) {
 export function SquadPanel() {
   const { state } = useGame();
   const { group, groupVitals, player } = state;
-  if (!group || !player || group.members.length < 2) return null;
+  const ref = useRef<HTMLDivElement>(null);
+  const shown = Boolean(group && player && group.members.length >= 2);
+
+  // Publie le bas du panneau pour que le chat se place dessous au lieu de le recouvrir
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!shown || !el) return;
+    const root = document.documentElement;
+    const publish = () => root.style.setProperty('--squad-bottom', `${el.getBoundingClientRect().bottom}px`);
+    publish();
+    const observer = new ResizeObserver(publish);
+    observer.observe(el);
+    window.addEventListener('resize', publish);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', publish);
+      root.style.removeProperty('--squad-bottom');
+    };
+  }, [shown]);
+
+  if (!group || !player || !shown) return null;
 
   const vitalOf = (id: number): GroupVital | undefined => groupVitals.find((v) => v.id === id);
   // Le joueur local d'abord, puis les coéquipiers dans l'ordre d'arrivée
   const members = [...group.members].sort((a, b) => Number(b.id === player.source) - Number(a.id === player.source));
 
   return (
-    <div className="team">
+    <div ref={ref} className="team">
       {members.map((member) => {
         const vital = vitalOf(member.id);
         const health = vital && vital.health !== false ? vital.health : 0;
