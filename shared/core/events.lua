@@ -19,6 +19,7 @@ Events.server = {
     vehicleSpawned = '7pvp:server:vehicleSpawned',
     lootClose = '7pvp:server:lootClose',
     cvcVehicle = '7pvp:server:cvcVehicle',
+    chaseReport = '7pvp:server:chaseReport',
 }
 
 -- Serveur -> client
@@ -59,6 +60,7 @@ Events.client = {
     chaseState = '7pvp:client:chaseState',
     chaseRoundEnd = '7pvp:client:chaseRoundEnd',
     chaseEnd = '7pvp:client:chaseEnd',
+    chaseRepair = '7pvp:client:chaseRepair',
     cvcQueue = '7pvp:client:cvcQueue',
     cvcRound = '7pvp:client:cvcRound',
     cvcState = '7pvp:client:cvcState',

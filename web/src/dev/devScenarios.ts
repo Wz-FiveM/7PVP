@@ -431,7 +431,7 @@ export const DEV_ACTIONS: DevAction[] = [
           countdown: 3, roundTime: 180, escapeDistance: 500, arrestTime: 5,
         },
       });
-      sendNui({ action: 'chaseState', data: { remaining: 142, arrest: 0.4 } });
+      sendNui({ action: 'chaseState', data: { remaining: 142, arrest: 0.4, health: 64, warns: 1, maxWarns: 3 } });
     },
   },
   {

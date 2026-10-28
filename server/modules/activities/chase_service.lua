@@ -13,6 +13,10 @@
 ---@field cop integer|nil
 ---@field endAt integer|nil GetGameTimer() de la fin du temps de la manche
 ---@field immobileSince integer|nil
+---@field warns table<integer, integer> avertissements anti-PIT sur toute la partie
+---@field headings table<integer, { at: integer, heading: number }[]> caps récents du véhicule de chaque joueur
+---@field upsideSince table<integer, integer> depuis quand chaque véhicule est sur le toit
+---@field lastPit table<integer, integer> dernier PIT compté contre chaque joueur (anti-doublon)
 
 ---@class ChaseServiceModule
 local ChaseService = PVP.define('ChaseService')
@@ -41,6 +45,10 @@ ChaseService.nextId = 0
 function ChaseService.init()
     ActivityService.register(ChaseService.ID, ChaseService.toggleQueue)
     Callback.register(Events.callbacks.chaseVote, ChaseService.vote)
+    -- Signalements du client : PIT subi (vérifié ici) ou saut trop important (le sien)
+    RegisterNetEvent(Events.server.chaseReport, function(kind)
+        ChaseService.onReport(source, kind)
+    end)
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         ChaseService.leave(playerSource)
@@ -120,6 +128,10 @@ function ChaseService.startMatch(a, b)
         players = { a, b },
         votes = {},
         scores = { [a] = 0, [b] = 0 },
+        warns = { [a] = 0, [b] = 0 },
+        headings = {},
+        upsideSince = {},
+        lastPit = {},
         round = 0,
         phase = 'vote',
     }
@@ -174,6 +186,8 @@ function ChaseService.startRound(match)
     match.round = match.round + 1
     match.phase = 'countdown'
     match.immobileSince = nil
+    match.headings = { [match.players[1]] = {}, [match.players[2]] = {} }
+    match.upsideSince = {}
     local first = match.round == 1
     match.thief = first and match.players[1] or match.players[2]
     match.cop = first and match.players[2] or match.players[1]
@@ -199,6 +213,9 @@ function ChaseService.startRound(match)
             arrestTime = Config.Chase.arrestTime,
             scores = { me = match.scores[source], opponent = match.scores[ChaseService.opponent(match, source)] },
             opponent = GetPlayerName(ChaseService.opponent(match, source)) or 'Adversaire',
+            opponentId = ChaseService.opponent(match, source),
+            warns = match.warns[source],
+            rules = { pit = Config.Chase.pit, stunt = Config.Chase.stunt },
         })
     end
 
@@ -260,13 +277,123 @@ function ChaseService.check(match, sendState)
         return ChaseService.endRound(match, match.cop, 'Temps écoulé : le voleur n\'a pas réussi à fuir.')
     end
 
+    -- Véhicules : dégâts, sur le toit, et caps récents (pour vérifier les PIT signalés)
+    local health = {}
+    for _, source in ipairs(match.players) do
+        local result = ChaseService.checkVehicle(match, source, now)
+        if result == false then return end
+        health[source] = result
+    end
+
     if sendState then
         local arrest = match.immobileSince and (now - match.immobileSince) / (Config.Chase.arrestTime * 1000) or 0
         local remaining = math.max(0, math.ceil((match.endAt - now) / 1000))
         -- Ni distance ni position de l'adversaire : chacun doit le chercher (ou le semer) à vue
-        local state = { remaining = remaining, arrest = arrest }
-        TriggerClientEvent(Events.client.chaseState, match.thief, state)
-        TriggerClientEvent(Events.client.chaseState, match.cop, state)
+        for _, source in ipairs(match.players) do
+            TriggerClientEvent(Events.client.chaseState, source, {
+                remaining = remaining,
+                arrest = arrest,
+                health = health[source],
+                warns = match.warns[source],
+                maxWarns = Config.Chase.pit.maxWarns,
+            })
+        end
+    end
+end
+
+ChaseService.HEADING_HISTORY = 3000
+
+---@param a number
+---@param b number
+---@return number écart entre deux caps, de 0 à 180 degrés
+function ChaseService.headingGap(a, b)
+    return math.abs((a - b + 540.0) % 360.0 - 180.0)
+end
+
+---Véhicule d'un joueur : trop endommagé ou sur le toit, il perd la manche.
+---@param match ChaseMatch
+---@param source integer
+---@param now integer
+---@return integer|nil|false santé du véhicule en % (nil : à pied), false : la manche est finie
+function ChaseService.checkVehicle(match, source, now)
+    local vehicle = GetVehiclePedIsIn(GetPlayerPed(source), false)
+    if vehicle == 0 then return nil end
+    local other = ChaseService.opponent(match, source)
+    local name = GetPlayerName(source) or 'Un joueur'
+
+    local engine, body = GetVehicleEngineHealth(vehicle), GetVehicleBodyHealth(vehicle)
+    local damage = Config.Chase.damage
+    if engine < damage.minEngine or body < damage.minBody then
+        ChaseService.endRound(match, other, ('Véhicule de %s trop endommagé.'):format(name))
+        return false
+    end
+
+    local roof = Config.Chase.roof
+    if math.abs(GetEntityRotation(vehicle).y) >= roof.angle then
+        match.upsideSince[source] = match.upsideSince[source] or now
+        if now - match.upsideSince[source] >= roof.time * 1000 then
+            ChaseService.endRound(match, other, ('Véhicule de %s sur le toit.'):format(name))
+            return false
+        end
+    else
+        match.upsideSince[source] = nil
+    end
+
+    local history = match.headings[source]
+    history[#history + 1] = { at = now, heading = GetEntityHeading(vehicle) }
+    while history[1] and now - history[1].at > ChaseService.HEADING_HISTORY do table.remove(history, 1) end
+
+    local worst = math.min(engine, body)
+    return math.max(0, math.floor((worst - damage.minEngine) / (1000.0 - damage.minEngine) * 100))
+end
+
+---Signalement d'un client : 'pit' (il vient d'être PIT par son adversaire) ou 'stunt' (son propre saut).
+---@param source integer
+---@param kind any
+function ChaseService.onReport(source, kind)
+    local match = ChaseService.matches[ChaseService.playerMatch[source]]
+    if not match or match.phase ~= 'running' then return end
+    local other = ChaseService.opponent(match, source)
+
+    if kind == 'stunt' then
+        return ChaseService.endRound(match, other, ('Saut trop important de %s.'):format(GetPlayerName(source) or 'un joueur'))
+    end
+    if kind == 'pit' then ChaseService.onPit(match, source, other) end
+end
+
+---PIT signalé par la victime : vérifié (adversaire à côté, victime qui a pivoté), puis
+---avertissement pour l'auteur et réparation du véhicule de la victime.
+---@param match ChaseMatch
+---@param victim integer
+---@param attacker integer
+function ChaseService.onPit(match, victim, attacker)
+    local now = GetGameTimer()
+    local pit = Config.Chase.pit
+    if match.lastPit[victim] and now - match.lastPit[victim] < pit.window * 2000 then return end
+
+    local victimVehicle = GetVehiclePedIsIn(GetPlayerPed(victim), false)
+    local attackerVehicle = GetVehiclePedIsIn(GetPlayerPed(attacker), false)
+    if victimVehicle == 0 or attackerVehicle == 0 then return end
+    if #(GetEntityCoords(victimVehicle) - GetEntityCoords(attackerVehicle)) > pit.maxDistance then return end
+
+    -- La victime a bien pivoté ces dernières secondes (pas un simple accrochage)
+    local history, turned = match.headings[victim], 0
+    for _, sample in ipairs(history) do
+        turned = math.max(turned, ChaseService.headingGap(sample.heading, GetEntityHeading(victimVehicle)))
+    end
+    if turned < pit.turnAngle * 0.7 then return end
+
+    match.lastPit[victim] = now
+    match.warns[attacker] = match.warns[attacker] + 1
+    TriggerClientEvent(Events.client.chaseRepair, victim)
+    local warns = match.warns[attacker]
+    TriggerClientEvent(Events.client.notify, attacker,
+        ('PIT interdit : avertissement %d/%d.'):format(warns, pit.maxWarns), 'error')
+    TriggerClientEvent(Events.client.notify, victim,
+        'Ton adversaire t\'a fait un PIT : il prend un avertissement, ton véhicule est réparé.', 'info')
+
+    if warns >= pit.maxWarns then
+        ChaseService.endRound(match, victim, ('%s a fait trop de PIT.'):format(GetPlayerName(attacker) or 'Ton adversaire'))
     end
 end
 

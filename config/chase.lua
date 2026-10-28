@@ -18,6 +18,24 @@ Config.Chase = {
     roundPause = 6, -- secondes entre deux manches (résultat affiché)
     bucketBase = 1000, -- buckets des parties : bucketBase + numéro de la partie
 
+    -- Règles de conduite, vérifiées pendant la manche ---------------------------------------
+    -- Anti-PIT : faire tourner l'adversaire en percutant l'arrière de son véhicule. Celui qui le fait
+    -- prend un avertissement et le véhicule de la victime est réparé ; au bout de `maxWarns`
+    -- avertissements (sur toute la partie), il perd la manche.
+    pit = {
+        maxWarns = 3,
+        minSpeed = 30.0, -- km/h de la victime au moment du choc (les accrochages lents ne comptent pas)
+        turnAngle = 70.0, -- degrés : la victime a pivoté d'au moins autant juste après le choc
+        window = 2.0, -- secondes après le choc pendant lesquelles on regarde si elle pivote
+        maxDistance = 12.0, -- mètres entre les deux véhicules quand le serveur reçoit le signalement
+    },
+    -- Véhicule trop endommagé (santé GTA, 1000 = neuf) : son conducteur perd la manche
+    damage = { minEngine = 250.0, minBody = 250.0 },
+    -- Anti-stunt : un saut trop haut ou trop long fait perdre la manche à celui qui saute
+    stunt = { maxHeight = 6.0, maxAirTime = 1.6 }, -- mètres au-dessus du sol, secondes en l'air
+    -- Véhicule sur le toit : son conducteur perd la manche
+    roof = { angle = 140.0, time = 2.0 }, -- degrés de roulis, secondes sur le toit
+
     -- Véhicules proposés au vote (image : web/public/items/<model>.png si elle existe)
     vehicles = {
         { model = 'kuruma', label = 'Kuruma' },

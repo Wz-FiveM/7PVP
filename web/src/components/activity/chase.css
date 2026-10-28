@@ -255,3 +255,30 @@
   letter-spacing: 0.12em;
   color: var(--brume-hi);
 }
+
+/* État de son véhicule et avertissements anti-PIT */
+.chase-hud__status {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.chase-hud__health {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.chase-hud__fill--danger {
+  background: var(--hazard);
+}
+.chase-hud__warns {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.chase-hud__warns--on {
+  font-weight: 700;
+  color: var(--critique);
+}

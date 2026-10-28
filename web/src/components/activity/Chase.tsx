@@ -181,6 +181,26 @@ function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: Cha
             : `Immobilise le voleur ${hud.arrestTime} s, ou empêche-le de fuir`}
         </p>
         {/* Pas de distance affichée : le voleur ne sait pas s'il a semé le policier, et inversement */}
+        {live && (
+          <div className="chase-hud__status">
+            {live.health !== undefined && (
+              <div className="chase-hud__health">
+                <span className="mono">VÉHICULE {live.health} %</span>
+                <div className="chase-hud__bar">
+                  <div
+                    className={live.health < 30 ? 'chase-hud__fill chase-hud__fill--danger' : 'chase-hud__fill'}
+                    style={{ width: `${live.health}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {live.maxWarns !== undefined && (
+              <span className={live.warns ? 'mono chase-hud__warns chase-hud__warns--on' : 'mono chase-hud__warns'}>
+                AVERTISSEMENTS {live.warns ?? 0}/{live.maxWarns}
+              </span>
+            )}
+          </div>
+        )}
         {live && live.arrest > 0 && (
           <div className="chase-hud__arrest">
             <span className="disp">Immobilisation</span>

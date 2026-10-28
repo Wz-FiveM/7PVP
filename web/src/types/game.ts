@@ -278,6 +278,11 @@ export interface ChaseHudData {
 }
 export interface ChaseStateData {
   remaining: number;
+  /** santé de son véhicule en % (au-dessous de 0 : manche perdue), absente à pied */
+  health?: number;
+  /** avertissements anti-PIT sur la partie */
+  warns?: number;
+  maxWarns?: number;
   /** immobilisation du voleur, de 0 à 1 */
   arrest: number;
 }
