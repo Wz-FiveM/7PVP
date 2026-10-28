@@ -6,6 +6,7 @@ local Chase = PVP.define('Chase')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local PedUtils = PVP.use('PedUtils')
+local Freeroam = PVP.use('Freeroam')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
@@ -91,6 +92,8 @@ end
 ---@param data { vehicles: table[], seconds: integer, opponent: string }
 function Chase.openVote(data)
     State.activity = Chase.ACTIVITY
+    -- Pas d'armes en course : celles du menu Freeroam sont retirées (et pas rendues après une mort)
+    Freeroam.clearWeapons()
     Chase.voting = true
     SetNuiFocus(true, true)
     Nui.send('chaseVote', { open = true, vehicles = data.vehicles, seconds = data.seconds, opponent = data.opponent })
@@ -111,6 +114,7 @@ end
 function Chase.startRound(data)
     Chase.closeVote()
     State.activity = Chase.ACTIVITY
+    Freeroam.clearWeapons()
     Chase.round = data
     Chase.runningAt = GetGameTimer() + data.countdown * 1000
     Chase.contact = nil
