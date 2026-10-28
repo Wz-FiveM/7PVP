@@ -162,7 +162,6 @@ function VehicleImage({ model }: { model: string }) {
 function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: ChaseStateData | null }) {
   const countdown = useSecondsLeft(hud.countdown, hud.at);
   const thief = hud.role === 'thief';
-  const distance = live?.distance ?? 0;
   const remaining = live?.remaining ?? hud.roundTime;
 
   return (
@@ -178,15 +177,10 @@ function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: Cha
         </div>
         <p className="chase-hud__goal">
           {thief
-            ? `Fuis : mets ${(hud.escapeDistance / 1000).toLocaleString('fr-FR')} km entre toi et le policier`
+            ? `Fuis : mets ${hud.escapeDistance.toLocaleString('fr-FR')} m entre toi et le policier`
             : `Immobilise le voleur ${hud.arrestTime} s, ou empêche-le de fuir`}
         </p>
-        <div className="chase-hud__bar">
-          <div className="chase-hud__fill" style={{ width: `${Math.min(100, (distance / hud.escapeDistance) * 100)}%` }} />
-        </div>
-        <span className="mono chase-hud__distance">
-          {distance.toLocaleString('fr-FR')} m / {hud.escapeDistance.toLocaleString('fr-FR')} m
-        </span>
+        {/* Pas de distance affichée : le voleur ne sait pas s'il a semé le policier, et inversement */}
         {live && live.arrest > 0 && (
           <div className="chase-hud__arrest">
             <span className="disp">Immobilisation</span>

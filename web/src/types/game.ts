@@ -277,7 +277,6 @@ export interface ChaseHudData {
   arrestTime: number;
 }
 export interface ChaseStateData {
-  distance: number;
   remaining: number;
   /** immobilisation du voleur, de 0 à 1 */
   arrest: number;

@@ -1,5 +1,5 @@
 ---Course poursuite côté client (server/modules/activities/chase_service.lua) : vote du véhicule,
----placement au départ de chaque manche, repère de l'adversaire et HUD. Les règles (distance,
+---placement au départ de chaque manche et HUD (sans repère ni distance de l'adversaire). Les règles (distance,
 ---immobilisation, temps) sont vérifiées par le serveur, qui envoie l'état à afficher.
 ---@class ChaseModule
 local Chase = PVP.define('Chase')
@@ -14,8 +14,6 @@ Chase.FADE = 400
 
 ---@type integer|nil véhicule de la manche en cours
 Chase.vehicle = nil
----@type integer|nil repère de l'adversaire
-Chase.blip = nil
 Chase.voting = false
 
 function Chase.init()
@@ -128,24 +126,11 @@ function Chase.startRound(data)
     if Chase.vehicle and DoesEntityExist(Chase.vehicle) then FreezeEntityPosition(Chase.vehicle, false) end
 end
 
----État envoyé par le serveur : distance, temps restant, immobilisation, position de l'adversaire.
----@param data { distance: integer, remaining: integer, arrest: number, opponent: vector3 }
+---État envoyé par le serveur : temps restant et immobilisation du voleur.
+---@param data { remaining: integer, arrest: number }
 function Chase.onState(data)
     if not Chase.isActive() then return end
-    local position = data.opponent
-    if position then
-        if not Chase.blip then
-            Chase.blip = AddBlipForCoord(position.x, position.y, position.z)
-            SetBlipSprite(Chase.blip, 1)
-            SetBlipColour(Chase.blip, 1)
-            SetBlipScale(Chase.blip, 1.0)
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentSubstringPlayerName('Adversaire')
-            EndTextCommandSetBlipName(Chase.blip)
-        end
-        SetBlipCoords(Chase.blip, position.x, position.y, position.z)
-    end
-    Nui.send('chaseState', { distance = data.distance, remaining = data.remaining, arrest = data.arrest })
+    Nui.send('chaseState', { remaining = data.remaining, arrest = data.arrest })
 end
 
 ---Fin de la partie : retour à la zone safe du Freeroam.
@@ -179,7 +164,5 @@ end
 
 function Chase.cleanup()
     Chase.deleteVehicle()
-    if Chase.blip and DoesBlipExist(Chase.blip) then RemoveBlip(Chase.blip) end
-    Chase.blip = nil
     State.activity = nil
 end

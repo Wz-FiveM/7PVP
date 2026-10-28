@@ -428,10 +428,10 @@ export const DEV_ACTIONS: DevAction[] = [
         action: 'chaseHud',
         data: {
           open: true, round: 1, role: 'thief', scores: { me: 0, opponent: 0 }, opponent: 'Bravo',
-          countdown: 3, roundTime: 180, escapeDistance: 1500, arrestTime: 5,
+          countdown: 3, roundTime: 180, escapeDistance: 500, arrestTime: 5,
         },
       });
-      sendNui({ action: 'chaseState', data: { distance: 640, remaining: 142, arrest: 0.4 } });
+      sendNui({ action: 'chaseState', data: { remaining: 142, arrest: 0.4 } });
     },
   },
   {

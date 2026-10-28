@@ -174,11 +174,6 @@
   background: var(--role);
   transition: width 0.25s linear;
 }
-.chase-hud__distance {
-  align-self: flex-end;
-  font-size: 0.75rem;
-  color: var(--brume-hi);
-}
 .chase-hud__arrest {
   display: flex;
   flex-direction: column;

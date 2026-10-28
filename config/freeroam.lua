@@ -14,7 +14,7 @@ Config.FreeroamActivities = {
     chase = {
         label = 'Course poursuite',
         tagline = '1 contre 1 · 2 manches',
-        description = "Chacun vote pour un véhicule. Le voleur doit mettre 1,5 km entre lui et le policier en 3 minutes ; le policier gagne s'il l'immobilise 5 secondes. À la deuxième manche, on inverse les rôles et les véhicules.",
+        description = "Chacun vote pour un véhicule. Le voleur doit mettre 500 m entre lui et le policier en 3 minutes, sans repère ni distance affichée ; le policier gagne s'il l'immobilise 5 secondes. À la deuxième manche, on inverse les rôles et les véhicules.",
         icon = 'vehicle',
         enabled = true,
     },

@@ -1,7 +1,8 @@
 -- Course poursuite : mode de jeu du Freeroam (PNJ de la zone safe), 1 contre 1 en deux manches.
 --  1. Les deux joueurs votent chacun pour un véhicule.
 --  2. Manche 1 : tous les deux avec le véhicule du joueur 1 ; le joueur 1 est le voleur, le joueur 2
---     le policier, qui part juste derrière. Le voleur gagne s'il met `escapeDistance` entre eux avant
+--     le policier, qui part juste derrière. Aucun repère ni distance à l'écran : on se cherche à vue.
+--     Le voleur gagne s'il met `escapeDistance` entre eux avant
 --     la fin du temps ; le policier gagne s'il l'immobilise `arrestTime` secondes, ou si le temps finit.
 --  3. Manche 2 : véhicule du joueur 2, rôles inversés. 1 - 1 : égalité.
 -- Chaque partie se joue dans son propre bucket : les autres joueurs du Freeroam ne gênent pas.
@@ -9,7 +10,7 @@ Config.Chase = {
     voteTime = 20, -- secondes pour choisir son véhicule
     countdown = 5, -- secondes à l'arrêt avant le départ
     roundTime = 180, -- secondes laissées au voleur pour fuir
-    escapeDistance = 1500.0, -- mètres entre voleur et policier pour que le voleur gagne
+    escapeDistance = 500.0, -- mètres entre voleur et policier pour que le voleur gagne (non affichée en jeu)
     arrestTime = 5, -- secondes d'immobilisation pour que le policier gagne
     arrestSpeed = 3.0, -- km/h : en dessous, le voleur est considéré immobilisé
     arrestDistance = 15.0, -- mètres : le policier doit être collé au voleur pour l'immobiliser

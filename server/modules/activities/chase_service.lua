@@ -263,12 +263,10 @@ function ChaseService.check(match, sendState)
     if sendState then
         local arrest = match.immobileSince and (now - match.immobileSince) / (Config.Chase.arrestTime * 1000) or 0
         local remaining = math.max(0, math.ceil((match.endAt - now) / 1000))
-        TriggerClientEvent(Events.client.chaseState, match.thief, {
-            distance = math.floor(distance), remaining = remaining, arrest = arrest, opponent = copPos,
-        })
-        TriggerClientEvent(Events.client.chaseState, match.cop, {
-            distance = math.floor(distance), remaining = remaining, arrest = arrest, opponent = thiefPos,
-        })
+        -- Ni distance ni position de l'adversaire : chacun doit le chercher (ou le semer) à vue
+        local state = { remaining = remaining, arrest = arrest }
+        TriggerClientEvent(Events.client.chaseState, match.thief, state)
+        TriggerClientEvent(Events.client.chaseState, match.cop, state)
     end
 end
 
