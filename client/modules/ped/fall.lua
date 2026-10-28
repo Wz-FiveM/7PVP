@@ -2,7 +2,9 @@
 ---  - pendant une vraie chute, le ped est protégé des chocs (les dégâts de chute en sont)
 ---    et ne peut pas passer en ragdoll ;
 ---  - une pose neutre remplace l'animation « bras en l'air » ;
----  - à l'atterrissage, la roulade est coupée et les protections sont retirées.
+---  - à l'atterrissage, la roulade est coupée et les protections sont retirées ;
+---  - en montant dans un véhicule (ou sur son toit) en pleine chute, les protections sont retirées
+---    aussitôt : le ragdoll bloqué fige le véhicule.
 ---Le parachute n'est pas concerné.
 ---@class FallModule
 local Fall = PVP.define('Fall')
@@ -27,7 +29,9 @@ function Fall.loop()
             if not Fall.active then Fall.start(ped) end
             Wait(0)
         else
-            if Fall.active then Fall.land(ped) end
+            if Fall.active then
+                if Fall.inVehicle(ped) then Fall.leave(ped) else Fall.land(ped) end
+            end
             Wait(Fall.IDLE_INTERVAL)
         end
     end
@@ -37,9 +41,16 @@ end
 ---@param ped integer
 ---@return boolean
 function Fall.isFalling(ped)
-    if not IsPedFalling(ped) or IsPedInAnyVehicle(ped, false) then return false end
+    if not IsPedFalling(ped) or Fall.inVehicle(ped) then return false end
     if IsPedInParachuteFreeFall(ped) or GetPedParachuteState(ped) > 0 then return false end
     return Fall.active or GetEntityVelocity(ped).z <= -Config.Fall.minSpeed
+end
+
+---Dans un véhicule, en train d'y monter ou accroché à son toit.
+---@param ped integer
+---@return boolean
+function Fall.inVehicle(ped)
+    return IsPedInAnyVehicle(ped, true) or GetVehiclePedIsTryingToEnter(ped) ~= 0 or IsEntityAttached(ped)
 end
 
 ---@param ped integer
@@ -70,6 +81,21 @@ function Fall.land(ped)
     ClearPedTasks(ped)
     RemoveAnimDict(Config.Fall.animDict)
     Wait(Fall.LAND_GRACE)
+    Fall.unprotect(ped)
+end
+
+---Montée dans un véhicule en pleine chute : ni ClearPedTasks (il couperait la montée) ni délai,
+---sinon le véhicule reste figé.
+---@param ped integer
+function Fall.leave(ped)
+    Fall.active = false
+    StopAnimTask(ped, Config.Fall.animDict, Config.Fall.animName, 8.0)
+    RemoveAnimDict(Config.Fall.animDict)
+    Fall.unprotect(ped)
+end
+
+---@param ped integer
+function Fall.unprotect(ped)
     SetEntityProofs(ped, false, false, false, false, false, false, false, false)
     SetPedCanRagdoll(ped, true)
 end
