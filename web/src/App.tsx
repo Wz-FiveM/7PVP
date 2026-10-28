@@ -1,5 +1,6 @@
 import { ActivityPanel } from './components/activity/ActivityPanel';
 import { Chase } from './components/activity/Chase';
+import { Cvc } from './components/activity/Cvc';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { NoclipHelp } from './components/admin/NoclipHelp';
 import { Chat } from './components/chat/Chat';
@@ -46,6 +47,7 @@ export function App() {
       {inFreeroam && state.freeroam.menuOpen && <FreeroamMenu />}
       {inFreeroam && <ActivityPanel />}
       {inFreeroam && <Chase />}
+      {inFreeroam && <Cvc />}
       {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && <Chat />}
       {!creating && !inLobby && state.admin.open && <AdminPanel />}
       {!creating && !inLobby && state.noclip.active && !state.admin.open && !state.menu.open && <NoclipHelp />}

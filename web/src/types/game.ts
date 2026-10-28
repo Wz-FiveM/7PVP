@@ -283,6 +283,26 @@ export interface ChaseStateData {
   arrest: number;
 }
 
+/** CVC (server/modules/activities/cvc_service.lua) : scores et survivants vus par son équipe */
+export interface CvcScores {
+  us: number;
+  them: number;
+}
+export interface CvcHudData {
+  round: number;
+  team: string;
+  teamId: 'alpha' | 'bravo';
+  arena: string;
+  countdown: number;
+  roundTime: number;
+  roundsToWin: number;
+  scores: CvcScores;
+}
+export interface CvcStateData {
+  remaining: number;
+  alive: CvcScores;
+}
+
 /** Mode de jeu du Freeroam, lancé depuis son PNJ (Config.FreeroamActivities) */
 export interface ActivityInfo {
   id: string;

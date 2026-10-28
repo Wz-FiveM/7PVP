@@ -18,6 +18,7 @@ Events.server = {
     chatSend = '7pvp:server:chatSend',
     vehicleSpawned = '7pvp:server:vehicleSpawned',
     lootClose = '7pvp:server:lootClose',
+    cvcVehicle = '7pvp:server:cvcVehicle',
 }
 
 -- Serveur -> client
@@ -58,6 +59,12 @@ Events.client = {
     chaseState = '7pvp:client:chaseState',
     chaseRoundEnd = '7pvp:client:chaseRoundEnd',
     chaseEnd = '7pvp:client:chaseEnd',
+    cvcQueue = '7pvp:client:cvcQueue',
+    cvcRound = '7pvp:client:cvcRound',
+    cvcState = '7pvp:client:cvcState',
+    cvcRoundEnd = '7pvp:client:cvcRoundEnd',
+    cvcEnd = '7pvp:client:cvcEnd',
+    cvcVehicle = '7pvp:client:cvcVehicle',
 }
 
 -- Événements internes (même côté, jamais réseau)

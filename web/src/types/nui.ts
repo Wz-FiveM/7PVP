@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseScores, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseScores, CvcHudData, CvcStateData, CvcScores, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -59,6 +59,13 @@ export type NuiMessage =
   | { action: 'chaseState'; data: ChaseStateData }
   | { action: 'chaseBanner'; data: { won: boolean; reason: string; round: number; scores: ChaseScores } }
   | { action: 'chaseEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: ChaseScores } }
+  /** CVC : file d'attente, HUD de manche, hors zone, résultats */
+  | { action: 'cvcQueue'; data: { count: number; needed?: number; max?: number; startIn?: number } }
+  | { action: 'cvcHud'; data: { open: boolean } & Partial<CvcHudData> }
+  | { action: 'cvcState'; data: CvcStateData }
+  | { action: 'cvcOutside'; data: { outside: boolean } }
+  | { action: 'cvcBanner'; data: { result: 'won' | 'lost' | 'draw'; reason: string; round: number; scores: CvcScores } }
+  | { action: 'cvcEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: CvcScores } }
   | { action: 'alive'; data?: undefined };
 
 /** Réponse du callback NUI `ready` */

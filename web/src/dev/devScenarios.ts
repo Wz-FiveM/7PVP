@@ -18,6 +18,8 @@ function resetScreens(): void {
   sendNui({ action: 'lootContainer', data: { open: false } });
   sendNui({ action: 'chaseHud', data: { open: false } });
   sendNui({ action: 'chaseVote', data: { open: false } });
+  sendNui({ action: 'cvcHud', data: { open: false } });
+  sendNui({ action: 'cvcOutside', data: { outside: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -440,6 +442,26 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'Course : fin',
     run: () => sendNui({ action: 'chaseEnd', data: { result: 'draw', scores: { me: 1, opponent: 1 } } }),
+  },
+  { label: 'CVC : file', run: () => sendNui({ action: 'cvcQueue', data: { count: 3, needed: 2, max: 16, startIn: 24 } }) },
+  {
+    label: 'CVC : manche',
+    run: () => {
+      sendNui({ action: 'cvcQueue', data: { count: 0 } });
+      sendNui({
+        action: 'cvcHud',
+        data: {
+          open: true, round: 2, team: 'Alpha', teamId: 'alpha', arena: 'Désert de Senora',
+          countdown: 3, roundTime: 300, roundsToWin: 3, scores: { us: 1, them: 0 },
+        },
+      });
+      sendNui({ action: 'cvcState', data: { remaining: 212, alive: { us: 3, them: 2 } } });
+    },
+  },
+  { label: 'CVC : hors zone', run: () => sendNui({ action: 'cvcOutside', data: { outside: true } }) },
+  {
+    label: 'CVC : fin',
+    run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 } } }),
   },
   { label: 'Interaction : ciblage', run: () => sendNui({ action: 'interaction', data: { open: true, items: false } }) },
   {

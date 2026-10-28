@@ -7,9 +7,9 @@ Config.FreeroamActivities = {
     cvc = {
         label = 'CVC',
         tagline = 'Combat par équipe',
-        description = 'Deux équipes s\'affrontent en convoi : stratégie, placement et communication.',
+        description = "Deux équipes s'affrontent en convoi, même kit pour tous et une seule vie par manche : la dernière équipe en vie gagne la manche. Première à 3 manches.",
         icon = 'group',
-        enabled = false,
+        enabled = true,
     },
     chase = {
         label = 'Course poursuite',

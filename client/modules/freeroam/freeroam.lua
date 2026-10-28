@@ -5,6 +5,7 @@ local Freeroam = PVP.define('Freeroam')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Chase = PVP.use('Chase')
+local Cvc = PVP.use('Cvc')
 local Admin = PVP.use('Admin')
 local PedUtils = PVP.use('PedUtils')
 local Callback = PVP.use('Callback')
@@ -192,6 +193,8 @@ end
 
 ---Mort en Freeroam : pas de sac ni d'écran de mort, on réapparaît sur place.
 function Freeroam.onDeath()
+    -- CVC : une seule vie par manche, on reste mort jusqu'à la manche suivante
+    if Cvc.isActive() then return Cvc.onDeath() end
     State.dead = true
     CreateThread(function()
         Wait(Config.Freeroam.respawnDelay * 1000)
@@ -212,6 +215,9 @@ function Freeroam.cleanup()
     Freeroam.deleteVehicle()
     -- Course en cours ou file d'attente : abandonnées (le serveur a déjà réglé la partie)
     Chase.cleanup()
+    Cvc.cleanup()
+    Nui.send('cvcQueue', { count = 0 })
+    Nui.send('cvcHud', { open = false })
     Nui.send('chaseQueue', { count = 0 })
     Nui.send('chaseHud', { open = false })
     RemoveAllPedWeapons(PlayerPedId(), true)
