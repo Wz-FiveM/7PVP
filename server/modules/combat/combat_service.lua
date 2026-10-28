@@ -59,11 +59,12 @@ function CombatService.onNpcHitReport(source, attackerId, netId, hit)
     if not CombatService.isWithinKillRange(attacker:getCoords(), GetEntityCoords(ped)) then return end
 
     local damage = CombatService.clampDamage(hit.damage, CombatService.MAX_NPC_HIT_HEALTH)
-    if damage == 0 then return end
+    local armor = CombatService.clampDamage(hit.armor, CombatService.MAX_HIT_ARMOR) -- gilet des zombies du SWAT
+    if damage + armor == 0 then return end
 
     TriggerClientEvent(Events.client.hitConfirm, attacker.source, {
         damage = damage,
-        armor = 0,
+        armor = armor,
         headshot = hit.headshot == true,
         fatal = hit.fatal == true,
     })

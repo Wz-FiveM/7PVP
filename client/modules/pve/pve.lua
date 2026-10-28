@@ -152,6 +152,8 @@ function Pve.setupPed(ped, npc)
         local health = 100 + math.floor((npc.health - 100) * zombieType.health * night)
         SetPedMaxHealth(ped, health)
         SetEntityHealth(ped, health)
+        -- Gilet pare-balles du SWAT
+        if zombieType.armour then SetPedArmour(ped, zombieType.armour) end
         state:set('pvpNpcReady', true, true)
     end
     if zombieType == Config.ZombieTypes.tank then

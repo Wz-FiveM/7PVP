@@ -5,12 +5,22 @@
 ---@class ZombieGearModule
 local ZombieGear = PVP.define('ZombieGear')
 local PedUtils = PVP.use('PedUtils')
+local State = PVP.use('State')
+local Effects = PVP.use('Effects')
+local Events = PVP.use('Events')
 
 ZombieGear.DROPPED_LIFETIME = 10000 -- ms avant suppression d'une pièce tombée au sol
 ZombieGear.MODEL_TIMEOUT = 3000
 
 ZombieGear.attached = {} -- [ped] = { [pieceId] = objet }
 ZombieGear.loading = {} -- [ped] = true pendant le chargement des modèles
+
+function ZombieGear.init()
+    -- Diffusé par le serveur à la mort d'un zombie toxique
+    RegisterNetEvent(Events.client.zombieGasCloud, function(coords, typeId)
+        ZombieGear.onGasCloud(coords, typeId)
+    end)
+end
 
 ---Crée l'équipement du zombie (une fois par client) puis retire les pièces perdues.
 ---@param ped integer
@@ -25,7 +35,7 @@ function ZombieGear.update(ped, zombieType)
     local state = Entity(ped).state
     for pieceId, object in pairs(ZombieGear.attached[ped]) do
         local piece = Config.ZombieGear[pieceId]
-        if state[piece.dropWhen] then
+        if piece.dropWhen and state[piece.dropWhen] then
             ZombieGear.attached[ped][pieceId] = nil
             ZombieGear.drop(object, piece)
         end
@@ -66,9 +76,9 @@ function ZombieGear.createPiece(ped, pieceId)
     local coords = GetEntityCoords(ped)
     local object = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
     SetModelAsNoLongerNeeded(model)
-    -- Sans collision : les balles touchent le zombie, pas l'objet
+    -- Sans collision, les balles traversent l'objet et touchent le zombie ; avec (bouclier), il les arrête
     AttachEntityToEntity(object, ped, GetPedBoneIndex(ped, option.bone), option.pos.x, option.pos.y, option.pos.z,
-        option.rot.x, option.rot.y, option.rot.z, true, true, false, false, 2, true)
+        option.rot.x, option.rot.y, option.rot.z, false, false, piece.collision == true, false, 2, true)
     return object
 end
 
@@ -150,4 +160,62 @@ function ZombieGear.onDeath(ped, zombieType)
         local coords = GetEntityCoords(ped)
         AddExplosion(coords.x, coords.y, coords.z, explosion.type, explosion.damage, true, false, explosion.shake)
     end)
+end
+
+-- ---------------------------------------------------------------------------
+-- Nuage toxique (reçu par tous les joueurs proches)
+-- ---------------------------------------------------------------------------
+
+---@param coords vector3
+---@param typeId string clé de Config.ZombieTypes
+function ZombieGear.onGasCloud(coords, typeId)
+    local zombieType = Config.ZombieTypes[typeId]
+    local cloud = zombieType and zombieType.gasCloud
+    if not cloud or type(coords) ~= 'vector3' then return end
+    CreateThread(function()
+        ZombieGear.playGasCloud(coords, cloud)
+    end)
+    CreateThread(function()
+        ZombieGear.breatheGasCloud(coords, cloud)
+    end)
+end
+
+---Fumée du nuage (particules locales à ce client).
+---@param coords vector3
+---@param cloud table
+function ZombieGear.playGasCloud(coords, cloud)
+    local particle = cloud.particle
+    RequestNamedPtfxAsset(particle.asset)
+    local limit = GetGameTimer() + ZombieGear.MODEL_TIMEOUT
+    while not HasNamedPtfxAssetLoaded(particle.asset) and GetGameTimer() < limit do Wait(0) end
+    if not HasNamedPtfxAssetLoaded(particle.asset) then return end
+
+    UseParticleFxAssetNextCall(particle.asset)
+    local effect = StartParticleFxLoopedAtCoord(particle.name, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0,
+        particle.scale, false, false, false, false)
+    Wait(cloud.duration * 1000)
+    StopParticleFxLooped(effect, false)
+end
+
+---Le joueur local perd de la vie tant qu'il reste dans le nuage (sauf sous Antizin).
+---@param coords vector3
+---@param cloud table
+function ZombieGear.breatheGasCloud(coords, cloud)
+    local endsAt = GetGameTimer() + cloud.duration * 1000
+    local choking = false
+    while GetGameTimer() < endsAt do
+        local ped = PlayerPedId()
+        local inside = #(GetEntityCoords(ped) - coords) <= cloud.radius
+            and State.isAlive() and not State.isInSafeZone() and not State.godmode
+            and not Effects.isActive('antizin')
+        if inside then
+            ApplyDamageToPed(ped, cloud.damage, true, 0)
+        end
+        if inside ~= choking then
+            choking = inside
+            if choking then AnimpostfxPlay(cloud.screenEffect, 0, true) else AnimpostfxStop(cloud.screenEffect) end
+        end
+        Wait(cloud.interval)
+    end
+    if choking then AnimpostfxStop(cloud.screenEffect) end
 end

@@ -236,12 +236,39 @@ Config.ZombieTypes = {
             shake = 1.0, -- tremblement de caméra
         },
     },
+    -- Ancien du SWAT : gilet pare-balles qui encaisse les premiers tirs (hitmarker bleu)
+    swat = {
+        label = 'SWAT', weight = 5, nightWeight = 8, health = 1.0, damage = 1.2, lootRolls = 1,
+        models = { 's_m_y_swat_01' },
+        armour = 100, -- points de gilet, perdus avant la vie (sauf tirs à la tête)
+    },
+    -- Bouclier pare-balles devant lui : viser la tête, les jambes, ou le contourner
+    riot = {
+        label = 'Anti-émeute', weight = 4, nightWeight = 6, health = 1.2, damage = 1.3, speed = 1.0, lootRolls = 1,
+        models = { 's_m_y_cop_01' },
+        gear = { 'shield' },
+    },
+    -- Masque à gaz : à sa mort, il libère un nuage toxique qui blesse les joueurs dedans
+    -- (l'Antizin protège)
+    toxic = {
+        label = 'Toxique', weight = 4, nightWeight = 6, health = 1.0, damage = 1.0, lootRolls = 1,
+        gear = { 'gasMask' },
+        gasCloud = {
+            radius = 6.0, -- mètres
+            duration = 12, -- secondes
+            damage = 6, -- dégâts toutes les `interval` ms (l'armure encaisse en premier)
+            interval = 1000,
+            particle = { asset = 'core', name = 'exp_grd_bzgas_smoke', scale = 2.0 },
+            screenEffect = 'DrugsMichaelAliensFightIn',
+        },
+    },
 }
 
 -- Équipement visible des zombies (objets attachés à un os du ped, recréés par chaque client).
 -- `options` : un modèle est choisi par zombie ; pos / rot : décalage par rapport à l'os
 -- (à ajuster en jeu si l'objet est mal placé). `dropWhen` : la pièce tombe quand cet état
--- du zombie passe à vrai ; `remove` : elle disparaît au lieu de tomber au sol.
+-- du zombie passe à vrai ; `remove` : elle disparaît au lieu de tomber au sol ;
+-- `collision` : l'objet arrête les balles (bouclier).
 -- Os utiles : 31086 tête, 12844 tête (IK), 24818 haut du dos.
 Config.ZombieGear = {
     helmet = {
@@ -256,6 +283,17 @@ Config.ZombieGear = {
         remove = true,
         options = {
             { model = 'p_s_scuba_tank_s', bone = 24818, pos = vector3(-0.25, -0.25, 0.0), rot = vector3(180.0, 90.0, 0.0) },
+        },
+    },
+    shield = {
+        collision = true,
+        options = {
+            { model = 'prop_ballistic_shield', bone = 24818, pos = vector3(-0.2, 0.4, 0.0), rot = vector3(180.0, 90.0, 0.0) },
+        },
+    },
+    gasMask = {
+        options = {
+            { model = 'p_s_scuba_mask_s', bone = 12844, pos = vector3(0.0, 0.0, 0.0), rot = vector3(180.0, 90.0, 0.0) },
         },
     },
 }

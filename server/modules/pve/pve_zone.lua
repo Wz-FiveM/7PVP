@@ -14,8 +14,11 @@ local LootService = PVP.use('LootService')
 local Utils = PVP.use('Utils')
 local ModeRegistry = PVP.use('ModeRegistry')
 local Clock = PVP.use('Clock')
+local Events = PVP.use('Events')
 
 PveZone.__index = PveZone
+-- Les joueurs à cette distance voient le nuage toxique (les particules sont locales à chaque client)
+PveZone.GAS_BROADCAST_RANGE = 120.0
 
 ---@param zone table
 ---@return PveZone
@@ -125,6 +128,18 @@ function PveZone:spawnNpc()
     self.peds[ped] = typeId
 end
 
+---Nuage toxique d'un zombie mort : chaque joueur proche affiche la fumée et subit
+---les dégâts tant qu'il reste dedans (voir client/modules/pve/zombie_gear.lua).
+---@param coords vector3
+---@param typeId string
+function PveZone.releaseGas(coords, typeId)
+    for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
+        if #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveZone.GAS_BROADCAST_RANGE then
+            TriggerClientEvent(Events.client.zombieGasCloud, id, coords, typeId)
+        end
+    end
+end
+
 function PveZone:despawnAll()
     for ped in pairs(self.peds) do
         if DoesEntityExist(ped) then DeleteEntity(ped) end
@@ -137,7 +152,8 @@ end
 ---@param killer PvpPlayer|nil
 function PveZone:onNpcDeath(ped, killer)
     if not self:owns(ped) then return end
-    local zombieType = Config.ZombieTypes[self.peds[ped]] or Config.ZombieTypes.walker
+    local typeId = self.peds[ped]
+    local zombieType = Config.ZombieTypes[typeId] or Config.ZombieTypes.walker
     self.peds[ped] = nil
     self.respawnQueue[#self.respawnQueue + 1] = GetGameTimer() + self.config.respawn * 1000
 
@@ -147,6 +163,10 @@ function PveZone:onNpcDeath(ped, killer)
 
     -- Le butin reste sur le corps : il disparaît une fois fouillé (ou à l'expiration du butin)
     if self.horde then self.horde.kills = self.horde.kills + 1 end
+
+    if zombieType.gasCloud then
+        PveZone.releaseGas(GetEntityCoords(ped), typeId)
+    end
 
     -- Plus de butin la nuit et sur les zombies spéciaux
     local rolls = 1 + (zombieType.lootRolls or 0) + (Clock.isNight() and Config.Night.extraLootRolls or 0)

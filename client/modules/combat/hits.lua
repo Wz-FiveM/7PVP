@@ -20,7 +20,7 @@ Hits.armor = 0
 Hits.pendingDamage = nil
 -- Dernier joueur qui nous a touchés : { serverId, headshot, fatal, at }
 Hits.pendingAttacker = nil
--- Vie connue des zombies dont ce client est propriétaire : [ped] = vie
+-- Vie et gilet connus des zombies dont ce client est propriétaire : [ped] = { health, armor }
 Hits.zombieHealth = {}
 
 function Hits.init()
@@ -152,11 +152,17 @@ function Hits.effectiveHealth(ped)
     return math.max(0, GetEntityHealth(ped) - 100)
 end
 
----Commence à suivre la vie d'un zombie dont ce client vient de devenir propriétaire.
+---@param ped integer
+---@return { health: integer, armor: integer }
+function Hits.zombieSnapshot(ped)
+    return { health = Hits.effectiveHealth(ped), armor = GetPedArmour(ped) }
+end
+
+---Commence à suivre la vie (et le gilet) d'un zombie dont ce client vient de devenir propriétaire.
 ---@param ped integer
 function Hits.watchZombie(ped)
     if Hits.zombieHealth[ped] == nil then
-        Hits.zombieHealth[ped] = Hits.effectiveHealth(ped)
+        Hits.zombieHealth[ped] = Hits.zombieSnapshot(ped)
     end
 end
 
@@ -178,14 +184,15 @@ function Hits.onZombieDamaged(ped, attacker, fatal)
     Wait(0)
     if not DoesEntityExist(ped) or Hits.zombieHealth[ped] == nil then return end
 
-    local health = Hits.effectiveHealth(ped)
-    local lost = Hits.zombieHealth[ped] - health
-    Hits.zombieHealth[ped] = health
-    if lost <= 0 then return end
+    local known, current = Hits.zombieHealth[ped], Hits.zombieSnapshot(ped)
+    Hits.zombieHealth[ped] = current
+    local lost = math.max(0, known.health - current.health)
+    local lostArmor = math.max(0, known.armor - current.armor)
+    if lost + lostArmor == 0 then return end
 
     local hit = {
         damage = lost,
-        armor = 0,
+        armor = lostArmor,
         headshot = Hits.isHeadshot(ped),
         fatal = fatal or IsEntityDead(ped),
     }

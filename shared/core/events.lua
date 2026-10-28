@@ -41,6 +41,7 @@ Events.client = {
     lootRemove = '7pvp:client:lootRemove',
     lootSync = '7pvp:client:lootSync',
     zombieVomit = '7pvp:client:zombieVomit',
+    zombieGasCloud = '7pvp:client:zombieGasCloud',
     hitConfirm = '7pvp:client:hitConfirm',
     combatTag = '7pvp:client:combatTag',
     groupSync = '7pvp:client:groupSync',
