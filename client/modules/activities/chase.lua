@@ -19,8 +19,17 @@ Chase.voting = false
 Chase.round = nil
 -- GetGameTimer() du départ (fin du compte à rebours)
 Chase.runningAt = 0
----@type { at: integer, heading: number }|nil choc avec l'adversaire en cours d'examen (anti-PIT)
+---@type { at: integer, heading: number, health: table }|nil choc avec l'adversaire en cours d'examen (anti-PIT)
 Chase.contact = nil
+---@type { engine: number, body: number, tank: number }|nil vie du véhicule juste avant le PIT signalé
+Chase.pitHealth = nil
+-- Vie du véhicule relevée régulièrement : celle d'avant le choc est rendue après un PIT
+---@type { at: integer, engine: number, body: number, tank: number }[]
+Chase.healthSamples = {}
+Chase.HEALTH_SAMPLE = 100
+Chase.HEALTH_HISTORY = 1000
+-- ms : la vie rendue est celle d'au moins ce délai avant le choc (les dégâts arrivent avant la détection)
+Chase.HEALTH_BEFORE = 250
 Chase.airSince = nil
 Chase.stuntReported = false
 -- Dégâts réalistes : vitesse mesurée juste avant (pour repérer les chocs violents)
@@ -105,6 +114,8 @@ function Chase.startRound(data)
     Chase.round = data
     Chase.runningAt = GetGameTimer() + data.countdown * 1000
     Chase.contact = nil
+    Chase.pitHealth = nil
+    Chase.healthSamples = {}
     Chase.airSince = nil
     Chase.stuntReported = false
     Chase.lastSpeed = nil
@@ -147,6 +158,7 @@ function Chase.startRound(data)
             SetVehRadioStation(vehicle, 'OFF')
             SetPedIntoVehicle(ped, vehicle, -1)
             FreezeEntityPosition(vehicle, true)
+            Chase.applyTuning(vehicle)
             Chase.applyDamageHandling(vehicle, data.rules.damage)
             Chase.vehicle = vehicle
         end
@@ -156,6 +168,22 @@ function Chase.startRound(data)
     -- Départ quand le compte à rebours du serveur est fini
     Wait(data.countdown * 1000)
     if Chase.vehicle and DoesEntityExist(Chase.vehicle) then FreezeEntityPosition(Chase.vehicle, false) end
+end
+
+-- Types de mods à bascule (activés/désactivés) : turbo, fumée des pneus, phares xénon
+Chase.TOGGLE_MODS = { 18, 20, 22 }
+Chase.MOD_TYPES = 49
+
+---Véhicule full custom et full perf (chaque mod au niveau maximum, turbo compris), avec le plein.
+---@param vehicle integer
+function Chase.applyTuning(vehicle)
+    SetVehicleModKit(vehicle, 0)
+    for modType = 0, Chase.MOD_TYPES do
+        local count = GetNumVehicleMods(vehicle, modType)
+        if count > 0 then SetVehicleMod(vehicle, modType, count - 1, false) end
+    end
+    for _, modType in ipairs(Chase.TOGGLE_MODS) do ToggleVehicleMod(vehicle, modType, true) end
+    SetVehicleFuelLevel(vehicle, 100.0)
 end
 
 ---Place de départ sur la route la plus proche, dans le sens de la circulation. Les deux clients
@@ -247,6 +275,7 @@ function Chase.monitorLoop()
     while true do
         local vehicle = Chase.vehicle
         if Chase.isActive() and Chase.round and vehicle and DoesEntityExist(vehicle) and GetGameTimer() >= Chase.runningAt then
+            Chase.sampleHealth(vehicle)
             Chase.checkPit(vehicle)
             Chase.checkStunt(vehicle)
             Chase.applyWear(vehicle)
@@ -264,22 +293,52 @@ function Chase.opponentVehicle()
     return GetVehiclePedIsIn(GetPlayerPed(player), false)
 end
 
+---Relève la vie du véhicule toutes les HEALTH_SAMPLE ms (gardée HEALTH_HISTORY ms).
+---@param vehicle integer
+function Chase.sampleHealth(vehicle)
+    local now = GetGameTimer()
+    local samples = Chase.healthSamples
+    local last = samples[#samples]
+    if last and now - last.at < Chase.HEALTH_SAMPLE then return end
+    samples[#samples + 1] = {
+        at = now,
+        engine = GetVehicleEngineHealth(vehicle),
+        body = GetVehicleBodyHealth(vehicle),
+        tank = GetVehiclePetrolTankHealth(vehicle),
+    }
+    while samples[1] and now - samples[1].at > Chase.HEALTH_HISTORY do table.remove(samples, 1) end
+end
+
+---@param now integer
+---@return { engine: number, body: number, tank: number }|nil vie relevée juste avant `now - HEALTH_BEFORE`
+function Chase.healthBefore(now)
+    local found = Chase.healthSamples[1]
+    for _, sample in ipairs(Chase.healthSamples) do
+        if now - sample.at >= Chase.HEALTH_BEFORE then found = sample end
+    end
+    return found and { engine = found.engine, body = found.body, tank = found.tank }
+end
+
 ---Anti-PIT, côté victime : un choc de l'adversaire par l'arrière ou le côté, à bonne vitesse,
 ---suivi d'une rotation brutale de son propre véhicule. Le serveur vérifie avant de sanctionner.
 ---@param vehicle integer
 function Chase.checkPit(vehicle)
     local rules = Chase.round.rules.pit
     local now = GetGameTimer()
-    if not Chase.contact then
-        local other = Chase.opponentVehicle()
-        if other == 0 or not IsEntityTouchingEntity(vehicle, other) then return end
-        if GetEntitySpeed(vehicle) * 3.6 < rules.minSpeed then return end
-        -- Adversaire devant soi : c'est nous qui le percutons, pas un PIT subi
+    local other = Chase.opponentVehicle()
+    -- Choc avec l'adversaire : contact physique, ou dégâts qu'il nous a faits (un choc bref à
+    -- grande vitesse peut échapper au contact)
+    local hit = other ~= 0 and (IsEntityTouchingEntity(vehicle, other) or HasEntityBeenDamagedByEntity(vehicle, other, true))
+    if other ~= 0 then ClearEntityLastDamageEntity(vehicle) end
+
+    if hit and not Chase.contact and GetEntitySpeed(vehicle) * 3.6 >= rules.minSpeed then
+        -- Adversaire nettement devant soi : c'est nous qui le percutons, pas un PIT subi
         local relative = GetOffsetFromEntityGivenWorldCoords(vehicle, GetEntityCoords(other))
-        if relative.y > 1.0 then return end
-        Chase.contact = { at = now, heading = GetEntityHeading(vehicle) }
-        return
+        if relative.y <= rules.maxFrontOffset then
+            Chase.contact = { at = now, heading = GetEntityHeading(vehicle), health = Chase.healthBefore(now) }
+        end
     end
+    if not Chase.contact then return end
 
     if now - Chase.contact.at > rules.window * 1000 then
         Chase.contact = nil
@@ -287,6 +346,7 @@ function Chase.checkPit(vehicle)
     end
     local turned = math.abs((GetEntityHeading(vehicle) - Chase.contact.heading + 540.0) % 360.0 - 180.0)
     if turned >= rules.turnAngle then
+        Chase.pitHealth = Chase.contact.health
         Chase.contact = nil
         TriggerServerEvent(Events.server.chaseReport, 'pit')
     end
@@ -309,15 +369,20 @@ function Chase.checkStunt(vehicle)
     end
 end
 
----PIT subi (confirmé par le serveur) : le véhicule récupère toute sa vie.
+---PIT subi (confirmé par le serveur) : le véhicule retrouve la vie qu'il avait juste avant le choc
+---(les dégâts du PIT et de la glissade qui suit sont annulés, pas les précédents).
 function Chase.repair()
     local vehicle = Chase.vehicle
     if not vehicle or not DoesEntityExist(vehicle) then return end
+    local health = Chase.pitHealth
+    Chase.pitHealth = nil
+    if not health then return end
     SetVehicleFixed(vehicle)
     SetVehicleDeformationFixed(vehicle)
-    SetVehicleEngineHealth(vehicle, 1000.0)
-    SetVehicleBodyHealth(vehicle, 1000.0)
-    SetVehiclePetrolTankHealth(vehicle, 1000.0)
+    SetVehicleEngineHealth(vehicle, health.engine)
+    SetVehicleBodyHealth(vehicle, health.body)
+    SetVehiclePetrolTankHealth(vehicle, health.tank)
+    Chase.healthSamples = {}
 end
 
 -- ---------------------------------------------------------------------------

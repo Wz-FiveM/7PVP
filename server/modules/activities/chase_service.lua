@@ -310,7 +310,7 @@ function ChaseService.check(match, sendState)
     end
 end
 
-ChaseService.HEADING_HISTORY = 3000
+ChaseService.HEADING_HISTORY = 4000 -- couvre la fenêtre anti-PIT (Config.Chase.pit.window) et la latence
 
 ---@param a number
 ---@param b number
@@ -399,7 +399,7 @@ function ChaseService.onPit(match, victim, attacker)
     TriggerClientEvent(Events.client.notify, attacker,
         ('PIT interdit : avertissement %d/%d.'):format(warns, pit.maxWarns), 'error')
     TriggerClientEvent(Events.client.notify, victim,
-        'Ton adversaire t\'a fait un PIT : il prend un avertissement, ton véhicule est réparé.', 'info')
+        'Ton adversaire t\'a fait un PIT : il prend un avertissement, ton véhicule retrouve son état d\'avant le choc.', 'info')
 
     if warns >= pit.maxWarns then
         ChaseService.endRound(match, victim, ('%s a fait trop de PIT.'):format(GetPlayerName(attacker) or 'Ton adversaire'))

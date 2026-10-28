@@ -10,7 +10,7 @@ Config.Chase = {
     voteTime = 20, -- secondes pour choisir son véhicule
     countdown = 5, -- secondes à l'arrêt avant le départ
     roundTime = 180, -- secondes laissées au voleur pour fuir
-    escapeDistance = 500.0, -- mètres entre voleur et policier pour que le voleur gagne (non affichée en jeu)
+    escapeDistance = 300.0, -- mètres entre voleur et policier pour que le voleur gagne (non affichée en jeu)
     arrestTime = 5, -- secondes d'immobilisation pour que le policier gagne
     arrestSpeed = 3.0, -- km/h : en dessous, le voleur est considéré immobilisé
     arrestDistance = 15.0, -- mètres : le policier doit être collé au voleur pour l'immobiliser
@@ -20,14 +20,15 @@ Config.Chase = {
 
     -- Règles de conduite, vérifiées pendant la manche ---------------------------------------
     -- Anti-PIT : faire tourner l'adversaire en percutant l'arrière de son véhicule. Celui qui le fait
-    -- prend un avertissement et le véhicule de la victime est réparé ; au bout de `maxWarns`
-    -- avertissements (sur toute la partie), il perd la manche.
+    -- prend un avertissement et le véhicule de la victime retrouve la vie qu'il avait juste avant
+    -- le choc ; au bout de `maxWarns` avertissements (sur toute la partie), il perd la manche.
     pit = {
         maxWarns = 3,
-        minSpeed = 30.0, -- km/h de la victime au moment du choc (les accrochages lents ne comptent pas)
-        turnAngle = 70.0, -- degrés : la victime a pivoté d'au moins autant juste après le choc
-        window = 2.0, -- secondes après le choc pendant lesquelles on regarde si elle pivote
-        maxDistance = 12.0, -- mètres entre les deux véhicules quand le serveur reçoit le signalement
+        minSpeed = 20.0, -- km/h de la victime au moment du choc (les accrochages lents ne comptent pas)
+        turnAngle = 45.0, -- degrés : la victime a pivoté d'au moins autant juste après le choc
+        window = 3.0, -- secondes après le choc pendant lesquelles on regarde si elle pivote
+        maxFrontOffset = 2.0, -- mètres : adversaire plus loin devant la victime = c'est elle qui l'a percuté
+        maxDistance = 35.0, -- mètres entre les deux véhicules quand le serveur reçoit le signalement
     },
     -- Véhicule trop endommagé (santé GTA, 1000 = neuf) : son conducteur perd la manche
     damage = { minEngine = 250.0, minBody = 250.0 },
