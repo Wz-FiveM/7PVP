@@ -21,7 +21,10 @@ Config.VehicleRoof = {
     enabled = true,
     minSpeed = 1.5, -- m/s : en dessous (et au sol), on n'accroche pas le joueur
     walkSpeed = 1.6, -- m/s : vitesse de marche sur le toit
+    runSpeed = 3.5, -- m/s : vitesse de course (touche sprint)
+    turnSpeed = 540.0, -- °/s : vitesse à laquelle le joueur se tourne vers où il marche
     edgeMargin = 0.25, -- m gardés entre le joueur et le bord du véhicule
+    anim = { dict = 'move_m@generic', walk = 'walk', run = 'run' }, -- animations de marche sur le toit
 }
 
 Config.VehicleList = {

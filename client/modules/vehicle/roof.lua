@@ -1,7 +1,8 @@
 ---Debout sur le toit d'un véhicule qui roule ou qui vole (Config.VehicleRoof) : la physique de GTA
 ---fait glisser le joueur et le fait tomber. Il est donc accroché au véhicule, à l'endroit où il se
----tient ; les touches de marche déplacent ce point sur le toit (sans dépasser les bords), le corps
----suit la caméra pour viser et tirer. Espace le décroche, F le met à une place libre.
+---tient ; les touches de marche déplacent ce point sur le toit (sans dépasser les bords). Il reste
+---droit même quand le véhicule penche, se tourne vers où il marche avec l'animation de marche, et
+---vers la caméra quand il vise ou tire. Espace le décroche, F le met à une place libre.
 ---@class VehicleRoofModule
 local VehicleRoof = PVP.define('VehicleRoof')
 local State = PVP.use('State')
@@ -11,8 +12,12 @@ VehicleRoof.PROBE_DEPTH = 1.8 -- m sous le centre du joueur pour trouver le toit
 VehicleRoof.PROBE_VEHICLES = 2 -- masque des véhicules pour le rayon
 VehicleRoof.RELEASE_DELAY = 1000 -- ms à l'arrêt au sol avant de rendre la marche normale
 VehicleRoof.REATTACH_DELAY = 1500 -- ms après un saut avant de pouvoir être raccroché
+VehicleRoof.ANIM_FLAGS = 1 -- en boucle
+VehicleRoof.CONTROL_SPRINT = 21
 VehicleRoof.CONTROL_JUMP = 22
 VehicleRoof.CONTROL_ENTER = 23
+VehicleRoof.CONTROL_ATTACK = 24
+VehicleRoof.CONTROL_AIM = 25
 VehicleRoof.CONTROL_MOVE_LR = 30
 VehicleRoof.CONTROL_MOVE_UD = 31
 
@@ -20,8 +25,12 @@ VehicleRoof.CONTROL_MOVE_UD = 31
 VehicleRoof.vehicle = nil
 ---@type vector3|nil position du joueur dans le repère du véhicule
 VehicleRoof.offset = nil
+---@type number cap du joueur par rapport à celui du véhicule (°)
+VehicleRoof.heading = 0.0
 ---@type { minX: number, maxX: number, minY: number, maxY: number }|nil
 VehicleRoof.bounds = nil
+---@type string|nil animation de marche en cours
+VehicleRoof.clip = nil
 VehicleRoof.slowSince = nil
 VehicleRoof.blockedUntil = 0
 
@@ -73,8 +82,10 @@ function VehicleRoof.attach(ped, vehicle)
     local margin = Config.VehicleRoof.edgeMargin
     VehicleRoof.vehicle = vehicle
     VehicleRoof.offset = GetOffsetFromEntityGivenWorldCoords(vehicle, GetEntityCoords(ped))
+    VehicleRoof.heading = GetEntityHeading(ped) - GetEntityHeading(vehicle)
     VehicleRoof.bounds = { minX = min.x + margin, maxX = max.x - margin, minY = min.y + margin, maxY = max.y - margin }
     VehicleRoof.slowSince = nil
+    RequestAnimDict(Config.VehicleRoof.anim.dict)
     VehicleRoof.place(ped)
 end
 
@@ -86,6 +97,7 @@ function VehicleRoof.detach(ped, enterVehicle)
     VehicleRoof.offset = nil
     VehicleRoof.bounds = nil
     VehicleRoof.blockedUntil = GetGameTimer() + VehicleRoof.REATTACH_DELAY
+    VehicleRoof.animate(ped, nil)
     if IsEntityAttached(ped) then DetachEntity(ped, true, false) end
     if enterVehicle and vehicle and DoesEntityExist(vehicle) then
         local seat = VehicleRoof.freeSeat(vehicle)
@@ -122,21 +134,35 @@ function VehicleRoof.update(ped)
         end
     end
 
-    VehicleRoof.walk(vehicle)
+    local aiming = IsControlPressed(0, VehicleRoof.CONTROL_AIM) or IsControlPressed(0, VehicleRoof.CONTROL_ATTACK)
+    local moving, running = VehicleRoof.walk(vehicle, aiming)
+    if aiming then
+        -- Vise ou tire : le corps suit la caméra, pas d'animation de marche (elle couperait la visée)
+        VehicleRoof.heading = GetGameplayCamRot(2).z - GetEntityHeading(vehicle)
+        VehicleRoof.animate(ped, nil)
+    else
+        local anim = Config.VehicleRoof.anim
+        VehicleRoof.animate(ped, moving and (running and anim.run or anim.walk) or nil)
+    end
     VehicleRoof.place(ped)
 end
 
----Déplace le point d'accroche selon les touches de marche, dans la direction de la caméra.
+---Déplace le point d'accroche selon les touches de marche, dans la direction de la caméra, et
+---tourne le joueur vers où il marche (sauf s'il vise).
 ---@param vehicle integer
-function VehicleRoof.walk(vehicle)
+---@param aiming boolean
+---@return boolean moving, boolean running
+function VehicleRoof.walk(vehicle, aiming)
     local sideways = GetControlNormal(0, VehicleRoof.CONTROL_MOVE_LR)
     local backwards = GetControlNormal(0, VehicleRoof.CONTROL_MOVE_UD) -- -1 = avancer
-    if sideways == 0.0 and backwards == 0.0 then return end
+    if sideways == 0.0 and backwards == 0.0 then return false, false end
 
+    local running = not aiming and IsControlPressed(0, VehicleRoof.CONTROL_SPRINT)
+    local speed = running and Config.VehicleRoof.runSpeed or Config.VehicleRoof.walkSpeed
     local heading = math.rad(GetGameplayCamRot(2).z)
     local forward = vector3(-math.sin(heading), math.cos(heading), 0.0)
     local right = vector3(math.cos(heading), math.sin(heading), 0.0)
-    local move = (right * sideways - forward * backwards) * (Config.VehicleRoof.walkSpeed * GetFrameTime())
+    local move = (right * sideways - forward * backwards) * (speed * GetFrameTime())
 
     -- Déplacement monde -> repère du véhicule (son origine y vaut 0, 0, 0)
     local origin = GetEntityCoords(vehicle)
@@ -147,13 +173,62 @@ function VehicleRoof.walk(vehicle)
         math.min(bounds.maxY, math.max(bounds.minY, offset.y + delta.y)),
         offset.z
     )
+
+    if not aiming then
+        local target = GetHeadingFromVector_2d(move.x, move.y) - GetEntityHeading(vehicle)
+        local diff = (target - VehicleRoof.heading + 180.0) % 360.0 - 180.0
+        local step = Config.VehicleRoof.turnSpeed * GetFrameTime()
+        VehicleRoof.heading = VehicleRoof.heading + math.max(-step, math.min(step, diff))
+    end
+    return true, running
 end
 
----Accroche (ou raccroche) le joueur à son point sur le toit, tourné vers la caméra.
+---Lance (ou arrête avec nil) l'animation de marche, une seule fois tant qu'elle joue.
+---@param ped integer
+---@param clip string|nil
+function VehicleRoof.animate(ped, clip)
+    local dict = Config.VehicleRoof.anim.dict
+    local current = VehicleRoof.clip
+    if clip == current and (not clip or IsEntityPlayingAnim(ped, dict, clip, 3)) then return end
+    if current and current ~= clip then StopAnimTask(ped, dict, current, 4.0) end
+    VehicleRoof.clip = nil
+    if not clip then return end
+    if not HasAnimDictLoaded(dict) then return RequestAnimDict(dict) end
+    TaskPlayAnim(ped, dict, clip, 4.0, 4.0, -1, VehicleRoof.ANIM_FLAGS, 0.0, false, false, false)
+    VehicleRoof.clip = clip
+end
+
+---Rotation, dans le repère du véhicule, qui garde le joueur droit (debout à la verticale) avec le
+---cap voulu, même quand le véhicule penche (Deluxo en vol, virage, montée).
+---@param vehicle integer
+---@param heading number cap voulu dans le monde (°)
+---@return number pitch, number roll, number yaw
+function VehicleRoof.uprightRotation(vehicle, heading)
+    local vRight, vForward, vUp = GetEntityMatrix(vehicle)
+    local h = math.rad(heading)
+    -- Axes voulus du joueur (horizontaux dans le monde), exprimés dans le repère du véhicule
+    local fx, fy = -math.sin(h), math.cos(h)
+    local rx, ry = fy, -fx
+    local forward = vector3(
+        fx * vRight.x + fy * vRight.y,
+        fx * vForward.x + fy * vForward.y,
+        fx * vUp.x + fy * vUp.y
+    )
+    local rightZ = rx * vUp.x + ry * vUp.y
+    local upZ = vUp.z
+    -- Ordre de rotation GTA (Z puis X puis Y) : avant = (-sin z cos x, cos z cos x, sin x)
+    local pitch = math.deg(math.asin(math.max(-1.0, math.min(1.0, forward.z))))
+    local roll = math.deg(math.atan(-rightZ, upZ))
+    local yaw = math.deg(math.atan(-forward.x, forward.y))
+    return pitch, roll, yaw
+end
+
+---Accroche (ou raccroche) le joueur à son point sur le toit, droit et tourné selon son cap.
 ---@param ped integer
 function VehicleRoof.place(ped)
+    local vehicle = VehicleRoof.vehicle
     local offset = VehicleRoof.offset
-    local heading = GetGameplayCamRot(2).z - GetEntityHeading(VehicleRoof.vehicle)
-    AttachEntityToEntity(ped, VehicleRoof.vehicle, 0, offset.x, offset.y, offset.z, 0.0, 0.0, heading,
+    local pitch, roll, yaw = VehicleRoof.uprightRotation(vehicle, GetEntityHeading(vehicle) + VehicleRoof.heading)
+    AttachEntityToEntity(ped, vehicle, 0, offset.x, offset.y, offset.z, pitch, roll, yaw,
         false, false, false, false, 2, true)
 end
