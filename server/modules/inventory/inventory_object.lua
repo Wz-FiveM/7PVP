@@ -296,7 +296,9 @@ end
 function InventoryObject:setShortcut(slot, name)
     slot = math.floor(tonumber(slot) or 0)
     if slot < 1 or slot > Config.ShortcutSlots then return false end
-    if name and not (Items.isType(name, 'weapon') or Items.isType(name, 'consumable')) then return false end
+    if name and not (Items.isType(name, 'weapon') or Items.isType(name, 'consumable') or Items.isType(name, 'vehicle')) then
+        return false
+    end
     if name and self:count(name) <= 0 then return false end
     self.shortcuts[slot] = name or false
     return true

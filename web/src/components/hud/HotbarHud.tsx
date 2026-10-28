@@ -28,7 +28,7 @@ export function HotbarHud() {
             <div className={`hotbar__tile cut-s ${!item ? 'hotbar__tile--empty' : ''} ${item && count === 0 ? 'hotbar__tile--missing' : ''}`}>
               {item && name && <ItemIcon name={name} type={item.type} />}
               <span className="mono hotbar__key">{slot}</span>
-              {item?.type === 'consumable' && <span className="mono hotbar__count">x{count}</span>}
+              {(item?.type === 'consumable' || item?.type === 'vehicle') && <span className="mono hotbar__count">x{count}</span>}
             </div>
             {active && <Brackets />}
           </div>

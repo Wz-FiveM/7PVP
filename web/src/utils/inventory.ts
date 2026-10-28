@@ -36,7 +36,8 @@ export function weightOf(stacks: ItemStacks | undefined, config: GameConfig): nu
 }
 
 /** Seules les armes et les consommables peuvent aller dans les raccourcis. */
-export const isShortcutItem = (type: ItemType | undefined): boolean => type === 'weapon' || type === 'consumable';
+export const isShortcutItem = (type: ItemType | undefined): boolean =>
+  type === 'weapon' || type === 'consumable' || type === 'vehicle';
 
 export const itemLabel =(config: GameConfig, name: string): string => config.items[name]?.label ?? name;
 

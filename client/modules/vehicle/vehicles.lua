@@ -5,6 +5,7 @@ local Vehicles = PVP.define('Vehicles')
 local State = PVP.use('State')
 local PedUtils = PVP.use('PedUtils')
 local Nui = PVP.use('Nui')
+local HelpNotify = PVP.use('HelpNotify')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
@@ -18,7 +19,39 @@ function Vehicles.init()
     RegisterNetEvent(Events.client.vehicleSpawn, function(name, model)
         Vehicles.spawn(name, model)
     end)
+
+    RegisterCommand('pvp_ranger_vehicule', function()
+        if Vehicles.canStore() then CreateThread(Vehicles.store) end
+    end, false)
+    RegisterKeyMapping('pvp_ranger_vehicule', 'Ranger son véhicule 7PVP', 'keyboard', Config.VehicleOptions.storeKey)
+
     CreateThread(Vehicles.weaponLoop)
+    CreateThread(Vehicles.helpLoop)
+end
+
+Vehicles.HELP_CHECK_INTERVAL = 500
+
+---Son véhicule est là et à portée (dedans ou à côté).
+---@return boolean
+function Vehicles.canStore()
+    if not State.inPvp() or not State.isAlive() or IsNuiFocused() then return false end
+    local vehicle = Vehicles.current
+    if not vehicle or not DoesEntityExist(vehicle) then return false end
+    local distance = #(GetEntityCoords(vehicle) - GetEntityCoords(PlayerPedId()))
+    return distance <= Config.VehicleOptions.storeDistance
+end
+
+---Aide « K Ranger le véhicule » tant que le joueur est à pied près de son véhicule
+---(pas au volant, où elle gênerait ; la touche marche quand même).
+function Vehicles.helpLoop()
+    while true do
+        if Vehicles.canStore() and not IsPedInAnyVehicle(PlayerPedId(), false) then
+            HelpNotify.show(Config.VehicleOptions.storeKey, 'Ranger le véhicule')
+            Wait(0)
+        else
+            Wait(Vehicles.HELP_CHECK_INTERVAL)
+        end
+    end
 end
 
 ---@param name string objet véhicule

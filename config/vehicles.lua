@@ -1,5 +1,5 @@
 -- Véhicules en objets : utiliser l'objet fait apparaître le véhicule et met le joueur au volant.
--- L'objet est retiré du sac ; « Ranger le véhicule » (menu ALT, à côté de lui) le rend.
+-- L'objet est retiré du sac ; la touche de rangement (K, à côté ou dedans) ou le menu ALT le rend.
 -- Un seul véhicule sorti par joueur : en sortir un autre range le précédent s'il est intact.
 -- Un véhicule détruit est perdu. Déconnexion ou retour au lobby : il est rangé automatiquement.
 -- Les armes montées sur certains véhicules sont désactivées (pas d'armes hors inventaire en PvP).
@@ -8,6 +8,7 @@
 Config.VehicleOptions = {
     weight = 1.0, -- poids de l'objet (une clé, pas le véhicule)
     storeDistance = 6.0, -- distance max pour ranger son véhicule
+    storeKey = 'K', -- touche pour ranger son véhicule (modifiable dans Paramètres > Raccourcis > FiveM)
     plate = '7PVP', -- plaque des véhicules sortis
 }
 
