@@ -29,6 +29,8 @@ function InventoryObject.new(data)
         stash = InventoryObject.sanitize(data.stash),
         shortcuts = shortcuts,
         attachments = InventoryObject.sanitizeAttachments(data.attachments),
+        -- Objets sortis mais pas perdus (véhicule sorti) : leur raccourci est gardé (non sauvegardé)
+        reserved = {},
     }, InventoryObject)
 end
 
@@ -282,11 +284,22 @@ function InventoryObject:setBag(items)
     self.bag = InventoryObject.sanitize(Utils.shallowCopy(items))
 end
 
----Vide les raccourcis des objets qui ne sont plus portés (rangés au coffre, vendus, perdus...).
+---Vide les raccourcis des objets qui ne sont plus portés (rangés au coffre, vendus, perdus...),
+---sauf ceux qui sont seulement sortis (véhicule en circulation) : ils reviendront.
 function InventoryObject:pruneShortcuts()
     for slot, name in ipairs(self.shortcuts) do
-        if name and self:count(name) <= 0 then self.shortcuts[slot] = false end
+        if name and self:count(name) <= 0 and not self.reserved[name] then self.shortcuts[slot] = false end
     end
+end
+
+---@param name string objet sorti (son raccourci est gardé)
+function InventoryObject:reserve(name)
+    self.reserved[name] = true
+end
+
+---@param name string
+function InventoryObject:unreserve(name)
+    self.reserved[name] = nil
 end
 
 ---Seules les armes et les consommables portés (sac ou conteneur protégé) vont dans un raccourci.

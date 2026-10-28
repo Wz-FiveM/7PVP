@@ -57,6 +57,8 @@ function VehicleService.deploy(player, name)
     VehicleService.release(player)
 
     VehicleService.active[player.source] = { item = name }
+    -- Le véhicule est dehors, pas perdu : son raccourci reste en place
+    player.inventory:reserve(name)
     AntiCheatService.allowVehicle(player.source, item.model)
     TriggerClientEvent(Events.client.vehicleSpawn, player.source, name, item.model)
     player:sync()
@@ -76,6 +78,7 @@ function VehicleService.onSpawned(source, name, netId)
     local item = Items.get(name)
     if entity == 0 or not DoesEntityExist(entity) or GetEntityModel(entity) ~= GetHashKey(item.model) then
         VehicleService.active[source] = nil
+        player.inventory:unreserve(name)
         VehicleService.refund(player, name)
         player:notify('Le véhicule n\'a pas pu apparaître : objet rendu.', 'error')
         return player:sync()
@@ -116,6 +119,7 @@ function VehicleService.release(player)
     local current = VehicleService.active[player.source]
     if not current then return end
     VehicleService.active[player.source] = nil
+    player.inventory:unreserve(current.item)
 
     local entity = current.netId and NetworkGetEntityFromNetworkId(current.netId) or 0
     if entity == 0 or not DoesEntityExist(entity) then return end
@@ -133,6 +137,8 @@ function VehicleService.entityOf(source)
     local entity = NetworkGetEntityFromNetworkId(current.netId)
     if entity == 0 or not DoesEntityExist(entity) then
         VehicleService.active[source] = nil
+        local player = PlayerService.get(source)
+        if player then player.inventory:unreserve(current.item) end
         return nil
     end
     return entity
