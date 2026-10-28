@@ -13,6 +13,7 @@
 ---@field appearance table|nil apparence du personnage (nil = pas encore créé)
 ---@field creating boolean dans le créateur de personnage
 ---@field mode string|nil mode de jeu en cours ('pvp', 'freeroam'), nil = au lobby
+---@field avatar string|nil URL de l'avatar Discord (DiscordAvatar)
 ---@field isAdmin boolean admin enregistré en base (colonne is_admin, commande setadmin)
 ---@field dead boolean
 ---@field combatUntil integer fin du statut « en combat » (GetGameTimer), 0 = hors combat
@@ -112,6 +113,7 @@ function PlayerObject:serialize()
     return {
         source = self.source,
         name = self.name,
+        avatar = self.avatar,
         money = self:getMoney(),
         xp = self.xp,
         level = self:getLevel(),

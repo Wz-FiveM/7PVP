@@ -101,7 +101,11 @@ function GroupService.serialize(group)
     local members = {}
     for _, source in ipairs(group.members) do
         local player = PlayerService.get(source)
-        members[#members + 1] = { id = source, name = player and player.name or GetPlayerName(source) }
+        members[#members + 1] = {
+            id = source,
+            name = player and player.name or GetPlayerName(source),
+            avatar = player and player.avatar,
+        }
     end
     return { id = group.id, leader = group.leader, members = members }
 end

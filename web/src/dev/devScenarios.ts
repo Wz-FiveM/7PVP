@@ -152,6 +152,7 @@ export const DEV_SCREENS: DevScreen[] = [
         data: {
           open: true,
           info: {
+            avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
             keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1' },
           },
@@ -280,7 +281,17 @@ export const DEV_ACTIONS: DevAction[] = [
     run: () => {
       sendNui({
         action: 'group',
-        data: { group: { id: 1, leader: 1, members: [{ id: 1, name: 'Dev' }, { id: 7, name: 'Bravo' }, { id: 12, name: 'Kilo' }] } },
+        data: {
+          group: {
+            id: 1,
+            leader: 1,
+            members: [
+              { id: 1, name: 'Dev', avatar: 'https://cdn.discordapp.com/embed/avatars/2.png' },
+              { id: 7, name: 'Bravo', avatar: 'https://cdn.discordapp.com/embed/avatars/4.png' },
+              { id: 12, name: 'Kilo' },
+            ],
+          },
+        },
       });
       sendNui({
         action: 'groupVitals',

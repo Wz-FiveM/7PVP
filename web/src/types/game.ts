@@ -34,6 +34,8 @@ export interface PlayerState {
   /** server id du joueur */
   source: number;
   name: string;
+  /** URL de l'avatar Discord, absente sans Discord */
+  avatar?: string;
   money: number;
   xp: number;
   level: number;
@@ -230,7 +232,8 @@ export interface GroupData {
   id: number;
   /** server id du chef */
   leader: number;
-  members: { id: number; name: string }[];
+  /** avatar : URL de l'avatar Discord, absente sans Discord */
+  members: { id: number; name: string; avatar?: string }[];
 }
 
 /** Vie d'un coéquipier, lue par le serveur (connue à toute distance) */
@@ -250,6 +253,8 @@ export interface GroupInvite {
 export interface PauseInfo {
   name: string;
   serverId: number;
+  /** URL de l'avatar Discord, absente sans Discord */
+  avatar?: string;
   /** mode en cours ('pvp', 'freeroam') */
   mode: string | null;
   level: number;

@@ -3,6 +3,7 @@ import { useGame } from '../../store/GameContext';
 import type { PauseAction, PauseInfo } from '../../types/game';
 import { formatKd } from '../../utils/format';
 import { Icon } from '../icons/Icon';
+import { Avatar } from '../ui/Avatar';
 import './pause.css';
 
 const MODE_LABELS: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
@@ -81,7 +82,7 @@ export function PauseMenu() {
       <main className="pause__main">
         <section className="pause__operator">
           <span className="pause__avatar">
-            <Icon name="profile" size={56} strokeWidth={1.5} />
+            <Avatar src={info.avatar} fallback={<Icon name="profile" size={56} strokeWidth={1.5} />} />
           </span>
           <div className="pause__operator-text">
             <span className="mono pause__label">OPÉRATEUR · ID #{info.serverId}</span>

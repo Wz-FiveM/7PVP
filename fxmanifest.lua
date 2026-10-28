@@ -45,6 +45,7 @@ server_scripts {
     'config/discord.lua', -- côté serveur uniquement
     'server/core/callback.lua',
     'server/modules/discord/discord_service.lua',
+    'server/modules/discord/discord_avatar.lua',
     'server/modules/database/player_repository.lua',
     'server/modules/inventory/inventory_object.lua',
     'server/modules/player/player_object.lua',

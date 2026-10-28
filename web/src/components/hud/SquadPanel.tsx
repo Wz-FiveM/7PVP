@@ -1,6 +1,7 @@
 import { useGame } from '../../store/GameContext';
 import type { GroupVital } from '../../types/game';
 import { Icon } from '../icons/Icon';
+import { Avatar } from '../ui/Avatar';
 
 /** Une barre fine pleine (vie ou armure), de 0 à 100. */
 function Bar({ value, kind }: { value: number; kind: 'health' | 'armor' }) {
@@ -32,7 +33,15 @@ export function SquadPanel() {
         return (
           <div key={member.id} className={down ? 'team-card team-card--down cut-s' : 'team-card cut-s'}>
             <span className="team-card__avatar cut-s">
-              {isLeader ? <Icon name="trophy" size={18} strokeWidth={2.2} /> : <span className="disp">?</span>}
+              <Avatar
+                src={member.avatar}
+                fallback={isLeader ? <Icon name="trophy" size={18} strokeWidth={2.2} /> : <span className="disp">?</span>}
+              />
+              {isLeader && member.avatar && (
+                <span className="team-card__leader">
+                  <Icon name="trophy" size={10} strokeWidth={2.6} />
+                </span>
+              )}
             </span>
             <span className="team-card__body">
               <span className={isMe ? 'team-card__name team-card__name--me' : 'team-card__name'}>

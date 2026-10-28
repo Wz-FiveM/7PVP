@@ -73,6 +73,7 @@ function Pause.buildInfo()
     return {
         name = player.name or GetPlayerName(PlayerId()),
         serverId = GetPlayerServerId(PlayerId()),
+        avatar = player.avatar,
         mode = State.mode,
         level = player.level or 1,
         kills = player.kills or 0,
