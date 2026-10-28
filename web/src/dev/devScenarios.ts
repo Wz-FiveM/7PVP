@@ -463,6 +463,8 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CVC : fin',
     run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 } } }),
   },
+  { label: 'Compteur (en voiture)', run: () => sendNui({ action: 'speedometer', data: { visible: true, speed: 127, rpm: 0.82, gear: '4', engine: 74 } }) },
+  { label: 'Compteur : sortir', run: () => sendNui({ action: 'speedometer', data: { visible: false } }) },
   { label: 'Interaction : ciblage', run: () => sendNui({ action: 'interaction', data: { open: true, items: false } }) },
   {
     label: 'Interaction : joueur',

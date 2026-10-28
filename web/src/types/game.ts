@@ -260,6 +260,18 @@ export interface PauseInfo {
   keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string; teleport: string };
 }
 
+/** Compteur de vitesse (client/modules/hud/speedometer.lua) */
+export interface SpeedometerData {
+  visible: boolean;
+  speed?: number;
+  /** régime GTA, de 0,2 (ralenti) à 1 */
+  rpm?: number;
+  /** rapport : 1, 2..., R (arrière), N (à l'arrêt) */
+  gear?: string;
+  /** état du moteur en % */
+  engine?: number;
+}
+
 /** Course poursuite (server/modules/activities/chase_service.lua) */
 export type ChaseRole = 'thief' | 'cop';
 export interface ChaseScores {

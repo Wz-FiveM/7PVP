@@ -108,4 +108,22 @@ function Zone.applySafeRestrictions()
     for _, control in ipairs(Zone.SAFE_DISABLED_CONTROLS) do
         DisableControlAction(0, control, true)
     end
+    Zone.preventCarKill()
+end
+
+-- Anti car-kill : distance où les véhicules traversent le joueur à pied
+Zone.CAR_KILL_RADIUS = 40.0
+
+---En zone safe, un véhicule ne peut ni écraser ni renverser un joueur à pied :
+---les collisions entre lui et les véhicules proches sont coupées (à refaire à chaque image).
+function Zone.preventCarKill()
+    local ped = PlayerPedId()
+    if IsPedInAnyVehicle(ped, false) then return end
+    local coords = GetEntityCoords(ped)
+    for _, vehicle in ipairs(GetGamePool('CVehicle')) do
+        if #(GetEntityCoords(vehicle) - coords) <= Zone.CAR_KILL_RADIUS then
+            SetEntityNoCollisionEntity(vehicle, ped, true)
+            SetEntityNoCollisionEntity(ped, vehicle, true)
+        end
+    end
 end

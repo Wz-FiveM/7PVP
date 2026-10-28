@@ -11,6 +11,7 @@ import { HitFeedback } from './components/hud/HitFeedback';
 import { HelpNotification } from './components/hud/HelpNotification';
 import { InteractionMenu } from './components/interaction/InteractionMenu';
 import { Hud } from './components/hud/Hud';
+import { Speedometer } from './components/hud/Speedometer';
 import { Toasts } from './components/hud/Toasts';
 import { Lobby } from './components/lobby/Lobby';
 import { Menu } from './components/menu/Menu';
@@ -45,6 +46,7 @@ export function App() {
       {inPvp && state.death.active && <DeathScreen />}
       {inFreeroam && !state.freeroam.menuOpen && <FreeroamHud />}
       {inFreeroam && state.freeroam.menuOpen && <FreeroamMenu />}
+      {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && !state.death.active && <Speedometer />}
       {inFreeroam && <ActivityPanel />}
       {inFreeroam && <Chase />}
       {inFreeroam && <Cvc />}

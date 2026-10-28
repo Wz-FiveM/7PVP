@@ -131,6 +131,9 @@ function Freeroam.spawnVehicle(data)
     if model == '' or not IsModelInCdimage(hash) or not IsModelAVehicle(hash) then
         return { ok = false, message = ('Véhicule inconnu : %s'):format(model) }
     end
+    if State.isInSafeZone() then
+        return { ok = false, message = 'Impossible de faire apparaître un véhicule en zone safe : sors de la zone.' }
+    end
 
     Freeroam.deleteVehicle()
     if not PedUtils.loadModel(hash) then return { ok = false, message = 'Modèle introuvable.' } end

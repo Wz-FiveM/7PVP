@@ -42,6 +42,9 @@ function VehicleService.deploy(player, name)
     if GetVehiclePedIsIn(ped, false) ~= 0 then
         return { ok = false, message = 'Descends d\'abord du véhicule.' }
     end
+    if player:isInSafeZone() then
+        return { ok = false, message = 'Impossible de sortir un véhicule en zone safe : sors de la zone.' }
+    end
     if CombatTagService.isTagged(player) then
         return { ok = false, message = ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player)) }
     end

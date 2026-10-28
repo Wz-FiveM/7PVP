@@ -106,6 +106,7 @@ client_scripts {
     'client/modules/inventory/shortcuts.lua',
     'client/modules/effects/effects.lua',
     'client/modules/hud/hud.lua',
+    'client/modules/hud/speedometer.lua',
     'client/modules/appearance/appearance.lua',
     'client/modules/creator/creator.lua',
     'client/modules/lobby/lobby.lua',
