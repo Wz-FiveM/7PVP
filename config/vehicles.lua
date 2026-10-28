@@ -14,6 +14,16 @@ Config.VehicleOptions = {
     plate = '7PVP', -- plaque des véhicules sortis
 }
 
+-- Debout sur le toit d'un véhicule qui roule ou qui vole (Deluxo en vol, etc.) : le joueur y reste
+-- accroché au lieu de glisser et tomber. Il s'y déplace avec les touches de marche, vise et tire ;
+-- Espace (saut) le décroche, F le fait monter à une place libre. Véhicule arrêté au sol : marche normale.
+Config.VehicleRoof = {
+    enabled = true,
+    minSpeed = 1.5, -- m/s : en dessous (et au sol), on n'accroche pas le joueur
+    walkSpeed = 1.6, -- m/s : vitesse de marche sur le toit
+    edgeMargin = 0.25, -- m gardés entre le joueur et le bord du véhicule
+}
+
 Config.VehicleList = {
     -- Deux-roues et quads
     { model = 'bmx', label = 'BMX' },

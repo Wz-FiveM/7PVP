@@ -131,6 +131,7 @@ client_scripts {
     'client/modules/pause/pause.lua',
     'client/modules/teleport/teleport.lua',
     'client/modules/vehicle/vehicles.lua',
+    'client/modules/vehicle/roof.lua',
     'client/modules/loot/loot.lua',
     'client/modules/pve/pve.lua',
     'client/modules/pve/horde.lua',
