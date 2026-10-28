@@ -64,6 +64,21 @@ Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dan
 4. **OneSync doit être activé** : les PNJ et les armes sont gérés côté serveur.
 5. La table `pvp_players` est créée automatiquement au démarrage (voir `sql/7pvp.sql`).
 
+## Mise à jour du VPS
+
+Sur le VPS (hôte SSH `seven`), la resource `/opt/7pvp/server-data/resources/7PVP` est un clone de ce dépôt GitHub, branche `main`. Le serveur tourne avec le service systemd `7pvp`, txAdmin sur le port 40121.
+
+Pour mettre à jour : committer, puis `deploy.bat`. Il pousse les commits sur GitHub et lance `tools/update.sh` sur le VPS, qui fait le `git pull` et recompile l'interface (Node 20 installé sur le VPS) seulement si `web/` a changé. Les fichiers non commités ne partent pas.
+
+| Commande | Effet |
+| --- | --- |
+| `.\deploy.bat` | Pousse les commits, met à jour le VPS, sans redémarrer |
+| `.\deploy.bat -Redemarrer` | Pareil, puis redémarre le serveur et attend qu'il réponde (demande confirmation si des joueurs sont connectés, sauf avec `-Force`) |
+| `.\deploy.bat -Apercu` | Liste les commits qui arriveraient, sans rien modifier |
+| `.\deploy.bat -Restaurer` | Revient à la version d'avant la dernière mise à jour (relancer remonte encore) ; la mise à jour suivante reprend GitHub |
+
+Directement sur le VPS : `bash /opt/7pvp/server-data/resources/7PVP/tools/update.sh` (mêmes options : `--apercu`, `--restaurer`). Ne pas modifier de fichiers sur le VPS : la mise à jour refuse de les écraser. Le `server.cfg` est hors du dépôt et n'est jamais touché. Réglages (hôte, chemins) en haut de `tools/deploy-vps.ps1`.
+
 ## Contrôles
 
 | Touche / commande | Action |
