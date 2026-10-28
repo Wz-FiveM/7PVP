@@ -14,6 +14,10 @@ local Events = PVP.use('Events')
 
 ---@type table<integer, { item: string, netId: integer|nil, checking: boolean|nil }> véhicule sorti (ou en cours de création) par joueur
 VehicleService.active = {}
+---@type table<integer, integer> véhicule sorti d'un menu (Freeroam, admin) par joueur : net id
+VehicleService.menu = {}
+-- State bag (non répliqué) posé sur ces véhicules : source du joueur qui l'a sorti
+VehicleService.MENU_STATE = '7pvp:menuVehicle'
 -- ms laissées au serveur pour connaître le véhicule créé par le client (l'événement arrive souvent avant)
 VehicleService.SPAWN_TIMEOUT = 3000
 -- State bag posé sur les véhicules sortis d'un objet (nom de l'objet) : le client affiche l'aide K
@@ -25,12 +29,45 @@ function VehicleService.init()
     RegisterNetEvent(Events.server.vehicleSpawned, function(name, netId)
         VehicleService.onSpawned(source, name, netId)
     end)
+    RegisterNetEvent(Events.server.menuVehicle, function(netId)
+        VehicleService.onMenuVehicle(source, netId)
+    end)
 
     -- Déconnexion (avant la sauvegarde) : le véhicule rentre dans l'inventaire
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         local player = PlayerService.get(playerSource)
         if player then VehicleService.release(player) end
+        VehicleService.deleteMenuVehicle(playerSource)
     end)
+end
+
+---Véhicule sorti d'un menu (Freeroam, admin) : un seul par joueur, le précédent est supprimé.
+---Supprimé par le serveur : le client ne peut plus le faire une fois le véhicule loin de lui
+---(hors de portée après une téléportation) ou passé à un autre joueur.
+---@param source integer
+---@param netId any net id du nouveau véhicule, nil pour seulement supprimer le précédent
+function VehicleService.onMenuVehicle(source, netId)
+    if not PlayerService.get(source) then return end
+    if netId == nil then return VehicleService.deleteMenuVehicle(source) end
+
+    local entity = VehicleService.waitEntity(netId)
+    -- Seulement un véhicule créé par ce joueur : on ne lui laisse pas supprimer celui d'un autre
+    if not entity or GetEntityType(entity) ~= 2 or NetworkGetEntityOwner(entity) ~= source then return end
+    VehicleService.deleteMenuVehicle(source)
+    VehicleService.menu[source] = tonumber(netId)
+    Entity(entity).state:set(VehicleService.MENU_STATE, source, false)
+end
+
+---@param source integer
+function VehicleService.deleteMenuVehicle(source)
+    local netId = VehicleService.menu[source]
+    VehicleService.menu[source] = nil
+    if not netId then return end
+    local entity = NetworkGetEntityFromNetworkId(netId)
+    -- Le net id a pu resservir à une autre entité si le véhicule a disparu entre-temps
+    if entity ~= 0 and DoesEntityExist(entity) and Entity(entity).state[VehicleService.MENU_STATE] == source then
+        DeleteEntity(entity)
+    end
 end
 
 ---Utilisation d'un objet véhicule (appelé par InventoryService.use).

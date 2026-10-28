@@ -8,12 +8,13 @@ local Chase = PVP.use('Chase')
 local Cvc = PVP.use('Cvc')
 local Admin = PVP.use('Admin')
 local PedUtils = PVP.use('PedUtils')
+local Vehicles = PVP.use('Vehicles')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
 Freeroam.menuOpen = false
 Freeroam.pvp = false
-Freeroam.vehicle = nil -- dernier véhicule créé (supprimé quand on en crée un autre)
+Freeroam.vehicle = nil -- dernier véhicule créé (supprimé quand on en crée un autre, voir Vehicles.trackMenuVehicle)
 Freeroam.weapons = {} -- armes données : rendues après une mort
 
 -- Actions du menu : nom -> méthode
@@ -146,16 +147,19 @@ function Freeroam.spawnVehicle(data)
     SetVehicleNumberPlateText(vehicle, '7PVP')
     SetModelAsNoLongerNeeded(hash)
     Freeroam.vehicle = vehicle
+    CreateThread(function() Vehicles.trackMenuVehicle(vehicle) end)
     Freeroam.setMenu(false)
     return { ok = true }
 end
 
+---Supprime le véhicule sorti : tout de suite s'il est encore à nous, sinon par le serveur.
 function Freeroam.deleteVehicle()
     if Freeroam.vehicle and DoesEntityExist(Freeroam.vehicle) then
         SetEntityAsMissionEntity(Freeroam.vehicle, true, true)
         DeleteVehicle(Freeroam.vehicle)
     end
     Freeroam.vehicle = nil
+    Vehicles.trackMenuVehicle(nil)
 end
 
 function Freeroam.repairVehicle()

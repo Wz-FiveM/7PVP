@@ -12,6 +12,7 @@ local Zones = PVP.use('Zones')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
 
 FreeroamMode.ID = 'freeroam'
@@ -42,6 +43,7 @@ function FreeroamMode.leave(player)
     player.freeroamPvp = false
     ChaseService.leave(player.source)
     CvcService.leave(player.source)
+    VehicleService.deleteMenuVehicle(player.source)
     TriggerClientEvent(Events.client.freeroamCleanup, player.source)
 end
 

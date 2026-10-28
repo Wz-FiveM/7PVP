@@ -18,6 +18,7 @@ Events.server = {
     lootPickup = '7pvp:server:lootPickup',
     chatSend = '7pvp:server:chatSend',
     vehicleSpawned = '7pvp:server:vehicleSpawned',
+    menuVehicle = '7pvp:server:menuVehicle',
     lootClose = '7pvp:server:lootClose',
     cvcVehicle = '7pvp:server:cvcVehicle',
     chaseReport = '7pvp:server:chaseReport',

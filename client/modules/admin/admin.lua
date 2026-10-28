@@ -8,11 +8,13 @@ local Nui = PVP.use('Nui')
 local Noclip = PVP.use('Noclip')
 local Loadout = PVP.use('Loadout')
 local PedUtils = PVP.use('PedUtils')
+local Vehicles = PVP.use('Vehicles')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
 Admin.isAdmin = false
 Admin.open = false
+Admin.vehicle = nil -- dernier véhicule créé (supprimé quand on en crée un autre, voir Vehicles.trackMenuVehicle)
 
 -- Options personnelles : nom d'action -> méthode
 Admin.LOCAL_ACTIONS = {
@@ -193,12 +195,19 @@ function Admin.spawnVehicle(data)
 
     CreateThread(function()
         PedUtils.loadModel(hash)
+        -- Le précédent disparaît tout de suite s'il est encore à nous, sinon le serveur s'en charge
+        if Admin.vehicle and DoesEntityExist(Admin.vehicle) then
+            SetEntityAsMissionEntity(Admin.vehicle, true, true)
+            DeleteVehicle(Admin.vehicle)
+        end
         local ped = PlayerPedId()
         local coords = GetEntityCoords(ped)
         local vehicle = CreateVehicle(hash, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false)
         SetVehicleOnGroundProperly(vehicle)
         SetPedIntoVehicle(ped, vehicle, -1)
         SetModelAsNoLongerNeeded(hash)
+        Admin.vehicle = vehicle
+        Vehicles.trackMenuVehicle(vehicle)
     end)
     return { ok = true, message = ('Véhicule %s créé.'):format(model) }
 end

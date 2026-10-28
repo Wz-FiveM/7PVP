@@ -112,6 +112,17 @@ function Vehicles.spawn(name, model)
     TriggerServerEvent(Events.server.vehicleSpawned, name, netId)
 end
 
+---Véhicule sorti d'un menu (Freeroam, admin) : le serveur supprime le précédent (un seul par
+---joueur), même s'il est loin ou passé à un autre joueur. Sans véhicule : supprime seulement le précédent.
+---@param vehicle integer|nil
+function Vehicles.trackMenuVehicle(vehicle)
+    if not vehicle then return TriggerServerEvent(Events.server.menuVehicle, nil) end
+    local timeout = GetGameTimer() + Vehicles.NETWORK_TIMEOUT
+    while DoesEntityExist(vehicle) and not NetworkGetEntityIsNetworked(vehicle) and GetGameTimer() < timeout do Wait(0) end
+    if not DoesEntityExist(vehicle) or not NetworkGetEntityIsNetworked(vehicle) then return end
+    TriggerServerEvent(Events.server.menuVehicle, NetworkGetNetworkIdFromEntity(vehicle))
+end
+
 ---Oublie son véhicule sorti et le supprime s'il est encore là (refusé par le serveur).
 function Vehicles.discard()
     local vehicle = Vehicles.current
