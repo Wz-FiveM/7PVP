@@ -2,7 +2,8 @@
 ---fait glisser le joueur et le fait tomber. Il est donc accroché au véhicule, à l'endroit où il se
 ---tient ; les touches de marche déplacent ce point sur le toit (sans dépasser les bords). Il reste
 ---droit même quand le véhicule penche, se tourne vers où il marche avec l'animation de marche, et
----vers la caméra quand il vise ou tire. Espace le décroche, F le met à une place libre.
+---vers la caméra quand il vise ou tire. Espace le décroche, F le met à une place libre. Si le
+---véhicule penche trop, il tombe avec l'élan du véhicule.
 ---@class VehicleRoofModule
 local VehicleRoof = PVP.define('VehicleRoof')
 local State = PVP.use('State')
@@ -59,6 +60,13 @@ function VehicleRoof.isMoving(vehicle)
     return IsEntityInAir(vehicle) or GetEntitySpeed(vehicle) >= Config.VehicleRoof.minSpeed
 end
 
+---@param vehicle integer
+---@return boolean le véhicule penche trop pour qu'on tienne debout dessus
+function VehicleRoof.isTooTilted(vehicle)
+    local _, _, up = GetEntityMatrix(vehicle)
+    return up.z < math.cos(math.rad(Config.VehicleRoof.maxTilt))
+end
+
 ---Véhicule en mouvement sous les pieds du joueur (à pied, debout dessus).
 ---@param ped integer
 ---@return integer|nil
@@ -71,7 +79,7 @@ function VehicleRoof.vehicleUnder(ped)
         coords.x, coords.y, coords.z - VehicleRoof.PROBE_DEPTH, VehicleRoof.PROBE_VEHICLES, ped, 0)
     local _, hit, _, _, entity = GetShapeTestResult(probe)
     if (hit ~= true and hit ~= 1) or entity == 0 or GetEntityType(entity) ~= 2 then return nil end
-    if not VehicleRoof.isMoving(entity) then return nil end
+    if not VehicleRoof.isMoving(entity) or VehicleRoof.isTooTilted(entity) then return nil end
     return entity
 end
 
@@ -99,9 +107,13 @@ function VehicleRoof.detach(ped, enterVehicle)
     VehicleRoof.blockedUntil = GetGameTimer() + VehicleRoof.REATTACH_DELAY
     VehicleRoof.animate(ped, nil)
     if IsEntityAttached(ped) then DetachEntity(ped, true, false) end
-    if enterVehicle and vehicle and DoesEntityExist(vehicle) then
+    if not vehicle or not DoesEntityExist(vehicle) then return end
+    if enterVehicle then
         local seat = VehicleRoof.freeSeat(vehicle)
         if seat then SetPedIntoVehicle(ped, vehicle, seat) end
+    else
+        -- Saut ou chute : le joueur garde l'élan du véhicule au lieu de s'arrêter net en l'air
+        SetEntityVelocity(ped, GetEntityVelocity(vehicle))
     end
 end
 
@@ -122,6 +134,7 @@ function VehicleRoof.update(ped)
     end
     if IsControlJustPressed(0, VehicleRoof.CONTROL_JUMP) then return VehicleRoof.detach(ped) end
     if IsControlJustPressed(0, VehicleRoof.CONTROL_ENTER) then return VehicleRoof.detach(ped, true) end
+    if VehicleRoof.isTooTilted(vehicle) then return VehicleRoof.detach(ped) end
 
     -- Véhicule arrêté au sol : on rend la marche normale (on peut en descendre)
     if VehicleRoof.isMoving(vehicle) then

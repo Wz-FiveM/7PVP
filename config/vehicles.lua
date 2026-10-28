@@ -17,6 +17,7 @@ Config.VehicleOptions = {
 -- Debout sur le toit d'un véhicule qui roule ou qui vole (Deluxo en vol, etc.) : le joueur y reste
 -- accroché au lieu de glisser et tomber. Il s'y déplace avec les touches de marche, vise et tire ;
 -- Espace (saut) le décroche, F le fait monter à une place libre. Véhicule arrêté au sol : marche normale.
+-- Véhicule trop penché : le joueur tombe, avec l'élan du véhicule.
 Config.VehicleRoof = {
     enabled = true,
     minSpeed = 1.5, -- m/s : en dessous (et au sol), on n'accroche pas le joueur
@@ -24,6 +25,7 @@ Config.VehicleRoof = {
     runSpeed = 3.5, -- m/s : vitesse de course (touche sprint)
     turnSpeed = 540.0, -- °/s : vitesse à laquelle le joueur se tourne vers où il marche
     edgeMargin = 0.25, -- m gardés entre le joueur et le bord du véhicule
+    maxTilt = 35.0, -- ° : véhicule plus penché que ça (avant/arrière ou côté), le joueur tombe
     anim = { dict = 'move_m@generic', walk = 'walk', run = 'run' }, -- animations de marche sur le toit
 }
 
