@@ -13,6 +13,14 @@ local SafeNpcs = PVP.use('SafeNpcs')
 local Loot = PVP.use('Loot')
 local Events = PVP.use('Events')
 
+-- Commandes coupées quand le menu laisse le clavier au jeu : caméra et roue de la souris, tir,
+-- visée, corps à corps, roue des armes, armes et radio du véhicule, menu pause de GTA
+Nui.MENU_BLOCKED_CONTROLS = { 1, 2, 14, 15, 16, 17, 24, 25, 37, 68, 69, 70, 81, 82, 91, 92, 99, 100, 106, 140, 141, 142, 143, 199, 200, 257, 263 }
+Nui.TOGGLE_DEBOUNCE = 300 -- ms
+Nui.gameInput = false
+Nui.gameInputChangedAt = 0
+Nui.typing = false
+
 function Nui.init()
     -- Nouveau nom de commande à chaque changement de touche par défaut : FiveM garde sinon
     -- la touche déjà enregistrée par les joueurs qui ont joué avant
@@ -28,6 +36,12 @@ function Nui.init()
 
     RegisterNUICallback('close', function(_, cb)
         Nui.setMenu(false)
+        cb({})
+    end)
+
+    -- Saisie dans un champ du menu : le clavier ne va plus au jeu (sinon taper « 1 » sort une arme)
+    RegisterNUICallback('menuTyping', function(data, cb)
+        Nui.setTyping(type(data) == 'table' and data.typing == true)
         cb({})
     end)
 
@@ -144,11 +158,46 @@ function Nui.setMenu(open, page)
     if not open then Loot.closeContainer() end
     State.menuOpen = open
     SetNuiFocus(open, open)
+    Nui.setGameInput(open)
     Nui.sendMenuState(page)
 end
 
 function Nui.toggleMenu()
+    -- Menu ouvert, la touche arrive à la fois à l'interface (qui ferme) et au jeu : un seul changement
+    if GetGameTimer() - Nui.gameInputChangedAt < Nui.TOGGLE_DEBOUNCE then return end
     -- En Freeroam, la touche du menu ouvre le menu des armes et véhicules
     if State.mode == 'freeroam' then return Freeroam.toggleMenu() end
     Nui.setMenu(not State.menuOpen)
+end
+
+-- ---------------------------------------------------------------------------
+-- Clavier du jeu menu ouvert
+-- ---------------------------------------------------------------------------
+
+---Menu ouvert sans bloquer le jeu : on marche, on conduit et on utilise ses raccourcis (1 à 7)
+---au clavier ; la souris reste au curseur (caméra, tir et roue des armes coupés).
+---@param enabled boolean
+function Nui.setGameInput(enabled)
+    Nui.gameInputChangedAt = GetGameTimer()
+    Nui.typing = false
+    SetNuiFocusKeepInput(enabled)
+    local wasEnabled = Nui.gameInput
+    Nui.gameInput = enabled
+    if enabled and not wasEnabled then CreateThread(Nui.gameInputLoop) end
+end
+
+---@param typing boolean un champ de texte du menu a le focus
+function Nui.setTyping(typing)
+    if not Nui.gameInput or typing == Nui.typing then return end
+    Nui.typing = typing
+    SetNuiFocusKeepInput(not typing)
+end
+
+function Nui.gameInputLoop()
+    while Nui.gameInput do
+        for _, control in ipairs(Nui.MENU_BLOCKED_CONTROLS) do
+            DisableControlAction(0, control, true)
+        end
+        Wait(0)
+    end
 end

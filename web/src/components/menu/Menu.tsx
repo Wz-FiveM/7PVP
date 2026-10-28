@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PAGES, type PageId } from '../../pages';
+import { useTypingFocus } from '../../hooks/useTypingFocus';
 import { useGame } from '../../store/GameContext';
 import { isMenuCloseKey } from '../../utils/keys';
 import { MenuStatus } from './MenuStatus';
@@ -9,6 +10,7 @@ import './menu.css';
 export function Menu() {
   const { state, actions } = useGame();
   const [pageId, setPageId] = useState<PageId>('inventory');
+  useTypingFocus();
 
   // Parler à un PNJ ouvre directement sa page (boutique, coffre, fabrication...)
   useEffect(() => {

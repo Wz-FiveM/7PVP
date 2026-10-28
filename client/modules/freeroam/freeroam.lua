@@ -58,6 +58,7 @@ function Freeroam.setMenu(open)
     if not open and not Freeroam.menuOpen then return end
     Freeroam.menuOpen = open
     SetNuiFocus(open, open)
+    Nui.setGameInput(open)
     Nui.send('freeroamMenu', {
         open = open,
         pvp = Freeroam.pvp,

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useGame } from '../../store/GameContext';
+import { useTypingFocus } from '../../hooks/useTypingFocus';
 import { isMenuCloseKey } from '../../utils/keys';
 import { Icon, type IconName } from '../icons/Icon';
 import '../pause/pause.css';
@@ -19,6 +20,7 @@ export function FreeroamMenu() {
   const { freeroam } = state;
   const [tab, setTab] = useState<FreeroamTab>('weapons');
   const [model, setModel] = useState('');
+  useTypingFocus();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
