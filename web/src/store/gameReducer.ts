@@ -169,6 +169,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         config: action.payload.config,
         player: action.payload.player ?? state.player,
         zone: action.payload.zone,
+        mode: action.payload.mode === undefined ? state.mode : action.payload.mode || null,
       };
     case 'sync':
       return { ...state, player: action.player };

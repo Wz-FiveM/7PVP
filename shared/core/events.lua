@@ -6,6 +6,7 @@ local Events = PVP.define('Events')
 -- Client -> serveur
 Events.server = {
     ready = '7pvp:server:ready',
+    uiError = '7pvp:server:uiError',
     ammoUsed = '7pvp:server:ammoUsed',
     died = '7pvp:server:died',
     npcDied = '7pvp:server:npcDied',

@@ -12,8 +12,8 @@ export function GroupPage() {
   const { group, groupInvite, groupVitals, player } = state;
   const [target, setTarget] = useState('');
 
-  const report = (result: ActionResult) => {
-    if (result.message) actions.notify(result.message, result.ok ? 'success' : 'error');
+  const report = (result: ActionResult | undefined) => {
+    if (result?.message) actions.notify(result.message, result.ok ? 'success' : 'error');
   };
 
   const invite = (event: FormEvent) => {

@@ -8,6 +8,7 @@ local LootService = PVP.use('LootService')
 local AppearanceService = PVP.use('AppearanceService')
 local LobbyService = PVP.use('LobbyService')
 local SeasonService = PVP.use('SeasonService')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
 
@@ -27,6 +28,10 @@ function PlayerService.init()
         PlayerService.unload(source)
     end)
 
+    RegisterNetEvent(Events.server.uiError, function(name, message)
+        PlayerService.onUiError(source, name, message)
+    end)
+
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then
             PlayerService.saveAll()
@@ -34,6 +39,16 @@ function PlayerService.init()
     end)
 
     CreateThread(PlayerService.autoSaveLoop)
+end
+
+---Une partie de l'interface d'un joueur a planté : gardé dans le journal pour la corriger.
+---@param source integer
+---@param name any
+---@param message any
+function PlayerService.onUiError(source, name, message)
+    if not AntiCheatService.allow(source, 'ui') then return end
+    Logger.warn('[interface] %s (ID %d) : « %s » a planté : %s', GetPlayerName(source) or '?', source,
+        tostring(name):sub(1, 40), tostring(message):sub(1, 300))
 end
 
 ---@param source integer|string

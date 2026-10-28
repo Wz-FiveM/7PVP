@@ -75,6 +75,8 @@ export interface InitPayload {
   config: GameConfig;
   player?: PlayerState;
   zone: ZoneInfo;
+  /** mode en cours, `false` au lobby */
+  mode?: string | false;
 }
 
 /** Réponse des actions (achat, utilisation d'objet) */

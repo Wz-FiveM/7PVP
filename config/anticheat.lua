@@ -39,6 +39,7 @@ Config.AntiCheat = {
         callback = 25, -- menus, inventaire, achats...
         hit = 40, -- touches signalées (hitmarker, zombies)
         loot = 10, -- ramassage de butin
+        ui = 2, -- erreurs d'interface signalées (journal)
     },
     -- Le client envoie un signal toutes les `heartbeatInterval` s ; sans signal pendant
     -- `heartbeatTimeout` s, son script a été arrêté (menu de triche « resource stopper »)

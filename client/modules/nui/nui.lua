@@ -39,6 +39,12 @@ function Nui.init()
         cb({})
     end)
 
+    -- Une partie de l'interface a planté (web/src/components/ui/UiGuard.tsx)
+    RegisterNUICallback('uiError', function(data, cb)
+        cb({})
+        Nui.onUiError(data)
+    end)
+
     -- Saisie dans un champ du menu : le clavier ne va plus au jeu (sinon taper « 1 » sort une arme)
     RegisterNUICallback('menuTyping', function(data, cb)
         Nui.setTyping(type(data) == 'table' and data.typing == true)
@@ -136,7 +142,19 @@ function Nui.buildInitPayload()
         },
         player = State.player,
         zone = Zones.toInfo(State.zone),
+        -- Un message « mode » envoyé avant que la page soit prête serait perdu
+        mode = State.mode or false,
     }
+end
+
+---Erreur d'une partie de l'interface : console F8 et journal du serveur (pour la corriger).
+---@param data any { name, message }
+function Nui.onUiError(data)
+    if type(data) ~= 'table' then return end
+    local name = tostring(data.name or '?'):sub(1, 40)
+    local message = tostring(data.message or '?'):sub(1, 300)
+    print(('[7PVP] interface « %s » : %s'):format(name, message))
+    TriggerServerEvent(Events.server.uiError, name, message)
 end
 
 ---@param page? string page à afficher (ex : 'shop' en parlant à l'armurier)

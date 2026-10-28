@@ -15,6 +15,10 @@ import { gameReducer, initialState } from './gameReducer';
 const TOAST_DURATION = 4000;
 const KILLFEED_DURATION = 6000;
 
+/** Nouvel essai de la poignée de main « ready » : 0,5 s, puis de plus en plus espacé (5 s max) */
+const READY_FIRST_DELAY = 500;
+const READY_MAX_DELAY = 5000;
+
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const nextId = useRef(0);
@@ -115,12 +119,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   useNuiMessage(handleMessage);
 
+  // Poignée de main avec Lua : réessayée tant qu'il n'a pas répondu (scripts pas encore
+  // chargés, callback en erreur...), sinon le HUD ne se chargerait jamais
   useEffect(() => {
-    gameApi.ready().then((payload) => {
+    let cancelled = false;
+    let timer: number | undefined;
+    const attempt = async (delay: number) => {
+      const payload = await gameApi.ready();
+      if (cancelled) return;
+      if (!payload?.config) {
+        timer = window.setTimeout(() => attempt(Math.min(delay * 2, READY_MAX_DELAY)), delay);
+        return;
+      }
       dispatch({ type: 'init', payload });
       // Dans le navigateur : données factices ; l'écran affiché se choisit dans le panneau de dev
       if (isEnvBrowser()) dispatch({ type: 'vitals', vitals: mockVitals });
-    });
+    };
+    void attempt(READY_FIRST_DELAY);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   // Dans le navigateur, TAB et T simulent les touches du jeu (raccourcis, chat)
