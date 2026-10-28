@@ -1,5 +1,5 @@
 ---Véhicules en objets : création du véhicule demandée par le serveur (objet utilisé),
----joueur placé au volant, armes montées désactivées. Voir server/modules/vehicle.
+---joueur placé au volant, armes montées et tir en véhicule désactivés en PvP. Voir server/modules/vehicle.
 ---@class VehiclesModule
 local Vehicles = PVP.define('Vehicles')
 local State = PVP.use('State')
@@ -40,6 +40,7 @@ function Vehicles.init()
     RegisterKeyMapping('pvp_ranger_vehicule', 'Ranger un véhicule 7PVP (assis dedans)', 'keyboard', Config.VehicleOptions.storeKey)
 
     CreateThread(Vehicles.weaponLoop)
+    CreateThread(Vehicles.driveByLoop)
     CreateThread(Vehicles.helpLoop)
 end
 
@@ -162,5 +163,24 @@ function Vehicles.disableWeapons(ped, vehicle)
         local hasWeapon, weapon = GetCurrentPedVehicleWeapon(ped)
         if not hasWeapon or weapon == 0 then return end
         DisableVehicleWeapon(true, weapon, vehicle, ped)
+    end
+end
+
+-- Tir en véhicule (drive-by) : viser, tirer, lancer
+Vehicles.DRIVE_BY_CONTROLS = { 68, 69, 70, 91, 92, 114, 331 }
+
+---Pas de tir depuis un véhicule en PvP, conducteur comme passager (en plus de
+---SetPlayerCanDoDriveBy, coupé dans Zone.setSafe).
+function Vehicles.driveByLoop()
+    while true do
+        if State.inPvp() and IsPedInAnyVehicle(PlayerPedId(), false) then
+            DisablePlayerFiring(PlayerId(), true)
+            for _, control in ipairs(Vehicles.DRIVE_BY_CONTROLS) do
+                DisableControlAction(0, control, true)
+            end
+            Wait(0)
+        else
+            Wait(Vehicles.WEAPON_CHECK_INTERVAL)
+        end
     end
 end
