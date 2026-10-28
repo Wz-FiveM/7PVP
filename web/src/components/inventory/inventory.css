@@ -87,15 +87,18 @@
 .tile {
   position: relative;
   height: 4.625rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 60%), rgba(26, 30, 28, 0.86);
+  /* Halo clair derrière l'image : les armes (noires) restent lisibles sur le fond sombre */
+  background: radial-gradient(ellipse 55% 45% at 50% 38%, rgba(236, 238, 232, 0.16), transparent 75%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 60%), rgba(26, 30, 28, 0.86);
   box-shadow: var(--ombre), inset 0 0 0 0.0625rem rgba(236, 238, 232, 0.08);
   cursor: grab;
 }
 .tile:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 60%), rgba(36, 42, 39, 0.92);
+  background: radial-gradient(ellipse 55% 45% at 50% 38%, rgba(236, 238, 232, 0.22), transparent 75%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 60%), rgba(36, 42, 39, 0.92);
 }
 .tile--selected {
-  background: rgba(240, 195, 60, 0.12);
+  background: radial-gradient(ellipse 55% 45% at 50% 38%, rgba(236, 238, 232, 0.18), transparent 75%), rgba(240, 195, 60, 0.12);
   box-shadow: var(--ombre), inset 0 0 0 0.0625rem var(--signal);
 }
 .tile--protected {

@@ -55,6 +55,8 @@ function PlayerObject.new(source, identifier, row)
         mode = nil,
         isAdmin = row.is_admin == 1 or row.is_admin == true,
         ammoSeq = 0,
+        -- Armes de jet lancées récemment : [objet] = os.time() (l'anti-cheat accepte leurs dégâts)
+        recentThrows = {},
         dead = false,
         combatUntil = 0,
         combatNotifiedAt = 0,
@@ -218,8 +220,12 @@ function PlayerObject:consumeAmmo(seq, report)
     self.ammoSeq = seq
 
     for name, used in pairs(report) do
-        if Items.isType(name, 'ammo') and type(used) == 'number' and used > 0 then
+        -- Munitions, ou armes de jet (l'objet est sa propre munition)
+        local item = Items.get(name)
+        local isAmmo = item and (item.type == 'ammo' or (item.throwable and item.ammo == name))
+        if isAmmo and type(used) == 'number' and used > 0 then
             self.inventory:remove(name, math.min(math.floor(used), self.inventory:count(name)))
+            if item.throwable then self.recentThrows[name] = os.time() end
         end
     end
     return true

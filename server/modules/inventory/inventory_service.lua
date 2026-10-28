@@ -46,6 +46,9 @@ function InventoryService.use(source, name)
     if not player or not Items.isType(name, 'consumable') then
         return { ok = false, message = 'Cet objet ne s\'utilise pas.' }
     end
+    if Items.get(name).repair and not InventoryService.vehicleToRepair(source) then
+        return { ok = false, message = 'Monte dans un véhicule ou reste à côté pour le réparer.' }
+    end
     if not player:removeItem(name, 1) then
         return { ok = false, message = 'Tu n\'as plus cet objet.' }
     end
@@ -54,6 +57,23 @@ function InventoryService.use(source, name)
     TriggerClientEvent(Events.client.applyItem, source, name)
     player:sync()
     return { ok = true, message = ('%s utilisé'):format(Items.label(name)) }
+end
+
+InventoryService.REPAIR_DISTANCE = 5.0
+
+---Véhicule que le kit de réparation peut réparer : celui où est le joueur, sinon son dernier
+---véhicule s'il est juste à côté.
+---@param source integer
+---@return integer|nil
+function InventoryService.vehicleToRepair(source)
+    local ped = GetPlayerPed(source)
+    local vehicle = GetVehiclePedIsIn(ped, false)
+    if vehicle ~= 0 then return vehicle end
+    vehicle = GetVehiclePedIsIn(ped, true)
+    if vehicle ~= 0 and #(GetEntityCoords(vehicle) - GetEntityCoords(ped)) <= InventoryService.REPAIR_DISTANCE then
+        return vehicle
+    end
+    return nil
 end
 
 ---@param source integer

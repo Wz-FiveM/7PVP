@@ -202,11 +202,31 @@ function AntiCheatService.ownedWeapons(player)
         owned[AntiCheatService.unsigned(GetHashKey(name))] = true
     end
     for name, item in pairs(Config.Items) do
-        if item.weapon and player.inventory:count(name) > 0 then
+        if item.weapon and AntiCheatService.hasWeapon(player, name) then
             owned[AntiCheatService.unsigned(GetHashKey(item.weapon))] = true
         end
     end
     return owned
+end
+
+---Objet possédé, ou arme de jet lancée il y a peu (la grenade a quitté l'inventaire avant d'exploser).
+---@param player PvpPlayer
+---@param name string
+---@return boolean
+function AntiCheatService.hasWeapon(player, name)
+    if player.inventory:count(name) > 0 then return true end
+    local thrown = player.recentThrows and player.recentThrows[name]
+    return thrown ~= nil and os.time() - thrown <= Config.AntiCheat.throwGrace
+end
+
+---@param player PvpPlayer
+---@param explosionType integer
+---@return boolean
+function AntiCheatService.explosionAllowed(player, explosionType)
+    for _, name in ipairs(Config.AntiCheat.explosionWeapons[explosionType] or {}) do
+        if AntiCheatService.hasWeapon(player, name) then return true end
+    end
+    return false
 end
 
 ---@param sender integer
@@ -234,7 +254,8 @@ function AntiCheatService.onExplosion(sender, data)
     local player = AntiCheatService.watched(sender, true)
     if not player or type(data) ~= 'table' then return end
     local explosionType = tonumber(data.explosionType)
-    if explosionType and Config.AntiCheat.blockedExplosions[explosionType] then
+    if explosionType and Config.AntiCheat.blockedExplosions[explosionType]
+        and not AntiCheatService.explosionAllowed(player, explosionType) then
         CancelEvent()
         AntiCheatService.flag(sender, 'explosion', ('explosion de type %d'):format(explosionType))
     end

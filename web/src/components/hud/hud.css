@@ -476,7 +476,7 @@
   position: relative;
   width: 3.75rem;
   height: 3.125rem;
-  background: var(--panneau);
+  background: radial-gradient(ellipse 55% 45% at 50% 40%, rgba(236, 238, 232, 0.16), transparent 75%), var(--panneau);
   box-shadow: var(--ombre);
 }
 .hotbar__tile--empty {
@@ -488,7 +488,7 @@
 .hotbar__slot--active .hotbar__tile {
   width: 4.25rem;
   height: 3.5rem;
-  background: rgba(240, 195, 60, 0.16);
+  background: radial-gradient(ellipse 55% 45% at 50% 40%, rgba(236, 238, 232, 0.2), transparent 75%), rgba(240, 195, 60, 0.16);
   box-shadow: inset 0 0 0 0.0625rem var(--signal), var(--ombre);
 }
 .hotbar__tile .item-icon {
@@ -496,7 +496,8 @@
   top: 0.25rem;
   left: 50%;
   display: flex;
-  height: 1.625rem;
+  height: 2rem;
+  max-width: 88%;
   transform: translateX(-50%);
   color: var(--os);
 }

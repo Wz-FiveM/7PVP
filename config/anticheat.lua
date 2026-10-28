@@ -43,11 +43,28 @@ Config.AntiCheat = {
     -- `heartbeatTimeout` s, son script a été arrêté (menu de triche « resource stopper »)
     heartbeatInterval = 20,
     heartbeatTimeout = 90,
-    -- Types d'explosion interdits en PvP (armes explosives : grenade, roquette, bombe collante...).
+    -- Types d'explosion interdits en PvP (armes explosives : grenade, roquette, bombe collante...),
+    -- sauf pour un joueur qui possède (ou vient de lancer) l'arme correspondante (explosionWeapons).
     -- Les explosions de véhicules ou de pompes à essence touchées par balle restent permises.
     blockedExplosions = {
         [0] = true, [1] = true, [2] = true, [3] = true, [4] = true, [5] = true, [18] = true, [19] = true,
         [20] = true, [21] = true, [25] = true, [32] = true, [33] = true, [35] = true, [36] = true,
         [38] = true, [40] = true, [43] = true, [59] = true, [60] = true, [64] = true, [70] = true,
     },
+    -- Type d'explosion GTA -> objets qui la provoquent (config/items.lua)
+    explosionWeapons = {
+        [0] = { 'weapon_grenade' },
+        [1] = { 'weapon_grenadelauncher', 'weapon_compactlauncher' },
+        [2] = { 'weapon_stickybomb' },
+        [3] = { 'weapon_molotov' },
+        [4] = { 'weapon_rpg', 'weapon_hominglauncher' },
+        [20] = { 'weapon_smokegrenade' },
+        [21] = { 'weapon_bzgas' },
+        [36] = { 'weapon_railgun' },
+        [38] = { 'weapon_firework' },
+        [40] = { 'weapon_proxmine' },
+        [43] = { 'weapon_pipebomb' },
+    },
+    -- Secondes pendant lesquelles une arme de jet lancée (donc plus dans l'inventaire) reste permise
+    throwGrace = 30,
 }
