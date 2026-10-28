@@ -34,6 +34,46 @@ function GroupService.init()
         GroupService.leave(playerSource)
         GroupService.invites[playerSource] = nil
     end)
+
+    CreateThread(GroupService.stateLoop)
+end
+
+GroupService.STATE_INTERVAL = 1000
+
+---Vie, armure et position des membres, lues par le serveur : connues même quand les
+---coéquipiers sont trop loin pour que le jeu du joueur les charge.
+function GroupService.stateLoop()
+    while true do
+        Wait(GroupService.STATE_INTERVAL)
+        for _, group in pairs(GroupService.groups) do
+            if #group.members > 1 then GroupService.sendState(group) end
+        end
+    end
+end
+
+---@param group PvpGroup
+function GroupService.sendState(group)
+    local state = {}
+    for _, source in ipairs(group.members) do
+        local player = PlayerService.get(source)
+        local ped = GetPlayerPed(source)
+        if player and ped ~= 0 then
+            local coords = GetEntityCoords(ped)
+            state[#state + 1] = {
+                id = source,
+                health = player.dead and 0 or math.max(0, GetEntityHealth(ped) - 100),
+                armor = GetPedArmour(ped),
+                dead = player.dead,
+                x = coords.x,
+                y = coords.y,
+                z = coords.z,
+                heading = GetEntityHeading(ped),
+            }
+        end
+    end
+    for _, source in ipairs(group.members) do
+        TriggerClientEvent(Events.client.groupState, source, state)
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -99,13 +139,13 @@ function GroupService.invite(source, targetId)
     if not target or target == player then return { ok = false, message = 'Joueur introuvable.' } end
     if target.mode ~= 'pvp' then return { ok = false, message = ('%s n\'est pas en PvP.'):format(target.name) } end
     if GroupService.getGroupOf(target.source) then
-        return { ok = false, message = ('%s est déjà dans un groupe.'):format(target.name) }
+        return { ok = false, message = ('%s est déjà dans une équipe.'):format(target.name) }
     end
 
     local group = GroupService.getGroupOf(source) or GroupService.create(source)
     if group.leader ~= source then return { ok = false, message = 'Seul le chef peut inviter.' } end
     if #group.members >= Config.Groups.maxSize then
-        return { ok = false, message = ('Groupe complet (%d max).'):format(Config.Groups.maxSize) }
+        return { ok = false, message = ('Équipe complète (%d max).'):format(Config.Groups.maxSize) }
     end
 
     GroupService.invites[target.source] = {
@@ -130,24 +170,24 @@ function GroupService.respond(source, accept)
     if accept ~= true then return { ok = true, message = 'Invitation refusée.' } end
 
     local group = GroupService.groups[invite.groupId]
-    if not group then return { ok = false, message = 'Ce groupe n\'existe plus.' } end
+    if not group then return { ok = false, message = 'Cette équipe n\'existe plus.' } end
     if player.mode ~= 'pvp' then return { ok = false, message = 'Disponible seulement en PvP.' } end
-    if GroupService.getGroupOf(source) then return { ok = false, message = 'Quitte d\'abord ton groupe.' } end
-    if #group.members >= Config.Groups.maxSize then return { ok = false, message = 'Le groupe est complet.' } end
+    if GroupService.getGroupOf(source) then return { ok = false, message = 'Quitte d\'abord ton équipe.' } end
+    if #group.members >= Config.Groups.maxSize then return { ok = false, message = 'L\'équipe est complète.' } end
 
     group.members[#group.members + 1] = source
     GroupService.memberOf[source] = group.id
-    GroupService.notifyMembers(group, ('%s a rejoint le groupe.'):format(player.name), source)
+    GroupService.notifyMembers(group, ('%s a rejoint l\'équipe.'):format(player.name), source)
     GroupService.sync(group)
-    return { ok = true, message = 'Tu as rejoint le groupe.' }
+    return { ok = true, message = 'Tu as rejoint l\'équipe.' }
 end
 
 ---@param source integer
 ---@return { ok: boolean, message?: string }
 function GroupService.leaveCallback(source)
-    if not GroupService.getGroupOf(source) then return { ok = false, message = 'Tu n\'es dans aucun groupe.' } end
+    if not GroupService.getGroupOf(source) then return { ok = false, message = 'Tu n\'es dans aucune équipe.' } end
     GroupService.leave(source)
-    return { ok = true, message = 'Tu as quitté le groupe.' }
+    return { ok = true, message = 'Tu as quitté l\'équipe.' }
 end
 
 ---@param source integer chef
@@ -158,12 +198,12 @@ function GroupService.kick(source, targetId)
     targetId = tonumber(targetId)
     if not group or group.leader ~= source then return { ok = false, message = 'Seul le chef peut exclure.' } end
     if not targetId or targetId == source or GroupService.memberOf[targetId] ~= group.id then
-        return { ok = false, message = 'Joueur introuvable dans le groupe.' }
+        return { ok = false, message = 'Joueur introuvable dans l\'équipe.' }
     end
 
     local target = PlayerService.get(targetId)
     GroupService.leave(targetId)
-    if target then target:notify('Tu as été exclu du groupe.', 'info') end
+    if target then target:notify('Tu as été exclu de l\'équipe.', 'info') end
     return { ok = true }
 end
 
@@ -202,7 +242,7 @@ function GroupService.leave(source)
     if group.leader == source then group.leader = group.members[1] end
 
     local player = PlayerService.get(source)
-    GroupService.notifyMembers(group, ('%s a quitté le groupe.'):format(player and player.name or GetPlayerName(source)))
+    GroupService.notifyMembers(group, ('%s a quitté l\'équipe.'):format(player and player.name or GetPlayerName(source)))
     GroupService.sync(group)
 end
 
@@ -212,7 +252,7 @@ function GroupService.disband(group)
         GroupService.memberOf[source] = nil
         TriggerClientEvent(Events.client.groupSync, source, false)
         local player = PlayerService.get(source)
-        if player then player:notify('Groupe dissous.', 'info') end
+        if player then player:notify('Équipe dissoute.', 'info') end
     end
     GroupService.groups[group.id] = nil
 end

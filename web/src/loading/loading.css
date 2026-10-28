@@ -8,7 +8,7 @@
   overflow: hidden;
   background-color: var(--nuit);
   background-image:
-    radial-gradient(ellipse at 50% 42%, rgba(255, 107, 26, 0.14), transparent 60%),
+    radial-gradient(ellipse at 50% 42%, rgba(240, 195, 60, 0.14), transparent 60%),
     linear-gradient(rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem),
     linear-gradient(90deg, rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem);
   background-size: 100% 100%, 5rem 5rem, 5rem 5rem;
@@ -17,7 +17,7 @@
 /* Bande d'alerte qui défile en haut */
 .loading__stripes {
   height: 0.5rem;
-  background: repeating-linear-gradient(135deg, var(--hazard) 0 1rem, transparent 1rem 2rem);
+  background: repeating-linear-gradient(135deg, var(--signal) 0 1rem, transparent 1rem 2rem);
   background-size: 2.83rem 100%;
   animation: loading-stripes 1.2s linear infinite;
 }
@@ -61,10 +61,10 @@
   width: 42rem;
   margin-bottom: 2.5rem;
   padding: 1rem 1.25rem;
-  background: rgba(20, 24, 26, 0.85);
+  background: rgba(18, 21, 20, 0.85);
 }
 .loading__tip-label {
-  color: var(--hazard);
+  color: var(--signal);
 }
 .loading__tip-text {
   font-size: 1rem;
@@ -102,7 +102,7 @@
 .loading__percent {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--hazard);
+  color: var(--signal);
 }
 .loading__log {
   height: 1rem;

@@ -1,5 +1,5 @@
 ---Menu pause 7PVP : remplace le menu pause de GTA (Échap / P) en jeu.
----Il donne accès à la carte et aux paramètres de GTA, au menu F2, au lobby et à la déconnexion.
+---Il donne accès à la carte et aux paramètres de GTA, à l'inventaire, au lobby et à la déconnexion.
 ---@class PauseModule
 local Pause = PVP.define('Pause')
 local State = PVP.use('State')
@@ -79,11 +79,12 @@ function Pause.buildInfo()
         npcKills = player.npcKills or 0,
         isAdmin = Admin.isAdmin,
         keys = {
-            menu = Config.MenuKey,
+            menu = Config.MenuKeyLabel,
             hotbar = Config.HotbarKey,
             chat = Config.Chat.key,
             admin = Config.Admin.Key,
             noclip = Config.Admin.NoclipKey,
+            teleport = Config.Teleport.key,
         },
     }
 end

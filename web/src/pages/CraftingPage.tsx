@@ -18,8 +18,8 @@ export function CraftingPage() {
 
   return (
     <>
-      {!menu.inSafe && (
-        <p className="hint cut-s">La fabrication se fait en zone safe. Rejoins un abri pour fabriquer.</p>
+      {!menu.near.crafting && (
+        <p className="hint cut-s">La fabrication se fait auprès de l'artisan, en zone safe (repère jaune sur la carte).</p>
       )}
       <div className="crafting">
         {(config.recipes ?? []).map((recipe) => {
@@ -53,7 +53,7 @@ export function CraftingPage() {
               </ul>
               <button
                 className="btn btn--primary btn--small cut-s"
-                disabled={locked || !ready || !menu.inSafe}
+                disabled={locked || !ready || !menu.near.crafting}
                 onClick={() => actions.craft(recipe.id)}
               >
                 Fabriquer

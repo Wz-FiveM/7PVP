@@ -10,10 +10,12 @@ export default defineConfig({
     outDir: 'build',
     emptyOutDir: true,
     rollupOptions: {
-      // Deux pages : l'interface du jeu (ui_page) et l'écran de chargement (loadscreen)
+      // Trois pages : l'interface du jeu (ui_page), l'écran de chargement (loadscreen)
+      // et l'étiquette 3D rendue en texture dans le monde (DUI)
       input: {
         main: resolve(__dirname, 'index.html'),
         loading: resolve(__dirname, 'loading.html'),
+        dui: resolve(__dirname, 'dui.html'),
       },
     },
   },

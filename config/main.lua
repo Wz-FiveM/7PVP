@@ -96,7 +96,12 @@ Config.World = {
 -- Interface
 -- ---------------------------------------------------------------------------
 
-Config.MenuKey = 'F2'
+-- Inventaire / menu (nom de touche FiveM : CAPITAL = Verr. Maj)
+Config.MenuKey = 'CAPITAL'
+Config.MenuKeyLabel = 'VERR. MAJ' -- nom affiché dans l'interface
+-- Menu d'interaction : maintenir la touche, viser une cible (soi, joueur, butin, PNJ, véhicule)
+-- et cliquer. LMENU = Alt gauche.
+Config.InteractionKey = 'LMENU'
 Config.HotbarKey = 'TAB' -- maintenir pour afficher la barre de raccourcis (remplace la roue des armes)
 
 -- ---------------------------------------------------------------------------
@@ -127,7 +132,9 @@ Config.Airdrops = {
     unlockDelay = 60, -- secondes entre l'atterrissage et l'ouverture
     lifetime = 600, -- secondes avant que le butin ouvert disparaisse
     loot = 'airdrop', -- table de config/loot.lua
-    model = 'prop_drop_armscrate_01',
+    -- Caisse militaire solide (collisions une fois posée). Autres modèles possibles :
+    -- 'prop_mil_crate_02', 'gr_prop_gr_rsply_crate04a' (caisse de ravitaillement, plus grande)
+    model = 'prop_mil_crate_01',
     parachute = 'p_cargo_chute_s',
     blip = { sprite = 94, color = 5 },
     locations = {

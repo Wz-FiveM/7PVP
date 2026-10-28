@@ -3,6 +3,7 @@
 ---@class ConnectionServiceModule
 local ConnectionService = PVP.define('ConnectionService')
 local Events = PVP.use('Events')
+local BanRepository = PVP.use('BanRepository')
 
 function ConnectionService.init()
     AddEventHandler('playerConnecting', function(name, _, deferrals)
@@ -22,8 +23,15 @@ function ConnectionService.onConnecting(source, name, deferrals)
     deferrals.defer()
     Wait(0)
 
-    if not GetPlayerIdentifierByType(source, 'license') then
+    local license = GetPlayerIdentifierByType(source, 'license')
+    if not license then
         return deferrals.done('7PVP : une licence Rockstar est nécessaire. Relance FiveM connecté à ton compte.')
+    end
+
+    local ban = BanRepository.find(license)
+    if ban then
+        local until_ = ban.expires_at and ('jusqu\'au %s'):format(ban.expires_at) or 'définitivement'
+        return deferrals.done(('7PVP : tu es banni %s.\nRaison : %s'):format(until_, ban.reason))
     end
 
     -- Lu par l'écran de chargement (window.nuiHandoverData)

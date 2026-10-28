@@ -12,6 +12,7 @@ Events.server = {
     zombieAttack = '7pvp:server:zombieAttack',
     hitReport = '7pvp:server:hitReport',
     quit = '7pvp:server:quit',
+    heartbeat = '7pvp:server:heartbeat',
     npcHitReport = '7pvp:server:npcHitReport',
     lootPickup = '7pvp:server:lootPickup',
     chatSend = '7pvp:server:chatSend',
@@ -38,16 +39,21 @@ Events.client = {
     combatTag = '7pvp:client:combatTag',
     groupSync = '7pvp:client:groupSync',
     groupInvite = '7pvp:client:groupInvite',
+    groupState = '7pvp:client:groupState',
     airdropSpawn = '7pvp:client:airdropSpawn',
     airdropRemove = '7pvp:client:airdropRemove',
     bountySync = '7pvp:client:bountySync',
     hordeState = '7pvp:client:hordeState',
     controlZones = '7pvp:client:controlZones',
     freeroamCleanup = '7pvp:client:freeroamCleanup',
+    teleport = '7pvp:client:teleport',
+    teleportCancel = '7pvp:client:teleportCancel',
 }
 
 -- Événements internes (même côté, jamais réseau)
 Events.internal = {
+    -- Profil chargé depuis la base (statut admin, données à envoyer au client...)
+    playerLoaded = '7pvp:internal:playerLoaded',
     playerUnloading = '7pvp:internal:playerUnloading',
 }
 
@@ -67,6 +73,11 @@ Events.callbacks = {
     attachment = 'inventory:attachment',
     craft = 'crafting:craft',
     freeroamPvp = 'freeroam:pvp',
+    marketList = 'market:list',
+    marketSell = 'market:sell',
+    marketBuy = 'market:buy',
+    marketCancel = 'market:cancel',
+    marketCollect = 'market:collect',
     saveAppearance = 'appearance:save',
     joinMode = 'lobby:join',
     leaveMode = 'lobby:leave',
@@ -77,4 +88,6 @@ Events.callbacks = {
     groupRespond = 'group:respond',
     groupLeave = 'group:leave',
     groupKick = 'group:kick',
+    teleportInfo = 'teleport:info',
+    teleport = 'teleport:request',
 }

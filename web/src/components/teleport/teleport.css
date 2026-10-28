@@ -1,0 +1,192 @@
+/* Téléportation entre zones safe (F1) : panneau centré, le jeu reste visible autour */
+
+.teleport {
+  position: absolute;
+  inset: 0;
+  z-index: 58;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--grain), rgba(12, 14, 13, 0.45);
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.6);
+}
+
+.teleport__panel {
+  display: flex;
+  flex-direction: column;
+  width: 38rem;
+  max-width: 100%;
+  max-height: 100%;
+  background: rgba(18, 21, 20, 0.94);
+  box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.6), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.07);
+}
+.teleport__stripes {
+  flex: none;
+  height: 0.3125rem;
+}
+
+.teleport__header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.125rem 1.25rem 1rem;
+  border-bottom: 0.0625rem solid var(--trait);
+}
+.teleport__header-icon {
+  color: var(--zone);
+}
+.teleport__heading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.teleport__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.teleport__accent {
+  color: var(--zone);
+}
+.teleport__subtitle {
+  font-size: 0.8125rem;
+}
+.teleport__close {
+  align-self: flex-start;
+  min-width: 2rem;
+  padding: 0;
+}
+
+.teleport__notice {
+  margin: 0.875rem 1.25rem 0;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--hazard);
+  background: rgba(255, 90, 60, 0.12);
+  box-shadow: inset 0.1875rem 0 0 var(--hazard);
+}
+
+.teleport__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  overflow-y: auto;
+  list-style: none;
+}
+.teleport__zone {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 4rem;
+  padding: 0.625rem 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 60%), var(--acier);
+  box-shadow: var(--ombre);
+}
+.teleport__zone--current {
+  background: rgba(76, 201, 224, 0.12);
+}
+.teleport__marker {
+  flex: none;
+  align-self: stretch;
+  width: 0.1875rem;
+  background: var(--zone);
+}
+.teleport__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+.teleport__name {
+  overflow: hidden;
+  font-size: 1.25rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.teleport__description {
+  overflow: hidden;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.teleport__distance {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.teleport__here {
+  flex: none;
+  min-width: 5.5rem;
+  text-align: center;
+  color: var(--zone);
+}
+.teleport__zone .btn {
+  flex: none;
+  min-width: 5.5rem;
+}
+
+.teleport__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 1.25rem 1rem;
+  font-size: 0.625rem;
+}
+.teleport__key {
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  color: var(--os);
+  background: var(--acier-hi);
+}
+
+/* Attente avant le départ (bas de l'écran, au-dessus des jauges) */
+.teleport-channel {
+  position: absolute;
+  bottom: 13rem;
+  left: 50%;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 20rem;
+  padding: 0.5rem 0.75rem 0.625rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.1875rem 0 var(--zone), var(--ombre);
+  text-shadow: var(--ombre-texte);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.teleport-channel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.teleport-channel__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--zone);
+}
+.teleport-channel__time {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.teleport-channel__track {
+  height: 0.3125rem;
+  background: var(--trait);
+}
+.teleport-channel__fill {
+  height: 100%;
+  background: var(--zone);
+  transition: width 0.1s linear;
+}
+.teleport-channel__hint {
+  font-size: 0.5625rem;
+}

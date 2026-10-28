@@ -18,6 +18,9 @@ function resetScreens(): void {
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
+  sendNui({ action: 'interaction', data: { open: false } });
+  sendNui({ action: 'teleport', data: { open: false } });
+  sendNui({ action: 'teleportChannel', data: { seconds: false } });
   sendNui({ action: 'freeroamMenu', data: { open: false, pvp: false, weapons: [], vehicles: [] } });
   sendNui({ action: 'noclip', data: { ...NOCLIP, active: false } });
   sendNui({ action: 'alive' });
@@ -79,7 +82,10 @@ export const DEV_SCREENS: DevScreen[] = [
     label: 'Menu (zone safe)',
     open: () => {
       enterPvp();
-      sendNui({ action: 'menu', data: { open: true, inSafe: true } });
+      sendNui({
+        action: 'menu',
+        data: { open: true, inSafe: true, near: { stash: true, shop: true, clothing: true, crafting: true, contracts: true } },
+      });
     },
   },
   {
@@ -125,7 +131,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           info: {
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'F2', hotbar: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11' },
+            keys: { menu: 'VERR. MAJ', hotbar: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1' },
           },
         },
       });
@@ -152,6 +158,32 @@ export const DEV_SCREENS: DevScreen[] = [
             { model: 'zentorno', label: 'Zentorno', category: 'Voitures' },
             { model: 'bati', label: 'Bati 801', category: 'Motos' },
             { model: 'buzzard2', label: 'Buzzard', category: 'Aérien' },
+          ],
+        },
+      });
+    },
+  },
+  {
+    id: 'interaction',
+    label: 'Menu interaction',
+    open: () => {
+      enterPvp();
+      sendNui({
+        action: 'interaction',
+        data: {
+          open: true,
+          items: [
+            { kind: 'info', id: 'serverId', label: 'ID Serveur', icon: 'contract', value: '1216' },
+            { kind: 'info', id: 'level', label: 'Niveau', icon: 'trophy', value: '4' },
+            { kind: 'separator', id: 'separator' },
+            {
+              kind: 'submenu', id: 'team', label: 'Équipe', icon: 'group',
+              children: [
+                { kind: 'info', id: 'team:size', label: 'Membres', icon: 'group', value: '3' },
+                { kind: 'action', id: 'team:invite', label: 'Inviter Bravo', icon: 'group' },
+                { kind: 'action', id: 'team:leave', label: "Quitter l'équipe", icon: 'exit' },
+              ],
+            },
           ],
         },
       });
@@ -190,7 +222,29 @@ export const DEV_ACTIONS: DevAction[] = [
   },
   { label: 'Notif succès', run: () => sendNui({ action: 'notify', data: { text: 'Butin : 9mm x24, $60', kind: 'success' } }) },
   { label: 'Notif erreur', run: () => sendNui({ action: 'notify', data: { text: 'Ton sac est plein.', kind: 'error' } }) },
-  { label: 'Killfeed', run: () => sendNui({ action: 'killfeed', data: { killer: pick(PLAYERS), victim: pick(PLAYERS) } }) },
+  {
+    label: 'Killfeed',
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: {
+          killer: pick(PLAYERS),
+          victim: pick(PLAYERS),
+          weapon: pick(['weapon_carbinerifle', 'weapon_pistol', 'weapon_pumpshotgun', 'weapon_sniperrifle', 'weapon_smg']),
+          headshot: Math.random() < 0.4,
+          killerId: 20,
+          victimId: 21,
+        },
+      }),
+  },
+  {
+    label: 'Killfeed : mon kill',
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: { killer: 'Dev', victim: pick(PLAYERS), weapon: 'weapon_assaultrifle', headshot: true, killerId: 1, victimId: 22 },
+      }),
+  },
   { label: 'Raccourcis (TAB)', run: () => sendNui({ action: 'hotbar', data: { visible: true } }) },
   { label: 'Cacher raccourcis', run: () => sendNui({ action: 'hotbar', data: { visible: false } }) },
   { label: 'Zone safe', run: () => sendNui({ action: 'zone', data: mockInit.zone }) },
@@ -243,6 +297,71 @@ export const DEV_ACTIONS: DevAction[] = [
       }),
   },
   { label: 'Fin horde', run: () => sendNui({ action: 'horde', data: { horde: false } }) },
+  {
+    label: 'Parler à l\'armurier',
+    run: () => sendNui({ action: 'menu', data: { open: true, inSafe: true, near: { shop: true }, page: 'shop' } }),
+  },
+  {
+    label: 'Commissaire-priseur',
+    run: () => sendNui({ action: 'menu', data: { open: true, inSafe: true, near: { market: true }, page: 'market' } }),
+  },
+  {
+    label: 'Téléportation (F1)',
+    run: () =>
+      sendNui({
+        action: 'teleport',
+        data: {
+          open: true,
+          cooldown: 0,
+          channel: 10,
+          pending: false,
+          key: 'F1',
+          zones: [
+            { id: 'legion', label: 'Zone safe - Legion Square', description: 'Centre-ville : tous les services', distance: 420, current: false },
+            { id: 'airport', label: 'Zone safe - Aéroport de Los Santos', description: "Terminal de l'aéroport, au sud de la ville", distance: 2930, current: false },
+            { id: 'sandy', label: 'Zone safe - Sandy Shores', description: 'Bureau du shérif, au bord du désert', distance: 4710, current: false },
+            { id: 'paleto', label: 'Zone safe - Paleto Bay', description: 'Bureau du shérif, tout au nord de la carte', distance: 7080, current: false },
+          ],
+        },
+      }),
+  },
+  {
+    label: 'Téléportation : délai',
+    run: () =>
+      sendNui({
+        action: 'teleport',
+        data: {
+          open: true,
+          cooldown: 95,
+          channel: 0,
+          pending: false,
+          key: 'F1',
+          zones: [
+            { id: 'legion', label: 'Zone safe - Legion Square', description: 'Centre-ville : tous les services', distance: 12, current: true },
+            { id: 'airport', label: 'Zone safe - Aéroport de Los Santos', description: "Terminal de l'aéroport, au sud de la ville", distance: 3120, current: false },
+          ],
+        },
+      }),
+  },
+  { label: 'Interaction : ciblage', run: () => sendNui({ action: 'interaction', data: { open: true, items: false } }) },
+  {
+    label: 'Interaction : joueur',
+    run: () =>
+      sendNui({
+        action: 'interaction',
+        data: {
+          open: true,
+          items: [
+            { kind: 'info', id: 'player:name', label: 'Bravo', icon: 'profile', value: 'ID 7' },
+            { kind: 'info', id: 'player:bounty', label: 'Prime', icon: 'money', value: '$1500' },
+            { kind: 'separator', id: 'separator' },
+            { kind: 'action', id: 'player:invite', label: "Inviter dans l'équipe", icon: 'group' },
+          ],
+        },
+      }),
+  },
+  { label: 'Aide (E)', run: () => sendNui({ action: 'helpNotify', data: { help: { key: 'E', text: 'Armurier · Voir la boutique' } } }) },
+  { label: 'Masquer aide', run: () => sendNui({ action: 'helpNotify', data: { help: false } }) },
   { label: 'Invitation groupe', run: () => sendNui({ action: 'groupInvite', data: { from: 9, fromName: 'Nova' } }) },
   { label: 'Quitter groupe', run: () => sendNui({ action: 'group', data: { group: false } }) },
   { label: 'En combat (20 s)', run: () => sendNui({ action: 'combat', data: { seconds: 20 } }) },

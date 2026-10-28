@@ -14,7 +14,7 @@ interface Handover {
 const TIP_DURATION = 7000;
 
 const KEYS: [string, string][] = [
-  ['F2', 'Menu'],
+  ['VERR. MAJ', 'Inventaire'],
   ['TAB', 'Raccourcis'],
   ['T', 'Chat'],
   ['E', 'Ramasser'],
@@ -58,7 +58,7 @@ export function LoadingScreen() {
             <span className="disp loading__step">{progress.step}</span>
             <span className="mono loading__percent">{percent}%</span>
           </div>
-          <SegmentBar value={progress.fraction} max={1} segments={40} color="var(--hazard)" height={6} />
+          <SegmentBar value={progress.fraction} max={1} segments={40} color="var(--signal)" height={6} />
           <span className="mono loading__log">{progress.log}</span>
         </div>
         <ul className="loading__keys">

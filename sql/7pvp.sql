@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `pvp_players` (
     `appearance` LONGTEXT NULL,
     `is_admin` TINYINT(1) NOT NULL DEFAULT 0,
     `contracts` LONGTEXT NULL,
+    `market_balance` INT NOT NULL DEFAULT 0,
     `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`identifier`),
     KEY `idx_kills` (`kills`)

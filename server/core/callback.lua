@@ -4,6 +4,7 @@
 local Callback = PVP.define('Callback')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
+local AntiCheatService = PVP.use('AntiCheatService')
 
 ---@type table<string, fun(source: integer, ...): any>
 Callback.handlers = {}
@@ -24,6 +25,11 @@ end
 ---@param name string
 ---@param requestId integer
 function Callback.handle(source, name, requestId, ...)
+    -- Requêtes en rafale : ignorées (réponse vide) et signalées à l'anti-cheat
+    if not AntiCheatService.allow(source, 'callback') then
+        return TriggerClientEvent(Events.transport.response, source, requestId, nil)
+    end
+
     local handler = Callback.handlers[name]
     local result
 

@@ -8,9 +8,12 @@ import { ShortcutBar } from '../components/inventory/ShortcutBar';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
 import {
-  compatibleAttachments, CONTAINERS, entriesOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
+  compatibleAttachments, entriesOf, weightOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
+
+/** Conteneurs portés (le coffre n'apparaît que chez le banquier) */
+const CARRIED: ContainerId[] = ['bag', 'protected'];
 
 interface PendingQuantity {
   mode: 'move' | 'drop';
@@ -39,9 +42,8 @@ export function InventoryPage() {
   const closeQuantity = useCallback(() => setQuantity(null), []);
 
   if (!player) return null;
-  const inSafe = state.menu.inSafe;
-  /** Conteneur fermé ici : le coffre hors zone safe */
-  const isLocked = (id: ContainerId) => Boolean(config.containers[id]?.safeOnly) && !inSafe;
+  // Le coffre ne s'ouvre (et ne s'affiche) qu'à côté du banquier
+  const atBanker = Boolean(state.menu.near.stash);
 
   /** Déplace directement s'il n'y a qu'un objet, sinon demande la quantité. */
   const requestMove = (item: string, from: ContainerId, to: ContainerId, count: number) => {
@@ -57,7 +59,7 @@ export function InventoryPage() {
   /** Règles du glisser-déposer : où peut-on lâcher quoi ? */
   const acceptsDrop = (source: DragSource, target: DropTarget): boolean => {
     if (target.kind === 'container') {
-      return source.kind === 'container' && moveTargets(source.container, inSafe).includes(target.container);
+      return source.kind === 'container' && moveTargets(source.container, atBanker).includes(target.container);
     }
     if (source.kind === 'shortcut' && source.slot === target.slot) return false;
     if (source.kind === 'container' && source.container === 'stash') return false;
@@ -103,7 +105,7 @@ export function InventoryPage() {
     if (carried && stack.item.type === 'consumable') {
       list.push({ label: 'Utiliser', onSelect: () => actions.consumeItem(stack.name) });
     }
-    for (const to of moveTargets(container, inSafe)) {
+    for (const to of moveTargets(container, atBanker)) {
       list.push({ label: MOVE_LABELS[to], onSelect: () => requestMove(stack.name, container, to, stack.count) });
     }
     list.push({ label: 'Jeter', danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
@@ -128,6 +130,34 @@ export function InventoryPage() {
     });
   };
 
+  /**
+   * Alt + clic : toute la pile (ou ce qui tient) part dans « l'autre » conteneur.
+   * Chez le banquier : ce qu'on porte va au coffre et le coffre revient dans le sac ;
+   * ailleurs : du sac vers le conteneur protégé, et inversement.
+   */
+  const quickMove = (stack: ItemStack, from: ContainerId) => {
+    const to: ContainerId = atBanker ? (from === 'stash' ? 'bag' : 'stash') : from === 'bag' ? 'protected' : 'bag';
+    const target = config.containers[to];
+    const free = target.capacity - weightOf(player.inventory[to] ?? [], config);
+    const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
+    const count = Math.min(stack.count, fit);
+    if (count <= 0) return actions.notify(`Pas assez de place : ${target.label}`, 'error');
+    actions.moveItem(stack.name, from, to, count);
+  };
+
+  const renderSection = (id: ContainerId) => (
+    <ContainerSection
+      key={id}
+      id={id}
+      stacks={player.inventory[id] ?? []}
+      selection={selection}
+      onSelect={setSelection}
+      onItemContextMenu={handleContextMenu}
+      onItemDoubleClick={handleDoubleClick}
+      onItemQuickMove={quickMove}
+    />
+  );
+
   const handleContextMenu = (event: MouseEvent, stack: ItemStack, container: ContainerId) => {
     setSelection({ name: stack.name, container });
     setContextMenu({ x: event.clientX, y: event.clientY, stack, container });
@@ -141,24 +171,21 @@ export function InventoryPage() {
   return (
     <DragProvider accepts={acceptsDrop} onDrop={handleDrop}>
       <div className="inventory">
-        {CONTAINERS.map((id) => (
-          <ContainerSection
-            key={id}
-            id={id}
-            stacks={player.inventory[id] ?? []}
-            selection={selection}
-            locked={isLocked(id)}
-            onSelect={setSelection}
-            onItemContextMenu={handleContextMenu}
-            onItemDoubleClick={handleDoubleClick}
-          />
-        ))}
+        {atBanker ? (
+          // Chez le banquier : ce qu'on porte à gauche, le coffre à droite
+          <div className="inventory__split">
+            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            <div className="inventory__column inventory__column--stash">{renderSection('stash')}</div>
+          </div>
+        ) : (
+          CARRIED.map(renderSection)
+        )}
 
         <ShortcutBar />
 
         <p className="mono inventory__help">
-          [GLISSER] DÉPLACER · [DOUBLE-CLIC] UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS · RACCOURCI LÂCHÉ HORS DE LA
-          BARRE = RETIRÉ
+          [GLISSER] DÉPLACER · [ALT + CLIC] VERS {atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
+          UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS · RACCOURCI LÂCHÉ HORS DE LA BARRE = RETIRÉ
         </p>
 
         {contextMenu && (

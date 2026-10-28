@@ -7,6 +7,7 @@ Config.Zones = {
         id = 'legion',
         type = 'safe',
         label = 'Zone safe - Legion Square',
+        description = 'Centre-ville : tous les services', -- affichée dans le menu de téléportation (F1)
         coords = vector3(195.2, -933.8, 30.7),
         radius = 80.0,
         blip = { sprite = 487, color = 2 },
@@ -15,6 +16,51 @@ Config.Zones = {
             vector4(210.0, -920.0, 30.7, 160.0),
             vector4(180.0, -945.0, 30.1, 300.0),
             vector4(200.0, -905.0, 30.7, 180.0),
+        },
+    },
+    {
+        id = 'airport',
+        type = 'safe',
+        label = 'Zone safe - Aéroport de Los Santos',
+        description = 'Terminal de l\'aéroport, au sud de la ville',
+        coords = vector3(-1037.7, -2738.0, 20.2),
+        radius = 80.0,
+        blip = { sprite = 487, color = 2 },
+        spawns = {
+            vector4(-1037.7, -2738.0, 20.2, 330.0),
+            vector4(-1045.0, -2730.0, 20.2, 330.0),
+            vector4(-1030.0, -2745.0, 20.2, 330.0),
+            vector4(-1050.0, -2745.0, 20.2, 330.0),
+        },
+    },
+    {
+        id = 'sandy',
+        type = 'safe',
+        label = 'Zone safe - Sandy Shores',
+        description = 'Bureau du shérif, au bord du désert',
+        coords = vector3(1853.2, 3686.6, 34.3),
+        radius = 70.0,
+        blip = { sprite = 487, color = 2 },
+        spawns = {
+            vector4(1853.2, 3686.6, 34.3, 210.0),
+            vector4(1858.0, 3680.0, 33.8, 210.0),
+            vector4(1845.0, 3675.0, 33.7, 210.0),
+            vector4(1866.0, 3693.0, 33.6, 210.0),
+        },
+    },
+    {
+        id = 'paleto',
+        type = 'safe',
+        label = 'Zone safe - Paleto Bay',
+        description = 'Bureau du shérif, tout au nord de la carte',
+        coords = vector3(-448.4, 6012.5, 31.7),
+        radius = 70.0,
+        blip = { sprite = 487, color = 2 },
+        spawns = {
+            vector4(-448.4, 6012.5, 31.7, 45.0),
+            vector4(-440.0, 6020.0, 31.5, 45.0),
+            vector4(-455.0, 6005.0, 31.5, 45.0),
+            vector4(-435.0, 6005.0, 31.4, 45.0),
         },
     },
     {
@@ -63,4 +109,12 @@ Config.Zones = {
             },
         },
     },
+}
+
+-- Téléportation entre zones safe (mode PvP) : menu ouvert avec Config.Teleport.key
+Config.Teleport = {
+    key = 'F1',
+    cooldown = 120, -- secondes entre deux téléportations
+    channel = 10, -- hors zone safe : secondes à attendre immobile et hors combat (instantané en zone safe)
+    maxMove = 2.0, -- mètres tolérés pendant l'attente
 }

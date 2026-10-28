@@ -5,6 +5,7 @@ local PlayerService = PVP.use('PlayerService')
 local CombatService = PVP.use('CombatService')
 local Zones = PVP.use('Zones')
 local ModeRegistry = PVP.use('ModeRegistry')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
 PveService.TICK_INTERVAL = 1500
@@ -68,6 +69,7 @@ end
 ---@param netId any
 ---@param targetId any
 function PveService.onZombieAttack(source, netId, targetId)
+    if not AntiCheatService.allow(source, 'hit') then return end
     netId = tonumber(netId)
     local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
     if ped == 0 or not DoesEntityExist(ped) or GetEntityHealth(ped) <= 0 then return end

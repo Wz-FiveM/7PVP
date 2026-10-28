@@ -40,6 +40,27 @@
   gap: 0.625rem;
 }
 
+/* Chez le banquier : inventaire coupé en deux, ce qu'on porte à gauche et le coffre à droite */
+.inventory__split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+.inventory__column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.375rem;
+  min-width: 0;
+}
+.inventory__column--stash {
+  padding-left: 1.5rem;
+  border-left: 0.0625rem solid var(--trait);
+}
+.inventory__split .tile-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .container__grid {
   min-height: 5.125rem;
   padding: 0.25rem;
@@ -53,8 +74,8 @@
   outline-color: rgba(233, 236, 230, 0.25);
 }
 .drop-zone--over {
-  outline-color: var(--hazard);
-  background: rgba(255, 107, 26, 0.08);
+  outline-color: var(--signal);
+  background: rgba(240, 195, 60, 0.08);
 }
 
 /* Tuile (semi-transparente : le jeu reste visible) --------------------------------- */
@@ -66,17 +87,19 @@
 .tile {
   position: relative;
   height: 4.625rem;
-  background: rgba(20, 24, 26, 0.78);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 60%), rgba(26, 30, 28, 0.86);
+  box-shadow: var(--ombre), inset 0 0 0 0.0625rem rgba(236, 238, 232, 0.08);
   cursor: grab;
 }
 .tile:hover {
-  background: rgba(38, 45, 49, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 60%), rgba(36, 42, 39, 0.92);
 }
 .tile--selected {
-  background: rgba(38, 45, 49, 0.92);
+  background: rgba(240, 195, 60, 0.12);
+  box-shadow: var(--ombre), inset 0 0 0 0.0625rem var(--signal);
 }
 .tile--protected {
-  box-shadow: inset 0 -0.125rem 0 var(--abri);
+  box-shadow: var(--ombre), inset 0 -0.125rem 0 var(--abri);
 }
 .tile--dragging {
   opacity: 0.35;
@@ -90,8 +113,8 @@
   opacity: 0.92;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  background: rgba(38, 45, 49, 0.96);
-  box-shadow: inset 0 0 0 0.0625rem var(--hazard);
+  background: rgba(36, 42, 39, 0.96);
+  box-shadow: inset 0 0 0 0.0625rem var(--signal), 0 0.75rem 1.75rem rgba(0, 0, 0, 0.6);
 }
 .tile--disabled {
   opacity: 0.4;
@@ -99,7 +122,8 @@
 }
 .tile--empty,
 .tile--empty:hover {
-  background: rgba(20, 24, 26, 0.5);
+  background: rgba(12, 14, 13, 0.4);
+  box-shadow: inset 0 0 0 0.0625rem rgba(236, 238, 232, 0.06);
   cursor: default;
 }
 
@@ -113,13 +137,17 @@
   left: 0.5625rem;
   right: 3.125rem;
   overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--brume-hi);
+  color: var(--os);
 }
 .tile__corner {
   right: 0.5625rem;
-  color: var(--os);
+  font-family: var(--font-mono);
+  color: var(--brume-hi);
 }
 
 .item-icon {
@@ -139,7 +167,7 @@
   height: 2.25rem;
 }
 .item-icon--consumable {
-  color: var(--hazard);
+  color: var(--signal);
 }
 
 .shortcut-slot {
@@ -155,16 +183,18 @@
   min-width: 11.25rem;
   padding: 0.25rem 0;
   list-style: none;
-  border: 0.0625rem solid var(--trait);
-  background: var(--nuit);
+  border: 0.0625rem solid rgba(236, 238, 232, 0.12);
+  background: rgba(12, 14, 13, 0.96);
+  box-shadow: 0 0.75rem 1.75rem rgba(0, 0, 0, 0.55);
 }
 .context-menu__item {
   width: 100%;
   padding: 0.5625rem 0.875rem;
   border: 0;
   font-family: var(--font-display);
-  font-size: 0.8125rem;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.06em;
   text-align: left;
   text-transform: uppercase;
   color: var(--os);
@@ -172,7 +202,9 @@
   cursor: pointer;
 }
 .context-menu__item:hover {
-  background: var(--acier);
+  color: var(--nuit);
+  text-shadow: none;
+  background: var(--os);
 }
 .context-menu__item--danger {
   color: var(--hazard);
@@ -187,7 +219,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(11, 13, 14, 0.6);
+  background: rgba(12, 14, 13, 0.6);
 }
 .modal {
   display: flex;
@@ -196,6 +228,7 @@
   width: 22.5rem;
   padding: 1.25rem;
   background: var(--carbone);
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.6), inset 0 0.125rem 0 var(--signal);
 }
 .modal__title {
   font-family: var(--font-display);
@@ -225,7 +258,7 @@
 }
 .qty__btn:hover:not(:disabled) {
   color: var(--nuit);
-  background: var(--hazard);
+  background: var(--signal);
 }
 .qty__btn:disabled {
   opacity: 0.3;
@@ -244,11 +277,11 @@
   appearance: textfield;
 }
 .qty__input:focus {
-  border-bottom-color: var(--hazard);
+  border-bottom-color: var(--signal);
 }
 .qty__input::selection {
   color: var(--nuit);
-  background: var(--hazard);
+  background: var(--signal);
 }
 /* Masque les flèches natives du champ numérique */
 .qty__input::-webkit-inner-spin-button,
@@ -267,5 +300,5 @@
   gap: 0.5rem;
 }
 .modal input[type='range'] {
-  accent-color: var(--hazard);
+  accent-color: var(--signal);
 }

@@ -12,7 +12,7 @@ export function Logo({ size = 48 }: LogoProps) {
 
   if (missing) {
     return (
-      <span className="disp" style={{ fontSize: rem(size * 0.5), fontWeight: 700, lineHeight: 1, color: 'var(--hazard)' }}>
+      <span className="disp" style={{ fontSize: rem(size * 0.5), fontWeight: 700, lineHeight: 1, color: 'var(--signal)' }}>
         7PVP
       </span>
     );

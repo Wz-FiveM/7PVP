@@ -6,7 +6,7 @@ import { useGame } from '../store/GameContext';
 import type { ActionResult } from '../types/nui';
 import './pages.css';
 
-/** Groupe (escouade) : inviter par ID, répondre à une invitation, gérer les membres. */
+/** Équipe : inviter par ID, répondre à une invitation, gérer les membres. */
 export function GroupPage() {
   const { state, actions } = useGame();
   const { group, groupInvite, groupVitals, player } = state;
@@ -30,7 +30,7 @@ export function GroupPage() {
     <div className="group-page">
       {groupInvite && (
         <Panel className="group-invite">
-          <span className="disp group-invite__text">{groupInvite.fromName} t'invite dans son groupe</span>
+          <span className="disp group-invite__text">{groupInvite.fromName} t'invite dans son équipe</span>
           <div className="group-invite__actions">
             <button className="btn btn--primary btn--small cut-s" onClick={() => groupApi.respond(true).then(report)}>
               Accepter
@@ -43,7 +43,7 @@ export function GroupPage() {
       )}
 
       <Panel className="group-panel">
-        <span className="label">Mon groupe</span>
+        <span className="label">Mon équipe</span>
         {group ? (
           <ul className="group-members">
             {group.members.map((member) => {
@@ -75,7 +75,7 @@ export function GroupPage() {
             })}
           </ul>
         ) : (
-          <p className="muted">Tu joues seul. Invite un joueur pour créer un groupe.</p>
+          <p className="muted">Tu joues seul. Invite un joueur pour créer une équipe.</p>
         )}
 
         {(!group || isLeader) && (
@@ -94,7 +94,7 @@ export function GroupPage() {
         )}
         {group && (
           <button className="btn btn--danger btn--small cut-s group-leave" onClick={() => groupApi.leave().then(report)}>
-            Quitter le groupe
+            Quitter l'équipe
           </button>
         )}
       </Panel>
@@ -103,8 +103,8 @@ export function GroupPage() {
         <span className="label">Règles</span>
         <ul className="group-rules__list">
           <li>Jusqu'à {state.config.groupMaxSize ?? 4} joueurs, en PvP seulement.</li>
-          <li>Pas de tir allié entre membres du groupe.</li>
-          <li>Tes coéquipiers apparaissent en bleu sur la minimap.</li>
+          <li>Pas de tir allié entre coéquipiers.</li>
+          <li>Tes coéquipiers apparaissent en bleu sur la carte, à toute distance, avec leur vie à gauche de l'écran.</li>
           <li>Chat : /inviter ID, /accepter, /refuser, /quittergroupe.</li>
         </ul>
       </Panel>

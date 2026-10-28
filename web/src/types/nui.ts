@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -21,7 +21,7 @@ export type NuiMessage =
   | { action: 'noclipHeld'; data: { held: NoclipKeyId[] } }
   | { action: 'chatMessage'; data: ChatMessageData }
   | { action: 'creator'; data: CreatorPayload }
-  | { action: 'menu'; data: { open: boolean; inSafe: boolean } }
+  | { action: 'menu'; data: { open: boolean; inSafe: boolean; near?: NearServices; page?: string } }
   | { action: 'notify'; data: { text: string; kind: ToastKind } }
   | { action: 'killfeed'; data: KillfeedEntry }
   | { action: 'hit'; data: HitEvent }
@@ -38,7 +38,14 @@ export type NuiMessage =
   | { action: 'controlZone'; data: { zone: ControlZoneHud | false } }
   | { action: 'freeroamMenu'; data: { open: boolean; pvp: boolean; weapons: FreeroamWeapon[]; vehicles: FreeroamVehicle[] } }
   | { action: 'freeroamPvp'; data: { pvp: boolean } }
+  | { action: 'helpNotify'; data: { help: HelpNotification | false } }
+  /** `items: false` : ciblage en cours (curseur affiché, pas encore de menu) */
+  | { action: 'interaction'; data: { open: boolean; items?: InteractionItem[] | false } }
   | { action: 'horde'; data: { horde: HordeState | false } }
+  /** menu de téléportation entre zones safe (F1) */
+  | { action: 'teleport'; data: { open: boolean } & Partial<TeleportMenuData> }
+  /** attente avant la téléportation (hors zone safe), `false` = terminée ou annulée */
+  | { action: 'teleportChannel'; data: { seconds: number | false } }
   | { action: 'alive'; data?: undefined };
 
 /** Réponse du callback NUI `ready` */

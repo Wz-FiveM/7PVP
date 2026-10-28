@@ -25,6 +25,9 @@ export interface GameActions {
   /** Freeroam : fermer le menu, ou lancer une action (arme, véhicule, soin, PvP...) */
   closeFreeroam: () => void;
   freeroamAction: (action: string, data?: Record<string, unknown>) => Promise<void>;
+  /** Menu d'interaction : fermer, ou cliquer sur un élément */
+  closeInteraction: () => void;
+  interactionAction: (id: string) => void;
   /** Menu pause : fermer, ou lancer une action (le menu se ferme) */
   closePause: () => void;
   pauseAction: (action: PauseAction) => void;

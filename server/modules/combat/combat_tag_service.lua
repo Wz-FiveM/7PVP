@@ -121,7 +121,10 @@ function CombatTagService.onPlayerLeaving(source)
     if killer then
         CombatService.rewardPlayerKill(killer, player, ('%s s\'est déconnecté en combat'):format(player.name))
     end
-    CombatService.broadcastKill(killer and killer.name, player.name, 'disconnect')
+    CombatService.broadcastKill(killer and killer.name, player.name, 'disconnect', nil, {
+        killerId = killer and killer.source,
+        victimId = player.source,
+    })
     BountyService.reset(player)
     Logger.info('[combat] %s s\'est déconnecté en combat (dernier attaquant : %s)', player.name,
         killer and killer.name or 'aucun')

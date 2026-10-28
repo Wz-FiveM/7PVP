@@ -11,6 +11,9 @@ import type {
   HordeState,
   ControlZoneHud,
   FreeroamState,
+  NearServices,
+  HelpNotification,
+  InteractionItem,
   KillfeedItem,
   LeaderboardRow,
   LobbyMode,
@@ -43,7 +46,8 @@ export interface GameState {
   admin: { open: boolean; self: AdminSelf };
   /** Aide à l'écran du noclip et touches maintenues */
   noclip: NoclipInfo & { held: NoclipKeyId[] };
-  menu: { open: boolean; inSafe: boolean };
+  /** `near` : PNJ de service à portée ; `page` : page demandée en parlant à un PNJ */
+  menu: { open: boolean; inSafe: boolean; near: NearServices; page: string | null; key: number };
   death: { active: boolean; seconds: number; key: number; recap: DeathRecap };
   /** Primes en cours sur le serveur */
   bounties: BountyEntry[];
@@ -65,6 +69,10 @@ export interface GameState {
   /** Zone de contrôle où se trouve le joueur */
   controlZone: ControlZoneHud | null;
   freeroam: FreeroamState;
+  /** Aide affichée (touche + action), null si aucune */
+  helpNotify: HelpNotification | null;
+  /** Menu d'interaction : `items` null pendant le ciblage (avant le clic sur une cible) */
+  interaction: { open: boolean; items: InteractionItem[] | null };
 }
 
 export type GameAction =
@@ -83,7 +91,7 @@ export type GameAction =
   | { type: 'admin/toggle'; key: keyof AdminSelf }
   | { type: 'noclip'; info: NoclipInfo }
   | { type: 'noclip/held'; held: NoclipKeyId[] }
-  | { type: 'menu'; open: boolean; inSafe: boolean }
+  | { type: 'menu'; open: boolean; inSafe: boolean; near?: NearServices; page?: string }
   | { type: 'death'; seconds: number; recap?: DeathRecap }
   | { type: 'bounties'; list: BountyEntry[] }
   | { type: 'clock'; clock: GameClock }
@@ -100,7 +108,9 @@ export type GameAction =
   | { type: 'killfeed/remove'; id: number }
   | { type: 'leaderboard'; rows: LeaderboardRow[]; title: string }
   | { type: 'controlZone'; zone: ControlZoneHud | null }
-  | { type: 'freeroam'; patch: Partial<FreeroamState> };
+  | { type: 'freeroam'; patch: Partial<FreeroamState> }
+  | { type: 'helpNotify'; help: HelpNotification | null }
+  | { type: 'interaction'; open: boolean; items: InteractionItem[] | null };
 
 export const initialState: GameState = {
   ready: false,
@@ -125,7 +135,7 @@ export const initialState: GameState = {
   chat: { open: false, messages: [] },
   admin: { open: false, self: { noclip: false, god: false, invisible: false } },
   noclip: { active: false, toggleKey: 'F11', speed: 0, fastMultiplier: 1, slowMultiplier: 1, held: [] },
-  menu: { open: false, inSafe: false },
+  menu: { open: false, inSafe: false, near: {}, page: null, key: 0 },
   death: { active: false, seconds: 0, key: 0, recap: {} },
   bounties: [],
   clock: null,
@@ -141,6 +151,8 @@ export const initialState: GameState = {
   leaderboardTitle: '',
   controlZone: null,
   freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [] },
+  helpNotify: null,
+  interaction: { open: false, items: null },
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -194,7 +206,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         menu: action.open ? { ...state.menu, open: false } : state.menu,
       };
     case 'menu':
-      return { ...state, menu: { open: action.open, inSafe: action.inSafe } };
+      return {
+        ...state,
+        menu: {
+          open: action.open,
+          inSafe: action.inSafe,
+          near: action.near ?? {},
+          page: action.page ?? null,
+          key: state.menu.key + 1,
+        },
+      };
     case 'death':
       return {
         ...state,
@@ -230,6 +251,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, killfeed: state.killfeed.filter((item) => item.id !== action.id) };
     case 'leaderboard':
       return { ...state, leaderboard: action.rows, leaderboardTitle: action.title };
+    case 'interaction':
+      return { ...state, interaction: { open: action.open, items: action.open ? action.items : null } };
+    case 'helpNotify':
+      return { ...state, helpNotify: action.help };
     case 'freeroam':
       return { ...state, freeroam: { ...state.freeroam, ...action.patch } };
     case 'controlZone':

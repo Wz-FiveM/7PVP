@@ -17,8 +17,9 @@ export function AmmoCounter() {
         {item.ammo && ` · ${itemLabel(config, item.ammo)}`}
       </span>
       {item.ammo && (
-        <span className="mono ammo__count">
-          {vitals.clip} <span className="ammo__reserve">/ {vitals.reserve}</span>
+        <span className="ammo__count">
+          <span className="disp ammo__clip">{vitals.clip}</span>
+          <span className="mono ammo__reserve">/ {vitals.reserve}</span>
         </span>
       )}
     </div>

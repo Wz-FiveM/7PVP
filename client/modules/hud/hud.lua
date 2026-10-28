@@ -33,6 +33,7 @@ function Hud.init()
     CreateThread(Hud.loop)
     CreateThread(Hud.minimapLoop)
     CreateThread(Hud.nativeHudLoop)
+    AddEventHandler('onResourceStop', Hud.onResourceStop)
 end
 
 function Hud.loop()
@@ -59,15 +60,20 @@ function Hud.nativeHudLoop()
             HideHudComponentThisFrame(component)
         end
         DisplayAmmoThisFrame(false)
-        -- La minimap ne doit jamais rester en grand (bascule du scaleform, touche Z)
-        if IsBigmapActive() then
-            SetRadarBigmapEnabled(false, false)
+        -- Carte du menu pause ouverte : le jeu reprend la main sur la minimap, ne pas y toucher
+        -- (piloter son scaleform à ce moment-là fait crasher le jeu)
+        if not IsPauseMenuActive() then
+            -- La minimap ne doit jamais rester en grand (bascule du scaleform, touche Z)
+            if IsBigmapActive() then
+                SetRadarBigmapEnabled(false, false)
+            end
+            Hud.hideMinimapHealthArmour()
         end
-        Hud.hideMinimapHealthArmour()
     end
 end
 
 function Hud.loadMinimapScaleform()
+    while IsPauseMenuActive() do Wait(100) end
     local scaleform = RequestScaleformMovie('minimap')
     while not HasScaleformMovieLoaded(scaleform) do Wait(0) end
 
@@ -80,10 +86,19 @@ function Hud.loadMinimapScaleform()
     Hud.minimapScaleform = scaleform
 end
 
+---Libère le scaleform à l'arrêt de la ressource : un `ensure` en jeu en recrée un autre.
+---@param resource string
+function Hud.onResourceStop(resource)
+    if resource ~= GetCurrentResourceName() or not Hud.minimapScaleform then return end
+    local scaleform = Hud.minimapScaleform
+    Hud.minimapScaleform = nil
+    SetScaleformMovieAsNoLongerNeeded(scaleform)
+end
+
 ---Masque les barres de vie et d'armure sous la minimap (le HUD React les remplace).
 ---À appeler à chaque image : le jeu les réaffiche sinon.
 function Hud.hideMinimapHealthArmour()
-    if not Hud.minimapScaleform then return end
+    if not Hud.minimapScaleform or not HasScaleformMovieLoaded(Hud.minimapScaleform) then return end
     BeginScaleformMovieMethod(Hud.minimapScaleform, 'SETUP_HEALTH_ARMOUR')
     ScaleformMovieMethodAddParamInt(Hud.MINIMAP_HIDE_HEALTH_ARMOUR)
     EndScaleformMovieMethod()

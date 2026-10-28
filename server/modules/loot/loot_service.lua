@@ -8,6 +8,7 @@
 ---@field model string|nil modèle 3D à la place du sac (ex : caisse de largage)
 ---@field label string|nil texte de l'action (ex : « Fouiller le largage »)
 ---@field kind string|nil 'airdrop' pour un largage (contrats)
+---@field solid boolean|nil objet avec collisions (caisse), sinon on le traverse (sac)
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
 
 ---@class LootDropOptions
@@ -16,6 +17,7 @@
 ---@field label string|nil
 ---@field lifetime integer|nil secondes (défaut : Config.LootLifetime)
 ---@field kind string|nil
+---@field solid boolean|nil
 
 ---@class LootServiceModule
 local LootService = PVP.define('LootService')
@@ -23,6 +25,7 @@ local PlayerService = PVP.use('PlayerService')
 local Items = PVP.use('Items')
 local Utils = PVP.use('Utils')
 local ContractService = PVP.use('ContractService')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
 ---@type table<integer, LootBag>
@@ -31,7 +34,7 @@ LootService.nextId = 0
 
 function LootService.init()
     RegisterNetEvent(Events.server.lootPickup, function(id)
-        LootService.pickup(source, id)
+        if AntiCheatService.allow(source, 'loot') then LootService.pickup(source, id) end
     end)
 
     AddEventHandler('onResourceStop', function(resource)
@@ -99,6 +102,7 @@ function LootService.drop(coords, items, options)
         model = options.model,
         label = options.label,
         kind = options.kind,
+        solid = options.solid == true,
         lootedBy = {},
     }
     TriggerClientEvent(Events.client.lootAdd, -1, id, LootService.describe(LootService.bags[id]))
@@ -121,7 +125,7 @@ end
 ---@param bag LootBag
 ---@return table
 function LootService.describe(bag)
-    return { coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label }
+    return { coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label, solid = bag.solid }
 end
 
 ---@param bag LootBag

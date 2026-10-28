@@ -1,4 +1,4 @@
----Mode Freeroam côté client : menu (F2) d'armes et de véhicules gratuits, outils du joueur,
+---Mode Freeroam côté client : menu (Verr. Maj) d'armes et de véhicules gratuits, outils du joueur,
 ---PvP au choix et réapparition sur place. Rien ne touche à l'inventaire du PvP.
 ---@class FreeroamModule
 local Freeroam = PVP.define('Freeroam')

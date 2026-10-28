@@ -1,6 +1,6 @@
-/* Direction artistique FRONTLINE ------------------------------------------------
+/* Direction artistique OPÉRATIONS ----------------------------------------------
  * Neutres : Nuit, Carbone, Acier, Trait, Brume, Os
- * Zones   : Abri (safe), Toxine (PvE), Hazard (PvP + marque + actions)
+ * Accent  : Signal (actions, sélection) ; zones : Abri (safe), Toxine (PvE), Hazard (PvP, danger)
  * Ces trois couleurs de zone ne servent à rien d'autre.
  *
  * Règles NUI (CEF de FiveM) :
@@ -10,30 +10,47 @@
  *    résolution (voir src/utils/scale.ts). Ne pas écrire de px.
  */
 :root {
-  --nuit: #0b0d0e;
-  --carbone: #14181a;
-  --acier: #1e2427;
-  --acier-hi: #262d31;
-  --trait: #2e363a;
-  --brume: #8c969b;
-  --brume-hi: #a3acb0;
-  --os: #e9ece6;
+  --nuit: #0c0e0d;
+  --carbone: #121514;
+  --acier: #1a1e1c;
+  --acier-hi: #242a27;
+  --trait: #2e3531;
+  --brume: #8f968c;
+  --brume-hi: #a7ada4;
+  --os: #eceee8;
 
-  --abri: #4cc9e0;
-  --toxine: #b5f23d;
-  --hazard: #ff6b1a;
+  /* Accent unique : actions, sélection, objectif */
+  --signal: #f0c33c;
+
+  --abri: #5fd1e8;
+  --toxine: #9ad14b;
+  /* PvP, ennemis, danger, erreurs */
+  --hazard: #ff5a3c;
 
   /* Jauges du personnage (distinctes des couleurs de zone) */
   --armure: #6ec6ff;
   /* Tir à la tête (hitmarker, dégâts infligés) */
   --critique: #ffd84a;
 
-  --font-display: 'Chakra Petch', sans-serif;
+  /* Panneaux translucides : fond sombre, ombre portée et filet de lumière en haut */
+  --panneau: rgba(12, 14, 13, 0.84);
+  --panneau-clair: rgba(236, 238, 232, 0.05);
+  --ombre: 0 0.375rem 1.125rem rgba(0, 0, 0, 0.45), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.07);
+  --ombre-bouton: inset 0 -0.1875rem 0 rgba(0, 0, 0, 0.22), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.35),
+    0 0.5rem 1.375rem rgba(0, 0, 0, 0.5);
+  /* Texte posé sur le jeu : lisible sur n'importe quel décor */
+  --ombre-texte: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.85), 0 0 0.875rem rgba(0, 0, 0, 0.4);
+  /* Grain et vignette des écrans de menu */
+  --grain: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 0.0625rem, transparent 0.0625rem 0.1875rem),
+    radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+
+  --font-display: 'Barlow Condensed', sans-serif;
   --font-body: 'Barlow', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --cut: 0.75rem;
-  --cut-s: 0.375rem;
+  /* Angles droits (D.A Opérations) : les classes .cut restent sans effet */
+  --cut: 0rem;
+  --cut-s: 0rem;
 }
 
 * {
@@ -72,13 +89,13 @@ button {
   height: 0.3125rem;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(11, 13, 14, 0.5);
+  background: rgba(12, 14, 13, 0.5);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--trait);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--hazard);
+  background: var(--signal);
 }
 ::-webkit-scrollbar-button,
 ::-webkit-scrollbar-corner {

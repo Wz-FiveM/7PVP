@@ -34,7 +34,7 @@ export function ContractsPage() {
             value={contract.progress}
             max={contract.goal}
             segments={Math.min(contract.goal, 20)}
-            color={contract.done ? 'var(--toxine)' : 'var(--hazard)'}
+            color={contract.done ? 'var(--toxine)' : 'var(--signal)'}
             height={6}
           />
           <span className="mono contract__progress">

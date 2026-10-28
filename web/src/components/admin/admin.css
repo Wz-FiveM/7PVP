@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   width: 26rem;
-  background: rgba(11, 13, 14, 0.94);
+  background: rgba(12, 14, 13, 0.94);
 }
 
 .admin__header {
@@ -17,14 +17,14 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.875rem 1rem;
-  border-bottom: 0.125rem solid var(--hazard);
+  border-bottom: 0.125rem solid var(--signal);
 }
 .admin__badge {
   padding: 0.125rem 0.375rem;
   font-size: 0.625rem;
   font-weight: 700;
   color: var(--nuit);
-  background: var(--hazard);
+  background: var(--signal);
 }
 .admin__title {
   flex: 1;
@@ -52,7 +52,7 @@
   cursor: pointer;
 }
 .admin__tab--active {
-  border-bottom-color: var(--hazard);
+  border-bottom-color: var(--signal);
   font-weight: 700;
   color: var(--os);
 }
@@ -102,7 +102,7 @@
   background: var(--acier);
 }
 .admin-input:focus {
-  border-color: var(--hazard);
+  border-color: var(--signal);
 }
 .admin-input--small {
   flex: none;
@@ -139,15 +139,15 @@
   font-size: 0.8125rem;
   text-align: left;
   color: var(--os);
-  background: rgba(30, 36, 39, 0.6);
+  background: rgba(26, 30, 28, 0.6);
   cursor: pointer;
 }
 .admin-player:hover {
-  background: rgba(38, 45, 49, 0.9);
+  background: rgba(36, 42, 39, 0.9);
 }
 .admin-player--active {
-  border-left-color: var(--hazard);
-  background: rgba(38, 45, 49, 0.95);
+  border-left-color: var(--signal);
+  background: rgba(36, 42, 39, 0.95);
 }
 .admin-player__id {
   width: 2rem;

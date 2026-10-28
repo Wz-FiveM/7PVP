@@ -2,6 +2,7 @@ import { useCallback, useRef, useState, type CSSProperties } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { HitEvent } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
+import { playHitSound } from '../../utils/hitSound';
 import './hitFeedback.css';
 
 /** armor : seule l'armure a encaissé ; head : tir à la tête ; kill : coup mortel */
@@ -46,6 +47,7 @@ export function HitFeedback() {
     const now = Date.now();
 
     setMarker({ id, kind });
+    playHitSound(kind);
     window.setTimeout(() => setMarker((current) => (current?.id === id ? null : current)), MARKER_DURATION);
 
     setNumbers((list) => {

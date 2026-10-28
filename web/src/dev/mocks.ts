@@ -7,7 +7,7 @@ export const mockAdminPlayers: AdminPlayer[] = [
   { id: 4, name: 'Bravo', mode: false, dead: false, money: 500, level: 1 },
   { id: 7, name: 'Kilo', mode: 'pvp', dead: false, money: 7400, level: 5 },
 ];
-import type { LeaderboardRow, LobbyMode, Vitals } from '../types/game';
+import type { LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
 
 export const mockLobbyModes: LobbyMode[] = [
   {
@@ -205,6 +205,19 @@ export const mockInit: InitPayload = {
     },
   },
   zone: { id: 'legion', label: 'Zone safe - Legion Square', type: 'safe' },
+};
+
+export const mockMarket: MarketState = {
+  balance: 2375,
+  fee: 0.05,
+  maxListings: 10,
+  listings: [
+    { id: 12, item: 'weapon_carbinerifle', count: 1, price: 4200, sellerName: 'Bravo', mine: false },
+    { id: 11, item: 'ammo_556', count: 120, price: 450, sellerName: 'Nova', mine: false },
+    { id: 10, item: 'medkit', count: 3, price: 900, sellerName: 'Kilo', mine: false },
+    { id: 9, item: 'att_suppressor', count: 1, price: 2100, sellerName: 'Alpha', mine: false },
+    { id: 8, item: 'mat_scrap', count: 20, price: 300, sellerName: 'Dev', mine: true },
+  ],
 };
 
 export const mockLeaderboard: LeaderboardRow[] = [

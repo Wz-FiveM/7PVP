@@ -1,38 +1,47 @@
 import { useGame } from '../../store/GameContext';
-import { SegmentBar } from '../ui/SegmentBar';
+import type { GroupVital } from '../../types/game';
+import { Icon } from '../icons/Icon';
 
-/** Coéquipiers du groupe et leur vie, à gauche de l'écran. */
+/** Une barre fine pleine (vie ou armure), de 0 à 100. */
+function Bar({ value, kind }: { value: number; kind: 'health' | 'armor' }) {
+  return (
+    <span className={`team-card__bar team-card__bar--${kind}`}>
+      <span style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+    </span>
+  );
+}
+
+/** Équipe (gauche de l'écran) : une carte par membre, avec sa vie et son armure. */
 export function SquadPanel() {
   const { state } = useGame();
   const { group, groupVitals, player } = state;
-  if (!group || !player) return null;
+  if (!group || !player || group.members.length < 2) return null;
 
-  const mates = group.members.filter((member) => member.id !== player.source);
-  if (mates.length === 0) return null;
+  const vitalOf = (id: number): GroupVital | undefined => groupVitals.find((v) => v.id === id);
+  // Le joueur local d'abord, puis les coéquipiers dans l'ordre d'arrivée
+  const members = [...group.members].sort((a, b) => Number(b.id === player.source) - Number(a.id === player.source));
 
   return (
-    <div className="squad">
-      <span className="label squad__title">Groupe</span>
-      {mates.map((mate) => {
-        const vital = groupVitals.find((v) => v.id === mate.id);
-        const inRange = vital !== undefined && vital.health !== false;
-        const down = inRange && vital.health === 0;
+    <div className="team">
+      {members.map((member) => {
+        const vital = vitalOf(member.id);
+        const health = vital && vital.health !== false ? vital.health : 0;
+        const down = Boolean(vital?.dead) || (vital !== undefined && health === 0);
+        const isLeader = member.id === group.leader;
+        const isMe = member.id === player.source;
         return (
-          <div key={mate.id} className={down ? 'squad__mate squad__mate--down' : 'squad__mate'}>
-            <span className="squad__name">
-              {mate.name}
-              {mate.id === group.leader && <span className="mono squad__chief">★</span>}
+          <div key={member.id} className={down ? 'team-card team-card--down cut-s' : 'team-card cut-s'}>
+            <span className="team-card__avatar cut-s">
+              {isLeader ? <Icon name="trophy" size={18} strokeWidth={2.2} /> : <span className="disp">?</span>}
             </span>
-            {inRange ? (
-              <>
-                <SegmentBar value={vital.health as number} max={100} segments={10} height={3} />
-                {vital.armor > 0 && (
-                  <SegmentBar value={vital.armor} max={100} segments={10} height={2} color="var(--armure)" />
-                )}
-              </>
-            ) : (
-              <span className="mono squad__far">HORS DE PORTÉE</span>
-            )}
+            <span className="team-card__body">
+              <span className={isMe ? 'team-card__name team-card__name--me' : 'team-card__name'}>
+                {member.name}
+                {down && <span className="mono team-card__state">À TERRE</span>}
+              </span>
+              <Bar value={health} kind="health" />
+              <Bar value={vital?.armor ?? 0} kind="armor" />
+            </span>
           </div>
         );
       })}

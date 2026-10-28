@@ -5,10 +5,12 @@
 ---@field netId integer|nil corps qui porte le butin (aucun sac n'est créé)
 ---@field model integer modèle du sac ou de la caisse
 ---@field label string|nil texte de l'action
+---@field solid boolean objet avec collisions (caisse de largage)
 
 ---@class LootModule
 local Loot = PVP.define('Loot')
 local State = PVP.use('State')
+local HelpNotify = PVP.use('HelpNotify')
 local Events = PVP.use('Events')
 
 Loot.STREAM_DISTANCE = 60.0
@@ -48,6 +50,7 @@ function Loot.add(id, info)
         netId = info.netId,
         model = info.model and GetHashKey(info.model) or Loot.model,
         label = info.label,
+        solid = info.solid == true,
     }
 end
 
@@ -78,6 +81,20 @@ function Loot.getCoords(bag)
     return bag.coords
 end
 
+---Butin représenté par cette entité (sac, caisse, ou corps de zombie qui porte le butin).
+---@param entity integer
+---@return integer|nil id du butin
+function Loot.findByEntity(entity)
+    for id, bag in pairs(Loot.bags) do
+        if bag.object == entity then return id end
+        if bag.netId and NetworkDoesEntityExistWithNetworkId(bag.netId)
+            and NetworkGetEntityFromNetworkId(bag.netId) == entity then
+            return id
+        end
+    end
+    return nil
+end
+
 function Loot.clear()
     for _, bag in pairs(Loot.bags) do
         Loot.deleteObject(bag)
@@ -94,7 +111,8 @@ function Loot.createObject(bag)
     bag.object = CreateObject(bag.model, bag.coords.x, bag.coords.y, bag.coords.z, false, false, false)
     PlaceObjectOnGroundProperly(bag.object)
     FreezeEntityPosition(bag.object, true)
-    SetEntityCollision(bag.object, false, false)
+    -- Une caisse bloque les joueurs ; un sac se traverse pour ne pas gêner les combats
+    SetEntityCollision(bag.object, bag.solid, bag.solid)
     SetModelAsNoLongerNeeded(bag.model)
     -- Le marqueur suit l'objet posé au sol (la hauteur envoyée peut être approximative)
     bag.coords = GetEntityCoords(bag.object)
@@ -106,13 +124,6 @@ function Loot.deleteObject(bag)
         DeleteObject(bag.object)
     end
     bag.object = nil
-end
-
----@param text string
-function Loot.showHelp(text)
-    BeginTextCommandDisplayHelp('STRING')
-    AddTextComponentSubstringPlayerName(text)
-    EndTextCommandDisplayHelp(0, false, false, -1)
 end
 
 function Loot.renderLoop()
@@ -151,8 +162,11 @@ function Loot.renderBag(id, bag, pos)
     DrawMarker(2, coords.x, coords.y, coords.z + (bag.netId and 0.9 or 0.6), 0, 0, 0, 0, 180.0, 0, 0.25, 0.25, 0.25,
         255, 200, 60, 180, true, true, 2, false, nil, nil, false)
 
-    if dist < Config.LootPickupDistance and State.isAlive() then
-        Loot.showHelp('~INPUT_CONTEXT~ ' .. (bag.label or (bag.netId and 'Fouiller le corps' or 'Ramasser le butin')))
+    -- On fouille une caisse depuis son bord : portée un peu plus grande
+    local reach = bag.solid and Config.LootPickupDistance + 1.0 or Config.LootPickupDistance
+    if dist < reach and State.isAlive() then
+        HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
+            bag.label or (bag.netId and 'Fouiller le corps' or 'Ramasser le butin'))
         if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
             TriggerServerEvent(Events.server.lootPickup, id)
         end

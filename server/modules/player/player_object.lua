@@ -100,6 +100,8 @@ function PlayerObject:notify(message, kind)
 end
 
 function PlayerObject:sync()
+    -- Objet rangé au coffre, vendu, jeté ou perdu : il quitte aussi les raccourcis
+    self.inventory:pruneShortcuts()
     TriggerClientEvent(Events.client.sync, self.source, self:serialize())
 end
 

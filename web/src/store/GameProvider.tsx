@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } f
 import { adminApi } from '../api/adminApi';
 import { gameApi } from '../api/gameApi';
 import { freeroamApi } from '../api/freeroamApi';
+import { interactionApi } from '../api/interactionApi';
 import { pauseApi } from '../api/pauseApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockLobbyModes, mockVitals } from '../dev/mocks';
@@ -75,6 +76,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
               vehicles: message.data.vehicles ?? [],
             },
           });
+        case 'interaction':
+          return dispatch({ type: 'interaction', open: message.data.open, items: message.data.items || null });
+        case 'helpNotify':
+          return dispatch({ type: 'helpNotify', help: message.data.help || null });
         case 'freeroamPvp':
           return dispatch({ type: 'freeroam', patch: { pvp: message.data.pvp } });
         case 'controlZone':
@@ -149,7 +154,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       notify,
       closeMenu: () => {
-        if (isEnvBrowser()) dispatch({ type: 'menu', open: false, inSafe: false });
+        if (isEnvBrowser()) dispatch({ type: 'menu', open: false, inSafe: false, near: {} });
         gameApi.close();
       },
       buy: (index) => run(gameApi.buy(index)),
@@ -203,6 +208,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const result = await freeroamApi.action(action, data);
         if (result?.message) notify(result.message, result.ok ? 'success' : 'error');
         if (typeof result?.pvp === 'boolean') dispatch({ type: 'freeroam', patch: { pvp: result.pvp } });
+      },
+      closeInteraction: () => {
+        if (isEnvBrowser()) dispatch({ type: 'interaction', open: false, items: null });
+        interactionApi.close();
+      },
+      interactionAction: (id) => {
+        if (isEnvBrowser()) notify(`Action simulée : ${id}`);
+        interactionApi.action(id);
       },
       closePause: () => {
         if (isEnvBrowser()) dispatch({ type: 'pause', open: false });

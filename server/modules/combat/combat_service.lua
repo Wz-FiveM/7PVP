@@ -7,6 +7,7 @@ local LootService = PVP.use('LootService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local CombatTagService = PVP.use('CombatTagService')
 local BountyService = PVP.use('BountyService')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Items = PVP.use('Items')
 local ContractService = PVP.use('ContractService')
 local DiscordService = PVP.use('DiscordService')
@@ -47,7 +48,7 @@ end
 ---@param netId any
 ---@param hit any { damage, headshot, fatal }
 function CombatService.onNpcHitReport(source, attackerId, netId, hit)
-    if type(hit) ~= 'table' then return end
+    if type(hit) ~= 'table' or not AntiCheatService.allow(source, 'hit') then return end
     netId = tonumber(netId)
     local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
     if ped == 0 or not DoesEntityExist(ped) or not Entity(ped).state.pvpNpc then return end
@@ -74,7 +75,7 @@ end
 ---@param attackerId any
 ---@param hit any { health, armor, headshot, fatal }
 function CombatService.onHitReport(source, attackerId, hit)
-    if type(hit) ~= 'table' then return end
+    if type(hit) ~= 'table' or not AntiCheatService.allow(source, 'hit') then return end
     local victim = PlayerService.get(source)
     local attacker = PlayerService.get(tonumber(attackerId))
     if not victim or not attacker or attacker == victim then return end
@@ -113,7 +114,12 @@ function CombatService.onPlayerDied(source, killerId, cause)
     if killer then
         CombatService.rewardPlayerKill(killer, victim)
     end
-    CombatService.broadcastKill(killer and killer.name, victim.name, nil, recap)
+    CombatService.broadcastKill(killer and killer.name, victim.name, nil, recap, {
+        weapon = CombatService.weaponItem(cause and cause.weapon),
+        headshot = type(cause) == 'table' and cause.headshot == true,
+        killerId = killer and killer.source,
+        victimId = victim.source,
+    })
     BountyService.reset(victim)
 
     victim:sync()
@@ -212,6 +218,17 @@ function CombatService.buildRecap(victim, killer, cause)
 end
 
 ---@param hash any hash d'arme (GetPedCauseOfDeath côté client)
+---@return string|nil objet de Config.Items correspondant (pour son image)
+function CombatService.weaponItem(hash)
+    hash = tonumber(hash)
+    if not hash or hash == 0 then return nil end
+    for name, item in pairs(Config.Items) do
+        if item.weapon and GetHashKey(item.weapon) == hash then return name end
+    end
+    return nil
+end
+
+---@param hash any hash d'arme (GetPedCauseOfDeath côté client)
 ---@return string|nil
 function CombatService.weaponLabel(hash)
     hash = tonumber(hash)
@@ -240,7 +257,17 @@ end
 ---@param victimName string
 ---@param reason? 'disconnect' déconnexion en plein combat
 ---@param recap? table récapitulatif de mort (arme, distance) pour le killfeed Discord
-function CombatService.broadcastKill(killerName, victimName, reason, recap)
-    ModeRegistry.broadcast('pvp', Events.client.killfeed, { killer = killerName, victim = victimName, reason = reason })
+---@param extra? { weapon: string|nil, headshot: boolean, killerId: integer|nil, victimId: integer|nil } affichage du killfeed
+function CombatService.broadcastKill(killerName, victimName, reason, recap, extra)
+    extra = extra or {}
+    ModeRegistry.broadcast('pvp', Events.client.killfeed, {
+        killer = killerName,
+        victim = victimName,
+        reason = reason,
+        weapon = extra.weapon,
+        headshot = extra.headshot == true,
+        killerId = extra.killerId,
+        victimId = extra.victimId,
+    })
     DiscordService.killfeed(killerName, victimName, reason, recap)
 end

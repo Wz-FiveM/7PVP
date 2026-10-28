@@ -7,13 +7,12 @@ local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
-Group.VITALS_INTERVAL = 500
-
 ---@type table|false groupe actuel { id, leader, members = { { id, name } } }
 Group.data = false
----@type table<integer, integer> server id -> blip
+---@type table<integer, { blip: integer, entity: boolean }> server id -> repère (sur le joueur ou sur une position)
 Group.blips = {}
-Group.lastVitals = ''
+---@type table<integer, table> dernier état reçu du serveur par coéquipier { health, armor, dead, x, y, z, heading }
+Group.state = {}
 
 function Group.init()
     RegisterNetEvent(Events.client.groupSync, function(data)
@@ -21,6 +20,9 @@ function Group.init()
     end)
     RegisterNetEvent(Events.client.groupInvite, function(invite)
         Group.onInvite(invite)
+    end)
+    RegisterNetEvent(Events.client.groupState, function(state)
+        Group.onState(state)
     end)
 
     -- Commandes du chat (T puis /commande)
@@ -51,7 +53,6 @@ function Group.init()
         cb(Callback.await(Events.callbacks.groupKick, tonumber(data.target)) or { ok = false })
     end)
 
-    CreateThread(Group.loop)
 end
 
 ---Commande du chat : le résultat s'affiche en notification.
@@ -70,15 +71,29 @@ end
 ---@param data table|false
 function Group.onSync(data)
     Group.data = data or false
-    Group.lastVitals = ''
+    if not Group.data then Group.state = {} end
     Group.refreshBlips()
     Nui.send('group', { group = Group.data })
+end
+
+---État des coéquipiers envoyé par le serveur chaque seconde : HUD et repères.
+---@param list table[]
+function Group.onState(list)
+    if not Group.data or type(list) ~= 'table' then return end
+    Group.state = {}
+    local vitals = {}
+    for _, entry in ipairs(list) do
+        Group.state[entry.id] = entry
+        vitals[#vitals + 1] = { id = entry.id, health = entry.health, armor = entry.armor, dead = entry.dead }
+    end
+    Nui.send('groupVitals', vitals)
+    Group.refreshBlips()
 end
 
 ---@param invite { from: integer, fromName: string }
 function Group.onInvite(invite)
     Nui.send('groupInvite', invite)
-    Nui.notify(('%s t\'invite dans son groupe : /accepter ou menu Groupe.'):format(invite.fromName), 'info')
+    Nui.notify(('%s t\'invite dans son équipe : /accepter ou menu Équipe.'):format(invite.fromName), 'info')
 end
 
 ---@param source integer
@@ -92,66 +107,54 @@ function Group.isMember(source)
 end
 
 -- ---------------------------------------------------------------------------
--- Repères et vie des coéquipiers
+-- Repères des coéquipiers
 -- ---------------------------------------------------------------------------
 
-function Group.loop()
-    while true do
-        Wait(Group.VITALS_INTERVAL)
-        if Group.data then
-            Group.refreshBlips()
-            Group.sendVitals()
-        end
-    end
-end
-
----Un repère par coéquipier visible (les joueurs trop loin ne sont pas chargés par le jeu).
+---Un repère par coéquipier : sur son personnage s'il est chargé par le jeu (suit en douceur),
+---sinon sur la position envoyée par le serveur (mise à jour chaque seconde), à toute distance.
 function Group.refreshBlips()
     local me = GetPlayerServerId(PlayerId())
-    for source, blip in pairs(Group.blips) do
-        local player = GetPlayerFromServerId(source)
-        if not Group.isMember(source) or player == -1 or not DoesBlipExist(blip) then
-            if DoesBlipExist(blip) then RemoveBlip(blip) end
+    for source, entry in pairs(Group.blips) do
+        local loaded = GetPlayerFromServerId(source) ~= -1
+        if not Group.isMember(source) or not DoesBlipExist(entry.blip) or entry.entity ~= loaded then
+            if DoesBlipExist(entry.blip) then RemoveBlip(entry.blip) end
             Group.blips[source] = nil
         end
     end
     if not Group.data then return end
 
     for _, member in ipairs(Group.data.members) do
-        local player = GetPlayerFromServerId(member.id)
-        if member.id ~= me and player ~= -1 and not Group.blips[member.id] then
-            local blip = AddBlipForEntity(GetPlayerPed(player))
-            SetBlipSprite(blip, 1)
-            SetBlipColour(blip, Config.Groups.blipColor)
-            SetBlipScale(blip, 0.85)
-            ShowHeadingIndicatorOnBlip(blip, true)
-            SetBlipCategory(blip, 7)
-            BeginTextCommandSetBlipName('STRING')
-            AddTextComponentSubstringPlayerName(member.name)
-            EndTextCommandSetBlipName(blip)
-            Group.blips[member.id] = blip
+        local state = Group.state[member.id]
+        if member.id ~= me then
+            local entry = Group.blips[member.id]
+            local player = GetPlayerFromServerId(member.id)
+            if not entry and player ~= -1 then
+                entry = { blip = AddBlipForEntity(GetPlayerPed(player)), entity = true }
+                Group.setupBlip(entry.blip, member.name)
+                Group.blips[member.id] = entry
+            elseif not entry and state then
+                entry = { blip = AddBlipForCoord(state.x, state.y, state.z), entity = false }
+                Group.setupBlip(entry.blip, member.name)
+                Group.blips[member.id] = entry
+            end
+            if entry and not entry.entity and state then
+                SetBlipCoords(entry.blip, state.x, state.y, state.z)
+                SetBlipRotation(entry.blip, math.floor(state.heading))
+            end
         end
     end
 end
 
----Vie de chaque coéquipier (nil s'il est trop loin pour être chargé), envoyée seulement si elle change.
-function Group.sendVitals()
-    local vitals = {}
-    local parts = {}
-    for _, member in ipairs(Group.data.members) do
-        local player = GetPlayerFromServerId(member.id)
-        local entry = { id = member.id, health = false, armor = 0 }
-        if player ~= -1 then
-            local ped = GetPlayerPed(player)
-            entry.health = math.max(0, GetEntityHealth(ped) - 100)
-            entry.armor = GetPedArmour(ped)
-        end
-        vitals[#vitals + 1] = entry
-        parts[#parts + 1] = ('%d:%s:%d'):format(member.id, tostring(entry.health), entry.armor)
-    end
-
-    local key = table.concat(parts, ',')
-    if key == Group.lastVitals then return end
-    Group.lastVitals = key
-    Nui.send('groupVitals', vitals)
+---@param blip integer
+---@param name string
+function Group.setupBlip(blip, name)
+    SetBlipSprite(blip, 1)
+    SetBlipColour(blip, Config.Groups.blipColor)
+    SetBlipScale(blip, 0.85)
+    SetBlipAsShortRange(blip, false)
+    ShowHeadingIndicatorOnBlip(blip, true)
+    SetBlipCategory(blip, 7)
+    BeginTextCommandSetBlipName('STRING')
+    AddTextComponentSubstringPlayerName(name)
+    EndTextCommandSetBlipName(blip)
 end

@@ -8,6 +8,7 @@ local LobbyService = PVP.use('LobbyService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local ChatService = PVP.use('ChatService')
 local LootService = PVP.use('LootService')
+local AntiCheatService = PVP.use('AntiCheatService')
 local AirdropService = PVP.use('AirdropService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
@@ -39,9 +40,14 @@ function AdminService.init()
     Callback.register(Events.callbacks.adminPlayers, AdminService.listPlayers)
     Callback.register(Events.callbacks.adminAction, AdminService.handleAction)
 
-    -- Le client apprend s'il est admin (pour afficher ou non le panneau)
+    -- Le client apprend s'il est admin (pour afficher ou non le panneau), une fois son profil
+    -- chargé : le statut enregistré en base (is_admin) n'est connu qu'à ce moment-là
+    AddEventHandler(Events.internal.playerLoaded, function(playerSource)
+        AdminService.sendStatus(playerSource)
+    end)
+    -- Profil déjà chargé (reconnexion du client sans redémarrage du serveur)
     RegisterNetEvent(Events.server.ready, function()
-        AdminService.sendStatus(source)
+        if PlayerService.get(source) then AdminService.sendStatus(source) end
     end)
 
     -- Commandes console (et admins en jeu, via la permission command.<nom>)
@@ -199,6 +205,8 @@ function AdminService.handleAction(source, data)
         return { ok = false, message = 'Joueur introuvable.' }
     end
 
+    -- Un admin peut déplacer ou soigner un joueur : pas d'alerte anti-cheat juste après
+    if target then AntiCheatService.grace(target.source) end
     local ok, message = AdminService[action.method](source, target, data)
     Logger.info('[admin] %s : %s%s%s', GetPlayerName(source), data.action,
         target and (' -> ' .. target.name) or '', message and (' (' .. message .. ')') or '')

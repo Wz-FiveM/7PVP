@@ -5,6 +5,7 @@
 local Creator = PVP.define('Creator')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
+local SafeNpcs = PVP.use('SafeNpcs')
 local Zone = PVP.use('Zone')
 local Loadout = PVP.use('Loadout')
 local Appearance = PVP.use('Appearance')
@@ -63,8 +64,8 @@ end
 
 function Creator.requestEdit()
     if Creator.active then return end
-    if not State.isAlive() or not State.isInSafeZone() then
-        return Nui.notify('L\'apparence ne se modifie qu\'en zone safe.', 'error')
+    if not State.isAlive() or not SafeNpcs.isNear(GetEntityCoords(PlayerPedId()), 'clothing') then
+        return Nui.notify(SafeNpcs.hint('clothing'), 'error')
     end
     if State.menuOpen then Nui.setMenu(false) end
     Creator.open('edit', State.appearance)

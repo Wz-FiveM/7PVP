@@ -5,6 +5,6 @@ import type { PauseAction } from '../types/game';
 export const pauseApi = {
   close: () => fetchNui<void>('pauseClose'),
 
-  /** carte, paramètres GTA, menu F2, lobby, déconnexion : le menu se ferme */
+  /** carte, paramètres GTA, inventaire, lobby, déconnexion : le menu se ferme */
   action: (action: PauseAction) => fetchNui<void>('pauseAction', { action }),
 };

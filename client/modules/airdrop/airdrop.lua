@@ -2,6 +2,7 @@
 ---fumigène et compte à rebours avant l'ouverture. La caisse ouverte devient un butin
 ---affiché par client/modules/loot/loot.lua.
 ---@class ClientAirdrop
+---@field id integer
 ---@field coords vector3 point d'atterrissage (z recalé sur le sol une fois chargé)
 ---@field landAt integer GetGameTimer() de l'atterrissage
 ---@field unlockAt integer GetGameTimer() de l'ouverture
@@ -10,10 +11,13 @@
 ---@field chute integer|nil
 ---@field smoke integer|nil
 ---@field grounded boolean hauteur du sol trouvée
+---@field landed boolean caisse posée (solide)
+---@field top number hauteur du dessus de la caisse, pour le texte
 
 ---@class AirdropModule
 local Airdrop = PVP.define('Airdrop')
 local State = PVP.use('State')
+local DuiLabels = PVP.use('DuiLabels')
 local Events = PVP.use('Events')
 
 Airdrop.STREAM_DISTANCE = 450.0
@@ -52,11 +56,14 @@ function Airdrop.add(data)
     EndTextCommandSetBlipName(blip)
 
     Airdrop.drops[data.id] = {
+        id = data.id,
         coords = data.coords,
         landAt = now + data.landIn * 1000,
         unlockAt = now + data.unlockIn * 1000,
         blip = blip,
         grounded = false,
+        landed = false,
+        top = 1.0,
     }
 end
 
@@ -75,6 +82,7 @@ function Airdrop.deleteProps(drop)
         if drop[key] and DoesEntityExist(drop[key]) then DeleteObject(drop[key]) end
         drop[key] = nil
     end
+    drop.landed = false
     if drop.smoke then
         StopParticleFxLooped(drop.smoke, false)
         drop.smoke = nil
@@ -113,20 +121,16 @@ function Airdrop.render(drop, pos)
     local falling = now < drop.landAt
     local height = falling and (drop.landAt - now) / (Config.Airdrops.fallTime * 1000) * Config.Airdrops.fallHeight or 0.0
     local z = drop.coords.z + height
-    SetEntityCoords(drop.crate, drop.coords.x, drop.coords.y, z, false, false, false, false)
 
     if falling then
-        SetEntityCoords(drop.chute, drop.coords.x, drop.coords.y, z + 1.0, false, false, false, false)
-    elseif drop.chute then
-        DeleteObject(drop.chute)
-        drop.chute = nil
-        Airdrop.startSmoke(drop)
+        SetEntityCoords(drop.crate, drop.coords.x, drop.coords.y, z, false, false, false, false)
+        SetEntityCoords(drop.chute, drop.coords.x, drop.coords.y, z + drop.top, false, false, false, false)
+    elseif not drop.landed then
+        Airdrop.land(drop)
     end
 
     if dist < Airdrop.TEXT_DISTANCE then
-        local seconds = math.max(0, math.ceil((drop.unlockAt - now) / 1000))
-        Airdrop.drawText(vector3(drop.coords.x, drop.coords.y, z + 1.6),
-            falling and 'Largage en chute' or ('Ouverture dans %d s'):format(seconds))
+        Airdrop.drawLabel(drop, vector3(drop.coords.x, drop.coords.y, z + drop.top + 0.6), falling, now)
     end
     return true
 end
@@ -152,16 +156,32 @@ function Airdrop.createProps(drop)
 
     drop.crate = CreateObject(crateModel, drop.coords.x, drop.coords.y, drop.coords.z, false, false, false)
     FreezeEntityPosition(drop.crate, true)
+    -- En chute, la caisse traverse tout ; elle devient solide une fois posée (Airdrop.land)
     SetEntityCollision(drop.crate, false, false)
+    local _, maximum = GetModelDimensions(crateModel)
+    if maximum and maximum.z > 0 then drop.top = maximum.z end
     if GetGameTimer() < drop.landAt then
         drop.chute = CreateObject(chuteModel, drop.coords.x, drop.coords.y, drop.coords.z, false, false, false)
         FreezeEntityPosition(drop.chute, true)
         SetEntityCollision(drop.chute, false, false)
-    else
-        Airdrop.startSmoke(drop)
     end
     SetModelAsNoLongerNeeded(crateModel)
     SetModelAsNoLongerNeeded(chuteModel)
+end
+
+---Atterrissage : la caisse est posée à plat sur le sol et devient solide, le parachute disparaît.
+---@param drop ClientAirdrop
+function Airdrop.land(drop)
+    drop.landed = true
+    if drop.chute then
+        DeleteObject(drop.chute)
+        drop.chute = nil
+    end
+    SetEntityCoords(drop.crate, drop.coords.x, drop.coords.y, drop.coords.z, false, false, false, false)
+    PlaceObjectOnGroundProperly(drop.crate)
+    FreezeEntityPosition(drop.crate, true)
+    SetEntityCollision(drop.crate, true, true)
+    Airdrop.startSmoke(drop)
 end
 
 ---Fumigène jaune au sol pour repérer la caisse de loin.
@@ -176,17 +196,26 @@ function Airdrop.startSmoke(drop)
         0.0, 0.0, 0.0, 1.5, false, false, false, false)
 end
 
+---Étiquette DUI au-dessus de la caisse : état et avancement (chute, puis ouverture).
+---@param drop ClientAirdrop
 ---@param coords vector3
----@param text string
-function Airdrop.drawText(coords, text)
-    local onScreen, x, y = World3dToScreen2d(coords.x, coords.y, coords.z)
-    if not onScreen then return end
-    SetTextScale(0.35, 0.35)
-    SetTextFont(4)
-    SetTextCentre(true)
-    SetTextColour(255, 216, 74, 230)
-    SetTextOutline()
-    BeginTextCommandDisplayText('STRING')
-    AddTextComponentSubstringPlayerName(text)
-    EndTextCommandDisplayText(x, y)
+---@param falling boolean
+---@param now integer
+function Airdrop.drawLabel(drop, coords, falling, now)
+    local subtitle, progress
+    if falling then
+        subtitle = 'En chute'
+        progress = 1 - (drop.landAt - now) / (Config.Airdrops.fallTime * 1000)
+    else
+        local seconds = math.max(0, math.ceil((drop.unlockAt - now) / 1000))
+        subtitle = ('Ouverture dans %d s'):format(seconds)
+        progress = 1 - (drop.unlockAt - now) / (Config.Airdrops.unlockDelay * 1000)
+    end
+    DuiLabels.draw('airdrop:' .. drop.id, coords, {
+        title = 'Largage aérien',
+        subtitle = subtitle,
+        accent = 'critique',
+        icon = 'crate',
+        progress = math.floor(math.max(0, math.min(1, progress)) * 50) / 50,
+    })
 end

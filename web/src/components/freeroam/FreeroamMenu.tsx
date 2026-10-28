@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useGame } from '../../store/GameContext';
+import { isMenuCloseKey } from '../../utils/keys';
 import { Icon, type IconName } from '../icons/Icon';
 import '../pause/pause.css';
 import './freeroam.css';
@@ -12,7 +13,7 @@ const TABS: { id: FreeroamTab; label: string; icon: IconName }[] = [
   { id: 'player', label: 'Joueur', icon: 'profile' },
 ];
 
-/** Menu du Freeroam (F2) : armes et véhicules gratuits, outils du joueur, PvP au choix. */
+/** Menu du Freeroam (touche du menu) : armes et véhicules gratuits, outils du joueur, PvP au choix. */
 export function FreeroamMenu() {
   const { state, actions } = useGame();
   const { freeroam } = state;
@@ -21,7 +22,7 @@ export function FreeroamMenu() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' || event.key === 'F2') actions.closeFreeroam();
+      if (isMenuCloseKey(event)) actions.closeFreeroam();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

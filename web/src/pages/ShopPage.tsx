@@ -23,8 +23,8 @@ export function ShopPage() {
 
   return (
     <>
-      {!menu.inSafe && (
-        <p className="hint cut-s">La boutique n'est accessible qu'en zone safe. Rejoins un abri pour acheter.</p>
+      {!menu.near.shop && (
+        <p className="hint cut-s">Achats auprès de l'armurier, en zone safe (repère rouge sur la carte).</p>
       )}
       {SECTIONS.map((section) => {
         const list = entries.filter(({ entry }) => config.items[entry.item]?.type === section.type);
@@ -45,7 +45,7 @@ export function ShopPage() {
                     name={entry.item}
                     item={entry.count > 1 ? { ...item, label: `${item.label} x${entry.count}` } : item}
                     corner={locked ? `NIV. ${entry.level}` : formatMoney(entry.price)}
-                    disabled={locked || !menu.inSafe || money < entry.price}
+                    disabled={locked || !menu.near.shop || money < entry.price}
                     onClick={() => actions.buy(index)}
                   />
                 );

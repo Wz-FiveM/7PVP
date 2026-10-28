@@ -5,6 +5,7 @@ local PlayerService = PVP.use('PlayerService')
 local LootService = PVP.use('LootService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
+local SafeNpcs = PVP.use('SafeNpcs')
 local Events = PVP.use('Events')
 
 function InventoryService.init()
@@ -23,15 +24,15 @@ function InventoryService.getActivePlayer(source)
     return player
 end
 
----Le coffre (conteneur `safeOnly`) ne s'ouvre qu'en zone safe.
+---Le coffre (conteneur `safeOnly`) ne s'ouvre qu'à côté du banquier de la zone safe.
 ---@param player PvpPlayer
 ---@param ... string conteneurs touchés par l'action
 ---@return boolean ok, string|nil message
 function InventoryService.canAccess(player, ...)
     for _, id in ipairs({ ... }) do
         local container = Config.Containers[id]
-        if container and container.safeOnly and not player:isInSafeZone() then
-            return false, ('%s : accessible seulement en zone safe.'):format(container.label)
+        if container and container.safeOnly and not SafeNpcs.isNear(player:getCoords(), 'stash', Config.SafeNpcs.useDistance + 2.0) then
+            return false, ('%s : %s'):format(container.label, SafeNpcs.hint('stash'))
         end
     end
     return true

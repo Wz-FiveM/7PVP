@@ -47,7 +47,8 @@ function Death.getCause(ped)
     local source = GetPedSourceOfDeath(ped)
     local zombie = source ~= 0 and IsEntityAPed(source) and not IsPedAPlayer(source)
         and Entity(source).state.pvpNpc ~= nil
-    return { weapon = GetPedCauseOfDeath(ped), zombie = zombie }
+    local hasBone, bone = GetPedLastDamageBone(ped)
+    return { weapon = GetPedCauseOfDeath(ped), zombie = zombie, headshot = hasBone and bone == 31086 }
 end
 
 ---@param seconds integer délai avant respawn

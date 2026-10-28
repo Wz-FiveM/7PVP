@@ -8,6 +8,7 @@ local PlayerService = PVP.use('PlayerService')
 local WorldService = PVP.use('WorldService')
 local Callback = PVP.use('Callback')
 local Utils = PVP.use('Utils')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
 FreeroamMode.ID = 'freeroam'
@@ -26,6 +27,7 @@ end
 ---@param player PvpPlayer
 function FreeroamMode.enter(player)
     player.dead = false
+    AntiCheatService.grace(player.source)
     player.freeroamPvp = false
     TriggerClientEvent(Events.client.spawn, player.source, Utils.pick(Config.Freeroam.spawns), player.appearance)
 end

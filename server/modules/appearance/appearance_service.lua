@@ -7,6 +7,7 @@ local LobbyService = PVP.use('LobbyService')
 local WorldService = PVP.use('WorldService')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local Callback = PVP.use('Callback')
+local SafeNpcs = PVP.use('SafeNpcs')
 local Events = PVP.use('Events')
 
 -- Chaque joueur en création a son propre bucket : il ne voit personne et personne ne le voit
@@ -57,8 +58,8 @@ function AppearanceService.save(source, data)
         return { ok = true }
     end
 
-    if player.dead or not player:isInSafeZone() then
-        return { ok = false, message = 'L\'apparence ne se modifie qu\'en zone safe.' }
+    if player.dead or not SafeNpcs.isNear(player:getCoords(), 'clothing', Config.SafeNpcs.useDistance + 2.0) then
+        return { ok = false, message = SafeNpcs.hint('clothing') }
     end
 
     player.appearance = appearance

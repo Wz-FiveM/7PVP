@@ -2,6 +2,7 @@
 local SpawnService = PVP.define('SpawnService')
 local PlayerService = PVP.use('PlayerService')
 local Zones = PVP.use('Zones')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
 function SpawnService.init()
@@ -25,6 +26,7 @@ end
 ---@param player PvpPlayer
 function SpawnService.spawn(player)
     player.dead = false
+    AntiCheatService.grace(player.source)
     player.combatLog = { taken = {}, dealt = {} }
     player:sync()
     TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn(), player.appearance)

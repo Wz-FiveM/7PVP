@@ -23,13 +23,15 @@ interface ContainerSectionProps {
   onSelect: (selection: Selection) => void;
   onItemContextMenu: (event: MouseEvent, stack: ItemStack, container: ContainerId) => void;
   onItemDoubleClick: (stack: ItemStack) => void;
+  /** Alt + clic : envoie toute la pile vers l'autre conteneur */
+  onItemQuickMove?: (stack: ItemStack, container: ContainerId) => void;
 }
 
 /** Apparence de chaque conteneur : badge, couleur de la jauge, nombre de segments. */
 const STYLES: Record<ContainerId, { note: string; outline: boolean; color?: string; segments: number }> = {
   bag: { note: 'Perdu à la mort', outline: true, segments: 40 },
   protected: { note: 'Conservé à la mort', outline: false, color: 'var(--abri)', segments: 20 },
-  stash: { note: 'Zone safe uniquement', outline: false, color: 'var(--toxine)', segments: 50 },
+  stash: { note: 'Auprès du banquier', outline: false, color: 'var(--toxine)', segments: 50 },
 };
 
 /** Quantité (ou montant) et nombre d'accessoires fixés sur une arme. */
@@ -39,7 +41,7 @@ function cornerText(stack: ItemStack, attachments: number): string {
 }
 
 export function ContainerSection({
-  id, stacks, selection, locked, onSelect, onItemContextMenu, onItemDoubleClick,
+  id, stacks, selection, locked, onSelect, onItemContextMenu, onItemDoubleClick, onItemQuickMove,
 }: ContainerSectionProps) {
   const { state } = useGame();
   const { drag, begin } = useDrag();
@@ -74,7 +76,7 @@ export function ContainerSection({
       />
       {locked ? (
         <p className="mono container__locked">
-          {entriesOf(stacks).length} OBJET(S) EN SÉCURITÉ · REJOINS UNE ZONE SAFE POUR OUVRIR LE COFFRE
+          {entriesOf(stacks).length} OBJET(S) EN SÉCURITÉ · VA VOIR LE BANQUIER EN ZONE SAFE POUR OUVRIR LE COFFRE
         </p>
       ) : (
         <DropZone target={{ kind: 'container', container: id }} className="tile-grid container__grid">
@@ -90,7 +92,10 @@ export function ContainerSection({
                 selected={selection?.name === stack.name && selection.container === id}
                 protectedItem={isProtected}
                 dragging={isDragged}
-                onClick={() => onSelect({ name: stack.name, container: id })}
+                onClick={(event) => {
+                  if (event.altKey && onItemQuickMove) onItemQuickMove(stack, id);
+                  else onSelect({ name: stack.name, container: id });
+                }}
                 onDragBegin={(event) =>
                   begin({ kind: 'container', container: id, item: stack.name, count: stack.count }, event)
                 }

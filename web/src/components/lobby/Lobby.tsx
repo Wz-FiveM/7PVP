@@ -64,7 +64,7 @@ export function Lobby() {
         </div>
 
         <p className="mono lobby__hint">
-          TU POURRAS REVENIR ICI DEPUIS UNE ZONE SAFE : MENU [F2] OU COMMANDE /LOBBY
+          TU POURRAS REVENIR ICI DEPUIS UNE ZONE SAFE : MENU [VERR. MAJ] OU COMMANDE /LOBBY
         </p>
       </div>
     </div>

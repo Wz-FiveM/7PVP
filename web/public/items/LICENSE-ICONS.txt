@@ -13,18 +13,23 @@ Fichiers renommés d'après les objets de 7PVP :
   armor.png      <- armor.png
   money.png      <- cash.png
 
-Icônes d'armes :
-Bibliothèque ai.swisser.dev — https://ai.swisser.dev/fivem-inventory-icons
-Téléchargement gratuit, sans compte ; aucune licence écrite pour la bibliothèque complète
-(seul le pack de 232 icônes ci-dessus est en CC0). Converties en PNG 256x256.
+Matériaux (même pack CC0, dossier png-256) :
+  mat_cloth.png      <- cloth.png
+  mat_scrap.png      <- metalscrap.png
+  mat_powder.png     <- baking_soda.png
+  mat_chemicals.png  <- acetone.png
 
-  weapon_pistol.png        <- beretta
-  weapon_combatpistol.png  <- combat-pistol
-  weapon_microsmg.png      <- fn-smg-tbogt (Uzi)
-  weapon_smg.png           <- combat-pdw
-  weapon_carbinerifle.png  <- 762-carbine-rifle
-  weapon_assaultrifle.png  <- ak47
-  weapon_sniperrifle.png   <- gta5-heavy-sniper-inventory-icon
-  weapon_knife.png         <- combat-knife
 
-weapon_pumpshotgun : pas d'icône dans la bibliothèque, l'interface affiche l'icône au trait.
+Armes et accessoires (rendus GTA V, 250x250) :
+Pack « 400+ Inventory Icon Pack » d'Aspex Graphics, gratuit :
+https://forum.cfx.re/t/400-inventory-icon-pack-high-quality-custom-free/5316000
+Aucune licence écrite dans le pack (seulement « FREE »).
+  weapon_pistol.png <- pistol.png             weapon_combatpistol.png <- combat-pistol.png
+  weapon_microsmg.png <- micro-smg.png        weapon_smg.png <- smg.png
+  weapon_pumpshotgun.png <- pump-shotgun.png  weapon_carbinerifle.png <- carbine.png
+  weapon_assaultrifle.png <- assult-rifle.png weapon_sniperrifle.png <- heavy-sniper.png
+  att_suppressor.png <- suppressor.png        att_scope.png <- scope.png
+  att_extclip.png <- extended-clip.png        att_flashlight.png <- flashlight-attatchment.png
+  att_grip.png <- grip.png
+
+weapon_knife.png : bibliothèque ai.swisser.dev (combat-knife), https://ai.swisser.dev/fivem-inventory-icons

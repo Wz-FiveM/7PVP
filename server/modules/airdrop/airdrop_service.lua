@@ -77,6 +77,7 @@ function AirdropService.open(id)
         model = Config.Airdrops.model,
         label = 'Fouiller le largage',
         kind = 'airdrop',
+        solid = true,
         lifetime = Config.Airdrops.lifetime,
     })
     ChatService.announce('pvp', 'Le largage aérien est ouvert !')

@@ -282,7 +282,14 @@ function InventoryObject:setBag(items)
     self.bag = InventoryObject.sanitize(Utils.shallowCopy(items))
 end
 
----Seules les armes et les consommables peuvent être assignés à un raccourci.
+---Vide les raccourcis des objets qui ne sont plus portés (rangés au coffre, vendus, perdus...).
+function InventoryObject:pruneShortcuts()
+    for slot, name in ipairs(self.shortcuts) do
+        if name and self:count(name) <= 0 then self.shortcuts[slot] = false end
+    end
+end
+
+---Seules les armes et les consommables portés (sac ou conteneur protégé) vont dans un raccourci.
 ---@param slot any
 ---@param name any nil/false pour vider l'emplacement
 ---@return boolean
@@ -290,6 +297,7 @@ function InventoryObject:setShortcut(slot, name)
     slot = math.floor(tonumber(slot) or 0)
     if slot < 1 or slot > Config.ShortcutSlots then return false end
     if name and not (Items.isType(name, 'weapon') or Items.isType(name, 'consumable')) then return false end
+    if name and self:count(name) <= 0 then return false end
     self.shortcuts[slot] = name or false
     return true
 end

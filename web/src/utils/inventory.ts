@@ -4,9 +4,9 @@ const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2
 
 export const CONTAINERS: ContainerId[] = ['bag', 'protected', 'stash'];
 
-/** Destinations possibles d'un objet (le coffre seulement en zone safe). */
-export function moveTargets(from: ContainerId, inSafe: boolean): ContainerId[] {
-  return CONTAINERS.filter((id) => id !== from && (inSafe || (id !== 'stash' && from !== 'stash')));
+/** Destinations possibles d'un objet (le coffre seulement à côté du banquier). */
+export function moveTargets(from: ContainerId, stashOpen: boolean): ContainerId[] {
+  return CONTAINERS.filter((id) => id !== from && (stashOpen || (id !== 'stash' && from !== 'stash')));
 }
 
 /** Libellé de l'action « déplacer vers » dans le menu contextuel. */

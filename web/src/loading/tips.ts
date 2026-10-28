@@ -8,5 +8,5 @@ export const TIPS: string[] = [
   'Les munitions sont partagées par calibre : un 9mm sert à tous tes pistolets.',
   'Chaque conteneur a une limite de poids. Un sac trop lourd ne ramasse plus rien.',
   'Un sac de butin disparaît au bout de 5 minutes : ne traîne pas.',
-  'Retour au lobby possible depuis une zone safe : menu F2 ou /lobby.',
+  'Retour au lobby possible depuis une zone safe : menu (Verr. Maj) ou /lobby.',
 ];

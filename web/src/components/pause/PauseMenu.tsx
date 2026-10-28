@@ -109,7 +109,7 @@ function PauseHome({ info, inPvp }: { info: PauseInfo; inPvp: boolean }) {
         {inPvp && (
           <PauseCard
             title="Inventaire"
-            text={`Menu ${info.keys.menu} : sac, groupe, boutique`}
+            text={`Menu ${info.keys.menu} : sac, équipe, boutique`}
             icon="inventory"
             onClick={() => actions.pauseAction('menu')}
           />
@@ -138,12 +138,13 @@ function PauseHome({ info, inPvp }: { info: PauseInfo; inPvp: boolean }) {
 
 function PauseControls({ info }: { info: PauseInfo }) {
   const rows: [string, string][] = [
-    [info.keys.menu, 'Menu : inventaire, groupe, profil, boutique'],
+    [info.keys.menu, 'Menu : inventaire, équipe, profil, boutique'],
     [`${info.keys.hotbar} (maintenu)`, 'Afficher les raccourcis'],
     ['1 – 7', 'Utiliser un raccourci'],
     ['E', 'Ramasser un sac, fouiller un corps ou un largage'],
+    [info.keys.teleport, 'Se téléporter dans une zone safe'],
     [info.keys.chat, 'Chat (/commande pour une commande)'],
-    ['/inviter ID', 'Inviter un joueur dans ton groupe'],
+    ['/inviter ID', 'Inviter un joueur dans ton équipe'],
     ['/lobby', 'Retour au lobby (en zone safe)'],
     ['Échap', 'Menu pause'],
   ];

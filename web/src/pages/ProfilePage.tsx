@@ -33,7 +33,7 @@ export function ProfilePage() {
         <span className="label">Opérateur</span>
         <span className="disp profile__name">{player.name}</span>
         <span className="disp profile__level">Niveau {player.level}</span>
-        <SegmentBar value={levelXp} max={config.xpPerLevel} segments={20} color="var(--hazard)" height={8} />
+        <SegmentBar value={levelXp} max={config.xpPerLevel} segments={20} color="var(--signal)" height={8} />
         <span className="mono muted profile__xp">
           {levelXp} / {config.xpPerLevel} XP avant le niveau {player.level + 1}
         </span>

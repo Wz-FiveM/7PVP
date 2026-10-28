@@ -5,9 +5,11 @@ local ClientApi = PVP.define('ClientApi')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Zones = PVP.use('Zones')
+local HelpNotify = PVP.use('HelpNotify')
 
 ClientApi.EXPORTS = {
     'getPlayer', 'isDead', 'getZone', 'isInSafeZone', 'openMenu', 'closeMenu', 'notify',
+    'showHelpNotification', 'hideHelpNotification',
 }
 
 function ClientApi.init()
@@ -48,4 +50,16 @@ end
 ---@param kind? 'info'|'success'|'error'
 function ClientApi.notify(text, kind)
     Nui.notify(text, kind)
+end
+
+---Aide (touche + texte) dans le style de 7PVP. À appeler à chaque image tant qu'elle doit rester :
+---    exports['7PVP']:showHelpNotification('Ouvrir le coffre', 'E')
+---@param text string
+---@param key? string touche affichée (défaut : la touche d'interaction, E)
+function ClientApi.showHelpNotification(text, key)
+    HelpNotify.show(key or HelpNotify.controlKey(38), text)
+end
+
+function ClientApi.hideHelpNotification()
+    HelpNotify.hide()
 end

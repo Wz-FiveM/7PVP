@@ -14,7 +14,7 @@ interface ItemTileProps {
   /** Tuile en cours de glisser : affichée en retrait */
   dragging?: boolean;
   disabled?: boolean;
-  onClick?: () => void;
+  onClick?: (event: MouseEvent) => void;
   onDoubleClick?: () => void;
   onContextMenu?: (event: MouseEvent) => void;
   /** Appui de la souris : point de départ d'un glisser (voir DragProvider) */

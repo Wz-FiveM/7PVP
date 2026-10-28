@@ -3,6 +3,7 @@ local ShopService = PVP.define('ShopService')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
+local SafeNpcs = PVP.use('SafeNpcs')
 local Events = PVP.use('Events')
 
 function ShopService.init()
@@ -18,8 +19,8 @@ function ShopService.buy(source, index)
     if not player or player.dead or not entry then
         return { ok = false, message = 'Achat impossible.' }
     end
-    if not player:isInSafeZone() then
-        return { ok = false, message = 'La boutique n\'est accessible qu\'en zone safe.' }
+    if not SafeNpcs.isNear(player:getCoords(), 'shop', Config.SafeNpcs.useDistance + 2.0) then
+        return { ok = false, message = SafeNpcs.hint('shop') }
     end
     if player:getLevel() < (entry.level or 1) then
         return { ok = false, message = ('Niveau %d requis.'):format(entry.level) }

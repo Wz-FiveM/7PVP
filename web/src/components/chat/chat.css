@@ -24,7 +24,7 @@
 .chat--open .chat__messages {
   padding: 0.5rem 0.625rem;
   overflow-y: auto;
-  background: rgba(11, 13, 14, 0.6);
+  background: rgba(12, 14, 13, 0.6);
 }
 
 .chat__line {
@@ -36,7 +36,7 @@
 .chat__author {
   margin-right: 0.5rem;
   font-weight: 600;
-  color: var(--hazard);
+  color: var(--signal);
 }
 .chat__author::after {
   content: ' ›';
@@ -54,12 +54,12 @@
   gap: 0.5rem;
   height: 2.25rem;
   padding: 0 0.75rem;
-  border-bottom: 0.125rem solid var(--hazard);
-  background: rgba(11, 13, 14, 0.9);
+  border-bottom: 0.125rem solid var(--signal);
+  background: rgba(12, 14, 13, 0.9);
 }
 .chat__prompt {
   font-weight: 700;
-  color: var(--hazard);
+  color: var(--signal);
 }
 .chat__input {
   flex: 1;
@@ -76,7 +76,7 @@
 }
 .chat__input::selection {
   color: var(--nuit);
-  background: var(--hazard);
+  background: var(--signal);
 }
 .chat__count {
   font-size: 0.6875rem;

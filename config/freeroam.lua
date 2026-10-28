@@ -1,5 +1,5 @@
 -- Mode Freeroam (bac à sable) : pas d'inventaire ni de perte, armes et véhicules gratuits
--- depuis le menu (F2), PvP désactivé par défaut (chaque joueur l'active pour lui-même :
+-- depuis le menu (Verr. Maj), PvP désactivé par défaut (chaque joueur l'active pour lui-même :
 -- les dégâts entre deux joueurs ne passent que si les deux l'ont activé). Pas de zombies.
 Config.Freeroam = {
     respawnDelay = 3, -- secondes avant de réapparaître sur place après une mort

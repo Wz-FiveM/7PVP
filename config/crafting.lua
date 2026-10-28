@@ -1,4 +1,4 @@
--- Fabrication (menu F2 > Fabrication, en zone safe uniquement).
+-- Fabrication (menu Verr. Maj > Fabrication, auprès de l'artisan).
 -- Les ingrédients sont pris dans le sac puis le conteneur protégé ; le résultat va dans le sac.
 -- level : niveau minimum du joueur.
 Config.Recipes = {

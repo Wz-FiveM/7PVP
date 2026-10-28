@@ -58,6 +58,9 @@ export function DevPanel() {
               </button>
             ))}
           </div>
+          <a className="dev-panel__link" href="./dui.html">
+            Étiquette 3D (DUI, page séparée) ↗
+          </a>
           <a className="dev-panel__link" href="./loading.html">
             Écran de chargement (page séparée) ↗
           </a>

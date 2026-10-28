@@ -8,6 +8,8 @@ PlayerRepository.MIGRATIONS = {
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS appearance LONGTEXT NULL AFTER inventory',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS is_admin TINYINT(1) NOT NULL DEFAULT 0 AFTER appearance',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS contracts LONGTEXT NULL AFTER is_admin',
+    -- Argent des ventes de la place de marché à récupérer (modifié seulement par MarketRepository)
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS market_balance INT NOT NULL DEFAULT 0 AFTER contracts',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,

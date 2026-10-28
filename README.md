@@ -16,10 +16,12 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 
 | Fonctionnalité | En bref | Réglages |
 | --- | --- | --- |
-| **Coffre** | 3e conteneur (250 kg), conservé, utilisable seulement en zone safe. Son contenu n'est pas porté. | `Config.Containers.stash` (`config/items.lua`) |
-| **Groupes** | Jusqu'à 4 joueurs en PvP : pas de tir allié, coéquipiers en bleu sur la minimap et dans le HUD. Menu F2 > Groupe ou `/inviter ID`, `/accepter`, `/refuser`, `/quittergroupe`. | `Config.Groups` |
+| **PNJ de la zone safe** | Banquier (coffre), armurier (boutique), tailleur (tenue), artisan (fabrication), recruteur (contrats), commissaire-priseur (place de marché) : repère sur la carte, `E` pour leur parler. Coffre, achats, fabrication et tenue ne se font qu'à côté du PNJ (vérifié par le serveur). | `config/npcs.lua` |
+| **Place de marché** | Auprès du commissaire-priseur : mettre en vente des objets portés (ils quittent l'inventaire), acheter ceux des autres, retirer ses annonces. L'argent des ventes (moins 5 % de taxe) est à récupérer chez lui, même si on était déconnecté. Annonces gardées en base. | `config/market.lua` |
+| **Coffre** | 3e conteneur (250 kg), conservé, utilisable seulement auprès du banquier. Son contenu n'est pas porté. | `Config.Containers.stash` (`config/items.lua`) |
+| **Équipes** | Jusqu'à 4 joueurs en PvP : pas de tir allié, vie et armure de chaque coéquipier à gauche de l'écran, repères bleus sur la carte à toute distance (positions envoyées par le serveur). Menu (Verr. Maj) > Équipe ou `/inviter ID`, `/accepter`, `/refuser`, `/quittergroupe`. | `Config.Groups` |
 | **Largages aériens** | Une caisse tombe en parachute toutes les 20 min (2 joueurs PvP minimum), s'ouvre 60 s après l'atterrissage et se fouille avec `E`. | `Config.Airdrops`, table `airdrop` (`config/loot.lua`) |
-| **Menu pause** | Échap / P : carte, paramètres GTA, menu F2, commandes, retour au lobby, quitter. | — |
+| **Menu pause** | Échap / P : carte, paramètres GTA, inventaire, commandes, retour au lobby, quitter. | — |
 | **Récap de mort** | Tueur, arme, distance, dégâts échangés et vie restante du tueur ; la caméra suit le tueur jusqu'à la réapparition. | — |
 | **Séries et primes** | Dès 5 kills sans mourir, la tête du joueur est mise à prix (repère rouge) ; son tueur encaisse la prime. | `Config.Bounty` |
 | **Accessoires** | Silencieux, lunette, chargeur, lampe, poignée : clic droit sur une arme > Fixer / Retirer. Ils tombent avec l'arme. | `Config.Attachments` (`config/items.lua`) |
@@ -31,7 +33,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Déblocages par niveau** | Les armes et accessoires de la boutique demandent un niveau minimum. | `level` dans `config/shop.lua` |
 | **Zones de contrôle** | Reste seul (ou avec ton groupe) dans le cercle pour capturer ; la zone rapporte de l'argent à ton camp. | `config/control.lua` |
 | **Saisons** | Une par mois : classement de saison à part (onglets Saison / précédente / de tous les temps). L'inventaire, l'argent et l'XP sont gardés. | table `pvp_season_stats` |
-| **Freeroam** | Bac à sable : armes et véhicules gratuits (F2), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. | `config/freeroam.lua` |
+| **Freeroam** | Bac à sable : armes et véhicules gratuits (Verr. Maj), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. | `config/freeroam.lua` |
 
 Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dans la zone PvE la plus proche, pour tester.
 
@@ -66,8 +68,9 @@ Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dan
 
 | Touche / commande | Action |
 | --- | --- |
-| `F2` | Menu : inventaire, groupe, fabrication, contrats, profil, top joueurs, boutique, aide (en Freeroam : armes et véhicules) |
+| `Verr. Maj` | Menu : inventaire, groupe, profil, top joueurs, boutique, aide (en Freeroam : armes et véhicules). Le coffre, la fabrication et les contrats s'ouvrent en parlant aux PNJ de la zone safe |
 | `Échap` / `P` | Menu pause |
+| `Alt` (maintenu) | Menu d'interaction : curseur, la cible survolée est entourée, clic pour ouvrir son menu. Toi (ID, niveau, équipe), un joueur (inviter, exclure, prime), un butin (fouiller), un PNJ (parler), un véhicule (monter) |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
 | `E` | Ramasser un sac de butin / fouiller un corps de zombie ou un largage |
 | `/inviter ID` | Inviter un joueur dans son groupe (`/accepter`, `/refuser`, `/quittergroupe`) |
@@ -89,6 +92,30 @@ admins                            liste les admins enregistrés
 
 Le statut est stocké dans la colonne `is_admin` de `pvp_players` : aucune ligne `server.cfg` n'est nécessaire.
 L'ACE `7pvp.admin` (`add_ace group.admin 7pvp.admin allow`) donne aussi les droits, en plus de la base.
+
+```
+ban <id | license:xxxx> <jours> <raison>   bannit (0 jour = définitif), même hors ligne
+unban <license:xxxx>                        lève le ban
+bans                                        liste les bans en cours
+```
+
+## Anti-cheat
+
+Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans `config/anticheat.lua`) ; les admins ne sont jamais contrôlés.
+
+| Détection | Ce qui est vérifié | Sanction par défaut |
+| --- | --- | --- |
+| Arme non possédée | Touche faite en PvP avec une arme absente de l'inventaire (la touche est annulée) | Kick à la 3e alerte |
+| Dégâts anormaux | Plus de 250 dégâts en une touche (touche annulée) | Kick à la 3e |
+| Explosion interdite | Grenade, roquette, bombe collante… en PvP (explosion annulée) | Ban définitif à la 2e |
+| Véhicule créé en PvP | Le mode n'en donne pas : véhicule apparu par un joueur (création annulée) | Kick à la 3e |
+| Vie / armure | Au-dessus de 200 PV ou 100 d'armure | Kick à la 3e |
+| Invincibilité | Joueur invincible hors zone safe | Journal |
+| Téléportation | Plus de 60 m à plus de 120 m/s entre deux relevés (sauf réapparition, action d'admin) | Journal |
+| Requêtes en rafale | Menus, touches ou ramassages envoyés en boucle (ignorés au-delà de la limite) | Kick à la 2e |
+| Script client arrêté | Plus de signal du client depuis 90 s (« resource stopper ») | Kick |
+
+Chaque alerte est écrite dans la console et dans le salon Discord « sanctions ». Les bans sont gardés dans la table `pvp_bans` et vérifiés à la connexion.
 
 ## Arborescence
 
@@ -211,6 +238,11 @@ exports['7PVP']:isInSafeZone()
 exports['7PVP']:openMenu()
 exports['7PVP']:closeMenu()
 exports['7PVP']:notify('Texte', 'success')
+-- Aide (touche + texte) dans le style de 7PVP, à appeler à chaque image tant qu'elle doit rester
+-- affichée (elle disparaît seule ensuite) ; la touche par défaut est celle d'interaction (E)
+exports['7PVP']:showHelpNotification('Ouvrir le coffre')
+exports['7PVP']:showHelpNotification('Démarrer', 'G')
+exports['7PVP']:hideHelpNotification()
 ```
 
 ## Interface (web/)

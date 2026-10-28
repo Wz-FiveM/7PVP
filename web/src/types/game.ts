@@ -97,6 +97,8 @@ export interface GameConfig {
   shortcutSlots: number;
   xpPerLevel: number;
   groupMaxSize?: number;
+  /** nom de la touche du menu (ex : VERR. MAJ) */
+  menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
   attachments?: Record<string, Record<string, string>>;
   recipes?: Recipe[];
@@ -127,6 +129,12 @@ export interface KillfeedEntry {
   victim: string;
   /** `disconnect` : la victime s'est déconnectée en plein combat */
   reason?: 'disconnect';
+  /** objet de l'arme du coup mortel (image en silhouette) */
+  weapon?: string;
+  headshot?: boolean;
+  /** server ids : la ligne est mise en avant si le joueur local est concerné */
+  killerId?: number;
+  victimId?: number;
 }
 
 export interface Toast {
@@ -200,11 +208,12 @@ export interface GroupData {
   members: { id: number; name: string }[];
 }
 
-/** Vie d'un coéquipier ; `health: false` s'il est trop loin pour être chargé par le jeu */
+/** Vie d'un coéquipier, lue par le serveur (connue à toute distance) */
 export interface GroupVital {
   id: number;
   health: number | false;
   armor: number;
+  dead?: boolean;
 }
 
 export interface GroupInvite {
@@ -223,7 +232,29 @@ export interface PauseInfo {
   deaths: number;
   npcKills: number;
   isAdmin: boolean;
-  keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string };
+  keys: { menu: string; hotbar: string; chat: string; admin: string; noclip: string; teleport: string };
+}
+
+/** Zone safe proposée dans le menu de téléportation (F1) */
+export interface TeleportZone {
+  id: string;
+  label: string;
+  description?: string;
+  /** distance au joueur, en mètres */
+  distance: number;
+  /** le joueur est dans cette zone */
+  current: boolean;
+}
+
+export interface TeleportMenuData {
+  zones: TeleportZone[];
+  /** secondes avant la prochaine téléportation */
+  cooldown: number;
+  /** secondes d'attente avant le départ (0 depuis une zone safe) */
+  channel: number;
+  /** une téléportation est déjà en attente */
+  pending: boolean;
+  key: string;
 }
 
 export type PauseAction = 'map' | 'settings' | 'menu' | 'lobby' | 'quit';
@@ -314,4 +345,55 @@ export interface FreeroamState {
   pvp: boolean;
   weapons: FreeroamWeapon[];
   vehicles: FreeroamVehicle[];
+}
+
+/** Services des PNJ de la zone safe à portée (config/npcs.lua) */
+export interface NearServices {
+  stash?: boolean;
+  shop?: boolean;
+  clothing?: boolean;
+  crafting?: boolean;
+  contracts?: boolean;
+  market?: boolean;
+}
+
+/** Notification d'aide (client/modules/nui/help_notify.lua) */
+export interface HelpNotification {
+  key: string;
+  text: string;
+}
+
+/** Annonce de la place de marché */
+export interface MarketListing {
+  id: number;
+  item: string;
+  count: number;
+  /** prix du lot */
+  price: number;
+  sellerName: string;
+  /** annonce du joueur local */
+  mine: boolean;
+}
+
+export interface MarketState {
+  listings: MarketListing[];
+  /** argent des ventes à récupérer */
+  balance: number;
+  /** taxe sur les ventes (0.05 = 5 %) */
+  fee: number;
+  maxListings: number;
+}
+
+/** Élément du menu d'interaction (client/modules/interaction/interaction_menu.lua) */
+export interface InteractionItem {
+  id: string;
+  kind: 'info' | 'action' | 'toggle' | 'submenu' | 'separator';
+  label?: string;
+  icon?: import('../components/icons/Icon').IconName;
+  /** texte à droite (info) */
+  value?: string;
+  /** case cochée (toggle) */
+  checked?: boolean;
+  disabled?: boolean;
+  children?: InteractionItem[];
 }
