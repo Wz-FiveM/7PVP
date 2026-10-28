@@ -1,6 +1,6 @@
 ---Largages aériens : à intervalle régulier, une caisse tombe à un point de Config.Airdrops.
 ---Elle est annoncée à tous les joueurs PvP puis, une fois ouverte, devient un butin au sol
----(voir LootService) que le premier arrivé peut fouiller.
+---(voir LootService) qui s'ouvre comme un inventaire : on y prend les objets à la main.
 ---@class Airdrop
 ---@field id integer
 ---@field coords vector3
@@ -79,6 +79,9 @@ function AirdropService.open(id)
         kind = 'airdrop',
         solid = true,
         lifetime = Config.Airdrops.lifetime,
+        -- Ouvert comme un inventaire : chacun prend ce qu'il veut, à la main
+        browse = true,
+        title = 'Largage',
     })
     ChatService.announce('pvp', 'Le largage aérien est ouvert !')
 end

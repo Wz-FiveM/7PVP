@@ -6,11 +6,14 @@
 ---@field model integer modèle du sac ou de la caisse
 ---@field label string|nil texte de l'action
 ---@field solid boolean objet avec collisions (caisse de largage)
+---@field browse boolean s'ouvre comme un inventaire (largage) au lieu d'être ramassé d'un coup
 
 ---@class LootModule
 local Loot = PVP.define('Loot')
 local State = PVP.use('State')
 local HelpNotify = PVP.use('HelpNotify')
+local Nui = PVP.use('Nui')
+local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
 Loot.STREAM_DISTANCE = 60.0
@@ -20,6 +23,8 @@ Loot.CONTROL_PICKUP = 38 -- E
 ---@type table<integer, ClientLootBag>
 Loot.bags = {}
 Loot.model = 0
+---@type integer|nil butin « browse » ouvert dans l'inventaire
+Loot.openId = nil
 
 function Loot.init()
     Loot.model = GetHashKey(Config.LootModel)
@@ -32,6 +37,13 @@ function Loot.init()
     end)
     RegisterNetEvent(Events.client.lootSync, function(list)
         Loot.sync(list)
+    end)
+    RegisterNetEvent(Events.client.lootContents, function(id, items)
+        Loot.onContents(id, items)
+    end)
+    RegisterNUICallback('lootTake', function(data, cb)
+        if type(data) ~= 'table' or not Loot.openId then return cb({ ok = false }) end
+        cb(Callback.await(Events.callbacks.lootTake, Loot.openId, data.item, data.count, data.to) or { ok = false })
     end)
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then
@@ -51,6 +63,7 @@ function Loot.add(id, info)
         model = info.model and GetHashKey(info.model) or Loot.model,
         label = info.label,
         solid = info.solid == true,
+        browse = info.browse == true,
     }
 end
 
@@ -168,8 +181,54 @@ function Loot.renderBag(id, bag, pos)
         HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
             bag.label or (bag.netId and 'Fouiller le corps' or 'Ramasser le butin'))
         if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
-            TriggerServerEvent(Events.server.lootPickup, id)
+            Loot.interact(id)
         end
     end
     return true
+end
+
+-- ---------------------------------------------------------------------------
+-- Fouille : ramassage direct, ou inventaire pour les butins « browse » (largages)
+-- ---------------------------------------------------------------------------
+
+---@param id integer
+function Loot.interact(id)
+    local bag = Loot.bags[id]
+    if not bag then return end
+    if not bag.browse then return TriggerServerEvent(Events.server.lootPickup, id) end
+    CreateThread(function()
+        Loot.openContainer(id)
+    end)
+end
+
+---Ouvre l'inventaire avec le contenu du butin à droite.
+---@param id integer
+function Loot.openContainer(id)
+    local result = Callback.await(Events.callbacks.lootOpen, id)
+    if not result or not result.ok then
+        return Nui.notify(result and result.message or 'Butin indisponible.', 'error')
+    end
+    Loot.openId = id
+    Nui.send('lootContainer', { open = true, id = id, label = result.label, items = result.items })
+    Nui.setMenu(true, 'inventory')
+end
+
+---Contenu mis à jour par le serveur (quelqu'un a pris un objet), false : butin vidé ou disparu.
+---@param id integer
+---@param items table|false
+function Loot.onContents(id, items)
+    if id ~= Loot.openId then return end
+    if not items then
+        Loot.closeContainer()
+        return Nui.notify('Le butin est vide.', 'info')
+    end
+    Nui.send('lootContainer', { open = true, id = id, items = items })
+end
+
+---Appelé à la fermeture du menu.
+function Loot.closeContainer()
+    if not Loot.openId then return end
+    TriggerServerEvent(Events.server.lootClose, Loot.openId)
+    Loot.openId = nil
+    Nui.send('lootContainer', { open = false })
 end

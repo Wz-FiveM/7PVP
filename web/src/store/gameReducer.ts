@@ -4,6 +4,7 @@ import type {
   GroupData,
   GroupInvite,
   GroupVital,
+  LootContainer,
   PauseInfo,
   DeathRecap,
   BountyEntry,
@@ -73,6 +74,8 @@ export interface GameState {
   helpNotify: HelpNotification | null;
   /** Menu d'interaction : `items` null pendant le ciblage (avant le clic sur une cible) */
   interaction: { open: boolean; items: InteractionItem[] | null };
+  /** Butin ouvert à droite de l'inventaire (largage), null sinon */
+  loot: LootContainer | null;
 }
 
 export type GameAction =
@@ -110,7 +113,8 @@ export type GameAction =
   | { type: 'controlZone'; zone: ControlZoneHud | null }
   | { type: 'freeroam'; patch: Partial<FreeroamState> }
   | { type: 'helpNotify'; help: HelpNotification | null }
-  | { type: 'interaction'; open: boolean; items: InteractionItem[] | null };
+  | { type: 'interaction'; open: boolean; items: InteractionItem[] | null }
+  | { type: 'loot'; loot: LootContainer | null; items?: LootContainer['items'] };
 
 export const initialState: GameState = {
   ready: false,
@@ -153,6 +157,7 @@ export const initialState: GameState = {
   freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [] },
   helpNotify: null,
   interaction: { open: false, items: null },
+  loot: null,
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -255,6 +260,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, interaction: { open: action.open, items: action.open ? action.items : null } };
     case 'helpNotify':
       return { ...state, helpNotify: action.help };
+    case 'loot':
+      // Mise à jour du contenu seul (quelqu'un a pris un objet) : on garde le nom du butin
+      if (!action.loot && action.items && state.loot) return { ...state, loot: { ...state.loot, items: action.items } };
+      return { ...state, loot: action.loot };
     case 'freeroam':
       return { ...state, freeroam: { ...state.freeroam, ...action.patch } };
     case 'controlZone':

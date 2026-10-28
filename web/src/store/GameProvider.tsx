@@ -80,6 +80,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'interaction', open: message.data.open, items: message.data.items || null });
         case 'helpNotify':
           return dispatch({ type: 'helpNotify', help: message.data.help || null });
+        case 'lootContainer': {
+          const { open, id, label, items } = message.data;
+          if (!open) return dispatch({ type: 'loot', loot: null });
+          if (label !== undefined && id !== undefined) return dispatch({ type: 'loot', loot: { id, label, items: items ?? [] } });
+          return dispatch({ type: 'loot', loot: null, items: items ?? [] });
+        }
         case 'freeroamPvp':
           return dispatch({ type: 'freeroam', patch: { pvp: message.data.pvp } });
         case 'controlZone':
@@ -154,13 +160,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     () => ({
       notify,
       closeMenu: () => {
-        if (isEnvBrowser()) dispatch({ type: 'menu', open: false, inSafe: false, near: {} });
+        if (isEnvBrowser()) {
+          dispatch({ type: 'menu', open: false, inSafe: false, near: {} });
+          dispatch({ type: 'loot', loot: null });
+        }
         gameApi.close();
       },
       buy: (index) => run(gameApi.buy(index)),
       consumeItem: (name) => run(gameApi.useItem(name)),
       equip: (name) => run(gameApi.equip(name)),
       moveItem: (item, from, to, count) => run(gameApi.moveItem(item, from, to, count)),
+      lootTake: (item, count, to) => run(gameApi.lootTake(item, count, to)),
       craft: (id) => run(gameApi.craft(id)),
       attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),
       dropItem: (item, container, count) => run(gameApi.dropItem(item, container, count)),

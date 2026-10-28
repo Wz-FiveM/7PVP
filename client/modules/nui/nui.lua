@@ -10,6 +10,7 @@ local Hud = PVP.use('Hud')
 local Zones = PVP.use('Zones')
 local Freeroam = PVP.use('Freeroam')
 local SafeNpcs = PVP.use('SafeNpcs')
+local Loot = PVP.use('Loot')
 local Events = PVP.use('Events')
 
 function Nui.init()
@@ -139,6 +140,8 @@ end
 ---@param page? string
 function Nui.setMenu(open, page)
     if open and not State.isAlive() then return end
+    -- Un butin ouvert (largage) se referme avec le menu
+    if not open then Loot.closeContainer() end
     State.menuOpen = open
     SetNuiFocus(open, open)
     Nui.sendMenuState(page)

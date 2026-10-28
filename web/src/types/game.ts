@@ -12,6 +12,13 @@ export interface ZoneInfo {
 /** nom de l'objet -> quantité. Lua envoie `[]` pour un conteneur vide. */
 export type ItemStacks = Record<string, number> | [];
 
+/** Butin ouvert comme un inventaire (largage) : on y prend les objets à la main */
+export interface LootContainer {
+  id: number;
+  label: string;
+  items: ItemStacks;
+}
+
 export interface Inventory {
   bag: ItemStacks;
   protected: ItemStacks;

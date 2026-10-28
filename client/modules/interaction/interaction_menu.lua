@@ -391,7 +391,7 @@ function Interaction.runOnTarget(id)
     elseif id == 'player:kick' then
         Interaction.report(Callback.await(Events.callbacks.groupKick, target.serverId))
     elseif id == 'loot:take' then
-        TriggerServerEvent(Events.server.lootPickup, target.lootId)
+        Loot.interact(target.lootId)
     elseif id == 'npc:talk' then
         Npcs.interact(Config.SafeNpcs.npcs[target.npcIndex])
     elseif id == 'vehicle:driver' then

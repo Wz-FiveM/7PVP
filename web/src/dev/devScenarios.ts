@@ -15,6 +15,7 @@ function resetScreens(): void {
   sendNui({ action: 'creator', data: { open: false } });
   sendNui({ action: 'lobby', data: { open: false } });
   sendNui({ action: 'menu', data: { open: false, inSafe: true } });
+  sendNui({ action: 'lootContainer', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -85,6 +86,23 @@ export const DEV_SCREENS: DevScreen[] = [
       sendNui({
         action: 'menu',
         data: { open: true, inSafe: true, near: { stash: true, shop: true, clothing: true, crafting: true, contracts: true } },
+      });
+    },
+  },
+  {
+    id: 'loot-airdrop',
+    label: 'Largage ouvert',
+    open: () => {
+      enterPvp();
+      sendNui({ action: 'menu', data: { open: true, inSafe: false, near: {}, page: 'inventory' } });
+      sendNui({
+        action: 'lootContainer',
+        data: {
+          open: true,
+          id: 1,
+          label: 'Largage',
+          items: { weapon_carbinerifle: 1, ammo_556: 120, medkit: 3, armor: 2, money: 1250 },
+        },
       });
     },
   },

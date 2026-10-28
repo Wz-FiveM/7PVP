@@ -9,6 +9,8 @@
 ---@field label string|nil texte de l'action (ex : « Fouiller le largage »)
 ---@field kind string|nil 'airdrop' pour un largage (contrats)
 ---@field solid boolean|nil objet avec collisions (caisse), sinon on le traverse (sac)
+---@field browse boolean|nil s'ouvre comme un inventaire : on prend les objets un par un (largage)
+---@field title string|nil nom affiché dans l'inventaire (browse)
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
 
 ---@class LootDropOptions
@@ -18,6 +20,8 @@
 ---@field lifetime integer|nil secondes (défaut : Config.LootLifetime)
 ---@field kind string|nil
 ---@field solid boolean|nil
+---@field browse boolean|nil
+---@field title string|nil
 
 ---@class LootServiceModule
 local LootService = PVP.define('LootService')
@@ -26,15 +30,30 @@ local Items = PVP.use('Items')
 local Utils = PVP.use('Utils')
 local ContractService = PVP.use('ContractService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 
 ---@type table<integer, LootBag>
 LootService.bags = {}
 LootService.nextId = 0
+---@type table<integer, table<integer, boolean>> joueurs qui ont un butin « browse » ouvert, par butin
+LootService.viewers = {}
+-- Conteneurs où l'on peut ranger ce qu'on prend dans un butin
+LootService.TAKE_CONTAINERS = { bag = true, protected = true }
 
 function LootService.init()
     RegisterNetEvent(Events.server.lootPickup, function(id)
         if AntiCheatService.allow(source, 'loot') then LootService.pickup(source, id) end
+    end)
+
+    -- Butins « browse » (largages) : ouverts comme un inventaire, objets pris un par un
+    Callback.register(Events.callbacks.lootOpen, LootService.open)
+    Callback.register(Events.callbacks.lootTake, LootService.take)
+    RegisterNetEvent(Events.server.lootClose, function(id)
+        LootService.closeFor(source, id)
+    end)
+    AddEventHandler(Events.internal.playerUnloading, function(playerSource)
+        for id in pairs(LootService.viewers) do LootService.closeFor(playerSource, id) end
     end)
 
     AddEventHandler('onResourceStop', function(resource)
@@ -103,6 +122,8 @@ function LootService.drop(coords, items, options)
         label = options.label,
         kind = options.kind,
         solid = options.solid == true,
+        browse = options.browse == true,
+        title = options.title,
         lootedBy = {},
     }
     TriggerClientEvent(Events.client.lootAdd, -1, id, LootService.describe(LootService.bags[id]))
@@ -115,6 +136,11 @@ function LootService.remove(id)
     if not bag then return end
     LootService.bags[id] = nil
     TriggerClientEvent(Events.client.lootRemove, -1, id)
+    -- Ceux qui l'avaient ouvert voient l'inventaire du butin se fermer
+    for source in pairs(LootService.viewers[id] or {}) do
+        TriggerClientEvent(Events.client.lootContents, source, id, false)
+    end
+    LootService.viewers[id] = nil
 
     -- Corps fouillé ou expiré : il disparaît avec son butin
     local entity = LootService.getEntity(bag)
@@ -125,7 +151,9 @@ end
 ---@param bag LootBag
 ---@return table
 function LootService.describe(bag)
-    return { coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label, solid = bag.solid }
+    return {
+        coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label, solid = bag.solid, browse = bag.browse,
+    }
 end
 
 ---@param bag LootBag
@@ -229,4 +257,82 @@ function LootService.pickup(source, id)
         player:notify(('Butin : %s (sac plein, il reste des objets %s)'):format(Items.describe(taken), where), 'info')
     end
     player:sync()
+end
+
+-- ---------------------------------------------------------------------------
+-- Butins « browse » (largages) : inventaire ouvert, objets pris un par un
+-- ---------------------------------------------------------------------------
+
+---Ouvre le butin : son contenu s'affiche à droite de l'inventaire du joueur.
+---@param source integer
+---@param id any
+---@return table { ok, message?, id?, label?, items? }
+function LootService.open(source, id)
+    id = tonumber(id)
+    local player = PlayerService.get(source)
+    local bag = id and LootService.bags[id]
+    if not player or player.dead or not bag or not bag.browse then
+        return { ok = false, message = 'Ce butin n\'existe plus.' }
+    end
+    if not LootService.isInReach(player:getCoords(), LootService.getCoords(bag)) then
+        return { ok = false, message = 'Approche-toi pour fouiller.' }
+    end
+
+    LootService.viewers[id] = LootService.viewers[id] or {}
+    LootService.viewers[id][source] = true
+    return { ok = true, id = id, label = bag.title or 'Butin', items = bag.items }
+end
+
+---Prend `count` objets du butin et les range dans le sac ou le conteneur protégé (selon la place).
+---@param source integer
+---@param id any
+---@param name any
+---@param count any
+---@param to any 'bag' | 'protected'
+---@return table { ok, message? }
+function LootService.take(source, id, name, count, to)
+    id, count = tonumber(id), math.floor(tonumber(count) or 0)
+    local player = PlayerService.get(source)
+    local bag = id and LootService.bags[id]
+    if not player or player.dead or not bag or not bag.browse then
+        return { ok = false, message = 'Ce butin n\'existe plus.' }
+    end
+    if not LootService.TAKE_CONTAINERS[to] or type(name) ~= 'string' or count <= 0 then return { ok = false } end
+    if not LootService.isInReach(player:getCoords(), LootService.getCoords(bag)) then
+        return { ok = false, message = 'Tu es trop loin du butin.' }
+    end
+    local available = bag.items[name]
+    if not available then return { ok = false, message = 'Quelqu\'un l\'a déjà pris.' } end
+
+    local added = player:giveItem(name, math.min(count, available), to)
+    if added <= 0 then
+        return { ok = false, message = ('Pas assez de place : %s'):format(Config.Containers[to].label) }
+    end
+    bag.items[name] = available > added and available - added or nil
+    LootService.trackLooting(player, bag)
+    player:sync()
+
+    if next(bag.items) == nil then
+        LootService.remove(id)
+    else
+        LootService.pushContents(id)
+    end
+    return { ok = true }
+end
+
+---Envoie le contenu à jour à tous ceux qui ont ce butin ouvert.
+---@param id integer
+function LootService.pushContents(id)
+    local bag = LootService.bags[id]
+    if not bag then return end
+    for source in pairs(LootService.viewers[id] or {}) do
+        TriggerClientEvent(Events.client.lootContents, source, id, bag.items)
+    end
+end
+
+---@param source integer
+---@param id any
+function LootService.closeFor(source, id)
+    local viewers = LootService.viewers[tonumber(id)]
+    if viewers then viewers[source] = nil end
 end

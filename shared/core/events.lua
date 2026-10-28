@@ -17,6 +17,7 @@ Events.server = {
     lootPickup = '7pvp:server:lootPickup',
     chatSend = '7pvp:server:chatSend',
     vehicleSpawned = '7pvp:server:vehicleSpawned',
+    lootClose = '7pvp:server:lootClose',
 }
 
 -- Serveur -> client
@@ -50,6 +51,7 @@ Events.client = {
     teleport = '7pvp:client:teleport',
     teleportCancel = '7pvp:client:teleportCancel',
     vehicleSpawn = '7pvp:client:vehicleSpawn',
+    lootContents = '7pvp:client:lootContents',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -93,4 +95,6 @@ Events.callbacks = {
     teleportInfo = 'teleport:info',
     teleport = 'teleport:request',
     vehicleStore = 'vehicle:store',
+    lootOpen = 'loot:open',
+    lootTake = 'loot:take',
 }

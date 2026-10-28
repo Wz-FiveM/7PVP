@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
+  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -48,6 +48,8 @@ export type NuiMessage =
   | { action: 'teleport'; data: { open: boolean } & Partial<TeleportMenuData> }
   /** attente avant la téléportation (hors zone safe), `false` = terminée ou annulée */
   | { action: 'teleportChannel'; data: { seconds: number | false } }
+  /** butin ouvert (largage) à droite de l'inventaire, open à false pour le fermer */
+  | { action: 'lootContainer'; data: { open: boolean } & Partial<LootContainer> }
   | { action: 'alive'; data?: undefined };
 
 /** Réponse du callback NUI `ready` */

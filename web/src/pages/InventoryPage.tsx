@@ -3,20 +3,25 @@ import { ContainerSection, type Selection } from '../components/inventory/Contai
 import { ContextMenu, type ContextMenuAction } from '../components/inventory/ContextMenu';
 import type { DragSource, DropTarget } from '../components/inventory/drag';
 import { DragProvider } from '../components/inventory/DragProvider';
+import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
 import {
-  compatibleAttachments, entriesOf, weightOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
+  compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
 
 /** Conteneurs portés (le coffre n'apparaît que chez le banquier) */
 const CARRIED: ContainerId[] = ['bag', 'protected'];
 
+/** Où va ce qu'on prend dans un butin */
+type TakeTarget = 'bag' | 'protected';
+
 interface PendingQuantity {
-  mode: 'move' | 'drop';
+  /** take : prendre dans le butin ouvert (largage) */
+  mode: 'move' | 'drop' | 'take';
   item: string;
   container: ContainerId;
   /** destination d'un déplacement */
@@ -28,8 +33,11 @@ interface OpenContextMenu {
   x: number;
   y: number;
   stack: ItemStack;
-  container: ContainerId;
+  /** 'loot' : objet du butin ouvert */
+  container: ContainerId | 'loot';
 }
+
+const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = { move: 'Déplacer', drop: 'Jeter', take: 'Prendre' };
 
 export function InventoryPage() {
   const { state, actions } = useGame();
@@ -37,6 +45,7 @@ export function InventoryPage() {
   const [selection, setSelection] = useState<Selection | null>(null);
   const [quantity, setQuantity] = useState<PendingQuantity | null>(null);
   const [contextMenu, setContextMenu] = useState<OpenContextMenu | null>(null);
+  const [lootSelection, setLootSelection] = useState<string | null>(null);
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const closeQuantity = useCallback(() => setQuantity(null), []);
@@ -44,11 +53,37 @@ export function InventoryPage() {
   if (!player) return null;
   // Le coffre ne s'ouvre (et ne s'affiche) qu'à côté du banquier
   const atBanker = Boolean(state.menu.near.stash);
+  // Butin ouvert (largage) : son contenu s'affiche à droite, à la place du coffre
+  const loot = state.loot;
 
   /** Déplace directement s'il n'y a qu'un objet, sinon demande la quantité. */
   const requestMove = (item: string, from: ContainerId, to: ContainerId, count: number) => {
     if (count === 1) actions.moveItem(item, from, to, 1);
     else setQuantity({ mode: 'move', item, container: from, to, max: count });
+  };
+
+  /** Prend directement s'il n'y a qu'un objet, sinon demande la quantité. */
+  const requestTake = (item: string, count: number, to: TakeTarget) => {
+    if (count === 1) actions.lootTake(item, 1, to);
+    else setQuantity({ mode: 'take', item, container: 'bag', to, max: count });
+  };
+
+  /** Alt + clic ou double-clic dans le butin : ce qui tient part dans le sac. */
+  const quickTake = (stack: ItemStack) => {
+    const bag = config.containers.bag;
+    const free = bag.capacity - weightOf(player.inventory.bag ?? [], config);
+    const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
+    const count = Math.min(stack.count, fit);
+    if (count <= 0) return actions.notify(`Pas assez de place : ${bag.label}`, 'error');
+    actions.lootTake(stack.name, count, 'bag');
+  };
+
+  /** Tout prendre : chaque pile, dans la limite de la place du sac (vérifiée par le serveur). */
+  const takeAll = async () => {
+    if (!loot) return;
+    for (const stack of stacksOf(loot.items, config)) {
+      await actions.lootTake(stack.name, stack.count, 'bag');
+    }
   };
 
   const requestDrop = (item: string, container: ContainerId, count: number) => {
@@ -58,6 +93,10 @@ export function InventoryPage() {
 
   /** Règles du glisser-déposer : où peut-on lâcher quoi ? */
   const acceptsDrop = (source: DragSource, target: DropTarget): boolean => {
+    // Objet du butin : seulement vers le sac ou le conteneur protégé
+    if (source.kind === 'loot') {
+      return target.kind === 'container' && (target.container === 'bag' || target.container === 'protected');
+    }
     if (target.kind === 'container') {
       return source.kind === 'container' && moveTargets(source.container, atBanker).includes(target.container);
     }
@@ -75,8 +114,10 @@ export function InventoryPage() {
 
     if (target.kind === 'container') {
       if (source.kind === 'container') requestMove(source.item, source.container, target.container, source.count);
+      if (source.kind === 'loot' && target.container !== 'stash') requestTake(source.item, source.count, target.container);
       return;
     }
+    if (source.kind === 'loot') return;
 
     const previous = player.inventory.shortcuts[target.slot - 1] || null;
     actions.setShortcut(target.slot, source.item);
@@ -86,7 +127,9 @@ export function InventoryPage() {
 
   const handleQuantityConfirm = (count: number) => {
     if (!quantity) return;
-    if (quantity.mode === 'move' && quantity.to) {
+    if (quantity.mode === 'take' && (quantity.to === 'bag' || quantity.to === 'protected')) {
+      actions.lootTake(quantity.item, count, quantity.to);
+    } else if (quantity.mode === 'move' && quantity.to) {
       actions.moveItem(quantity.item, quantity.container, quantity.to, count);
     } else {
       actions.dropItem(quantity.item, quantity.container, count);
@@ -94,7 +137,13 @@ export function InventoryPage() {
     setQuantity(null);
   };
 
-  const contextActions = (stack: ItemStack, container: ContainerId): ContextMenuAction[] => {
+  const contextActions = (stack: ItemStack, container: ContainerId | 'loot'): ContextMenuAction[] => {
+    if (container === 'loot') {
+      return [
+        { label: 'Prendre : vers le sac', onSelect: () => requestTake(stack.name, stack.count, 'bag') },
+        { label: 'Prendre : vers le conteneur protégé', onSelect: () => requestTake(stack.name, stack.count, 'protected') },
+      ];
+    }
     const list: ContextMenuAction[] = [];
     // Le contenu du coffre n'est pas porté : on le sort d'abord
     const carried = container !== 'stash';
@@ -174,7 +223,25 @@ export function InventoryPage() {
   return (
     <DragProvider accepts={acceptsDrop} onDrop={handleDrop}>
       <div className="inventory">
-        {atBanker ? (
+        {loot ? (
+          // Butin ouvert (largage) : ce qu'on porte à gauche, le butin à droite
+          <div className="inventory__split">
+            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            <div className="inventory__column inventory__column--stash">
+              <LootSection
+                loot={loot}
+                selected={lootSelection}
+                onSelect={setLootSelection}
+                onQuickTake={quickTake}
+                onTakeAll={takeAll}
+                onItemContextMenu={(event, stack) => {
+                  setLootSelection(stack.name);
+                  setContextMenu({ x: event.clientX, y: event.clientY, stack, container: 'loot' });
+                }}
+              />
+            </div>
+          </div>
+        ) : atBanker ? (
           // Chez le banquier : ce qu'on porte à gauche, le coffre à droite
           <div className="inventory__split">
             <div className="inventory__column">{CARRIED.map(renderSection)}</div>
@@ -187,7 +254,7 @@ export function InventoryPage() {
         <ShortcutBar />
 
         <p className="mono inventory__help">
-          [GLISSER] DÉPLACER · [ALT + CLIC] VERS {atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
+          [GLISSER] DÉPLACER · [ALT + CLIC] VERS {loot ? 'TON SAC' : atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
           UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS · RACCOURCI LÂCHÉ HORS DE LA BARRE = RETIRÉ
         </p>
 
@@ -202,9 +269,9 @@ export function InventoryPage() {
 
         {quantity && (
           <QuantityModal
-            title={`${quantity.mode === 'move' ? 'Déplacer' : 'Jeter'} : ${itemLabel(config, quantity.item)}`}
+            title={`${QUANTITY_LABELS[quantity.mode]} : ${itemLabel(config, quantity.item)}`}
             max={quantity.max}
-            confirmLabel={quantity.mode === 'move' ? 'Déplacer' : 'Jeter'}
+            confirmLabel={QUANTITY_LABELS[quantity.mode]}
             onConfirm={handleQuantityConfirm}
             onCancel={closeQuantity}
           />

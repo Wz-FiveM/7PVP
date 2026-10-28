@@ -11,6 +11,8 @@ export interface GameActions {
   equip: (name: string) => Promise<void>;
   moveItem: (item: string, from: ContainerId, to: ContainerId, count: number) => Promise<void>;
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
+  /** Prend des objets du butin ouvert (largage) et les range dans le sac ou le conteneur protégé */
+  lootTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   craft: (id: string) => Promise<void>;
   /** Fixe ou retire un accessoire d'une arme */

@@ -21,6 +21,9 @@ export const gameApi = {
   moveItem: (item: string, from: ContainerId, to: ContainerId, count: number) =>
     fetchNui<ActionResult>('moveItem', { item, from, to, count }, MOCK_OK),
 
+  lootTake: (item: string, count: number, to: 'bag' | 'protected') =>
+    fetchNui<ActionResult>('lootTake', { item, count, to }, MOCK_OK),
+
   dropItem: (item: string, container: ContainerId, count: number) =>
     fetchNui<ActionResult>('dropItem', { item, container, count }, MOCK_OK),
 

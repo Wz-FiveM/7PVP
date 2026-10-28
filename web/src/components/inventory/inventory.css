@@ -305,3 +305,8 @@
 .modal input[type='range'] {
   accent-color: var(--signal);
 }
+
+/* Butin ouvert (largage) */
+.loot-icon {
+  color: var(--signal);
+}
