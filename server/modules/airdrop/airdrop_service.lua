@@ -1,9 +1,12 @@
----Largages aériens : à intervalle régulier, une caisse tombe à un point de Config.Airdrops.
+---Largages aériens : à intervalle régulier, un avion traverse la carte et largue une caisse
+---au-dessus d'un point de Config.Airdrops ; elle descend en parachute.
 ---Elle est annoncée à tous les joueurs PvP puis, une fois ouverte, devient un butin au sol
 ---(voir LootService) qui s'ouvre comme un inventaire : on y prend les objets à la main.
 ---@class Airdrop
 ---@field id integer
 ---@field coords vector3
+---@field heading number cap de l'avion (degrés, convention GTA)
+---@field releaseAt integer os.time() du largage (avion au-dessus du point)
 ---@field landAt integer os.time() de l'atterrissage
 ---@field unlockAt integer os.time() de l'ouverture
 
@@ -46,19 +49,27 @@ end
 function AirdropService.spawn(coords)
     AirdropService.nextId = AirdropService.nextId + 1
     local now = os.time()
+    local plane = Config.Airdrops.plane
+    -- L'avion arrive d'une direction au hasard et passe au-dessus du point de chute
+    local releaseAt = now + math.ceil(plane.approach / plane.speed)
     local drop = {
         id = AirdropService.nextId,
         coords = coords or Utils.pick(Config.Airdrops.locations),
-        landAt = now + Config.Airdrops.fallTime,
-        unlockAt = now + Config.Airdrops.fallTime + Config.Airdrops.unlockDelay,
+        heading = math.random(0, 359) + 0.0,
+        releaseAt = releaseAt,
+        landAt = releaseAt + Config.Airdrops.fallTime,
+        unlockAt = releaseAt + Config.Airdrops.fallTime + Config.Airdrops.unlockDelay,
     }
     AirdropService.drops[drop.id] = drop
 
     TriggerClientEvent(Events.client.airdropSpawn, -1, AirdropService.describe(drop))
-    ChatService.announce('pvp', 'Largage aérien en approche ! Repère jaune sur la carte.')
-    ModeRegistry.broadcast('pvp', Events.client.notify, 'Largage aérien en approche : repère jaune sur la carte.', 'info')
+    ChatService.announce('pvp', 'Un avion de largage traverse la carte ! Suis son repère jaune.')
+    ModeRegistry.broadcast('pvp', Events.client.notify, 'Avion de largage en approche : suis son repère sur la carte.', 'info')
     Logger.info('[largage] n°%d en approche (%.0f, %.0f)', drop.id, drop.coords.x, drop.coords.y)
 
+    SetTimeout((drop.releaseAt - now) * 1000, function()
+        if AirdropService.drops[drop.id] then ChatService.announce('pvp', 'La caisse est larguée !') end
+    end)
     SetTimeout((drop.unlockAt - now) * 1000, function()
         AirdropService.open(drop.id)
     end)
@@ -94,6 +105,8 @@ function AirdropService.describe(drop)
     return {
         id = drop.id,
         coords = drop.coords,
+        heading = drop.heading,
+        releaseIn = drop.releaseAt - now,
         landIn = math.max(0, drop.landAt - now),
         unlockIn = math.max(0, drop.unlockAt - now),
     }

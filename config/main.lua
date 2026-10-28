@@ -140,7 +140,7 @@ Config.Airdrops = {
     firstDelay = 300, -- secondes avant le premier largage après le démarrage
     interval = 1200, -- secondes entre deux largages
     minPlayers = 2, -- joueurs en PvP nécessaires
-    fallTime = 25, -- secondes de chute en parachute
+    fallTime = 25, -- secondes de chute en parachute (après le largage par l'avion)
     fallHeight = 150.0,
     unlockDelay = 60, -- secondes entre l'atterrissage et l'ouverture
     lifetime = 600, -- secondes avant que le butin ouvert disparaisse
@@ -149,7 +149,16 @@ Config.Airdrops = {
     -- 'prop_mil_crate_02', 'gr_prop_gr_rsply_crate04a' (caisse de ravitaillement, plus grande)
     model = 'prop_mil_crate_01',
     parachute = 'p_cargo_chute_s',
-    blip = { sprite = 94, color = 5 },
+    blip = { sprite = 94, color = 5 }, -- point de chute (affiché une fois la caisse larguée)
+    -- Avion qui traverse la carte et largue la caisse au-dessus du point de chute
+    plane = {
+        model = 'titan',
+        speed = 70.0, -- m/s
+        approach = 2500.0, -- mètres parcourus avant le largage (vol visible avant d'arriver)
+        exit = 1500.0, -- mètres parcourus après le largage avant de disparaître
+        drawDistance = 1500.0, -- l'avion n'existe que près du joueur ; le repère, lui, est toujours visible
+        blip = { sprite = 423, color = 5 },
+    },
     locations = {
         vector3(501.0, 5604.0, 797.9), -- sommet du mont Chiliad
         vector3(-150.0, 6350.0, 31.5), -- Paleto Bay
