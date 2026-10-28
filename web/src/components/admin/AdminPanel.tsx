@@ -1,21 +1,25 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { useGame } from '../../store/GameContext';
+import { LootTab } from './LootTab';
 import { PlayersTab } from './PlayersTab';
 import { SelfTab } from './SelfTab';
 import { ServerTab } from './ServerTab';
 import './admin.css';
 
-const TABS: { id: string; label: string; component: ComponentType }[] = [
+/** wide : onglet qui a besoin de place (le panneau s'élargit) */
+const TABS: { id: string; label: string; component: ComponentType; wide?: boolean }[] = [
   { id: 'players', label: 'Joueurs', component: PlayersTab },
   { id: 'self', label: 'Moi', component: SelfTab },
   { id: 'server', label: 'Serveur', component: ServerTab },
+  { id: 'loot', label: 'Butin', component: LootTab, wide: true },
 ];
 
 /** Panneau admin (F10), à droite pour garder le jeu visible. */
 export function AdminPanel() {
   const { actions } = useGame();
   const [tabId, setTabId] = useState(TABS[0].id);
-  const Tab = TABS.find((t) => t.id === tabId)!.component;
+  const tab = TABS.find((t) => t.id === tabId)!;
+  const Tab = tab.component;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -27,7 +31,7 @@ export function AdminPanel() {
   }, [actions]);
 
   return (
-    <aside className="admin cut">
+    <aside className={tab.wide ? 'admin admin--wide cut' : 'admin cut'}>
       <header className="admin__header">
         <span className="admin__badge mono">ADMIN</span>
         <h1 className="disp admin__title">Administration</h1>

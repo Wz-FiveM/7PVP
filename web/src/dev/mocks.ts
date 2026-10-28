@@ -1,4 +1,4 @@
-import type { AdminPlayer } from '../types/admin';
+import type { AdminPlayer, LootAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -225,3 +225,44 @@ export const mockLeaderboard: LeaderboardRow[] = [
   { name: 'Bravo', level: 5, xp: 4100, kills: 31, deaths: 28, npcKills: 64, online: false },
   { name: 'Dev', level: 3, xp: 2450, kills: 12, deaths: 5, npcKills: 34, online: true },
 ];
+
+/** Onglet « Butin » du panneau admin (hors jeu) */
+export const mockLootAdmin: LootAdminData = {
+  ok: true,
+  tables: [
+    {
+      name: 'airdrop', label: 'Largages', money: [600, 1500], usedBy: ['Largages aériens'], modified: false,
+      drops: [
+        { item: 'medkit', count: [2, 4], chance: 90 },
+        { item: 'armor', count: [1, 3], chance: 85 },
+        { item: 'weapon_carbinerifle', count: [1, 1], chance: 45 },
+        { item: 'ammo_556', count: [90, 180], chance: 70 },
+      ],
+    },
+    {
+      name: 'gang', label: 'Zombies — zones communes', money: [20, 80], usedBy: ['Aérodrome de Sandy Shores'], modified: true,
+      drops: [
+        { item: 'bandage', count: [1, 2], chance: 40 },
+        { item: 'ammo_9mm', count: [12, 36], chance: 35 },
+        { item: 'weapon_pistol', count: [1, 1], chance: 10 },
+      ],
+    },
+    {
+      name: 'military', label: 'Zombies — zones militaires', money: [60, 200], usedBy: ['Port de Los Santos'], modified: false,
+      drops: [{ item: 'ammo_556', count: [30, 60], chance: 25 }],
+    },
+  ],
+  zones: [
+    { id: 'sandy_airfield', label: 'Aérodrome de Sandy Shores', loot: 'gang' },
+    { id: 'port', label: 'Port de Los Santos', loot: 'military' },
+  ],
+  items: [
+    { name: 'ammo_556', label: '5.56mm', type: 'ammo' },
+    { name: 'ammo_9mm', label: '9mm', type: 'ammo' },
+    { name: 'armor', label: 'Gilet pare-balles', type: 'consumable' },
+    { name: 'bandage', label: 'Bandage', type: 'consumable' },
+    { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon' },
+    { name: 'medkit', label: 'Trousse de soins', type: 'consumable' },
+    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon' },
+  ],
+};

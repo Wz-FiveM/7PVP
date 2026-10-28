@@ -19,6 +19,7 @@ DiscordService.COLORS = {
 }
 
 DiscordService.ADMIN_LABELS = {
+    lootConfig = 'Butin modifié',
     giveItem = 'Don d\'objet',
     giveMoney = 'Don d\'argent',
     heal = 'Soin',

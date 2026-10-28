@@ -48,3 +48,37 @@ export interface NoclipInfo {
   fastMultiplier: number;
   slowMultiplier: number;
 }
+
+/** Ligne d'une table de butin : quantité tirée entre min et max, chance en % */
+export interface LootDrop {
+  item: string;
+  count: [number, number];
+  chance: number;
+}
+
+/** Table de butin modifiable (server/modules/loot/loot_config_service.lua) */
+export interface LootTableData {
+  name: string;
+  label: string;
+  /** argent tiré entre min et max, `false` sans argent */
+  money: [number, number] | false;
+  drops: LootDrop[];
+  /** zones (et largages) qui utilisent cette table */
+  usedBy: string[];
+  /** modifiée depuis le panneau (différente de config/loot.lua) */
+  modified: boolean;
+}
+
+export interface LootZoneData {
+  id: string;
+  label: string;
+  loot: string;
+}
+
+export interface LootAdminData {
+  ok: boolean;
+  message?: string;
+  tables: LootTableData[];
+  zones: LootZoneData[];
+  items: { name: string; label: string; type: string }[];
+}

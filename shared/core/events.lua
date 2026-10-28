@@ -97,4 +97,8 @@ Events.callbacks = {
     vehicleStore = 'vehicle:store',
     lootOpen = 'loot:open',
     lootTake = 'loot:take',
+    adminLoot = 'admin:loot',
+    adminLootSave = 'admin:lootSave',
+    adminLootReset = 'admin:lootReset',
+    adminLootZones = 'admin:lootZones',
 }

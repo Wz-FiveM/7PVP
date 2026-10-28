@@ -66,6 +66,20 @@ function Admin.init()
     RegisterNUICallback('adminAction', function(data, cb)
         cb(Admin.runAction(data))
     end)
+
+    -- Onglet « Butin » : tables de butin et butin des zones PvE (vérifié par le serveur)
+    RegisterNUICallback('adminLoot', function(_, cb)
+        cb(Callback.await(Events.callbacks.adminLoot) or { ok = false })
+    end)
+    RegisterNUICallback('adminLootSave', function(data, cb)
+        cb(Callback.await(Events.callbacks.adminLootSave, data.name, data.table) or { ok = false })
+    end)
+    RegisterNUICallback('adminLootReset', function(data, cb)
+        cb(Callback.await(Events.callbacks.adminLootReset, data.name) or { ok = false })
+    end)
+    RegisterNUICallback('adminLootZones', function(data, cb)
+        cb(Callback.await(Events.callbacks.adminLootZones, data.zones) or { ok = false })
+    end)
 end
 
 -- ---------------------------------------------------------------------------

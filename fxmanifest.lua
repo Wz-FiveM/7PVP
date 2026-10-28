@@ -50,6 +50,7 @@ server_scripts {
     'server/modules/connection/connection_service.lua',
     'server/modules/spawn/spawn_service.lua',
     'server/modules/loot/loot_service.lua',
+    'server/modules/loot/loot_config_service.lua',
     'server/modules/combat/combat_service.lua',
     'server/modules/combat/combat_tag_service.lua',
     'server/modules/combat/bounty_service.lua',

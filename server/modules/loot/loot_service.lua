@@ -74,7 +74,8 @@ function LootService.roll(tableName)
     if not lootTable then return items end
 
     for _, drop in ipairs(lootTable.drops) do
-        if math.random(100) <= drop.chance then
+        -- Chance en %, décimales permises (0,5 % = une fois sur 200)
+        if math.random() * 100 < drop.chance then
             items[drop.item] = (items[drop.item] or 0) + Utils.randomRange(drop.count)
         end
     end
