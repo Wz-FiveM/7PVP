@@ -120,7 +120,7 @@ export const mockInit: InitPayload = {
     containers: {
       bag: { label: 'Mon sac', capacity: 50 },
       protected: { label: 'Conteneur protégé', capacity: 40 },
-      stash: { label: 'Coffre', capacity: 250, safeOnly: true },
+      stash: { label: 'Coffre', capacity: 500, safeOnly: true },
     },
     attachments: {
       att_suppressor: { weapon_pistol: 'COMPONENT_AT_PI_SUPP_02', weapon_carbinerifle: 'COMPONENT_AT_AR_SUPP' },

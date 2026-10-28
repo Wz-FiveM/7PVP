@@ -230,7 +230,7 @@ Config.Attachments = {
 Config.Containers = {
     bag = { label = 'Mon sac', capacity = 50.0 },
     protected = { label = 'Conteneur protégé', capacity = 40.0 },
-    stash = { label = 'Coffre', capacity = 250.0, safeOnly = true },
+    stash = { label = 'Coffre', capacity = 500.0, safeOnly = true },
 }
 
 -- Nombre d'emplacements de raccourcis (touches 1 à N)
