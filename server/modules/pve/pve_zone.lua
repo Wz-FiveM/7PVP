@@ -82,14 +82,23 @@ function PveZone:hasFreeSlot()
     return Utils.count(self.peds) + waiting < self:getMax()
 end
 
+---Poids d'apparition d'un type : les zombies équipés sont plus fréquents la nuit.
+---@param zombieType table
+---@param night boolean
+---@return number
+function PveZone.getWeight(zombieType, night)
+    return night and zombieType.nightWeight or zombieType.weight
+end
+
 ---Tire un type de zombie selon les poids de Config.ZombieTypes.
 ---@return string
 function PveZone.pickType()
+    local night = Clock.isNight()
     local total = 0
-    for _, zombieType in pairs(Config.ZombieTypes) do total = total + zombieType.weight end
+    for _, zombieType in pairs(Config.ZombieTypes) do total = total + PveZone.getWeight(zombieType, night) end
     local roll = math.random() * total
     for id, zombieType in pairs(Config.ZombieTypes) do
-        roll = roll - zombieType.weight
+        roll = roll - PveZone.getWeight(zombieType, night)
         if roll <= 0 then return id end
     end
     return 'walker'

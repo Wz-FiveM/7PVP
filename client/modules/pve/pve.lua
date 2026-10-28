@@ -10,6 +10,7 @@ local Hits = PVP.use('Hits')
 local Clock = PVP.use('Clock')
 local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
+local ZombieGear = PVP.use('ZombieGear')
 
 Pve.SCAN_INTERVAL = 250
 Pve.RETASK_INTERVAL = 2000 -- relance la poursuite pour suivre une cible qui bouge
@@ -69,6 +70,7 @@ function Pve.scan()
             local zone = Zones.byId(Entity(ped).state.pvpNpc)
             if zone then
                 Pve.decorate(ped)
+                ZombieGear.update(ped, Pve.getType(ped))
                 if NetworkGetEntityOwner(ped) == myId then
                     Pve.updatePed(ped, zone)
                 end
@@ -84,6 +86,7 @@ function Pve.cleanup()
         end
     end
     Hits.pruneZombies()
+    ZombieGear.cleanup()
 end
 
 ---Sang et blessures : purement visuel, appliqué par chaque client qui voit le zombie.
@@ -120,6 +123,14 @@ function Pve.reportDeath(ped)
     if Pve.reported[ped] then return end
     Pve.reported[ped] = true
     TriggerServerEvent(Events.server.npcDied, NetworkGetNetworkIdFromEntity(ped), PedUtils.getKillerServerId(ped))
+    ZombieGear.onDeath(ped, Pve.getType(ped))
+end
+
+---Touche mesurée par Hits sur un zombie dont ce client est propriétaire.
+---@param ped integer
+---@param hit { headshot: boolean, fatal: boolean }
+function Pve.onZombieHit(ped, hit)
+    ZombieGear.onHit(ped, Pve.getType(ped), hit)
 end
 
 ---@param ped integer
@@ -148,6 +159,7 @@ function Pve.setupPed(ped, npc)
         SetPedCanRagdoll(ped, false)
         SetPedSuffersCriticalHits(ped, false)
     end
+    ZombieGear.setupOwned(ped, zombieType)
 
     SetPedRelationshipGroupHash(ped, Pve.npcGroup)
     RemoveAllPedWeapons(ped, true)

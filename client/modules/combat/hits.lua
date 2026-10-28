@@ -7,6 +7,7 @@ local Hits = PVP.define('Hits')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
+local Pve = PVP.use('Pve')
 
 Hits.HEAD_BONE = 31086 -- SKEL_Head
 -- Écart max (ms) entre la baisse de vie et l'événement de dégâts du jeu pour les associer
@@ -188,6 +189,8 @@ function Hits.onZombieDamaged(ped, attacker, fatal)
         headshot = Hits.isHeadshot(ped),
         fatal = fatal or IsEntityDead(ped),
     }
+    -- Casque des zombies équipés
+    Pve.onZombieHit(ped, hit)
     if attacker == PlayerPedId() then
         -- C'est nous qui avons tiré : pas besoin de passer par le serveur
         Nui.send('hit', hit)

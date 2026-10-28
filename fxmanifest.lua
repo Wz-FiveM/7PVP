@@ -137,6 +137,7 @@ client_scripts {
     'client/modules/vehicle/roof.lua',
     'client/modules/loot/loot.lua',
     'client/modules/pve/pve.lua',
+    'client/modules/pve/zombie_gear.lua',
     'client/modules/pve/horde.lua',
     'client/modules/clock/clock.lua',
     'client/modules/dev/dev.lua',

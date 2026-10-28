@@ -27,7 +27,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Séries et primes** | Dès 5 kills sans mourir, la tête du joueur est mise à prix (repère rouge) ; son tueur encaisse la prime. | `Config.Bounty` |
 | **Accessoires** | Silencieux, lunette, chargeur, lampe, poignée : clic droit sur une arme > Fixer / Retirer. Ils tombent avec l'arme. | `Config.Attachments` (`config/items.lua`) |
 | **Jour / nuit** | Heure commune calculée depuis l'heure réelle. La nuit : plus de zombies, plus rapides, plus résistants, plus de butin. | `Config.Time`, `Config.Night` |
-| **Zombies spéciaux** | Rôdeur, Coureur (rapide), Colosse (très résistant, ne tombe pas), Cracheur (vomit à 10 m). | `Config.ZombieTypes` |
+| **Zombies spéciaux** | Rôdeur, Coureur (rapide), Colosse (très résistant, ne tombe pas), Cracheur (vomit à 10 m), Casqué (casque blindé : la tête ne tue pas d'un coup avant que le casque saute), Bonbonne (bouteille de gaz dans le dos qui explose à sa mort). Les équipés sont plus fréquents la nuit. | `Config.ZombieTypes`, `Config.ZombieGear` |
 | **Hordes** | Toutes les 30 min, une zone PvE occupée est envahie 5 min ; les survivants dans la zone sont récompensés. | `Config.Hordes` |
 | **Fabrication** | Matériaux récupérés sur les zombies -> munitions, soins, accessoires (zone safe, niveau requis). | `config/crafting.lua` |
 | **Contrats quotidiens** | 3 contrats par jour (les mêmes pour tous), récompense versée à l'objectif. | `config/contracts.lua` |

@@ -206,10 +206,11 @@ Config.Night = {
     extraLootRolls = 1, -- tirages de butin en plus par zombie
 }
 
--- Types de zombies : `weight` = probabilité relative d'apparition.
+-- Types de zombies : `weight` = probabilité relative d'apparition (`nightWeight` la nuit, sinon `weight`).
 -- health / damage : multiplicateurs ; speed : vitesse imposée (sinon celle de la zone) ;
 -- range : distance de vomissement (m) ; cooldown : ms entre deux vomissements ;
--- models : modèles imposés (sinon ceux de la zone) ; lootRolls : tirages de butin en plus.
+-- models : modèles imposés (sinon ceux de la zone) ; lootRolls : tirages de butin en plus ;
+-- gear : équipement visible (Config.ZombieGear) ; helmet : casque blindé ; explosion : explose à sa mort.
 Config.ZombieTypes = {
     walker = { label = 'Rôdeur', weight = 70, health = 1.0, damage = 1.0 },
     runner = { label = 'Coureur', weight = 15, health = 0.6, damage = 0.8, speed = 3.0 },
@@ -218,6 +219,45 @@ Config.ZombieTypes = {
         models = { 'u_m_y_zombie_01', 'a_m_m_hillbilly_02', 's_m_y_construct_01' },
     },
     spitter = { label = 'Cracheur', weight = 8, health = 0.8, damage = 0.7, speed = 1.0, range = 10.0, cooldown = 4000 },
+    -- Casque blindé : les tirs à la tête ne le tuent pas d'un coup tant que le casque tient
+    armored = {
+        label = 'Casqué', weight = 8, nightWeight = 12, health = 1.5, damage = 1.0, lootRolls = 1,
+        gear = { 'helmet' },
+        helmet = { hits = 3 }, -- tirs dans la tête avant que le casque saute
+    },
+    -- Bouteille de gaz dans le dos : elle explose à sa mort et blesse joueurs et zombies autour
+    bomber = {
+        label = 'Bonbonne', weight = 5, nightWeight = 8, health = 0.8, damage = 0.8, speed = 2.0, lootRolls = 1,
+        gear = { 'gasTank' },
+        explosion = {
+            type = 23, -- explosion GTA (23 = bouteille de gaz ; non bloquée par l'anticheat)
+            damage = 1.0, -- multiplicateur des dégâts de l'explosion
+            delay = 700, -- ms entre la mort et l'explosion
+            shake = 1.0, -- tremblement de caméra
+        },
+    },
+}
+
+-- Équipement visible des zombies (objets attachés à un os du ped, recréés par chaque client).
+-- `options` : un modèle est choisi par zombie ; pos / rot : décalage par rapport à l'os
+-- (à ajuster en jeu si l'objet est mal placé). `dropWhen` : la pièce tombe quand cet état
+-- du zombie passe à vrai ; `remove` : elle disparaît au lieu de tomber au sol.
+-- Os utiles : 31086 tête, 12844 tête (IK), 24818 haut du dos.
+Config.ZombieGear = {
+    helmet = {
+        dropWhen = 'helmetOff',
+        options = {
+            { model = 'prop_hard_hat_01', bone = 12844, pos = vector3(0.1, 0.0, 0.0), rot = vector3(180.0, 90.0, 0.0) },
+            { model = 'prop_welding_mask_01', bone = 12844, pos = vector3(0.0, 0.0, 0.0), rot = vector3(180.0, 90.0, 0.0) },
+        },
+    },
+    gasTank = {
+        dropWhen = 'gasExploded',
+        remove = true,
+        options = {
+            { model = 'p_s_scuba_tank_s', bone = 24818, pos = vector3(-0.25, -0.25, 0.0), rot = vector3(180.0, 90.0, 0.0) },
+        },
+    },
 }
 
 -- Hordes : une zone PvE où se trouvent des joueurs est envahie pendant `duration` secondes.
