@@ -4,7 +4,10 @@
 --
 -- id      : nom de l'objet (case_<nom>) ; image : web/public/items/<id>.png (sinon icône de caisse)
 -- price   : prix à l'armurier (nil = introuvable en boutique, seulement en butin ou via les admins)
--- level   : niveau minimum pour l'acheter (défaut 1) ; l'ouvrir n'a pas de niveau
+-- points  : prix en points boutique (nil = pas d'ouverture avec des points) ; payée en points,
+--           la caisse est ouverte aussitôt, n'importe où hors combat, sans passer par le sac
+-- level   : niveau minimum pour l'acheter, en argent ou en points (défaut 1) ; ouvrir une caisse
+--           déjà possédée n'a pas de niveau
 -- rewards : item = clé de Config.Items ('money' pour de l'argent) ; count = quantité ou { min, max }
 --           weight = poids du tirage (la chance affichée = weight / total des weight de la caisse)
 --           rarity = clé de Config.CaseRarities (couleur et nom affichés)
@@ -31,6 +34,7 @@ Config.Cases = {
         label = 'Caisse de rue',
         description = 'Le kit de survie du quartier : munitions, soins et une petite chance de gros lot.',
         price = 750,
+        points = 100,
         rewards = {
             { item = 'ammo_9mm', count = { 48, 96 }, weight = 22, rarity = 'common' },
             { item = 'bandage', count = { 3, 5 }, weight = 18, rarity = 'common' },
@@ -53,6 +57,7 @@ Config.Cases = {
         label = 'Caisse militaire',
         description = 'Surplus de l\'armée : fusils, protections et accessoires de combat.',
         price = 3500,
+        points = 300,
         level = 6,
         rewards = {
             { item = 'ammo_556', count = { 120, 240 }, weight = 20, rarity = 'common' },
@@ -77,6 +82,7 @@ Config.Cases = {
         label = 'Caisse d\'élite',
         description = 'Le haut du panier : armes Mk II, snipers lourds et véhicules blindés.',
         price = 12000,
+        points = 800,
         level = 12,
         rewards = {
             { item = 'money', count = { 5000, 8000 }, weight = 18, rarity = 'common' },

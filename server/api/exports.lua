@@ -6,11 +6,13 @@ local PlayerService = PVP.use('PlayerService')
 local LootService = PVP.use('LootService')
 local Zones = PVP.use('Zones')
 local ChatService = PVP.use('ChatService')
+local ShopPointsService = PVP.use('ShopPointsService')
 
 ServerApi.EXPORTS = {
     'getPlayer', 'getMoney', 'addMoney', 'removeMoney', 'addXp',
     'giveItem', 'removeItem', 'getItemCount', 'getZone', 'isInSafeZone', 'dropLoot',
     'sendSystemMessage', 'announce',
+    'getShopPoints', 'addShopPoints', 'removeShopPoints',
 }
 
 function ServerApi.init()
@@ -130,4 +132,36 @@ end
 ---@param text string
 function ServerApi.announce(mode, text)
     ChatService.announce(mode, tostring(text))
+end
+
+---@param source integer
+---@return integer|nil solde de points boutique
+function ServerApi.getShopPoints(source)
+    local player = PlayerService.get(source)
+    return player and ShopPointsService.get(player)
+end
+
+---Crédite des points boutique (joueur en ligne ou licence, même hors ligne).
+---@param target integer|string server id ou license:xxxx
+---@param amount integer
+---@param reason? string
+---@param reference? string référence unique : un doublon n'est pas crédité
+---@return 'ok'|'duplicate'|'invalid'|'error'
+function ServerApi.addShopPoints(target, amount, reason, reference)
+    local player = PlayerService.get(target)
+    local identifier = player and player.identifier or (type(target) == 'string' and target:match('^license:%x+$'))
+    if not identifier then return 'invalid' end
+    return ShopPointsService.credit(identifier, amount, tostring(reason or 'export'), reference and tostring(reference))
+end
+
+---Dépense des points boutique d'un joueur en ligne.
+---@param source integer
+---@param amount integer
+---@param reason? string
+---@return boolean false si le solde est insuffisant
+function ServerApi.removeShopPoints(source, amount, reason)
+    local player = PlayerService.get(source)
+    if not player or not ShopPointsService.spend(player, amount, tostring(reason or 'export')) then return false end
+    player:sync()
+    return true
 end

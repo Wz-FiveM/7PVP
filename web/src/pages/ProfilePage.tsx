@@ -1,7 +1,7 @@
 import { Panel } from '../components/ui/Panel';
 import { SegmentBar } from '../components/ui/SegmentBar';
 import { useGame } from '../store/GameContext';
-import { formatKd, formatMoney } from '../utils/format';
+import { formatKd, formatMoney, formatPoints } from '../utils/format';
 import './pages.css';
 
 export function ProfilePage() {
@@ -17,6 +17,7 @@ export function ProfilePage() {
     ['K/D', formatKd(player.kills, player.deaths)],
     ['Zombies tués', player.npcKills],
     ['Argent total', formatMoney(player.money)],
+    [config.shopPoints?.label ?? 'Points boutique', formatPoints(player.shopPoints ?? 0, config.shopPoints?.short)],
     ['XP totale', player.xp.toLocaleString('fr-FR')],
   ];
   if (season) {

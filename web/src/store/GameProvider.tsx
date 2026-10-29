@@ -194,12 +194,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
       },
       buy: (index) => run(gameApi.buy(index)),
       buyCase: (id) => run(gameApi.caseBuy(id)),
-      openCase: async (id) => {
+      openCase: async (id, withPoints = false) => {
         const definition = configRef.current.cases?.find((c) => c.id === id);
         const mock: CaseOpenResult = isEnvBrowser() && definition
           ? { ok: true, reel: mockCaseReel(definition), winner: 48, duration: 6.5 }
           : { ok: false };
-        const result = await gameApi.caseOpen(id, mock);
+        const result = await (withPoints ? gameApi.caseOpenPoints(id, mock) : gameApi.caseOpen(id, mock));
         if (!result?.ok || !result.reel || !result.winner) {
           notify(result?.message ?? 'Ouverture impossible.', 'error');
           return;
@@ -207,6 +207,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'case/spin', spin: { caseId: id, reel: result.reel, winner: result.winner, duration: result.duration ?? 6.5 } });
       },
       closeCase: () => dispatch({ type: 'case/close' }),
+      openStore: () => {
+        const url = configRef.current.shopPoints?.storeUrl;
+        if (!url) return;
+        // En jeu : navigateur du système (le lien ne s'ouvre pas dans le NUI)
+        if (isEnvBrowser()) window.open(url, '_blank');
+        else (window.invokeNative as (native: string, arg: string) => void)('openUrl', url);
+      },
       consumeItem: (name) => run(gameApi.useItem(name)),
       equip: (name) => run(gameApi.equip(name)),
       moveItem: (item, from, to, count) => run(gameApi.moveItem(item, from, to, count)),

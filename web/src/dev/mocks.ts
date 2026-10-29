@@ -270,12 +270,14 @@ export const mockInit: InitPayload = {
       epic: { label: 'Épique', color: '#b36bff', order: 4 },
       legendary: { label: 'Légendaire', color: '#ff9f1c', order: 5 },
     },
+    shopPoints: { label: 'Points boutique', short: 'PB', storeUrl: 'https://example.tebex.io' },
     cases: [
       {
         id: 'case_street',
         label: 'Caisse de rue',
         description: 'Le kit de survie du quartier : munitions, soins et une petite chance de gros lot.',
         price: 750,
+        points: 100,
         rewards: [
           { item: 'ammo_9mm', count: [48, 96], weight: 22, rarity: 'common' },
           { item: 'bandage', count: [3, 5], weight: 18, rarity: 'common' },
@@ -293,6 +295,7 @@ export const mockInit: InitPayload = {
         label: 'Caisse d\'élite',
         description: 'Le haut du panier : armes Mk II, snipers lourds et véhicules blindés.',
         price: 12000,
+        points: 800,
         level: 12,
         rewards: [
           { item: 'money', count: [5000, 8000], weight: 18, rarity: 'common' },
@@ -320,6 +323,7 @@ export const mockInit: InitPayload = {
       ],
     },
     money: 33851,
+    shopPoints: 450,
     xp: 2450,
     level: 3,
     kills: 12,

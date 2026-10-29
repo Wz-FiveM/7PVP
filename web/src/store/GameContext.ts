@@ -7,9 +7,12 @@ export interface GameActions {
   notify: (text: string, kind?: ToastKind) => void;
   closeMenu: () => void;
   buy: (index: number) => Promise<void>;
-  /** Caisses : achat chez l'armurier, ouverture (lance la roulette), fermeture de la roulette */
+  /** Caisses : achat chez l'armurier, ouverture (lance la roulette), fermeture de la roulette ;
+   *  `withPoints` : achetée avec des points boutique et ouverte aussitôt */
   buyCase: (id: string) => Promise<void>;
-  openCase: (id: string) => Promise<void>;
+  openCase: (id: string, withPoints?: boolean) => Promise<void>;
+  /** Ouvre la boutique en ligne (Tebex) dans le navigateur */
+  openStore: () => void;
   closeCase: () => void;
   consumeItem: (name: string) => Promise<void>;
   equip: (name: string) => Promise<void>;

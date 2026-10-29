@@ -64,6 +64,9 @@ function Nui.init()
     RegisterNUICallback('caseOpen', function(data, cb)
         cb(Callback.await(Events.callbacks.caseOpen, data.id) or { ok = false })
     end)
+    RegisterNUICallback('caseOpenPoints', function(data, cb)
+        cb(Callback.await(Events.callbacks.caseOpenPoints, data.id) or { ok = false })
+    end)
 
     RegisterNUICallback('useItem', function(data, cb)
         cb(Callback.await(Events.callbacks.useItem, data.name) or { ok = false })
@@ -151,6 +154,11 @@ function Nui.buildInitPayload()
             recipes = Config.Recipes,
             cases = Config.Cases,
             caseRarities = Config.CaseRarities,
+            shopPoints = {
+                label = Config.ShopPoints.label,
+                short = Config.ShopPoints.short,
+                storeUrl = Config.ShopPoints.storeUrl ~= '' and Config.ShopPoints.storeUrl or nil,
+            },
         },
         player = State.player,
         zone = Zones.toInfo(State.zone),

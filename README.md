@@ -116,6 +116,19 @@ unban <license:xxxx>                        lève le ban
 bans                                        liste les bans en cours
 ```
 
+### Points boutique (Tebex)
+
+Monnaie premium achetée sur la boutique Tebex, dépensée en jeu (caisses : bouton « PB », achetée et ouverte aussitôt, partout hors combat). Solde gardé en base à part de l'inventaire (`pvp_shop_points`, jamais perdu à la mort ni échangeable), chaque mouvement est journalisé (`pvp_shop_points_log`) et chaque crédit/retrait par commande part dans le salon Discord admin. Réglages : `config/shop_points.lua` (nom, abréviation, lien de la boutique affiché dans le menu) ; prix en points : `points` dans `config/cases.lua`.
+
+```
+addpoints <id | license:xxxx> <montant> [référence]   crédite (même hors ligne) ; une référence déjà créditée est ignorée
+removepoints <id | license:xxxx> <montant>            retire (le solde ne descend pas sous 0)
+points <id | license:xxxx>                            affiche le solde
+```
+
+Sur Tebex, dans chaque paquet, ajouter la commande (avec « joueur en ligne requis ») :
+`addpoints {sid} 1000 {transaction}` — et pour les remboursements / rétrofacturations : `removepoints {sid} 1000`.
+
 ## Anti-cheat
 
 Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans `config/anticheat.lua`) ; les admins ne sont jamais contrôlés.
@@ -243,6 +256,9 @@ exports['7PVP']:getItemCount(source, 'ammo_9mm')
 exports['7PVP']:getZone(source)               -- { id, label, type }
 exports['7PVP']:isInSafeZone(source)
 exports['7PVP']:dropLoot(coords, { weapon_pistol = 1, ammo_9mm = 24, money = 100 })
+exports['7PVP']:getShopPoints(source)                                 -- solde de points boutique
+exports['7PVP']:addShopPoints(source | 'license:xxxx', 500, 'raison', 'ref-unique')  -- 'ok' | 'duplicate' | 'invalid' | 'error'
+exports['7PVP']:removeShopPoints(source, 500, 'raison')               -- false si le solde est insuffisant
 ```
 
 Côté client :

@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react';
+import { Icon } from '../components/icons/Icon';
 import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
 import { useGame } from '../store/GameContext';
 import { formatChance, rarityOf, rewardCountLabel, sortedRewards, totalWeight } from '../utils/cases';
 import { entriesOf, itemLabel } from '../utils/inventory';
-import { formatMoney } from '../utils/format';
+import { formatMoney, formatPoints } from '../utils/format';
 import '../components/cases/cases.css';
 import './pages.css';
 
@@ -21,13 +22,28 @@ export function CasesPage() {
       .reduce((total, [, count]) => total + count, 0);
   const stored = (id: string) => entriesOf(player.inventory.stash).find(([name]) => name === id)?.[1] ?? 0;
 
+  const points = config.shopPoints;
+  const balance = player.shopPoints ?? 0;
+
   return (
     <>
-      <p className="hint cut-s">
-        {menu.near.shop
-          ? 'Les caisses achetées vont dans le sac : perdues à la mort tant qu\'elles ne sont pas ouvertes ou protégées.'
-          : 'Achat auprès de l\'armurier, en zone safe. Les caisses s\'ouvrent partout, hors combat.'}
-      </p>
+      <div className="cases__bar">
+        <p className="hint cut-s">
+          {menu.near.shop
+            ? 'Les caisses achetées vont dans le sac : perdues à la mort tant qu\'elles ne sont pas ouvertes ou protégées.'
+            : 'Achat auprès de l\'armurier, en zone safe. Les caisses s\'ouvrent partout, hors combat.'}
+          {' '}Payée en {(points?.label ?? 'points boutique').toLowerCase()}, une caisse s'ouvre aussitôt, partout.
+        </p>
+        <span className="cases__points">
+          <Icon name="gem" size={18} strokeWidth={2} />
+          <span className="mono">{formatPoints(balance, points?.short)}</span>
+          {points?.storeUrl && (
+            <button className="btn btn--small cut-s" onClick={actions.openStore}>
+              Boutique
+            </button>
+          )}
+        </span>
+      </div>
       <div className="cases">
         {(config.cases ?? []).map((definition) => {
           const locked = player.level < (definition.level ?? 1);
@@ -77,6 +93,17 @@ export function CasesPage() {
                   </button>
                 ) : (
                   <span className="chip chip--outline">Butin uniquement</span>
+                )}
+                {definition.points !== undefined && (
+                  <button
+                    className="btn btn--small cut-s case-card__points"
+                    title={`Acheter et ouvrir avec des ${(points?.label ?? 'points boutique').toLowerCase()}`}
+                    disabled={locked || balance < definition.points || state.caseSpin !== null}
+                    onClick={() => actions.openCase(definition.id, true)}
+                  >
+                    <Icon name="gem" size={14} strokeWidth={2} />
+                    {formatPoints(definition.points, points?.short)}
+                  </button>
                 )}
                 <button
                   className="btn btn--primary btn--small cut-s"

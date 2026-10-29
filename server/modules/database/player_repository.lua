@@ -20,6 +20,24 @@ PlayerRepository.MIGRATIONS = {
         PRIMARY KEY (season, identifier),
         KEY idx_season_kills (season, kills)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
+    -- Points boutique (ShopPointsRepository) : à part de pvp_players, pour pouvoir créditer
+    -- une licence qui ne s'est encore jamais connectée
+    [[CREATE TABLE IF NOT EXISTS pvp_shop_points (
+        identifier VARCHAR(64) NOT NULL,
+        balance INT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (identifier)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
+    [[CREATE TABLE IF NOT EXISTS pvp_shop_points_log (
+        id INT NOT NULL AUTO_INCREMENT,
+        identifier VARCHAR(64) NOT NULL,
+        amount INT NOT NULL,
+        reason VARCHAR(64) NOT NULL DEFAULT '',
+        reference VARCHAR(128) NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY uniq_reference (reference),
+        KEY idx_identifier (identifier)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
 }
 
 function PlayerRepository.init()

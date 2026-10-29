@@ -19,6 +19,9 @@ export const gameApi = {
   /** `mock` : roulette simulée hors jeu (le tirage est fait par le serveur en jeu) */
   caseOpen: (id: string, mock: CaseOpenResult) => fetchNui<CaseOpenResult>('caseOpen', { id }, mock),
 
+  /** Achat et ouverture immédiate avec des points boutique */
+  caseOpenPoints: (id: string, mock: CaseOpenResult) => fetchNui<CaseOpenResult>('caseOpenPoints', { id }, mock),
+
   useItem: (name: string) => fetchNui<ActionResult>('useItem', { name }, MOCK_OK),
 
   equip: (name: string) => fetchNui<ActionResult>('equip', { name }, { ok: true }),

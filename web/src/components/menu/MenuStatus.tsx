@@ -1,5 +1,5 @@
 import { useGame } from '../../store/GameContext';
-import { formatMoney } from '../../utils/format';
+import { formatMoney, formatPoints } from '../../utils/format';
 import { DEFAULT_MENU_KEY } from '../../utils/keys';
 import { Icon } from '../icons/Icon';
 import { ZoneChip } from '../ui/ZoneChip';
@@ -16,6 +16,10 @@ export function MenuStatus() {
       {player && (
         <>
           <span className="mono menu-status__money">{formatMoney(player.money)}</span>
+          <span className="mono menu-status__points" title={config.shopPoints?.label ?? 'Points boutique'}>
+            <Icon name="gem" size={16} strokeWidth={2} />
+            {formatPoints(player.shopPoints ?? 0)}
+          </span>
           <span className="menu-status__level">
             <span className="disp">Niv. {player.level}</span>
             <span className="menu-status__xp">

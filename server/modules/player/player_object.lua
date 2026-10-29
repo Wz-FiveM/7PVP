@@ -22,6 +22,7 @@
 ---@field lastCombatCoords vector3|nil position à la dernière touche (si le ped a disparu à la déconnexion)
 ---@field contracts table progression des contrats du jour (voir ContractService)
 ---@field season { id: string, kills: integer, deaths: integer, npcKills: integer }|nil stats de la saison (SeasonService)
+---@field shopPoints integer|nil copie du solde de points boutique (ShopPointsService, la base fait foi)
 ---@field streak integer kills de joueurs depuis la dernière mort
 ---@field bounty integer prime sur sa tête ($), 0 = aucune
 ---@field combatLog { taken: table<integer, table>, dealt: table<integer, table> } dégâts de la vie en cours, par joueur
@@ -115,6 +116,7 @@ function PlayerObject:serialize()
         name = self.name,
         avatar = self.avatar,
         money = self:getMoney(),
+        shopPoints = self.shopPoints or 0,
         xp = self.xp,
         level = self:getLevel(),
         kills = self.kills,

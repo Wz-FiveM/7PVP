@@ -8,6 +8,7 @@ local LootService = PVP.use('LootService')
 local AppearanceService = PVP.use('AppearanceService')
 local LobbyService = PVP.use('LobbyService')
 local SeasonService = PVP.use('SeasonService')
+local ShopPointsService = PVP.use('ShopPointsService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
@@ -81,6 +82,7 @@ function PlayerService.load(source)
 
     local player = PlayerObject.new(source, identifier, row)
     player.season = SeasonService.load(identifier)
+    player.shopPoints = ShopPointsService.load(identifier)
     PlayerService.players[source] = player
     -- Le chargement attend la base : les modules qui ont besoin du profil (ex : statut admin)
     -- réagissent ici plutôt qu'à l'événement « ready », qui peut passer avant la fin du chargement

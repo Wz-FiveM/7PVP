@@ -37,6 +37,8 @@ export interface PlayerState {
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
   money: number;
+  /** points boutique (achetés sur Tebex, dépensés en jeu) */
+  shopPoints: number;
   xp: number;
   level: number;
   kills: number;
@@ -117,6 +119,16 @@ export interface GameConfig {
   recipes?: Recipe[];
   cases?: CaseDefinition[];
   caseRarities?: Record<string, CaseRarity>;
+  shopPoints?: ShopPointsConfig;
+}
+
+/** Points boutique (config/shop_points.lua) */
+export interface ShopPointsConfig {
+  label: string;
+  /** abréviation affichée sur les boutons (ex : PB) */
+  short: string;
+  /** lien de la boutique Tebex, absent = masqué */
+  storeUrl?: string;
 }
 
 /** Rareté d'une récompense de caisse (config/cases.lua) */
@@ -143,6 +155,8 @@ export interface CaseDefinition {
   description?: string;
   /** absent : pas en vente, seulement en butin */
   price?: number;
+  /** prix en points boutique : achetée et ouverte aussitôt ; absent = impossible en points */
+  points?: number;
   level?: number;
   rewards: CaseReward[];
 }

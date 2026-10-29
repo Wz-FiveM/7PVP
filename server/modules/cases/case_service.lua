@@ -1,4 +1,4 @@
----Caisses (config/cases.lua) : achat chez l'armurier et ouverture.
+---Caisses (config/cases.lua) : achat chez l'armurier, ouverture, et ouverture payée en points boutique.
 ---Le tirage est fait ici : le client ne reçoit que la roulette à animer, déjà jouée.
 ---La récompense est donnée tout de suite (fermer le menu ne l'annule pas), mais l'inventaire
 ---n'est renvoyé au client qu'à la fin de l'animation, pour ne pas dévoiler le résultat.
@@ -8,6 +8,7 @@ local PlayerService = PVP.use('PlayerService')
 local CombatTagService = PVP.use('CombatTagService')
 local LootService = PVP.use('LootService')
 local ChatService = PVP.use('ChatService')
+local ShopPointsService = PVP.use('ShopPointsService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
@@ -34,6 +35,7 @@ function CaseService.init()
 
     Callback.register(Events.callbacks.caseBuy, CaseService.buy)
     Callback.register(Events.callbacks.caseOpen, CaseService.open)
+    Callback.register(Events.callbacks.caseOpenPoints, CaseService.openWithPoints)
 end
 
 ---@param source integer
@@ -90,7 +92,50 @@ function CaseService.open(source, id)
     if not player:removeItem(case.id, 1) then
         return { ok = false, message = 'Tu n\'as pas cette caisse.' }
     end
+    return CaseService.spin(player, case)
+end
 
+---Achat et ouverture immédiate avec des points boutique (la caisse ne passe pas par le sac).
+---@param source integer
+---@param id string
+---@return { ok: boolean, message?: string, reel?: table[], winner?: integer, duration?: number }
+function CaseService.openWithPoints(source, id)
+    local player = CaseService.getActivePlayer(source)
+    local case = CaseService.byId[id]
+    if not player or not case or not case.points then
+        return { ok = false, message = 'Ouverture impossible.' }
+    end
+    if (player.caseBusyUntil or 0) > GetGameTimer() then
+        return { ok = false, message = 'Une caisse est déjà en cours d\'ouverture.' }
+    end
+    if player:getLevel() < (case.level or 1) then
+        return { ok = false, message = ('Niveau %d requis.'):format(case.level) }
+    end
+    if CombatTagService.isTagged(player) then
+        return { ok = false, message = ('En combat : attends %d s.'):format(CombatTagService.remaining(player)) }
+    end
+
+    -- Réservé pendant l'attente de la base : une 2e demande ne peut pas payer en même temps
+    player.caseBusyUntil = GetGameTimer() + 10000
+    if not ShopPointsService.spend(player, case.points, 'case:' .. case.id) then
+        player.caseBusyUntil = 0
+        player:sync() -- solde relu en base : l'affichage était peut-être en retard
+        return { ok = false, message = ('Pas assez de %s.'):format(Config.ShopPoints.label:lower()) }
+    end
+    -- Déconnecté pendant le paiement : profil déjà sauvegardé, la récompense serait perdue
+    if PlayerService.get(source) ~= player then
+        ShopPointsService.credit(player.identifier, case.points, 'refund:' .. case.id)
+        return { ok = false }
+    end
+    return CaseService.spin(player, case)
+end
+
+---Tire la récompense, la donne et renvoie la roulette à animer.
+---@param player PvpPlayer
+---@param case table
+---@return { ok: boolean, reel: table[], winner: integer, duration: number }
+function CaseService.spin(player, case)
+    local source = player.source
     local reward = CaseService.roll(case)
     local count = CaseService.rollCount(reward)
     local options = Config.CaseOptions

@@ -294,6 +294,22 @@ function DiscordService.adminCommand(source, command, label)
     })
 end
 
+---addpoints / removepoints (achats Tebex compris : exécutés depuis la console)
+---@param source integer 0 = console
+---@param label string joueur ciblé (nom ou licence)
+---@param amount integer négatif pour un retrait
+---@param reference string|nil référence du paiement
+function DiscordService.shopPoints(source, label, amount, reference)
+    DiscordService.send('admin', {
+        title = amount > 0 and '💎 Points boutique crédités' or '💎 Points boutique retirés',
+        description = ('**%s** : %+d par %s%s'):format(
+            DiscordService.escape(label), amount, DiscordService.playerTag(source),
+            reference and (' (réf. `%s`)'):format(DiscordService.escape(reference)) or ''
+        ),
+        color = amount > 0 and DiscordService.COLORS.toxine or DiscordService.COLORS.danger,
+    })
+end
+
 ---@param kind string ex : « Expulsion »
 ---@param source integer admin (0 = console)
 ---@param target PvpPlayer
