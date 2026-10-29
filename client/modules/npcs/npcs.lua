@@ -13,7 +13,7 @@ local PedUtils = PVP.use('PedUtils')
 local Zones = PVP.use('Zones')
 local Activities = PVP.use('Activities')
 local FreeroamPositions = PVP.use('FreeroamPositions')
-local ChaseBoard = PVP.use('ChaseBoard')
+local ActivityBoards = PVP.use('ActivityBoards')
 local Events = PVP.use('Events')
 
 Npcs.CONTROL_TALK = 38 -- E
@@ -30,7 +30,7 @@ function Npcs.init()
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then Npcs.deleteAll() end
     end)
-    -- PNJ des modes de jeu (et tableau du classement) déplacés par un admin (voir FreeroamConfigService)
+    -- PNJ des modes de jeu (et tableaux du classement) déplacés par un admin (voir FreeroamConfigService)
     RegisterNetEvent(Events.client.freeroamSettings, function(name, places)
         if name == 'places' and type(places) == 'table' then Npcs.applyPlaces(places) end
     end)
@@ -46,7 +46,7 @@ function Npcs.applyPlaces(places)
     -- Recréés à leur nouvelle place (et repères refaits) au prochain passage de Npcs.loop
     Npcs.deleteAll()
     Npcs.blipMode = false
-    ChaseBoard.relocate()
+    ActivityBoards.relocate()
 end
 
 ---Nom, action, icône et repère d'un PNJ (ceux d'un organisateur viennent de son mode de jeu).

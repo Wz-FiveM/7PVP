@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { chaseApi } from '../../api/chaseApi';
 import { isEnvBrowser } from '../../api/nui';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
-import type { ChaseElo, ChaseHudData, ChaseScores, ChaseStateData } from '../../types/game';
+import type { ChaseHudData, ChaseScores, ChaseStateData, EloChange } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
 import { Icon } from '../icons/Icon';
+import { EloDelta } from './EloDelta';
 import './chase.css';
 
 const ROLE_LABELS = { thief: 'Voleur', cop: 'Policier' };
@@ -22,7 +23,7 @@ interface Banner {
   title: string;
   text?: string;
   scores: ChaseScores;
-  elo?: ChaseElo;
+  elo?: EloChange;
   tone: 'good' | 'bad' | 'neutral';
   id: number;
 }
@@ -108,14 +109,7 @@ export function Chase() {
           <span className="mono chase-banner__score">
             TOI {banner.scores.me} — {banner.scores.opponent} ADVERSAIRE
           </span>
-          {banner.elo && (
-            <span className="mono chase-banner__elo">
-              ELO {banner.elo.after}
-              <span className={banner.elo.delta >= 0 ? 'chase-banner__delta--up' : 'chase-banner__delta--down'}>
-                {banner.elo.delta >= 0 ? `+${banner.elo.delta}` : banner.elo.delta}
-              </span>
-            </span>
-          )}
+          {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
       )}
     </>

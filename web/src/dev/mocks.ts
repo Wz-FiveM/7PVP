@@ -58,7 +58,10 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { key: 'freeroam_hub/cvc', label: 'PNJ · CVC', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
         { key: 'freeroam_hub/gunfight', label: 'PNJ · 1VS1 GunFight', coords: { x: 196.6, y: -912.6, z: 30.7, w: 180 } },
         { key: 'freeroam_hub/bike', label: 'PNJ · 1VS1 Bike', coords: { x: 190, y: -914, z: 30.7, w: 180 } },
-        { key: 'chase/board', label: 'Tableau du classement (course poursuite)', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
+        { key: 'chase/board', label: 'Tableau du classement · Course poursuite', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
+        { key: 'cvc/board', label: 'Tableau du classement · CVC', coords: { x: 204.1, y: -922.9, z: 30.7, w: 150 } },
+        { key: 'gunfight/board', label: 'Tableau du classement · 1VS1 GunFight', coords: { x: 196.6, y: -909.6, z: 30.7, w: 180 } },
+        { key: 'bike/board', label: 'Tableau du classement · 1VS1 Bike', coords: { x: 190.0, y: -911.0, z: 30.7, w: 180 } },
       ],
     },
     {

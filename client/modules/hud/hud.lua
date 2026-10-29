@@ -19,6 +19,10 @@ Hud.HIDDEN_COMPONENTS = { 1, 2, 3, 4, 6, 7, 8, 9, 13, 19, 20 }
 -- Scaleform de la minimap : sert à masquer ses barres natives de vie et d'armure
 Hud.MINIMAP_HIDE_HEALTH_ARMOUR = 3
 Hud.minimapScaleform = nil
+-- Le menu pause met encore quelques images à s'ouvrir ou se refermer quand IsPauseMenuActive
+-- ne le signale pas : piloter la minimap pendant ce temps fait crasher le jeu
+Hud.PAUSE_MENU_COOLDOWN = 1500
+Hud.minimapBlockedUntil = 0
 
 Hud.weaponByHash = {} -- [hash GTA] = nom de l'objet arme
 Hud.last = nil
@@ -62,7 +66,10 @@ function Hud.nativeHudLoop()
         DisplayAmmoThisFrame(false)
         -- Carte du menu pause ouverte : le jeu reprend la main sur la minimap, ne pas y toucher
         -- (piloter son scaleform à ce moment-là fait crasher le jeu)
-        if not IsPauseMenuActive() then
+        if IsPauseMenuActive() or IsPauseMenuRestarting() then
+            Hud.blockMinimap()
+        end
+        if GetGameTimer() >= Hud.minimapBlockedUntil then
             -- La minimap ne doit jamais rester en grand (bascule du scaleform, touche Z)
             if IsBigmapActive() then
                 SetRadarBigmapEnabled(false, false)
@@ -70,6 +77,11 @@ function Hud.nativeHudLoop()
             Hud.hideMinimapHealthArmour()
         end
     end
+end
+
+---Laisse la minimap au jeu pendant l'ouverture ou la fermeture du menu pause.
+function Hud.blockMinimap()
+    Hud.minimapBlockedUntil = GetGameTimer() + Hud.PAUSE_MENU_COOLDOWN
 end
 
 function Hud.loadMinimapScaleform()

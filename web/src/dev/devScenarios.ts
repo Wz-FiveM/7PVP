@@ -492,7 +492,7 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CVC : hors zone', run: () => sendNui({ action: 'cvcOutside', data: { outside: true } }) },
   {
     label: 'CVC : fin',
-    run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 } } }),
+    run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 }, elo: { before: 1000, after: 1014, delta: 14 } } }),
   },
   { label: '1VS1 : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2, label: '1VS1 GunFight' } }) },
   { label: '1VS1 Bike : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2, label: '1VS1 Bike' } }) },
@@ -514,7 +514,7 @@ export const DEV_ACTIONS: DevAction[] = [
   },
   {
     label: '1VS1 : fin',
-    run: () => sendNui({ action: 'gunfightEnd', data: { result: 'lost', scores: { us: 2, them: 3 } } }),
+    run: () => sendNui({ action: 'gunfightEnd', data: { result: 'lost', scores: { us: 2, them: 3 }, elo: { before: 1032, after: 1015, delta: -17 } } }),
   },
   { label: 'Compteur (en voiture)', run: () => sendNui({ action: 'speedometer', data: { visible: true, speed: 127, rpm: 0.82, gear: '4', engine: 74 } }) },
   { label: 'Compteur : sortir', run: () => sendNui({ action: 'speedometer', data: { visible: false } }) },

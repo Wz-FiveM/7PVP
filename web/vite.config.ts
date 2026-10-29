@@ -11,7 +11,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       // Quatre pages : l'interface du jeu (ui_page), l'écran de chargement (loadscreen),
-      // l'étiquette 3D et le tableau du classement, rendus en texture dans le monde (DUI)
+      // l'étiquette 3D et les tableaux du classement (un par mode de jeu du Freeroam), rendus en texture dans le monde (DUI)
       input: {
         main: resolve(__dirname, 'index.html'),
         loading: resolve(__dirname, 'loading.html'),

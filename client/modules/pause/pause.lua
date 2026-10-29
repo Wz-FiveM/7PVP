@@ -9,6 +9,7 @@ local Lobby = PVP.use('Lobby')
 local Freeroam = PVP.use('Freeroam')
 local Teleport = PVP.use('Teleport')
 local Events = PVP.use('Events')
+local Hud = PVP.use('Hud')
 
 Pause.CONTROL_ESCAPE = 200 -- INPUT_FRONTEND_PAUSE_ALTERNATE (Échap)
 Pause.CONTROL_PAUSE = 199 -- INPUT_FRONTEND_PAUSE (P)
@@ -120,16 +121,28 @@ function Pause.cancelPressed()
     return false
 end
 
+---Ouvre le menu pause de GTA en laissant d'abord la minimap au jeu (voir Hud.blockMinimap).
+function Pause.activateFrontend()
+    Hud.blockMinimap()
+    ActivateFrontendMenu(GetHashKey('FE_MENU_VERSION_MP_PAUSE'), false, -1)
+end
+
 ---Carte de GTA (menu pause natif, directement sur l'onglet carte).
 ---Échap la ferme d'un coup au lieu de remonter aux onglets du menu pause.
 function Pause.openMap()
     CreateThread(function()
         Wait(Pause.FRONTEND_DELAY)
-        ActivateFrontendMenu(GetHashKey('FE_MENU_VERSION_MP_PAUSE'), false, -1)
+        Pause.activateFrontend()
         Wait(100)
         PauseMenuceptionGoDeeper(0)
         while IsPauseMenuActive() do
+            -- Le menu ne doit pas traiter Échap lui-même : sa fermeture s'ajouterait à la nôtre
+            for _, pad in ipairs({ 0, 2 }) do
+                DisableControlAction(pad, Pause.CONTROL_CANCEL, true)
+                DisableControlAction(pad, Pause.CONTROL_ESCAPE, true)
+            end
             if Pause.cancelPressed() then
+                Hud.blockMinimap()
                 SetFrontendActive(false)
                 break
             end
@@ -142,7 +155,7 @@ end
 function Pause.openSettings()
     CreateThread(function()
         Wait(Pause.FRONTEND_DELAY)
-        ActivateFrontendMenu(GetHashKey('FE_MENU_VERSION_MP_PAUSE'), false, -1)
+        Pause.activateFrontend()
     end)
 end
 

@@ -264,7 +264,7 @@ end
 ---@param data { result: string, reason: string|nil, scores: table, spawn: vector4|nil }
 function Cvc.finish(data)
     Nui.send('cvcHud', { open = false })
-    Nui.send('cvcEnd', { result = data.result, reason = data.reason, scores = data.scores })
+    Nui.send('cvcEnd', { result = data.result, reason = data.reason, scores = data.scores, elo = data.elo })
 
     DoScreenFadeOut(Cvc.FADE)
     while not IsScreenFadedOut() do Wait(0) end

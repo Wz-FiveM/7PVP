@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
-import type { GunfightHudData, GunfightScores } from '../../types/game';
+import type { EloChange, GunfightHudData, GunfightScores } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
+import { EloDelta } from './EloDelta';
 import './chase.css';
 import './cvc.css';
 
@@ -16,6 +17,7 @@ interface Banner {
   title: string;
   text?: string;
   scores: GunfightScores;
+  elo?: EloChange;
   tone: 'good' | 'bad' | 'neutral';
   id: number;
 }
@@ -74,6 +76,7 @@ export function Gunfight() {
             title: RESULT_TITLES.match[message.data.result],
             text: message.data.reason,
             scores: message.data.scores,
+            elo: message.data.elo,
             tone: TONES[message.data.result],
           });
       }
@@ -104,6 +107,7 @@ export function Gunfight() {
           <span className="mono chase-banner__score">
             TOI {banner.scores.us} — {banner.scores.them} ADVERSAIRE
           </span>
+          {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
       )}
     </>

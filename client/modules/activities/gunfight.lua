@@ -208,7 +208,7 @@ end
 ---@param data { result: string, reason: string|nil, scores: table, spawn: vector4|nil }
 function Gunfight.finish(data)
     Nui.send('gunfightHud', { open = false })
-    Nui.send('gunfightEnd', { result = data.result, reason = data.reason, scores = data.scores })
+    Nui.send('gunfightEnd', { result = data.result, reason = data.reason, scores = data.scores, elo = data.elo })
 
     DoScreenFadeOut(Gunfight.FADE)
     while not IsScreenFadedOut() do Wait(0) end

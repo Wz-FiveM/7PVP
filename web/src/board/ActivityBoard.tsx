@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Icon } from '../components/icons/Icon';
-import type { ChaseBoardRow } from '../types/game';
+import { Icon, type IconName } from '../components/icons/Icon';
+import type { BoardRow } from '../types/game';
 
-/** Contenu envoyé par Lua avec SendDuiMessage */
+/** Contenu envoyé par Lua avec SendDuiMessage (client/modules/activities/activity_boards.lua) */
 interface BoardData {
-  rows: ChaseBoardRow[];
+  rows: BoardRow[];
   size: number;
+  /** Nom du mode de jeu (Config.FreeroamActivities) */
+  title: string;
+  icon?: IconName;
 }
 
 /** Exemple affiché dans le navigateur (npm run dev), hors du jeu */
 const PREVIEW: BoardData = {
   size: 10,
+  title: 'Course poursuite',
+  icon: 'vehicle',
   rows: [
     { name: 'Wezor', elo: 1184, wins: 14, losses: 4, draws: 1 },
     { name: 'Kaze', elo: 1121, wins: 11, losses: 6, draws: 0 },
@@ -24,8 +29,8 @@ const PREVIEW: BoardData = {
 
 const isBrowser = !('invokeNative' in window);
 
-/** Classement ELO de la course poursuite, affiché sur l'écran de la zone safe. */
-export function ChaseBoard() {
+/** Classement ELO d'un mode de jeu du Freeroam, affiché sur son écran dans la zone safe. */
+export function ActivityBoard() {
   const [data, setData] = useState<BoardData | null>(isBrowser ? PREVIEW : null);
 
   useEffect(() => {
@@ -45,11 +50,11 @@ export function ChaseBoard() {
     <div className="board">
       <header className="board__header">
         <span className="board__icon">
-          <Icon name="trophy" size={44} strokeWidth={2} />
+          <Icon name={data?.icon ?? 'trophy'} size={44} strokeWidth={2} />
         </span>
         <span className="board__heading">
           <span className="mono board__eyebrow">Classement ELO</span>
-          <span className="disp board__title">Course poursuite</span>
+          <span className="disp board__title">{data?.title ?? ''}</span>
         </span>
         <span className="mono board__hint">PNJ à côté pour jouer</span>
       </header>

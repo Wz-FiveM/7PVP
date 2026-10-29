@@ -34,7 +34,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Déblocages par niveau** | Les armes et accessoires de la boutique demandent un niveau minimum. | `level` dans `config/shop.lua` |
 | **Zones de contrôle** | Reste seul (ou avec ton groupe) dans le cercle pour capturer ; la zone rapporte de l'argent à ton camp. | `config/control.lua` |
 | **Saisons** | Une par mois : classement de saison à part (onglets Saison / précédente / de tous les temps). L'inventaire, l'argent et l'XP sont gardés. | table `pvp_season_stats` |
-| **Freeroam** | Bac à sable : armes et véhicules gratuits (Verr. Maj), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. | `config/freeroam.lua` |
+| **Freeroam** | Bac à sable : armes et véhicules gratuits (Verr. Maj), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. Modes de jeu (CVC, course poursuite, 1VS1) auprès des PNJ de la zone safe, chacun avec son classement ELO affiché sur un écran à côté de son PNJ. | `config/freeroam.lua`, `config/boards.lua` |
 
 Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dans la zone PvE la plus proche, pour tester.
 

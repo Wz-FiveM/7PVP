@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
-import type { CvcHudData, CvcScores, CvcStateData } from '../../types/game';
+import type { CvcHudData, CvcScores, CvcStateData, EloChange } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
+import { EloDelta } from './EloDelta';
 import './chase.css';
 import './cvc.css';
 
@@ -23,6 +24,7 @@ interface Banner {
   title: string;
   text?: string;
   scores: CvcScores;
+  elo?: EloChange;
   tone: 'good' | 'bad' | 'neutral';
   id: number;
 }
@@ -82,6 +84,7 @@ export function Cvc() {
             title: RESULT_TITLES.match[message.data.result],
             text: message.data.reason,
             scores: message.data.scores,
+            elo: message.data.elo,
             tone: TONES[message.data.result],
           });
       }
@@ -107,6 +110,7 @@ export function Cvc() {
           <span className="mono chase-banner__score">
             TON ÉQUIPE {banner.scores.us} — {banner.scores.them} ADVERSAIRES
           </span>
+          {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
       )}
     </>

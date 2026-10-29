@@ -11,11 +11,13 @@
 ---@field round integer
 ---@field phase 'countdown'|'running'|'pause'|'ended'
 ---@field dead table<integer, boolean> morts de la manche en cours
+---@field identities table<integer, ActivityRatingIdentity> figées au départ (ELO)
 ---@field endAt integer|nil
 
 ---@class GunfightServiceModule
 local GunfightService = PVP.define('GunfightService')
 local ActivityService = PVP.use('ActivityService')
+local ActivityRating = PVP.use('ActivityRating')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
 local PlayerService = PVP.use('PlayerService')
@@ -173,11 +175,14 @@ function GunfightService.startMatch(mode, players)
         round = 0,
         phase = 'pause',
         dead = {},
+        identities = {},
     }
     GunfightService.matches[match.id] = match
     SetRoutingBucketPopulationEnabled(match.bucket, false)
 
     for _, source in ipairs(players) do
+        local player = PlayerService.get(source)
+        if player then match.identities[source] = { identifier = player.identifier, name = player.name } end
         match.scores[source] = 0
         GunfightService.playerMatch[source] = match.id
         SetPlayerRoutingBucket(source, match.bucket)
@@ -288,6 +293,19 @@ function GunfightService.endRound(match, winner, reason)
     end)
 end
 
+---Met à jour l'ELO des deux joueurs dans le classement du mode ; renvoie le changement de chacun, par source.
+---@param match GunfightMatch
+---@param winner integer|nil nil = égalité
+---@return table<integer, { before: integer, after: integer, delta: integer }>
+function GunfightService.applyElo(match, winner)
+    local a, b = match.players[1], match.players[2]
+    local idA, idB = match.identities[a], match.identities[b]
+    if not idA or not idB then return {} end
+    local scoreA = winner == nil and 0.5 or (winner == a and 1 or 0)
+    local changes = ActivityRating.safeApply(match.mode, { idA }, { idB }, scoreA)
+    return { [a] = changes[idA.identifier], [b] = changes[idB.identifier] }
+end
+
 ---Fin de partie : retour dans la zone safe du Freeroam.
 ---@param match GunfightMatch
 ---@param winner integer|nil
@@ -296,6 +314,7 @@ function GunfightService.endMatch(match, winner, reason)
     if match.phase == 'ended' then return end
     match.phase = 'ended'
     GunfightService.matches[match.id] = nil
+    local elo = GunfightService.applyElo(match, winner)
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for _, source in ipairs(match.players) do
@@ -309,6 +328,7 @@ function GunfightService.endMatch(match, winner, reason)
                 reason = reason,
                 scores = GunfightService.scoresFor(match, source),
                 spawn = Zones.randomSpawn('freeroam'),
+                elo = elo[source],
             })
         end
     end

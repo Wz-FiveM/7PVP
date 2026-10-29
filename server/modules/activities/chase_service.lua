@@ -21,7 +21,7 @@
 
 ---@class ChaseServiceModule
 local ChaseService = PVP.define('ChaseService')
-local ChaseRating = PVP.use('ChaseRating')
+local ActivityRating = PVP.use('ActivityRating')
 local ActivityService = PVP.use('ActivityService')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
@@ -500,11 +500,7 @@ function ChaseService.applyElo(match, winner)
     local idA, idB = match.identities[a], match.identities[b]
     if not idA or not idB or idA.identifier == idB.identifier then return {} end
     local scoreA = winner == nil and 0.5 or (winner == a and 1 or 0)
-    local ok, changes = pcall(ChaseRating.applyMatch, idA, idB, scoreA)
-    if not ok then
-        Logger.error('[course] ELO non enregistré : %s', changes)
-        return {}
-    end
+    local changes = ActivityRating.safeApply(ChaseService.ID, { idA }, { idB }, scoreA)
     return { [a] = changes[idA.identifier], [b] = changes[idB.identifier] }
 end
 

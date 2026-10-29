@@ -12,11 +12,14 @@
 ---@field dead table<integer, boolean> morts de la manche en cours
 ---@field vehicles table<integer, integer> net id par véhicule de la manche ([équipe * 100 + numéro])
 ---@field crews table<integer, integer[]> joueurs par véhicule (même clé), conducteur en premier
+---@field roster ActivityRatingIdentity[][] joueurs de départ de chaque équipe, figés (ELO)
+---@field identityOf table<integer, ActivityRatingIdentity> joueur -> son entrée du roster
 ---@field endAt integer|nil
 
 ---@class CvcServiceModule
 local CvcService = PVP.define('CvcService')
 local ActivityService = PVP.use('ActivityService')
+local ActivityRating = PVP.use('ActivityRating')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local Utils = PVP.use('Utils')
@@ -125,6 +128,7 @@ function CvcService.leave(source)
     local team = match.teamOf[source]
     CvcService.playerMatch[source] = nil
     match.teamOf[source] = nil
+    if match.identityOf[source] then match.identityOf[source].left = true end
     for index, member in ipairs(match.teams[team]) do
         if member == source then table.remove(match.teams[team], index) break end
     end
@@ -152,6 +156,8 @@ function CvcService.startMatch(players)
         dead = {},
         vehicles = {},
         crews = {},
+        roster = { {}, {} },
+        identityOf = {},
     }
     CvcService.matches[match.id] = match
     SetRoutingBucketPopulationEnabled(match.bucket, false)
@@ -164,6 +170,12 @@ function CvcService.startMatch(players)
         local team = index % 2 == 1 and 1 or 2
         match.teams[team][#match.teams[team] + 1] = source
         match.teamOf[source] = team
+        local player = PlayerService.get(source)
+        if player then
+            local identity = { identifier = player.identifier, name = player.name }
+            match.identityOf[source] = identity
+            match.roster[team][#match.roster[team] + 1] = identity
+        end
         CvcService.playerMatch[source] = match.id
         SetPlayerRoutingBucket(source, match.bucket)
         TriggerClientEvent(Events.client.cvcQueue, source, false)
@@ -358,6 +370,9 @@ function CvcService.endMatch(match, winner, reason)
     match.phase = 'ended'
     CvcService.matches[match.id] = nil
     CvcService.deleteVehicles(match)
+    -- ELO par équipe : tous les joueurs du départ comptent, ceux partis en cours de route perdent
+    local scoreA = winner == nil and 0.5 or (winner == 1 and 1 or 0)
+    local elo = ActivityRating.safeApply(CvcService.ID, match.roster[1], match.roster[2], scoreA)
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for team = 1, 2 do
@@ -365,11 +380,13 @@ function CvcService.endMatch(match, winner, reason)
             CvcService.playerMatch[source] = nil
             if PlayerService.get(source) then
                 if freeroam then SetPlayerRoutingBucket(source, freeroam.bucket) end
+                local identity = match.identityOf[source]
                 TriggerClientEvent(Events.client.cvcEnd, source, {
                     result = winner == nil and 'draw' or (winner == team and 'won' or 'lost'),
                     reason = reason,
                     scores = { us = match.scores[team], them = match.scores[3 - team] },
                     spawn = Zones.randomSpawn('freeroam'),
+                    elo = identity and elo[identity.identifier],
                 })
             end
         end

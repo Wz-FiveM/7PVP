@@ -300,14 +300,14 @@ export interface ChaseScores {
   me: number;
   opponent: number;
 }
-/** Changement d'ELO de la course poursuite en fin de partie */
-export interface ChaseElo {
+/** Changement d'ELO d'un mode de jeu du Freeroam en fin de partie (course, CVC, 1VS1) */
+export interface EloChange {
   before: number;
   after: number;
   delta: number;
 }
-/** Ligne du tableau de classement de la course poursuite (DUI de la zone safe) */
-export interface ChaseBoardRow {
+/** Ligne d'un tableau de classement des modes de jeu du Freeroam (DUI de la zone safe) */
+export interface BoardRow {
   name: string;
   elo: number;
   wins: number;
