@@ -100,6 +100,8 @@ Events.transport = {
 -- Noms des callbacks (requête client -> réponse serveur)
 Events.callbacks = {
     buy = 'shop:buy',
+    caseBuy = 'case:buy',
+    caseOpen = 'case:open',
     useItem = 'inventory:use',
     moveItem = 'inventory:move',
     dropItem = 'inventory:drop',

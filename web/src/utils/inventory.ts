@@ -1,6 +1,6 @@
 import type { ContainerId, GameConfig, ItemStack, ItemStacks, ItemType } from '../types/game';
 
-const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, vehicle: 4, material: 5, money: 6 };
+const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, vehicle: 4, case: 5, material: 6, money: 7 };
 
 export const CONTAINERS: ContainerId[] = ['bag', 'protected', 'stash'];
 

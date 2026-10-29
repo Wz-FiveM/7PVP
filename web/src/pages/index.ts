@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { IconName } from '../components/icons/Icon';
+import { CasesPage } from './CasesPage';
 import { HelpPage } from './HelpPage';
 import { ContractsPage } from './ContractsPage';
 import { CraftingPage } from './CraftingPage';
@@ -10,7 +11,7 @@ import { LeaderboardPage } from './LeaderboardPage';
 import { ProfilePage } from './ProfilePage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'inventory' | 'group' | 'crafting' | 'contracts' | 'market' | 'profile' | 'leaderboard' | 'shop' | 'help';
+export type PageId = 'inventory' | 'group' | 'crafting' | 'contracts' | 'market' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -31,5 +32,6 @@ export const PAGES: PageDefinition[] = [
   { id: 'profile', label: 'Profil', icon: 'profile', component: ProfilePage },
   { id: 'leaderboard', label: 'Top joueurs', icon: 'leaderboard', component: LeaderboardPage },
   { id: 'shop', label: 'Boutique', icon: 'shop', component: ShopPage },
+  { id: 'cases', label: 'Caisses', icon: 'crate', component: CasesPage },
   { id: 'help', label: 'Aide', icon: 'help', component: HelpPage },
 ];

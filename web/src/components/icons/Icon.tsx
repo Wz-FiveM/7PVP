@@ -36,6 +36,7 @@ const PATHS: Record<IconName, string> = {
   attachment: 'M3 10h12v4H3zM15 11h6v2h-6M6 10V7h3v3M11 14v3',
   material: 'M4 8l8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8',
   vehicle: 'M3 13l2-5h14l2 5v5H3zM3 13h18M7 18v2M17 18v2M6.5 15.5h1M16.5 15.5h1',
+  case: 'M3 9h18v11H3zM2 5h20v4H2zM10 12h4v3h-4M12 5v4',
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
   check: 'M4 12l5 5L20 6',
   crosshair: 'M12 2v6M12 16v6M2 12h6M16 12h6M18 12a6 6 0 1 1-12 0 6 6 0 0 1 12 0z',

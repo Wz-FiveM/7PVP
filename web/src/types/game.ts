@@ -1,6 +1,6 @@
 export type ZoneType = 'safe' | 'pve' | 'pvp';
 export type ToastKind = 'info' | 'success' | 'error';
-export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material' | 'vehicle';
+export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material' | 'vehicle' | 'case';
 export type ContainerId = 'bag' | 'protected' | 'stash';
 
 export interface ZoneInfo {
@@ -115,6 +115,54 @@ export interface GameConfig {
   /** accessoire -> { arme -> composant GTA } */
   attachments?: Record<string, Record<string, string>>;
   recipes?: Recipe[];
+  cases?: CaseDefinition[];
+  caseRarities?: Record<string, CaseRarity>;
+}
+
+/** Rareté d'une récompense de caisse (config/cases.lua) */
+export interface CaseRarity {
+  label: string;
+  color: string;
+  /** 1 = la plus courante */
+  order: number;
+}
+
+export interface CaseReward {
+  item: string;
+  /** quantité fixe, ou [min, max] ; absente = 1 */
+  count?: number | [number, number];
+  /** poids du tirage : chance = weight / total de la caisse */
+  weight: number;
+  rarity: string;
+}
+
+/** Caisse (config/cases.lua) : `id` est aussi le nom de l'objet */
+export interface CaseDefinition {
+  id: string;
+  label: string;
+  description?: string;
+  /** absent : pas en vente, seulement en butin */
+  price?: number;
+  level?: number;
+  rewards: CaseReward[];
+}
+
+/** Case de la roulette renvoyée par le serveur */
+export interface CaseReelEntry {
+  item: string;
+  count: number;
+  rarity: string;
+}
+
+/** Ouverture en cours : roulette déjà tirée par le serveur, `winner` est 1-based */
+export interface CaseSpin {
+  caseId: string;
+  reel: CaseReelEntry[];
+  winner: number;
+  /** secondes d'animation */
+  duration: number;
+  /** change à chaque ouverture (relance l'animation) */
+  key: number;
 }
 
 export interface LeaderboardRow {

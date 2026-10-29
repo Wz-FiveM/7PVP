@@ -1,7 +1,7 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
-  ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 
@@ -94,4 +94,11 @@ export interface InitPayload {
 export interface ActionResult {
   ok: boolean;
   message?: string;
+}
+
+/** Réponse de l'ouverture d'une caisse : roulette déjà tirée par le serveur (`winner` 1-based) */
+export interface CaseOpenResult extends ActionResult {
+  reel?: CaseReelEntry[];
+  winner?: number;
+  duration?: number;
 }

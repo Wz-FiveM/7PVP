@@ -93,7 +93,20 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
     },
   ],
 };
-import type { LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
+import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
+
+/** Ouverture de caisse hors jeu : même tirage pondéré que CaseService.roll côté serveur */
+export function mockCaseReel(definition: CaseDefinition, length = 56): CaseReelEntry[] {
+  const total = definition.rewards.reduce((sum, reward) => sum + reward.weight, 0);
+  return Array.from({ length }, () => {
+    let target = Math.random() * total;
+    const reward = definition.rewards.find((r) => (target -= r.weight) < 0) ?? definition.rewards[definition.rewards.length - 1];
+    const count = Array.isArray(reward.count)
+      ? reward.count[0] + Math.floor(Math.random() * (reward.count[1] - reward.count[0] + 1))
+      : reward.count ?? 1;
+    return { item: reward.item, count, rarity: reward.rarity };
+  });
+}
 
 export const mockLobbyModes: LobbyMode[] = [
   {
@@ -238,6 +251,8 @@ export const mockInit: InitPayload = {
       mat_scrap: { label: 'Ferraille', type: 'material', weight: 0.2 },
       mat_powder: { label: 'Poudre', type: 'material', weight: 0.02 },
       mat_chemicals: { label: 'Produits chimiques', type: 'material', weight: 0.1 },
+      case_street: { label: 'Caisse de rue', type: 'case', weight: 0.5 },
+      case_elite: { label: 'Caisse d\'élite', type: 'case', weight: 0.5 },
     },
     shop: [
       { item: 'weapon_pistol', count: 1, price: 400 },
@@ -247,6 +262,47 @@ export const mockInit: InitPayload = {
       { item: 'bandage', count: 1, price: 100 },
       { item: 'medkit', count: 1, price: 350 },
       { item: 'armor', count: 1, price: 800 },
+    ],
+    caseRarities: {
+      common: { label: 'Commun', color: '#a7ada4', order: 1 },
+      uncommon: { label: 'Peu commun', color: '#6fcf6a', order: 2 },
+      rare: { label: 'Rare', color: '#4f8dff', order: 3 },
+      epic: { label: 'Épique', color: '#b36bff', order: 4 },
+      legendary: { label: 'Légendaire', color: '#ff9f1c', order: 5 },
+    },
+    cases: [
+      {
+        id: 'case_street',
+        label: 'Caisse de rue',
+        description: 'Le kit de survie du quartier : munitions, soins et une petite chance de gros lot.',
+        price: 750,
+        rewards: [
+          { item: 'ammo_9mm', count: [48, 96], weight: 22, rarity: 'common' },
+          { item: 'bandage', count: [3, 5], weight: 18, rarity: 'common' },
+          { item: 'money', count: [300, 600], weight: 12, rarity: 'common' },
+          { item: 'medkit', count: [2, 3], weight: 8, rarity: 'uncommon' },
+          { item: 'weapon_pistol', weight: 10, rarity: 'uncommon' },
+          { item: 'armor', weight: 3, rarity: 'rare' },
+          { item: 'weapon_pumpshotgun', weight: 4, rarity: 'rare' },
+          { item: 'att_suppressor', weight: 0.8, rarity: 'epic' },
+          { item: 'weapon_carbinerifle', weight: 0.3, rarity: 'legendary' },
+        ],
+      },
+      {
+        id: 'case_elite',
+        label: 'Caisse d\'élite',
+        description: 'Le haut du panier : armes Mk II, snipers lourds et véhicules blindés.',
+        price: 12000,
+        level: 12,
+        rewards: [
+          { item: 'money', count: [5000, 8000], weight: 18, rarity: 'common' },
+          { item: 'armor', count: 2, weight: 14, rarity: 'common' },
+          { item: 'weapon_carbinerifle', weight: 10, rarity: 'uncommon' },
+          { item: 'att_scope', weight: 5, rarity: 'rare' },
+          { item: 'att_suppressor', weight: 2, rarity: 'epic' },
+          { item: 'weapon_pumpshotgun', weight: 0.5, rarity: 'legendary' },
+        ],
+      },
     ],
   },
   player: {
@@ -284,6 +340,7 @@ export const mockInit: InitPayload = {
         mat_cloth: 7,
         mat_scrap: 3,
         mat_powder: 9,
+        case_street: 3,
       },
       protected: { money: 33327, medkit: 2, ammo_9mm: 40 },
       stash: { weapon_smg: 1, ammo_45acp: 180, medkit: 4, armor: 2, money: 120000 },

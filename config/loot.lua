@@ -23,6 +23,7 @@ Config.LootTables = {
             { item = 'weapon_snspistol', count = { 1, 1 }, chance = 6 },
             { item = 'weapon_sawnoffshotgun', count = { 1, 1 }, chance = 3 },
             { item = 'weapon_molotov', count = { 1, 2 }, chance = 4 },
+            { item = 'case_street', count = { 1, 1 }, chance = 2 },
         },
     },
     military = {
@@ -52,6 +53,8 @@ Config.LootTables = {
             { item = 'weapon_combatpdw', count = { 1, 1 }, chance = 4 },
             { item = 'weapon_specialcarbine', count = { 1, 1 }, chance = 2 },
             { item = 'weapon_gusenberg', count = { 1, 1 }, chance = 1 },
+            { item = 'case_street', count = { 1, 1 }, chance = 5 },
+            { item = 'case_military', count = { 1, 1 }, chance = 1 },
             { item = 'weapon_smokegrenade', count = { 1, 2 }, chance = 8 },
             { item = 'weapon_grenade', count = { 1, 1 }, chance = 6 },
         },
@@ -90,6 +93,9 @@ Config.LootTables = {
             { item = 'vehicle_insurgent', count = { 1, 1 }, chance = 3 },
             { item = 'vehicle_buzzard2', count = { 1, 1 }, chance = 2 },
             { item = 'vehicle_deluxo', count = { 1, 1 }, chance = 1 },
+            -- Caisses
+            { item = 'case_military', count = { 1, 1 }, chance = 25 },
+            { item = 'case_elite', count = { 1, 1 }, chance = 6 },
         },
     },
 }

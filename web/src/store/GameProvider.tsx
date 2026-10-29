@@ -6,10 +6,10 @@ import { interactionApi } from '../api/interactionApi';
 import { pauseApi } from '../api/pauseApi';
 import { tradeApi } from '../api/tradeApi';
 import { isEnvBrowser } from '../api/nui';
-import { mockLobbyModes, mockVitals } from '../dev/mocks';
+import { mockCaseReel, mockLobbyModes, mockVitals } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
 import type { KillfeedEntry, ToastKind } from '../types/game';
-import type { ActionResult, NuiMessage } from '../types/nui';
+import type { ActionResult, CaseOpenResult, NuiMessage } from '../types/nui';
 import { GameContext, type GameActions } from './GameContext';
 import { gameReducer, initialState } from './gameReducer';
 
@@ -23,6 +23,9 @@ const READY_MAX_DELAY = 5000;
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const nextId = useRef(0);
+  // Les actions sont stables (useMemo sans l'état) : la config est lue ici quand il le faut
+  const configRef = useRef(state.config);
+  configRef.current = state.config;
 
   const notify = useCallback((text: string, kind: ToastKind = 'info') => {
     const id = ++nextId.current;
@@ -190,6 +193,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
         gameApi.close();
       },
       buy: (index) => run(gameApi.buy(index)),
+      buyCase: (id) => run(gameApi.caseBuy(id)),
+      openCase: async (id) => {
+        const definition = configRef.current.cases?.find((c) => c.id === id);
+        const mock: CaseOpenResult = isEnvBrowser() && definition
+          ? { ok: true, reel: mockCaseReel(definition), winner: 48, duration: 6.5 }
+          : { ok: false };
+        const result = await gameApi.caseOpen(id, mock);
+        if (!result?.ok || !result.reel || !result.winner) {
+          notify(result?.message ?? 'Ouverture impossible.', 'error');
+          return;
+        }
+        dispatch({ type: 'case/spin', spin: { caseId: id, reel: result.reel, winner: result.winner, duration: result.duration ?? 6.5 } });
+      },
+      closeCase: () => dispatch({ type: 'case/close' }),
       consumeItem: (name) => run(gameApi.useItem(name)),
       equip: (name) => run(gameApi.equip(name)),
       moveItem: (item, from, to, count) => run(gameApi.moveItem(item, from, to, count)),

@@ -7,6 +7,10 @@ export interface GameActions {
   notify: (text: string, kind?: ToastKind) => void;
   closeMenu: () => void;
   buy: (index: number) => Promise<void>;
+  /** Caisses : achat chez l'armurier, ouverture (lance la roulette), fermeture de la roulette */
+  buyCase: (id: string) => Promise<void>;
+  openCase: (id: string) => Promise<void>;
+  closeCase: () => void;
   consumeItem: (name: string) => Promise<void>;
   equip: (name: string) => Promise<void>;
   moveItem: (item: string, from: ContainerId, to: ContainerId, count: number) => Promise<void>;

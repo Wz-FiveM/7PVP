@@ -20,6 +20,7 @@ const SECTIONS: { type: ItemType; label: string }[] = [
   { type: 'attachment', label: 'Accessoires' },
   { type: 'consumable', label: 'Soins et équipement' },
   { type: 'vehicle', label: 'Véhicules' },
+  { type: 'case', label: 'Caisses' },
   { type: 'material', label: 'Matériaux' },
 ];
 
@@ -29,6 +30,7 @@ const TYPE_LABELS: Partial<Record<ItemType, string>> = {
   attachment: 'Accessoire',
   consumable: 'Soin',
   vehicle: 'Véhicule',
+  case: 'Caisse',
   material: 'Matériau',
 };
 

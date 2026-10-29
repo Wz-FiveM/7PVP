@@ -3,6 +3,7 @@ import { PAGES, type PageId } from '../../pages';
 import { useTypingFocus } from '../../hooks/useTypingFocus';
 import { useGame } from '../../store/GameContext';
 import { isMenuCloseKey } from '../../utils/keys';
+import { CaseOpening } from '../cases/CaseOpening';
 import { MenuStatus } from './MenuStatus';
 import { MenuTabs } from './MenuTabs';
 import './menu.css';
@@ -44,6 +45,7 @@ export function Menu() {
       <div className="menu__content">
         <Page />
       </div>
+      {state.caseSpin && <CaseOpening spin={state.caseSpin} />}
     </div>
   );
 }

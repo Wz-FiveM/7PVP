@@ -1,7 +1,7 @@
 import { fetchNui } from './nui';
 import { mockInit, mockLeaderboard } from '../dev/mocks';
 import type { ContainerId, LeaderboardRow, LeaderboardScope } from '../types/game';
-import type { ActionResult, InitPayload } from '../types/nui';
+import type { ActionResult, CaseOpenResult, InitPayload } from '../types/nui';
 
 const MOCK_OK: ActionResult = { ok: true, message: 'Action simulée (navigateur)' };
 
@@ -13,6 +13,11 @@ export const gameApi = {
 
   /** `index` est 1-based, comme Config.Shop côté Lua */
   buy: (index: number) => fetchNui<ActionResult>('buy', { index }, MOCK_OK),
+
+  caseBuy: (id: string) => fetchNui<ActionResult>('caseBuy', { id }, MOCK_OK),
+
+  /** `mock` : roulette simulée hors jeu (le tirage est fait par le serveur en jeu) */
+  caseOpen: (id: string, mock: CaseOpenResult) => fetchNui<CaseOpenResult>('caseOpen', { id }, mock),
 
   useItem: (name: string) => fetchNui<ActionResult>('useItem', { name }, MOCK_OK),
 

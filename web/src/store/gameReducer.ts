@@ -1,4 +1,5 @@
 import type {
+  CaseSpin,
   ChatMessage,
   GameConfig,
   GroupData,
@@ -79,6 +80,8 @@ export interface GameState {
   loot: LootContainer | null;
   /** Échange en cours avec un autre joueur (à droite de l'inventaire), null sinon */
   trade: TradeData | null;
+  /** Roulette d'ouverture de caisse affichée par-dessus le menu, null sinon */
+  caseSpin: CaseSpin | null;
 }
 
 export type GameAction =
@@ -118,7 +121,9 @@ export type GameAction =
   | { type: 'helpNotify'; help: HelpNotification | null }
   | { type: 'interaction'; open: boolean; items: InteractionItem[] | null }
   | { type: 'loot'; loot: LootContainer | null; items?: LootContainer['items'] }
-  | { type: 'trade'; trade: TradeData | null };
+  | { type: 'trade'; trade: TradeData | null }
+  | { type: 'case/spin'; spin: Omit<CaseSpin, 'key'> }
+  | { type: 'case/close' };
 
 export const initialState: GameState = {
   ready: false,
@@ -163,6 +168,7 @@ export const initialState: GameState = {
   interaction: { open: false, items: null },
   loot: null,
   trade: null,
+  caseSpin: null,
 };
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -227,6 +233,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           page: action.page ?? null,
           key: state.menu.key + 1,
         },
+        // La récompense est déjà donnée par le serveur : fermer le menu ne fait que cacher la roulette
+        caseSpin: action.open ? state.caseSpin : null,
       };
     case 'death':
       return {
@@ -234,6 +242,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         menu: { ...state.menu, open: false },
         death: { active: true, seconds: action.seconds, key: state.death.key + 1, recap: action.recap ?? {} },
         combatUntil: 0,
+        caseSpin: null,
       };
     case 'clock':
       return { ...state, clock: action.clock };
@@ -273,6 +282,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, loot: action.loot };
     case 'trade':
       return { ...state, trade: action.trade };
+    case 'case/spin':
+      return { ...state, caseSpin: { ...action.spin, key: (state.caseSpin?.key ?? 0) + 1 } };
+    case 'case/close':
+      return { ...state, caseSpin: null };
     case 'freeroam':
       return { ...state, freeroam: { ...state.freeroam, ...action.patch } };
     case 'controlZone':
