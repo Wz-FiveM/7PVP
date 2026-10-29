@@ -21,6 +21,7 @@ local CvcService = PVP.define('CvcService')
 local ActivityService = PVP.use('ActivityService')
 local ActivityRating = PVP.use('ActivityRating')
 local PlayerService = PVP.use('PlayerService')
+local GungameService = PVP.use('GungameService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local Utils = PVP.use('Utils')
 local Zones = PVP.use('Zones')
@@ -62,6 +63,7 @@ end
 function CvcService.toggleQueue(player)
     local source = player.source
     if CvcService.playerMatch[source] then return false, 'Tu es déjà dans une partie de CVC.' end
+    if GungameService.isBusy(source) then return false, 'Quitte d\'abord le Gungame (file ou partie).' end
 
     for index, queued in ipairs(CvcService.queue) do
         if queued == source then

@@ -58,10 +58,12 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { key: 'freeroam_hub/cvc', label: 'PNJ · CVC', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
         { key: 'freeroam_hub/gunfight', label: 'PNJ · 1VS1 GunFight', coords: { x: 196.6, y: -912.6, z: 30.7, w: 180 } },
         { key: 'freeroam_hub/bike', label: 'PNJ · 1VS1 Bike', coords: { x: 190, y: -914, z: 30.7, w: 180 } },
+        { key: 'freeroam_hub/gungame', label: 'PNJ · Gungame', coords: { x: 184, y: -915.5, z: 30.7, w: 180 } },
         { key: 'chase/board', label: 'Tableau du classement · Course poursuite', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
         { key: 'cvc/board', label: 'Tableau du classement · CVC', coords: { x: 204.1, y: -922.9, z: 30.7, w: 150 } },
         { key: 'gunfight/board', label: 'Tableau du classement · 1VS1 GunFight', coords: { x: 196.6, y: -909.6, z: 30.7, w: 180 } },
         { key: 'bike/board', label: 'Tableau du classement · 1VS1 Bike', coords: { x: 190.0, y: -911.0, z: 30.7, w: 180 } },
+        { key: 'gungame/board', label: 'Tableau du classement · Gungame', coords: { x: 184.0, y: -912.5, z: 30.7, w: 180 } },
       ],
     },
     {
@@ -90,6 +92,16 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       name: 'bikeSpawns', group: 'positions', label: 'Spawns 1VS1 Bike', kind: 'pair', category: false, modified: false,
       hint: 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre.',
       value: [{ x: 1300, y: 3120, z: 40.4, w: 286 }, { x: 1640, y: 3220, z: 41, w: 106 }],
+    },
+    {
+      name: 'gungameSpawns', group: 'positions', label: 'Spawns Gungame', kind: 'points', category: false, modified: false,
+      hint: 'Points d\'apparition des joueurs, dans ta direction : on réapparaît sur celui le plus loin des autres.',
+      value: [
+        { x: 1020, y: -3045, z: 5.9, w: 180 },
+        { x: 1065, y: -3090, z: 5.9, w: 90 },
+        { x: 1020, y: -3135, z: 5.9, w: 0 },
+        { x: 975, y: -3090, z: 5.9, w: 270 },
+      ],
     },
   ],
 };

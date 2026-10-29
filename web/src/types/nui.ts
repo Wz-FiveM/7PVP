@@ -2,7 +2,7 @@ import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
   CaseReelEntry, ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
-  ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
+  ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -76,6 +76,15 @@ export type NuiMessage =
   | { action: 'gunfightOutside'; data: { outside: boolean } }
   | { action: 'gunfightBanner'; data: { result: 'won' | 'lost' | 'draw'; reason: string; round: number; scores: GunfightScores } }
   | { action: 'gunfightEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: GunfightScores; elo?: EloChange } }
+  /** Gungame : file d'attente, HUD de partie, changements de niveau, kills, hors zone, résultats */
+  | { action: 'gungameQueue'; data: { count: number; needed?: number; max?: number; startIn?: number } }
+  | { action: 'gungameHud'; data: { open: boolean } & Partial<GungameHudData> }
+  | { action: 'gungameState'; data: GungameStateData }
+  | { action: 'gungameLevel'; data: { level: number; reason: 'kill' | 'knifed' | 'suicide' } }
+  | { action: 'gungameSpawn'; data: { protection: number } }
+  | { action: 'gungameKill'; data: GungameKillData }
+  | { action: 'gungameOutside'; data: { outside: boolean } }
+  | { action: 'gungameEnd'; data: GungameEndData }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
 

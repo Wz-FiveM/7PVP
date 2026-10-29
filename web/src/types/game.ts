@@ -431,6 +431,43 @@ export interface GunfightHudData {
   scores: GunfightScores;
 }
 
+/** Gungame (server/modules/activities/gungame_service.lua) : chacun pour soi, une arme par niveau */
+export interface GungameHudData {
+  /** Nom de l'arme de chaque niveau (config/gungame.lua), le dernier est le couteau */
+  levels: string[];
+  level: number;
+  countdown: number;
+  /** Secondes de partie restantes à l'arrivée */
+  remaining: number;
+}
+export interface GungameTopEntry {
+  name: string;
+  level: number;
+  kills: number;
+}
+export interface GungameStateData {
+  remaining: number;
+  rank: number;
+  players: number;
+  kills: number;
+  deaths: number;
+  top: GungameTopEntry[];
+}
+export interface GungameKillData {
+  /** Absent : mort sans tueur (chute, hors zone) */
+  killer?: string;
+  victim: string;
+  knife: boolean;
+}
+export interface GungameEndData {
+  result: 'won' | 'lost';
+  reason: string;
+  place: number;
+  players: number;
+  top: GungameTopEntry[];
+  elo?: EloChange;
+}
+
 /** Mode de jeu du Freeroam, lancé depuis son PNJ (Config.FreeroamActivities) */
 export interface ActivityInfo {
   id: string;

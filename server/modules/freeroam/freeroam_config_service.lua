@@ -1,7 +1,8 @@
 ---Réglages du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») :
 ---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC, moto du 1VS1 Bike ;
 ---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
----              points de départ des équipes du CVC dans chaque arène, des deux joueurs des 1VS1.
+---              points de départ des équipes du CVC dans chaque arène, des deux joueurs des 1VS1,
+---              points d'apparition du Gungame.
 ---Les changements s'appliquent tout de suite et sont enregistrés en base (pvp_freeroam_settings) :
 ---ils remplacent les fichiers de config/ au démarrage. « Valeurs par défaut » revient au fichier.
 ---Chaque réglage passe par une valeur « simple » (tables et nombres, sans vecteurs) : c'est elle
@@ -112,6 +113,14 @@ FreeroamConfigService.SETTINGS = {
         label = 'Spawns 1VS1 Bike',
         hint = 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre. La zone de combat est un cercle autour du milieu des deux points.',
         path = { 'Bike', 'spawns' },
+    },
+    {
+        name = 'gungameSpawns',
+        group = 'positions',
+        kind = 'points',
+        label = 'Spawns Gungame',
+        hint = 'Points d\'apparition des joueurs, dans ta direction : on réapparaît sur celui le plus loin des autres. Répartis-les tout autour de l\'arène ; la zone de combat est un cercle autour de leur milieu.',
+        path = { 'Gungame', 'spawns' },
     },
 }
 

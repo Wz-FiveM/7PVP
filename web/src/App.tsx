@@ -2,6 +2,7 @@ import { ActivityPanel } from './components/activity/ActivityPanel';
 import { Chase } from './components/activity/Chase';
 import { Cvc } from './components/activity/Cvc';
 import { Gunfight } from './components/activity/Gunfight';
+import { Gungame } from './components/activity/Gungame';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { NoclipHelp } from './components/admin/NoclipHelp';
 import { Chat } from './components/chat/Chat';
@@ -66,6 +67,7 @@ export function App() {
       {inFreeroam && <UiGuard name="chase"><Chase /></UiGuard>}
       {inFreeroam && <UiGuard name="cvc"><Cvc /></UiGuard>}
       {inFreeroam && <UiGuard name="gunfight"><Gunfight /></UiGuard>}
+      {inFreeroam && <UiGuard name="gungame"><Gungame /></UiGuard>}
       {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && (
         <UiGuard name="chat" onCrash={actions.closeChat}><Chat /></UiGuard>
       )}

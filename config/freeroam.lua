@@ -32,6 +32,13 @@ Config.FreeroamActivities = {
         icon = 'vehicle',
         enabled = true,
     },
+    gungame = {
+        label = 'Gungame',
+        tagline = 'Chacun pour soi · une arme par kill',
+        description = "Tout le monde commence au pistolet : chaque kill te fait passer à l'arme suivante, jusqu'au couteau. Le premier qui fait un kill au couteau gagne. Attention : un coup de couteau te fait reculer d'une arme. Partie de 10 minutes, jusqu'à 12 joueurs, on peut la rejoindre en cours.",
+        icon = 'crosshair',
+        enabled = true,
+    },
 }
 
 Config.Freeroam = {

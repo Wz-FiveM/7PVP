@@ -24,6 +24,7 @@ local ChaseService = PVP.define('ChaseService')
 local ActivityRating = PVP.use('ActivityRating')
 local ActivityService = PVP.use('ActivityService')
 local PlayerService = PVP.use('PlayerService')
+local GungameService = PVP.use('GungameService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local Callback = PVP.use('Callback')
 local Utils = PVP.use('Utils')
@@ -67,6 +68,7 @@ end
 function ChaseService.toggleQueue(player)
     local source = player.source
     if ChaseService.playerMatch[source] then return false, 'Tu es déjà dans une course.' end
+    if GungameService.isBusy(source) then return false, 'Quitte d\'abord le Gungame (file ou partie).' end
 
     for index, queued in ipairs(ChaseService.queue) do
         if queued == source then

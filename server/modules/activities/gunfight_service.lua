@@ -21,6 +21,7 @@ local ActivityRating = PVP.use('ActivityRating')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
 local PlayerService = PVP.use('PlayerService')
+local GungameService = PVP.use('GungameService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
@@ -89,7 +90,7 @@ function GunfightService.toggleQueue(player, mode)
     local source = player.source
     local label = GunfightService.label(mode)
     if GunfightService.playerMatch[source] then return false, 'Tu es déjà dans un 1VS1.' end
-    if ChaseService.playerMatch[source] or CvcService.playerMatch[source] then
+    if ChaseService.playerMatch[source] or CvcService.playerMatch[source] or GungameService.isBusy(source) then
         return false, 'Termine d\'abord ta partie en cours.'
     end
 

@@ -23,6 +23,7 @@ function resetScreens(): void {
   sendNui({ action: 'cvcOutside', data: { outside: false } });
   sendNui({ action: 'gunfightHud', data: { open: false } });
   sendNui({ action: 'gunfightOutside', data: { outside: false } });
+  sendNui({ action: 'gungameHud', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -515,6 +516,66 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: '1VS1 : fin',
     run: () => sendNui({ action: 'gunfightEnd', data: { result: 'lost', scores: { us: 2, them: 3 }, elo: { before: 1032, after: 1015, delta: -17 } } }),
+  },
+  { label: 'Gungame : file', run: () => sendNui({ action: 'gungameQueue', data: { count: 3, needed: 2, max: 12, startIn: 14 } }) },
+  {
+    label: 'Gungame : partie',
+    run: () => {
+      sendNui({ action: 'gungameQueue', data: { count: 0 } });
+      sendNui({
+        action: 'gungameHud',
+        data: {
+          open: true, level: 5, countdown: 3, remaining: 600,
+          levels: [
+            'Pistolet', 'Pistolet de combat', 'Pistolet lourd', 'Revolver', 'Micro SMG', 'SMG', 'SMG d\'assaut',
+            'Fusil à pompe', 'Carabine', 'Fusil d\'assaut', 'Mitrailleuse', 'Fusil de précision', 'Couteau',
+          ],
+        },
+      });
+      sendNui({
+        action: 'gungameState',
+        data: {
+          remaining: 412, rank: 2, players: 6, kills: 5, deaths: 3,
+          top: [
+            { name: 'Kaze', level: 7, kills: 8 },
+            { name: 'Wezor', level: 5, kills: 5 },
+            { name: 'Nyx', level: 5, kills: 4 },
+            { name: 'Rook', level: 3, kills: 2 },
+            { name: 'Vandal_LS', level: 2, kills: 1 },
+          ],
+        },
+      });
+      sendNui({ action: 'gungameSpawn', data: { protection: 6 } });
+    },
+  },
+  { label: 'Gungame : kill', run: () => sendNui({ action: 'gungameLevel', data: { level: 6, reason: 'kill' } }) },
+  { label: 'Gungame : couteau subi', run: () => sendNui({ action: 'gungameLevel', data: { level: 4, reason: 'knifed' } }) },
+  {
+    label: 'Gungame : fil des kills',
+    run: () => {
+      sendNui({ action: 'gungameKill', data: { killer: 'Kaze', victim: 'Nyx', knife: false } });
+      sendNui({ action: 'gungameKill', data: { killer: 'Wezor', victim: 'Rook', knife: true } });
+      sendNui({ action: 'gungameKill', data: { victim: 'Vandal_LS', knife: false } });
+    },
+  },
+  { label: 'Gungame : hors zone', run: () => sendNui({ action: 'gungameOutside', data: { outside: true } }) },
+  {
+    label: 'Gungame : fin',
+    run: () =>
+      sendNui({
+        action: 'gungameEnd',
+        data: {
+          result: 'lost', reason: 'Kaze a terminé le Gungame !', place: 2, players: 6,
+          elo: { before: 1000, after: 1009, delta: 9 },
+          top: [
+            { name: 'Kaze', level: 13, kills: 14 },
+            { name: 'Wezor', level: 11, kills: 12 },
+            { name: 'Nyx', level: 9, kills: 9 },
+            { name: 'Rook', level: 6, kills: 5 },
+            { name: 'Vandal_LS', level: 4, kills: 3 },
+          ],
+        },
+      }),
   },
   { label: 'Compteur (en voiture)', run: () => sendNui({ action: 'speedometer', data: { visible: true, speed: 127, rpm: 0.82, gear: '4', engine: 74 } }) },
   { label: 'Compteur : sortir', run: () => sendNui({ action: 'speedometer', data: { visible: false } }) },

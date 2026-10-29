@@ -1,0 +1,204 @@
+/* Gungame : arme du niveau et progression (le cadre du HUD, la file, le compte à rebours, le hors zone
+   et les résultats reprennent cvc.css et chase.css), classement, fil des kills, changement d'arme */
+
+.gg-hud__weapon {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.gg-hud__level {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--team);
+}
+.gg-hud__total {
+  font-size: 1.125rem;
+  color: var(--brume-hi);
+}
+.gg-hud__names {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gg-hud__current {
+  overflow: hidden;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gg-hud__next {
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  color: var(--brume-hi);
+}
+.gg-hud__progress {
+  display: flex;
+  gap: 0.1875rem;
+}
+.gg-hud__step {
+  flex: 1;
+  height: 0.3125rem;
+  background: rgba(255, 255, 255, 0.14);
+}
+.gg-hud__step--done {
+  background: var(--team);
+}
+.gg-hud__step--current {
+  background: var(--brume-hi);
+  animation: cvc-blink 1s ease-in-out infinite;
+}
+.gg-hud__shield {
+  align-self: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  color: var(--abri);
+}
+
+/* Classement de la partie */
+.gg-top {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 15rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.125rem 0 var(--signal), var(--ombre);
+  text-shadow: var(--ombre-texte);
+  pointer-events: none;
+}
+.gg-top__title {
+  font-size: 0.625rem;
+  letter-spacing: 0.16em;
+  color: var(--brume);
+}
+.gg-top__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.gg-top__place {
+  width: 1rem;
+  color: var(--signal);
+}
+.gg-top__name {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gg-top__level {
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+
+/* Fil des kills de la partie */
+.gg-feed {
+  position: absolute;
+  top: 14rem;
+  right: 1.5rem;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+.gg-feed__entry {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  background: var(--panneau);
+  text-shadow: var(--ombre-texte);
+  animation: gg-feed-in 0.2s ease-out;
+}
+@keyframes gg-feed-in {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem);
+  }
+}
+.gg-feed__how {
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  color: var(--brume-hi);
+}
+.gg-feed__how--knife {
+  color: var(--hazard);
+}
+
+/* Changement d'arme */
+.gg-toast {
+  --tone: var(--signal);
+  position: absolute;
+  top: 24%;
+  left: 50%;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 1.5rem;
+  background: var(--panneau);
+  box-shadow: inset 0 0.1875rem 0 var(--tone), var(--ombre);
+  text-shadow: var(--ombre-texte);
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: gg-toast-in 0.2s ease-out;
+}
+.gg-toast--bad {
+  --tone: var(--hazard);
+}
+.gg-toast__title {
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tone);
+}
+.gg-toast__weapon {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+@keyframes gg-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -0.5rem);
+  }
+}
+
+/* Classement de fin de partie, dans la bannière des résultats */
+.gg-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.gg-results__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+}
+.gg-results__place {
+  width: 1rem;
+  color: var(--tone);
+}
+.gg-results__name {
+  flex: 1;
+}
+.gg-results__stat {
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}

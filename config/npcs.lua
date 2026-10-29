@@ -25,6 +25,7 @@ Config.SafeNpcs = {
         { zone = 'freeroam_hub', role = 'activity', activity = 'cvc', model = 's_m_y_blackops_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'freeroam_hub', role = 'activity', activity = 'gunfight', model = 's_m_y_swat_01', coords = vector4(196.6, -912.6, 30.7, 180.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'freeroam_hub', role = 'activity', activity = 'bike', model = 'g_m_y_lost_01', coords = vector4(190.0, -914.0, 30.7, 180.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },
+        { zone = 'freeroam_hub', role = 'activity', activity = 'gungame', model = 's_m_y_marine_01', coords = vector4(184.0, -915.5, 30.7, 180.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
 
         { zone = 'legion', role = 'stash', model = 'cs_bankman', coords = vector4(186.8, -941.6, 30.1, 340.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'legion', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },

@@ -21,5 +21,6 @@ Config.FreeroamBoards = {
         { activity = 'cvc', coords = vector3(204.1, -922.9, 30.7), heading = 150.0 },
         { activity = 'gunfight', coords = vector3(196.6, -909.6, 30.7), heading = 180.0 },
         { activity = 'bike', coords = vector3(190.0, -911.0, 30.7), heading = 180.0 },
+        { activity = 'gungame', coords = vector3(184.0, -912.5, 30.7), heading = 180.0 },
     },
 }

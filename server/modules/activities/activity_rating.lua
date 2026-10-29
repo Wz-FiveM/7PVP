@@ -1,6 +1,7 @@
 ---ELO des modes de jeu du Freeroam (Config.FreeroamBoards) : une cote par joueur et par mode, mise
 ---à jour à chaque partie terminée (victoire 1, égalité 0,5, défaite 0 ; un abandon compte comme une
----défaite). En équipe (CVC), la cote attendue se calcule sur la moyenne de chaque équipe.
+---défaite). En équipe (CVC), la cote attendue se calcule sur la moyenne de chaque équipe ; en chacun
+---pour soi (Gungame), chaque joueur est comparé à tous les autres selon le classement final.
 ---Le top de chaque mode est publié dans un state bag global, affiché sur son tableau DUI de la zone safe.
 ---@class ActivityRatingRow
 ---@field identifier string
@@ -130,6 +131,54 @@ function ActivityRating.applyTeams(activity, teamA, teamB, scoreA)
     return changes
 end
 
+---Résultat d'une partie chacun pour soi (Gungame) : chaque joueur est comparé à tous les autres selon
+---son classement final (devant 1, même place 0,5, derrière 0), les points en jeu (k) étant partagés
+---entre ses adversaires. Seul le premier compte une victoire, les autres une défaite.
+---Un même joueur deux fois (même compte) : la partie ne compte pas.
+---@param activity string clé de Config.FreeroamActivities
+---@param ranking { identity: ActivityRatingIdentity, place: integer }[] place 1 = premier
+---@return table<string, { before: integer, after: integer, delta: integer }> par identifiant
+function ActivityRating.applyFreeForAll(activity, ranking)
+    local seen = {}
+    for _, entry in ipairs(ranking) do
+        if seen[entry.identity.identifier] then return {} end
+        seen[entry.identity.identifier] = true
+    end
+    if #ranking < 2 then return {} end
+
+    local rows = {}
+    for index, entry in ipairs(ranking) do
+        rows[index] = ActivityRating.get(activity, entry.identity.identifier, entry.identity.name)
+    end
+
+    -- Calculé sur les cotes d'avant la partie, appliqué ensuite
+    local k = Config.FreeroamBoards.elo.k / (#ranking - 1)
+    local deltas = {}
+    for index, entry in ipairs(ranking) do
+        local total = 0
+        for other, opponent in ipairs(ranking) do
+            if other ~= index then
+                local expected = 1 / (1 + 10 ^ ((rows[other].elo - rows[index].elo) / 400))
+                local score = entry.place < opponent.place and 1 or (entry.place == opponent.place and 0.5 or 0)
+                total = total + score - expected
+            end
+        end
+        deltas[index] = math.floor(k * total + 0.5)
+    end
+
+    local changes, summary = {}, {}
+    for index, entry in ipairs(ranking) do
+        local row = rows[index]
+        local after = math.max(0, row.elo + deltas[index])
+        changes[entry.identity.identifier] = { before = row.elo, after = after, delta = after - row.elo }
+        ActivityRating.record(activity, row, after, entry.place == 1 and 1 or 0)
+        summary[#summary + 1] = ('%s %d (%+d)'):format(row.name, after, changes[entry.identity.identifier].delta)
+    end
+    ActivityRating.publishTop(activity)
+    Logger.info('[classement] %s : %s', activity, table.concat(summary, ', '))
+    return changes
+end
+
 ---@param activity string
 ---@param row ActivityRatingRow
 ---@param elo integer
@@ -163,6 +212,19 @@ end
 ---@return table<string, { before: integer, after: integer, delta: integer }> par identifiant ({} en cas d'erreur)
 function ActivityRating.safeApply(activity, teamA, teamB, scoreA)
     local ok, changes = pcall(ActivityRating.applyTeams, activity, teamA, teamB, scoreA)
+    if not ok then
+        Logger.error('[classement] ELO du %s non enregistré : %s', activity, changes)
+        return {}
+    end
+    return changes
+end
+
+---ActivityRating.applyFreeForAll sans faire échouer la fin de partie si la base ne répond pas.
+---@param activity string
+---@param ranking { identity: ActivityRatingIdentity, place: integer }[]
+---@return table<string, { before: integer, after: integer, delta: integer }> par identifiant ({} en cas d'erreur)
+function ActivityRating.safeApplyFreeForAll(activity, ranking)
+    local ok, changes = pcall(ActivityRating.applyFreeForAll, activity, ranking)
     if not ok then
         Logger.error('[classement] ELO du %s non enregistré : %s', activity, changes)
         return {}
