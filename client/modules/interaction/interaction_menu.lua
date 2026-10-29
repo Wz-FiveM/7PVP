@@ -26,6 +26,11 @@ Interaction.USE_DISTANCE = 3.5
 -- Curseur affiché : on garde le clavier (marcher) mais pas la caméra ni le tir (la souris clique)
 Interaction.BLOCKED_CONTROLS = { 1, 2, 24, 25, 68, 69, 70, 91, 92, 106, 140, 141, 142, 257, 263 }
 Interaction.OUTLINE = { 240, 195, 60, 255 } -- jaune signal de la D.A
+-- Pas de contour sur un ped (PNJ, joueur) : le jeu crashe en le dessinant.
+-- Une flèche au-dessus de sa tête le remplace.
+Interaction.PED_MARKER = 2
+Interaction.PED_MARKER_HEIGHT = 1.2
+Interaction.PED_MARKER_SIZE = 0.25
 
 Interaction.open = false -- curseur affiché (touche maintenue ou menu ouvert)
 Interaction.menuShown = false -- un menu de cible est affiché
@@ -91,6 +96,7 @@ function Interaction.targetLoop()
             local target = Interaction.resolve(Interaction.raycast(x, y))
             Interaction.setOutline(target and target.entity or nil)
         end
+        Interaction.drawPedMarker()
         Wait(0)
     end
     Interaction.setOutline(nil)
@@ -114,19 +120,32 @@ function Interaction.cursor()
     return x / width, y / height
 end
 
----Contour jaune sur la cible survolée (un seul à la fois).
+---Contour jaune sur la cible survolée (un seul à la fois) ; un ped est marqué par drawPedMarker.
 ---@param entity integer|nil
 function Interaction.setOutline(entity)
     if Interaction.outlined == entity then return end
-    if Interaction.outlined and DoesEntityExist(Interaction.outlined) then
-        SetEntityDrawOutline(Interaction.outlined, false)
+    local previous = Interaction.outlined
+    if previous and DoesEntityExist(previous) and not IsEntityAPed(previous) then
+        SetEntityDrawOutline(previous, false)
     end
     Interaction.outlined = entity
-    if entity then
+    if entity and not IsEntityAPed(entity) then
         SetEntityDrawOutlineColor(table.unpack(Interaction.OUTLINE))
         SetEntityDrawOutlineShader(1)
         SetEntityDrawOutline(entity, true)
     end
+end
+
+---Flèche jaune au-dessus du ped ciblé (à chaque image).
+function Interaction.drawPedMarker()
+    local ped = Interaction.outlined
+    if not ped or not DoesEntityExist(ped) or not IsEntityAPed(ped) then return end
+    local coords = GetEntityCoords(ped)
+    local size = Interaction.PED_MARKER_SIZE
+    local r, g, b, a = table.unpack(Interaction.OUTLINE)
+    DrawMarker(Interaction.PED_MARKER, coords.x, coords.y, coords.z + Interaction.PED_MARKER_HEIGHT,
+        0.0, 0.0, 0.0, 180.0, 0.0, 0.0, size, size, size, r, g, b, a,
+        false, true, 2, false, nil, nil, false)
 end
 
 ---@param rotation vector3 rotation de la caméra (degrés)
