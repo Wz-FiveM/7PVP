@@ -30,6 +30,7 @@ shared_scripts {
     'config/zones.lua',
     'config/appearance.lua',
     'config/lobby.lua',
+    'config/presence.lua',
     'config/admin.lua',
     'shared/core/logger.lua',
     'shared/core/events.lua',
@@ -95,6 +96,7 @@ server_scripts {
     'server/modules/pve/horde_service.lua',
     'server/modules/shop/shop_service.lua',
     'server/modules/leaderboard/leaderboard_service.lua',
+    'server/modules/presence/presence_service.lua',
     'server/api/exports.lua',
     'server/main.lua',
 }
@@ -149,6 +151,7 @@ client_scripts {
     'client/modules/pve/horde.lua',
     'client/modules/clock/clock.lua',
     'client/modules/dev/dev.lua',
+    'client/modules/presence/presence.lua',
     'client/api/exports.lua',
     'client/main.lua',
 }
