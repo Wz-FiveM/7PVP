@@ -57,6 +57,28 @@
   padding-left: 1.5rem;
   border-left: 0.0625rem solid var(--trait);
 }
+
+/* Onglets des coffres (chez le banquier) ; un coffre pas encore acheté propose son achat */
+.stash-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: -0.625rem;
+}
+.stash-tabs__tab--locked:not(.btn--active) {
+  color: var(--brume-hi);
+}
+.stash-purchase {
+  align-items: flex-start;
+  padding: 0.875rem 0;
+}
+.stash-purchase__text {
+  font-size: 0.6875rem;
+  color: var(--brume-hi);
+}
+.stash-purchase__hint {
+  font-size: 0.75rem;
+}
 .inventory__split .tile-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

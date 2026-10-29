@@ -133,7 +133,7 @@ export const initialState: GameState = {
     containers: {
       bag: { label: 'Sac', capacity: 0 },
       protected: { label: 'Conteneur protégé', capacity: 0 },
-      stash: { label: 'Coffre', capacity: 0, safeOnly: true },
+      stash: { label: 'Coffre 1', capacity: 0, safeOnly: true, order: 1 },
     },
     shortcutSlots: 7,
     xpPerLevel: 1000,

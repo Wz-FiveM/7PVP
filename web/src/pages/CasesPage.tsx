@@ -4,7 +4,8 @@ import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
 import { useGame } from '../store/GameContext';
 import { formatChance, rarityOf, rewardCountLabel, sortedRewards, totalWeight } from '../utils/cases';
-import { entriesOf, itemLabel } from '../utils/inventory';
+import { entriesOf, itemLabel, stashIds } from '../utils/inventory';
+import type { ItemStacks } from '../types/game';
 import { formatMoney, formatPoints } from '../utils/format';
 import '../components/cases/cases.css';
 import './pages.css';
@@ -15,12 +16,13 @@ export function CasesPage() {
   const { config, player, menu } = state;
   if (!player) return null;
 
-  // Caisses portées (sac + conteneur protégé) : celles du coffre doivent d'abord en sortir
-  const carried = (id: string) =>
-    [...entriesOf(player.inventory.bag), ...entriesOf(player.inventory.protected)]
+  // Caisses portées (sac + conteneur protégé) : celles des coffres doivent d'abord en sortir
+  const countIn = (stacks: ItemStacks[], id: string) =>
+    stacks.flatMap(entriesOf)
       .filter(([name]) => name === id)
       .reduce((total, [, count]) => total + count, 0);
-  const stored = (id: string) => entriesOf(player.inventory.stash).find(([name]) => name === id)?.[1] ?? 0;
+  const carried = (id: string) => countIn([player.inventory.bag, player.inventory.protected], id);
+  const stored = (id: string) => countIn(stashIds(config).map((stash) => player.inventory[stash] ?? []), id);
 
   const points = config.shopPoints;
   const balance = player.shopPoints ?? 0;

@@ -78,6 +78,14 @@ Config.PveActivationDistance = 200.0 -- les zombies apparaissent quand un joueur
 Config.PveDespawnDelay = 60 -- secondes sans joueur avant de supprimer les zombies
 Config.NpcCorpseTime = 20 -- secondes avant suppression d'un corps sans butin (sinon : fouillé ou après LootLifetime)
 
+-- Monde zombies : en entrant dans une zone PvE, le joueur passe dans un monde à part (bucket de
+-- routage), partagé avec les autres joueurs qui farment, sans PvP. Il revient au monde PvP en sortant.
+-- Même inventaire ; le butin (corps, sacs) n'est visible et ramassable que dans le monde où il est tombé.
+Config.PveWorld = {
+    bucket = 1,
+    exitMargin = 15.0, -- mètres au-delà du rayon avant de revenir au monde PvP (pas d'allers-retours au bord)
+}
+
 -- Zombies des zones PvE : sans arme, ils foncent sur le joueur le plus proche et lui vomissent dessus.
 -- Les dégâts, la portée et le délai entre deux attaques sont vérifiés par le serveur.
 Config.Zombie = {

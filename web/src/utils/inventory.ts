@@ -1,20 +1,37 @@
-import type { ContainerId, GameConfig, ItemStack, ItemStacks, ItemType } from '../types/game';
+import type { ContainerId, GameConfig, Inventory, ItemStack, ItemStacks, ItemType, StashId } from '../types/game';
 
 const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, vehicle: 4, case: 5, material: 6, money: 7 };
 
-export const CONTAINERS: ContainerId[] = ['bag', 'protected', 'stash'];
+/** Conteneurs portés (les coffres restent chez le banquier) */
+export const CARRIED: ContainerId[] = ['bag', 'protected'];
 
-/** Destinations possibles d'un objet (le coffre seulement à côté du banquier). */
-export function moveTargets(from: ContainerId, stashOpen: boolean): ContainerId[] {
-  return CONTAINERS.filter((id) => id !== from && (stashOpen || (id !== 'stash' && from !== 'stash')));
+export const isStash = (id: string): id is StashId => id.startsWith('stash');
+
+/** Coffres dans l'ordre de leurs onglets. */
+export function stashIds(config: GameConfig): StashId[] {
+  return Object.keys(config.containers)
+    .filter(isStash)
+    .sort((a, b) => (config.containers[a]?.order ?? 0) - (config.containers[b]?.order ?? 0));
+}
+
+/** Coffre ouvert d'office ou déjà acheté. */
+export function isUnlocked(inventory: Inventory, config: GameConfig, id: StashId): boolean {
+  const unlocked = inventory.unlocked;
+  return !config.containers[id]?.price || (!!unlocked && !Array.isArray(unlocked) && unlocked[id] === true);
+}
+
+/** Destinations possibles d'un objet (`stash` : le coffre ouvert chez le banquier, sinon null). */
+export function moveTargets(from: ContainerId, stash: StashId | null): ContainerId[] {
+  if (isStash(from)) return stash ? CARRIED : [];
+  return [...CARRIED.filter((id) => id !== from), ...(stash ? [stash] : [])];
 }
 
 /** Libellé de l'action « déplacer vers » dans le menu contextuel. */
-export const MOVE_LABELS: Record<ContainerId, string> = {
-  bag: 'Vers le sac',
-  protected: 'Protéger',
-  stash: 'Ranger au coffre',
-};
+export function moveLabel(to: ContainerId, config: GameConfig): string {
+  if (to === 'bag') return 'Vers le sac';
+  if (to === 'protected') return 'Protéger';
+  return `Ranger : ${config.containers[to]?.label ?? 'Coffre'}`;
+}
 
 /** Lua encode les tables vides en `[]` : on normalise en paires [nom, quantité]. */
 export const entriesOf = (stacks: ItemStacks | undefined): [string, number][] =>

@@ -9,6 +9,7 @@ local PlayerService = PVP.use('PlayerService')
 local CombatService = PVP.use('CombatService')
 local GroupService = PVP.use('GroupService')
 local BountyService = PVP.use('BountyService')
+local PveWorldService = PVP.use('PveWorldService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 
@@ -81,7 +82,8 @@ end
 ---@param data table hitGlobalId ou hitGlobalIds (selon la version du serveur)
 function CombatTagService.onWeaponDamage(sender, data)
     local attacker = PlayerService.get(sender)
-    if not attacker or type(data) ~= 'table' then return end
+    -- Monde zombies : pas de PvP, les touches sur un joueur y sont annulées (PveWorldService)
+    if not attacker or type(data) ~= 'table' or PveWorldService.isInside(sender) then return end
 
     local ids = data.hitGlobalIds or { data.hitGlobalId }
     for _, netId in ipairs(ids) do

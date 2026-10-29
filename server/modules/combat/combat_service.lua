@@ -132,7 +132,7 @@ end
 ---@param victim PvpPlayer
 ---@param coords? vector3 position du sac (défaut : position du joueur)
 function CombatService.dropVictimLoot(victim, coords)
-    LootService.drop(coords or victim:getCoords(), victim:takeBag())
+    LootService.drop(coords or victim:getCoords(), victim:takeBag(), { bucket = GetPlayerRoutingBucket(victim.source) })
 end
 
 ---@param victim PvpPlayer

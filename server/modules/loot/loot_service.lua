@@ -12,6 +12,7 @@
 ---@field browse boolean|nil s'ouvre comme un inventaire : on prend les objets un par un (largage)
 ---@field title string|nil nom affiché dans l'inventaire (browse)
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
+---@field bucket integer bucket de routage où il est tombé (monde PvP ou monde zombies) : seuls ses joueurs le voient
 
 ---@class LootDropOptions
 ---@field netId integer|nil
@@ -22,6 +23,7 @@
 ---@field solid boolean|nil
 ---@field browse boolean|nil
 ---@field title string|nil
+---@field bucket integer|nil bucket de routage (défaut 0, le monde PvP)
 
 ---@class LootServiceModule
 local LootService = PVP.define('LootService')
@@ -126,6 +128,7 @@ function LootService.drop(coords, items, options)
         browse = options.browse == true,
         title = options.title,
         lootedBy = {},
+        bucket = options.bucket or 0,
     }
     TriggerClientEvent(Events.client.lootAdd, -1, id, LootService.describe(LootService.bags[id]))
     return id
@@ -154,6 +157,7 @@ end
 function LootService.describe(bag)
     return {
         coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label, solid = bag.solid, browse = bag.browse,
+        bucket = bag.bucket,
     }
 end
 
@@ -229,6 +233,14 @@ function LootService.isInReach(playerCoords, lootCoords)
     return flat <= Config.LootPickupDistance + 3.0 and math.abs(playerCoords.z - lootCoords.z) <= LootService.REACH_HEIGHT
 end
 
+---À portée et dans le même monde (bucket) que le butin.
+---@param player PvpPlayer
+---@param bag LootBag
+---@return boolean
+function LootService.canReach(player, bag)
+    return GetPlayerRoutingBucket(player.source) == bag.bucket and LootService.isInReach(player:getCoords(), LootService.getCoords(bag))
+end
+
 ---Ramasse ce qui rentre dans le sac du joueur ; le reste reste au sol.
 ---@param source integer
 ---@param id integer
@@ -236,7 +248,7 @@ function LootService.pickup(source, id)
     local player = PlayerService.get(source)
     local bag = LootService.bags[id]
     if not player or player.dead or not bag then return end
-    if not LootService.isInReach(player:getCoords(), LootService.getCoords(bag)) then return end
+    if not LootService.canReach(player, bag) then return end
 
     local taken = {}
     for name, count in pairs(bag.items) do
@@ -275,7 +287,7 @@ function LootService.open(source, id)
     if not player or player.dead or not bag or not bag.browse then
         return { ok = false, message = 'Ce butin n\'existe plus.' }
     end
-    if not LootService.isInReach(player:getCoords(), LootService.getCoords(bag)) then
+    if not LootService.canReach(player, bag) then
         return { ok = false, message = 'Approche-toi pour fouiller.' }
     end
 
@@ -299,7 +311,7 @@ function LootService.take(source, id, name, count, to)
         return { ok = false, message = 'Ce butin n\'existe plus.' }
     end
     if not LootService.TAKE_CONTAINERS[to] or type(name) ~= 'string' or count <= 0 then return { ok = false } end
-    if not LootService.isInReach(player:getCoords(), LootService.getCoords(bag)) then
+    if not LootService.canReach(player, bag) then
         return { ok = false, message = 'Tu es trop loin du butin.' }
     end
     local available = bag.items[name]

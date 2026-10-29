@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import { useGame } from '../../store/GameContext';
 import type { ContainerId, ItemStack, ItemStacks } from '../../types/game';
-import { entriesOf, fittedAttachments, stacksOf, weightOf } from '../../utils/inventory';
+import { entriesOf, fittedAttachments, isStash, stacksOf, weightOf } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 import { SectionTitle } from '../menu/SectionTitle';
 import { SegmentBar } from '../ui/SegmentBar';
@@ -27,8 +27,8 @@ interface ContainerSectionProps {
   onItemQuickMove?: (stack: ItemStack, container: ContainerId) => void;
 }
 
-/** Apparence de chaque conteneur : badge, couleur de la jauge, nombre de segments. */
-const STYLES: Record<ContainerId, { note: string; outline: boolean; color?: string; segments: number }> = {
+/** Apparence de chaque conteneur : badge, couleur de la jauge, nombre de segments (tous les coffres comme `stash`). */
+const STYLES: Record<'bag' | 'protected' | 'stash', { note: string; outline: boolean; color?: string; segments: number }> = {
   bag: { note: 'Perdu à la mort', outline: true, segments: 40 },
   protected: { note: 'Conservé à la mort', outline: false, color: 'var(--abri)', segments: 20 },
   stash: { note: 'Auprès du banquier', outline: false, color: 'var(--toxine)', segments: 50 },
@@ -50,15 +50,16 @@ export function ContainerSection({
   if (!definition) return null;
 
   const weight = weightOf(stacks, config);
-  const style = STYLES[id];
+  const kind = isStash(id) ? 'stash' : id;
+  const style = STYLES[kind];
   const isProtected = id === 'protected';
   const keepsItems = id !== 'bag';
 
   return (
-    <section className={`container container--${id}${locked ? ' container--locked' : ''}`}>
+    <section className={`container container--${kind}${locked ? ' container--locked' : ''}`}>
       <SectionTitle
         title={definition.label}
-        icon={keepsItems ? <Icon name="lock" size={15} strokeWidth={2.4} className={`${id}-icon`} /> : undefined}
+        icon={keepsItems ? <Icon name="lock" size={15} strokeWidth={2.4} className={`${kind}-icon`} /> : undefined}
         badge={
           style.outline
             ? <span className="chip chip--outline">{style.note}</span>
@@ -99,7 +100,7 @@ export function ContainerSection({
                 onDragBegin={(event) =>
                   begin({ kind: 'container', container: id, item: stack.name, count: stack.count }, event)
                 }
-                onDoubleClick={() => id !== 'stash' && onItemDoubleClick(stack)}
+                onDoubleClick={() => !isStash(id) && onItemDoubleClick(stack)}
                 onContextMenu={(event) => onItemContextMenu(event, stack, id)}
               />
             );

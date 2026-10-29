@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { AdminActionPayload } from '../types/admin';
-import type { ContainerId, LeaderboardScope, PauseAction, ToastKind } from '../types/game';
+import type { ContainerId, LeaderboardScope, PauseAction, StashId, ToastKind } from '../types/game';
 import type { GameState } from './gameReducer';
 
 export interface GameActions {
@@ -18,6 +18,8 @@ export interface GameActions {
   equip: (name: string) => Promise<void>;
   moveItem: (item: string, from: ContainerId, to: ContainerId, count: number) => Promise<void>;
   dropItem: (item: string, container: ContainerId, count: number) => Promise<void>;
+  /** Achète un coffre payant (chez le banquier) */
+  unlockStash: (id: StashId) => Promise<void>;
   /** Prend des objets du butin ouvert (largage) et les range dans le sac ou le conteneur protégé */
   lootTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;

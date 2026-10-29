@@ -225,12 +225,15 @@ Config.Attachments = {
 -- Conteneurs de l'inventaire
 -- bag       : perdu à la mort (tombe dans un sac de butin)
 -- protected : conservé à la mort
--- stash     : coffre personnel, conservé, accessible seulement près du banquier (safeOnly, config/npcs.lua).
---             Son contenu ne compte pas comme porté (armes, munitions, argent à dépenser).
+-- stash*    : coffres personnels, conservés, accessibles seulement près du banquier (safeOnly, config/npcs.lua).
+--             Leur contenu ne compte pas comme porté (armes, munitions, argent à dépenser).
+--             order : rang de l'onglet ; price : coffre à acheter ($ portés) auprès du banquier, une fois pour toutes
 Config.Containers = {
     bag = { label = 'Mon sac', capacity = 50.0 },
     protected = { label = 'Conteneur protégé', capacity = 40.0 },
-    stash = { label = 'Coffre', capacity = 500.0, safeOnly = true },
+    stash = { label = 'Coffre 1', capacity = 500.0, safeOnly = true, order = 1 },
+    stash2 = { label = 'Coffre 2', capacity = 500.0, safeOnly = true, order = 2, price = 15000 },
+    stash3 = { label = 'Coffre 3', capacity = 500.0, safeOnly = true, order = 3, price = 50000 },
 }
 
 -- Nombre d'emplacements de raccourcis (touches 1 à N)

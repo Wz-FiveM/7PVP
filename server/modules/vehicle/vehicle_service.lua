@@ -82,9 +82,6 @@ function VehicleService.deploy(player, name)
     if GetVehiclePedIsIn(ped, false) ~= 0 then
         return { ok = false, message = 'Descends d\'abord du véhicule.' }
     end
-    if player:isInSafeZone() then
-        return { ok = false, message = 'Impossible de sortir un véhicule en zone safe : sors de la zone.' }
-    end
     local current = VehicleService.active[player.source]
     if current and not current.netId then
         return { ok = false, message = 'Un véhicule est déjà en train d\'apparaître.' }
@@ -249,11 +246,11 @@ function VehicleService.hasOtherOccupant(entity, ped)
     return false
 end
 
----Rend l'objet : dans le sac, sinon le conteneur protégé, sinon le coffre.
+---Rend l'objet : dans le sac, sinon le conteneur protégé, sinon un coffre.
 ---@param player PvpPlayer
 ---@param name string
 function VehicleService.refund(player, name)
-    for _, container in ipairs({ 'bag', 'protected', 'stash' }) do
+    for _, container in ipairs({ 'bag', 'protected', table.unpack(player.inventory:openStashes()) }) do
         if player:giveItem(name, 1, container) > 0 then return end
     end
 end

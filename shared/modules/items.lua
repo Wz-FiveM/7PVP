@@ -46,6 +46,19 @@ function Items.isContainer(id)
     return type(id) == 'string' and Config.Containers[id] ~= nil
 end
 
+---Coffres (conteneurs `safeOnly`) dans l'ordre de leurs onglets.
+---@return string[]
+function Items.stashIds()
+    local ids = {}
+    for id, container in pairs(Config.Containers) do
+        if container.safeOnly then ids[#ids + 1] = id end
+    end
+    table.sort(ids, function(a, b)
+        return (Config.Containers[a].order or 0) < (Config.Containers[b].order or 0)
+    end)
+    return ids
+end
+
 ---Poids total d'un conteneur { [nom] = quantité }.
 ---@param container table<string, integer>
 ---@return number

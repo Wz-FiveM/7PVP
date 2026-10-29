@@ -5,6 +5,7 @@ local PlayerService = PVP.use('PlayerService')
 local CombatService = PVP.use('CombatService')
 local Zones = PVP.use('Zones')
 local ModeRegistry = PVP.use('ModeRegistry')
+local PveWorldService = PVP.use('PveWorldService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Events = PVP.use('Events')
 
@@ -12,7 +13,7 @@ PveService.TICK_INTERVAL = 1500
 -- Les positions vues par le serveur ont un léger retard sur celles du client
 PveService.ATTACK_RANGE_TOLERANCE = 2.0
 PveService.ATTACK_COOLDOWN_TOLERANCE = 300
--- Les joueurs à cette distance voient le vomi (les particules sont locales à chaque client)
+-- Les joueurs du monde zombies à cette distance voient le vomi (les particules sont locales à chaque client)
 PveService.VOMIT_BROADCAST_RANGE = 120.0
 
 ---@type table<string, PveZone>
@@ -76,7 +77,7 @@ function PveService.onZombieAttack(source, netId, targetId)
     if not PveService.getZoneOf(ped) or NetworkGetEntityOwner(ped) ~= source then return end
 
     local target = PlayerService.get(targetId)
-    if not target or target.dead or target.mode ~= 'pvp' then return end
+    if not target or target.dead or not PveWorldService.isInside(target.source) then return end
 
     local zombieType = Config.ZombieTypes[Entity(ped).state.zombieType] or Config.ZombieTypes.walker
     local range = zombieType.range or Config.Zombie.attackRange
@@ -90,7 +91,7 @@ function PveService.onZombieAttack(source, netId, targetId)
 
     local damage = math.floor(Config.Zombie.damage * zombieType.damage + 0.5)
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
-        if #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveService.VOMIT_BROADCAST_RANGE then
+        if PveWorldService.isInside(id) and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveService.VOMIT_BROADCAST_RANGE then
             TriggerClientEvent(Events.client.zombieVomit, id, netId, target.source, damage)
         end
     end

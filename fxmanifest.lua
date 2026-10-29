@@ -99,6 +99,7 @@ server_scripts {
     'server/modules/shop_points/shop_points_service.lua',
     'server/modules/freeroam/freeroam_config_service.lua',
     'server/modules/pve/pve_zone.lua',
+    'server/modules/pve/pve_world_service.lua',
     'server/modules/pve/pve_service.lua',
     'server/modules/pve/horde_service.lua',
     'server/modules/shop/shop_service.lua',

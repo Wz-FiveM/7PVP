@@ -116,6 +116,7 @@ Events.callbacks = {
     dropItem = 'inventory:drop',
     setShortcut = 'inventory:setShortcut',
     attachment = 'inventory:attachment',
+    unlockStash = 'inventory:unlockStash',
     craft = 'crafting:craft',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',

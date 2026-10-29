@@ -1,7 +1,9 @@
 export type ZoneType = 'safe' | 'pve' | 'pvp';
 export type ToastKind = 'info' | 'success' | 'error';
 export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material' | 'vehicle' | 'case';
-export type ContainerId = 'bag' | 'protected' | 'stash';
+/** Coffres : 'stash' (coffre 1), 'stash2'... (Config.Containers, conteneurs `safeOnly`) */
+export type StashId = `stash${string}`;
+export type ContainerId = 'bag' | 'protected' | StashId;
 
 export interface ZoneInfo {
   id?: string;
@@ -22,12 +24,14 @@ export interface LootContainer {
 export interface Inventory {
   bag: ItemStacks;
   protected: ItemStacks;
-  /** coffre : seulement en zone safe */
-  stash: ItemStacks;
+  /** coffres : seulement auprès du banquier */
+  [stash: StashId]: ItemStacks;
   /** objet assigné à chaque touche, `false` si vide */
   shortcuts: (string | false)[];
   /** arme -> accessoires fixés (Lua envoie `[]` s'il n'y en a aucun) */
   attachments?: Record<string, Record<string, boolean>> | [];
+  /** coffres payants achetés (Lua envoie `[]` s'il n'y en a aucun) */
+  unlocked?: Record<string, boolean> | [];
 }
 
 export interface PlayerState {
@@ -72,6 +76,10 @@ export interface ContainerDefinition {
   capacity: number;
   /** utilisable seulement en zone safe (coffre) */
   safeOnly?: boolean;
+  /** (coffres) rang de l'onglet */
+  order?: number;
+  /** (coffres) prix d'achat auprès du banquier, absent = ouvert d'office */
+  price?: number;
 }
 
 export interface ShopEntry {

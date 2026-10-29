@@ -7,6 +7,7 @@
 ---@field label string|nil texte de l'action
 ---@field solid boolean objet avec collisions (caisse de largage)
 ---@field browse boolean s'ouvre comme un inventaire (largage) au lieu d'être ramassé d'un coup
+---@field pveWorld boolean tombé dans le monde zombies (Config.PveWorld) : invisible depuis le monde PvP, et inversement
 
 ---@class LootModule
 local Loot = PVP.define('Loot')
@@ -64,6 +65,7 @@ function Loot.add(id, info)
         label = info.label,
         solid = info.solid == true,
         browse = info.browse == true,
+        pveWorld = info.bucket == Config.PveWorld.bucket,
     }
 end
 
@@ -162,8 +164,8 @@ function Loot.renderBag(id, bag, pos)
     local coords = Loot.getCoords(bag)
     local dist = #(pos - coords)
 
-    -- Le butin n'existe que dans le monde PvP
-    if not State.inPvp() or dist >= Loot.STREAM_DISTANCE then
+    -- Le butin n'existe que dans le mode PvP, et seulement dans le monde où il est tombé (PvP ou zombies)
+    if not State.inPvp() or bag.pveWorld ~= (LocalPlayer.state.pveWorld == true) or dist >= Loot.STREAM_DISTANCE then
         if bag.object then Loot.deleteObject(bag) end
         return false
     end

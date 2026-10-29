@@ -1,6 +1,6 @@
 import { fetchNui } from './nui';
 import { mockInit, mockLeaderboard } from '../dev/mocks';
-import type { ContainerId, LeaderboardRow, LeaderboardScope } from '../types/game';
+import type { ContainerId, LeaderboardRow, LeaderboardScope, StashId } from '../types/game';
 import type { ActionResult, CaseOpenResult, InitPayload } from '../types/nui';
 
 const MOCK_OK: ActionResult = { ok: true, message: 'Action simulée (navigateur)' };
@@ -31,6 +31,9 @@ export const gameApi = {
 
   lootTake: (item: string, count: number, to: 'bag' | 'protected') =>
     fetchNui<ActionResult>('lootTake', { item, count, to }, MOCK_OK),
+
+  /** Achat d'un coffre payant auprès du banquier */
+  unlockStash: (id: StashId) => fetchNui<ActionResult>('unlockStash', { id }, MOCK_OK),
 
   dropItem: (item: string, container: ContainerId, count: number) =>
     fetchNui<ActionResult>('dropItem', { item, container, count }, MOCK_OK),

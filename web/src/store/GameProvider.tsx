@@ -221,6 +221,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       craft: (id) => run(gameApi.craft(id)),
       attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),
       dropItem: (item, container, count) => run(gameApi.dropItem(item, container, count)),
+      unlockStash: (id) => run(gameApi.unlockStash(id)),
       setShortcut: (slot, item) => run(gameApi.setShortcut(slot, item)),
       tradeOffer: (item, count) => run(tradeApi.offer(item, count)),
       tradeReady: (ready) => run(tradeApi.ready(ready)),

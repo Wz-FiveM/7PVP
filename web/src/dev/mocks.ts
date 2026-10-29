@@ -231,7 +231,9 @@ export const mockInit: InitPayload = {
     containers: {
       bag: { label: 'Mon sac', capacity: 50 },
       protected: { label: 'Conteneur protégé', capacity: 40 },
-      stash: { label: 'Coffre', capacity: 500, safeOnly: true },
+      stash: { label: 'Coffre 1', capacity: 500, safeOnly: true, order: 1 },
+      stash2: { label: 'Coffre 2', capacity: 500, safeOnly: true, order: 2, price: 15000 },
+      stash3: { label: 'Coffre 3', capacity: 500, safeOnly: true, order: 3, price: 50000 },
     },
     attachments: {
       att_suppressor: { weapon_pistol: 'COMPONENT_AT_PI_SUPP_02', weapon_carbinerifle: 'COMPONENT_AT_AR_SUPP' },
@@ -360,6 +362,9 @@ export const mockInit: InitPayload = {
       },
       protected: { money: 33327, medkit: 2, ammo_9mm: 40 },
       stash: { weapon_smg: 1, ammo_45acp: 180, medkit: 4, armor: 2, money: 120000 },
+      stash2: { mat_scrap: 40, case_street: 2 },
+      stash3: [],
+      unlocked: { stash2: true },
       shortcuts: ['weapon_pistol', 'weapon_carbinerifle', false, false, false, 'medkit', false],
     },
   },

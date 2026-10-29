@@ -15,6 +15,7 @@ function InventoryService.init()
     Callback.register(Events.callbacks.dropItem, InventoryService.drop)
     Callback.register(Events.callbacks.setShortcut, InventoryService.setShortcut)
     Callback.register(Events.callbacks.attachment, InventoryService.attachment)
+    Callback.register(Events.callbacks.unlockStash, InventoryService.unlockStash)
 end
 
 ---@param source integer
@@ -25,18 +26,51 @@ function InventoryService.getActivePlayer(source)
     return player
 end
 
----Le coffre (conteneur `safeOnly`) ne s'ouvre qu'à côté du banquier de la zone safe.
+---Les coffres (conteneurs `safeOnly`) ne s'ouvrent qu'à côté du banquier de la zone safe,
+---et seulement une fois achetés pour les coffres payants.
 ---@param player PvpPlayer
 ---@param ... string conteneurs touchés par l'action
 ---@return boolean ok, string|nil message
 function InventoryService.canAccess(player, ...)
     for _, id in ipairs({ ... }) do
         local container = Config.Containers[id]
-        if container and container.safeOnly and not SafeNpcs.isNear(player:getCoords(), 'stash', Config.SafeNpcs.useDistance + 2.0) then
+        if container and container.safeOnly and not InventoryService.isAtBanker(player) then
             return false, ('%s : %s'):format(container.label, SafeNpcs.hint('stash'))
+        end
+        if container and not player.inventory:isUnlocked(id) then
+            return false, ('%s : achète-le d\'abord auprès du banquier.'):format(container.label)
         end
     end
     return true
+end
+
+---@param player PvpPlayer
+---@return boolean
+function InventoryService.isAtBanker(player)
+    return SafeNpcs.isNear(player:getCoords(), 'stash', Config.SafeNpcs.useDistance + 2.0)
+end
+
+---Achat d'un coffre payant (Config.Containers[id].price) auprès du banquier, avec l'argent porté.
+---@param source integer
+---@param id any
+---@return { ok: boolean, message?: string }
+function InventoryService.unlockStash(source, id)
+    local player = InventoryService.getActivePlayer(source)
+    local container = type(id) == 'string' and Config.Containers[id]
+    if not player or not container or not container.safeOnly or not container.price then return { ok = false } end
+    if player.inventory:isUnlocked(id) then
+        return { ok = false, message = ('%s : déjà acheté.'):format(container.label) }
+    end
+    if not InventoryService.isAtBanker(player) then
+        return { ok = false, message = ('%s : %s'):format(container.label, SafeNpcs.hint('stash')) }
+    end
+    if not player:removeMoney(container.price) then
+        return { ok = false, message = ('Il te faut $%d sur toi pour acheter : %s.'):format(container.price, container.label) }
+    end
+
+    player.inventory:unlock(id)
+    player:sync()
+    return { ok = true, message = ('%s acheté'):format(container.label) }
 end
 
 ---@param source integer
@@ -115,7 +149,7 @@ function InventoryService.drop(source, data)
     for attachment, count in pairs(player.inventory:releaseAttachments(data.item)) do
         dropped[attachment] = (dropped[attachment] or 0) + count
     end
-    LootService.drop(player:getCoords(), dropped)
+    LootService.drop(player:getCoords(), dropped, { bucket = GetPlayerRoutingBucket(player.source) })
     player:sync()
     return { ok = true, message = ('Jeté : %s'):format(Items.describe({ [data.item] = removed })) }
 end

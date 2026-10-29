@@ -2,7 +2,7 @@
 export const TIPS: string[] = [
   'À ta mort, tout le contenu de ton sac tombe au sol. Le conteneur protégé, lui, te suit.',
   'L\'argent est un objet : range-le dans ton conteneur protégé pour ne pas le perdre.',
-  'Les zones PvE (en vert) grouillent de zombies : garde tes distances, leur vomi fait mal.',
+  'Les zones PvE (en vert) grouillent de zombies : monde à part, sans PvP, mais leur vomi fait mal.',
   'En zone safe, impossible de tirer : c\'est l\'endroit pour acheter, trier et se soigner.',
   "Touches 1 à 7 : sortir une arme ou te soigner depuis tes raccourcis (la barre s'affiche).",
   'Les munitions sont partagées par calibre : un 9mm sert à tous tes pistolets.',

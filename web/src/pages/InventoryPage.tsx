@@ -6,16 +6,15 @@ import { DragProvider } from '../components/inventory/DragProvider';
 import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
+import { StashPurchase, StashTabs } from '../components/inventory/StashTabs';
 import { TradeSection } from '../components/inventory/TradeSection';
 import { useGame } from '../store/GameContext';
-import type { ContainerId, ItemStack } from '../types/game';
+import type { ContainerId, ItemStack, StashId } from '../types/game';
 import {
-  compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, itemLabel, MOVE_LABELS, moveTargets,
+  CARRIED, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, itemLabel,
+  moveLabel, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
-
-/** Conteneurs portés (le coffre n'apparaît que chez le banquier) */
-const CARRIED: ContainerId[] = ['bag', 'protected'];
 
 /** Où va ce qu'on prend dans un butin */
 type TakeTarget = 'bag' | 'protected';
@@ -50,6 +49,8 @@ export function InventoryPage() {
   const [contextMenu, setContextMenu] = useState<OpenContextMenu | null>(null);
   const [lootSelection, setLootSelection] = useState<string | null>(null);
   const [tradeSelection, setTradeSelection] = useState<string | null>(null);
+  // Onglet du coffre affiché chez le banquier
+  const [activeStash, setActiveStash] = useState<StashId>('stash');
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const closeQuantity = useCallback(() => setQuantity(null), []);
@@ -57,6 +58,8 @@ export function InventoryPage() {
   if (!player) return null;
   // Le coffre ne s'ouvre (et ne s'affiche) qu'à côté du banquier
   const atBanker = Boolean(state.menu.near.stash);
+  // Coffre de l'onglet choisi, s'il est ouvert (acheté) : les objets y vont et en viennent
+  const openStash = atBanker && isUnlocked(player.inventory, config, activeStash) ? activeStash : null;
   // Butin ouvert (largage) : son contenu s'affiche à droite, à la place du coffre
   const loot = state.loot;
   // Échange en cours (/trade) : il prend la place du butin et du coffre
@@ -117,17 +120,17 @@ export function InventoryPage() {
   /** Règles du glisser-déposer : où peut-on lâcher quoi ? */
   const acceptsDrop = (source: DragSource, target: DropTarget): boolean => {
     // Son offre d'échange reçoit ce qu'on porte ; ses objets lâchés ailleurs sont retirés de l'offre
-    if (target.kind === 'trade') return source.kind === 'trade' || (source.kind === 'container' && source.container !== 'stash');
+    if (target.kind === 'trade') return source.kind === 'trade' || (source.kind === 'container' && !isStash(source.container));
     if (source.kind === 'trade') return false;
     // Objet du butin : seulement vers le sac ou le conteneur protégé
     if (source.kind === 'loot') {
       return target.kind === 'container' && (target.container === 'bag' || target.container === 'protected');
     }
     if (target.kind === 'container') {
-      return source.kind === 'container' && moveTargets(source.container, atBanker).includes(target.container);
+      return source.kind === 'container' && moveTargets(source.container, openStash).includes(target.container);
     }
     if (source.kind === 'shortcut' && source.slot === target.slot) return false;
-    if (source.kind === 'container' && source.container === 'stash') return false;
+    if (source.kind === 'container' && isStash(source.container)) return false;
     return isShortcutItem(config.items[source.item]?.type);
   };
 
@@ -147,7 +150,7 @@ export function InventoryPage() {
 
     if (target.kind === 'container') {
       if (source.kind === 'container') requestMove(source.item, source.container, target.container, source.count);
-      if (source.kind === 'loot' && target.container !== 'stash') requestTake(source.item, source.count, target.container);
+      if (source.kind === 'loot' && !isStash(target.container)) requestTake(source.item, source.count, target.container);
       return;
     }
     if (source.kind === 'loot') return;
@@ -190,7 +193,7 @@ export function InventoryPage() {
     }
     const list: ContextMenuAction[] = [];
     // Le contenu du coffre n'est pas porté : on le sort d'abord
-    const carried = container !== 'stash';
+    const carried = !isStash(container);
     if (trade && carried) list.push({ label: 'Proposer à l\'échange', onSelect: () => requestOffer(stack.name) });
     if (carried && stack.item.type === 'weapon') {
       list.push({ label: 'Équiper', onSelect: () => actions.equip(stack.name) });
@@ -205,8 +208,8 @@ export function InventoryPage() {
     if (carried && stack.item.type === 'case') {
       list.push({ label: 'Ouvrir la caisse', onSelect: () => actions.openCase(stack.name) });
     }
-    for (const to of moveTargets(container, atBanker)) {
-      list.push({ label: MOVE_LABELS[to], onSelect: () => requestMove(stack.name, container, to, stack.count) });
+    for (const to of moveTargets(container, openStash)) {
+      list.push({ label: moveLabel(to, config), onSelect: () => requestMove(stack.name, container, to, stack.count) });
     }
     list.push({ label: 'Jeter', danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
     return list;
@@ -232,13 +235,14 @@ export function InventoryPage() {
 
   /**
    * Alt + clic : toute la pile (ou ce qui tient) part dans « l'autre » conteneur.
-   * Chez le banquier : ce qu'on porte va au coffre et le coffre revient dans le sac ;
+   * Chez le banquier : ce qu'on porte va au coffre de l'onglet choisi et le coffre revient dans le sac ;
    * ailleurs : du sac vers le conteneur protégé, et inversement.
    */
   const quickMove = (stack: ItemStack, from: ContainerId) => {
     // Échange en cours : toute la pile part dans son offre
-    if (trade && from !== 'stash') return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
-    const to: ContainerId = atBanker ? (from === 'stash' ? 'bag' : 'stash') : from === 'bag' ? 'protected' : 'bag';
+    if (trade && !isStash(from)) return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
+    const to: ContainerId | null = isStash(from) ? 'bag' : atBanker ? openStash : from === 'bag' ? 'protected' : 'bag';
+    if (!to) return actions.notify(`${config.containers[activeStash]?.label ?? 'Coffre'} : achète-le d'abord.`, 'error');
     const target = config.containers[to];
     const free = target.capacity - weightOf(player.inventory[to] ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
@@ -313,7 +317,10 @@ export function InventoryPage() {
           // Chez le banquier : ce qu'on porte à gauche, le coffre à droite
           <div className="inventory__split">
             <div className="inventory__column">{CARRIED.map(renderSection)}</div>
-            <div className="inventory__column inventory__column--stash">{renderSection('stash')}</div>
+            <div className="inventory__column inventory__column--stash">
+              <StashTabs active={activeStash} onChange={setActiveStash} />
+              {openStash ? renderSection(openStash) : <StashPurchase id={activeStash} />}
+            </div>
           </div>
         ) : (
           CARRIED.map(renderSection)

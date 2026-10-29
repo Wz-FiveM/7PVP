@@ -81,6 +81,10 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.moveItem, data) or { ok = false })
     end)
 
+    RegisterNUICallback('unlockStash', function(data, cb)
+        cb(Callback.await(Events.callbacks.unlockStash, data.id) or { ok = false })
+    end)
+
     RegisterNUICallback('dropItem', function(data, cb)
         cb(Callback.await(Events.callbacks.dropItem, data) or { ok = false })
     end)

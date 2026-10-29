@@ -1,9 +1,10 @@
----Inventaire d'un joueur : sac, conteneur protégé et coffre (limite de poids) + raccourcis.
+---Inventaire d'un joueur : sac, conteneur protégé et coffres (limite de poids) + raccourcis.
 ---Données pures, aucun native. Toutes les entrées venant du client sont validées ici.
 ---@class PvpInventory
 ---@field bag table<string, integer> perdu à la mort
 ---@field protected table<string, integer> conservé à la mort
----@field stash table<string, integer> coffre : conservé, utilisable seulement en zone safe
+---@field stash table<string, integer> coffre 1 : conservé, utilisable seulement auprès du banquier (idem stash2...)
+---@field unlocked table<string, boolean> coffres payants achetés (Config.Containers[id].price)
 ---@field shortcuts (string|false)[] objet assigné à chaque touche (false = vide)
 ---@field attachments table<string, table<string, boolean>> arme -> accessoires fixés dessus
 local InventoryObject = PVP.define('InventoryObject')
@@ -23,15 +24,31 @@ function InventoryObject.new(data)
         shortcuts[slot] = Items.exists(saved[slot]) and saved[slot] or false
     end
 
-    return setmetatable({
-        bag = InventoryObject.sanitize(data.bag),
-        protected = InventoryObject.sanitize(data.protected),
-        stash = InventoryObject.sanitize(data.stash),
+    local inventory = {
         shortcuts = shortcuts,
         attachments = InventoryObject.sanitizeAttachments(data.attachments),
+        unlocked = InventoryObject.sanitizeUnlocked(data.unlocked),
         -- Objets sortis mais pas perdus (véhicule sorti) : leur raccourci est gardé (non sauvegardé)
         reserved = {},
-    }, InventoryObject)
+    }
+    -- Sac, conteneur protégé et coffres (Config.Containers)
+    for id in pairs(Config.Containers) do
+        inventory[id] = InventoryObject.sanitize(data[id])
+    end
+    return setmetatable(inventory, InventoryObject)
+end
+
+---Ne garde que les coffres payants connus.
+---@param data any
+---@return table<string, boolean>
+function InventoryObject.sanitizeUnlocked(data)
+    local clean = {}
+    if type(data) ~= 'table' then return clean end
+    for id, on in pairs(data) do
+        local container = Config.Containers[id]
+        if on == true and container and container.safeOnly and container.price then clean[id] = true end
+    end
+    return clean
 end
 
 ---Ne garde que les objets connus avec une quantité entière positive.
@@ -94,13 +111,15 @@ end
 
 ---@return table
 function InventoryObject:serialize()
-    return {
-        bag = self.bag,
-        protected = self.protected,
-        stash = self.stash,
+    local data = {
         shortcuts = self.shortcuts,
         attachments = self.attachments,
+        unlocked = self.unlocked,
     }
+    for id in pairs(Config.Containers) do
+        data[id] = self[id]
+    end
+    return data
 end
 
 -- ---------------------------------------------------------------------------
@@ -114,7 +133,7 @@ function InventoryObject:count(name)
     return (self.bag[name] or 0) + (self.protected[name] or 0)
 end
 
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@param name string
 ---@return integer
 function InventoryObject:countIn(container, name)
@@ -122,25 +141,46 @@ function InventoryObject:countIn(container, name)
     return self[container][name] or 0
 end
 
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@return number
 function InventoryObject:getWeight(container)
     return Items.weightOf(self[container])
 end
 
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@return number
 function InventoryObject:getCapacity(container)
     return Config.Containers[container].capacity
 end
 
+---@param container string
+---@return boolean false pour un coffre payant pas encore acheté
+function InventoryObject:isUnlocked(container)
+    local definition = Config.Containers[container]
+    return definition ~= nil and (not definition.price or self.unlocked[container] == true)
+end
+
+---@return string[] coffres utilisables, dans l'ordre des onglets
+function InventoryObject:openStashes()
+    local ids = {}
+    for _, id in ipairs(Items.stashIds()) do
+        if self:isUnlocked(id) then ids[#ids + 1] = id end
+    end
+    return ids
+end
+
+---@param container string coffre payant
+function InventoryObject:unlock(container)
+    self.unlocked[container] = true
+end
+
 ---Nombre maximum d'unités de `name` qu'on peut encore mettre dans `container`.
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@param name string
 ---@return number
 function InventoryObject:maxFit(container, name)
     local item = Items.get(name)
-    if not item or not Items.isContainer(container) then return 0 end
+    if not item or not Items.isContainer(container) or not self:isUnlocked(container) then return 0 end
     if item.weight <= 0 then return math.huge end
     local free = self:getCapacity(container) - self:getWeight(container)
     return math.max(0, math.floor((free + 1e-6) / item.weight))
@@ -151,7 +191,7 @@ end
 -- ---------------------------------------------------------------------------
 
 ---Ajoute autant d'unités que le poids le permet.
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@param name string
 ---@param count integer
 ---@return integer quantité réellement ajoutée
@@ -166,7 +206,7 @@ function InventoryObject:add(container, name, count)
     return added
 end
 
----@param container 'bag'|'protected'|'stash'
+---@param container string
 ---@param name string
 ---@param count integer
 ---@return integer quantité réellement retirée
@@ -191,8 +231,8 @@ function InventoryObject:remove(name, count)
     return true
 end
 
----@param from 'bag'|'protected'|'stash'
----@param to 'bag'|'protected'|'stash'
+---@param from string
+---@param to string
 ---@param name string
 ---@param count integer
 ---@return boolean ok, string|nil message d'erreur
@@ -232,9 +272,13 @@ end
 -- ---------------------------------------------------------------------------
 
 ---@param name string
----@return integer quantité possédée partout (sac, conteneur protégé et coffre)
+---@return integer quantité possédée partout (sac, conteneur protégé et coffres)
 function InventoryObject:countEverywhere(name)
-    return self:count(name) + (self.stash[name] or 0)
+    local total = self:count(name)
+    for _, id in ipairs(Items.stashIds()) do
+        total = total + (self[id][name] or 0)
+    end
+    return total
 end
 
 ---Fixe un accessoire de l'inventaire (sac ou conteneur protégé) sur une arme portée.

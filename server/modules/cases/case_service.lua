@@ -203,16 +203,19 @@ function CaseService.buildReel(case, reward, count)
     return reel
 end
 
----Range la récompense : sac, puis coffre s'il est plein, puis au sol en dernier recours.
+---Range la récompense : sac, puis coffres s'il est plein, puis au sol en dernier recours.
 ---@param player PvpPlayer
 ---@param name string
 ---@param count integer
 ---@return { bag: integer, stash: integer, ground: integer }
 function CaseService.deliver(player, name, count)
     local inBag = player:giveItem(name, count, 'bag')
-    local inStash = player:giveItem(name, count - inBag, 'stash')
+    local inStash = 0
+    for _, stash in ipairs(player.inventory:openStashes()) do
+        inStash = inStash + player:giveItem(name, count - inBag - inStash, stash)
+    end
     local rest = count - inBag - inStash
-    if rest > 0 then LootService.drop(player:getCoords(), { [name] = rest }) end
+    if rest > 0 then LootService.drop(player:getCoords(), { [name] = rest }, { bucket = GetPlayerRoutingBucket(player.source) }) end
     return { bag = inBag, stash = inStash, ground = rest }
 end
 

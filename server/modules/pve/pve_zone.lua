@@ -13,6 +13,7 @@ local CombatService = PVP.use('CombatService')
 local LootService = PVP.use('LootService')
 local Utils = PVP.use('Utils')
 local ModeRegistry = PVP.use('ModeRegistry')
+local PveWorldService = PVP.use('PveWorldService')
 local Clock = PVP.use('Clock')
 local Events = PVP.use('Events')
 
@@ -120,6 +121,8 @@ function PveZone:spawnNpc()
 
     -- Garde l'entité même si son propriétaire se déconnecte
     SetEntityOrphanMode(ped, 2)
+    -- Seulement dans le monde zombies (Config.PveWorld)
+    SetEntityRoutingBucket(ped, Config.PveWorld.bucket)
     -- Zombie : aucune arme, il attaque en vomissant (voir client/modules/pve/pve.lua)
     RemoveAllPedWeapons(ped, true)
     Entity(ped).state:set('pvpNpc', self.zone.id, true)
@@ -128,13 +131,13 @@ function PveZone:spawnNpc()
     self.peds[ped] = typeId
 end
 
----Nuage toxique d'un zombie mort : chaque joueur proche affiche la fumée et subit
+---Nuage toxique d'un zombie mort : chaque joueur proche du monde zombies affiche la fumée et subit
 ---les dégâts tant qu'il reste dedans (voir client/modules/pve/zombie_gear.lua).
 ---@param coords vector3
 ---@param typeId string
 function PveZone.releaseGas(coords, typeId)
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
-        if #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveZone.GAS_BROADCAST_RANGE then
+        if PveWorldService.isInside(id) and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveZone.GAS_BROADCAST_RANGE then
             TriggerClientEvent(Events.client.zombieGasCloud, id, coords, typeId)
         end
     end
@@ -171,7 +174,7 @@ function PveZone:onNpcDeath(ped, killer)
     -- Plus de butin la nuit et sur les zombies spéciaux
     local rolls = 1 + (zombieType.lootRolls or 0) + (Clock.isNight() and Config.Night.extraLootRolls or 0)
     local lootId = LootService.drop(GetEntityCoords(ped), LootService.rollMany(self.config.loot, rolls),
-        NetworkGetNetworkIdFromEntity(ped))
+        { netId = NetworkGetNetworkIdFromEntity(ped), bucket = Config.PveWorld.bucket })
     if lootId then return end
 
     -- Rien à fouiller : le corps est supprimé rapidement
