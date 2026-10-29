@@ -1,8 +1,9 @@
 /**
  * Son du hitmarker, façon FPS moderne :
  *  - si un fichier existe dans web/public/sounds/ (hit_body, hit_armor, hit_head, hit_kill, en .ogg),
- *    il est utilisé tel quel : c'est là qu'on dépose ses propres sons ;
- *  - sinon, son synthétisé avec Web Audio : claquement sec et métallique (bruit filtré + « tic »),
+ *    il est utilisé tel quel pour ce type de touche ;
+ *  - sinon, hitmarker.mp3 (même dossier) sert pour toutes les touches ;
+ *  - sans aucun fichier, son synthétisé avec Web Audio : claquement sec et métallique (bruit filtré + « tic »),
  *    tintement brillant sur la tête, impact mat sur l'armure, coup sourd et grave sur un kill.
  */
 export type HitSoundKind = 'body' | 'armor' | 'head' | 'kill';
@@ -16,8 +17,10 @@ let context: AudioContext | null = null;
 let master: GainNode | null = null;
 let noise: AudioBuffer | null = null;
 let lastPlayed = 0;
-/** Sons déposés dans web/public/sounds/ (null : pas de fichier, on synthétise) */
+/** Sons déposés dans web/public/sounds/ (null : pas de fichier) */
 const files: Partial<Record<HitSoundKind, AudioBuffer | null>> = {};
+/** Son commun à toutes les touches, quand aucun fichier propre au type n'existe */
+let shared: AudioBuffer | null = null;
 
 function getContext(): AudioContext | null {
   try {
@@ -39,16 +42,23 @@ function getContext(): AudioContext | null {
   }
 }
 
+function loadSound(ctx: AudioContext, path: string, onLoad: (buffer: AudioBuffer) => void) {
+  fetch(path)
+    .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject()))
+    .then((data) => ctx.decodeAudioData(data))
+    .then(onLoad)
+    .catch(() => undefined);
+}
+
 function loadFiles(ctx: AudioContext) {
+  loadSound(ctx, './sounds/hitmarker.mp3', (buffer) => {
+    shared = buffer;
+  });
   for (const kind of KINDS) {
     files[kind] = null;
-    fetch(`./sounds/hit_${kind}.ogg`)
-      .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject()))
-      .then((data) => ctx.decodeAudioData(data))
-      .then((buffer) => {
-        files[kind] = buffer;
-      })
-      .catch(() => undefined);
+    loadSound(ctx, `./sounds/hit_${kind}.ogg`, (buffer) => {
+      files[kind] = buffer;
+    });
   }
 }
 
@@ -142,7 +152,7 @@ export function playHitSound(kind: HitSoundKind): void {
   if (!ctx || !master) return;
   const t = ctx.currentTime + 0.005;
 
-  const file = files[kind];
+  const file = files[kind] ?? shared;
   if (file) {
     const source = ctx.createBufferSource();
     source.buffer = file;
