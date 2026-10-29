@@ -43,20 +43,32 @@ end
 function ActivityBoards.loop()
     local settings = Config.FreeroamBoards
     while true do
-        local anyNear = false
+        local near = {}
         if State.mode == 'freeroam' then
             local position = GetEntityCoords(PlayerPedId())
-            local now = GetGameTimer()
             for _, config in ipairs(settings.boards) do
-                if #(position - config.coords) < settings.drawDistance then
-                    anyNear = true
-                    local board = ActivityBoards.create(config)
-                    ActivityBoards.draw(board, config)
-                    if now - board.sentAt > ActivityBoards.RESEND_INTERVAL then ActivityBoards.send(board) end
-                end
+                if #(position - config.coords) < settings.drawDistance then near[#near + 1] = config end
             end
         end
-        Wait(anyNear and 0 or ActivityBoards.CHECK_INTERVAL)
+        if #near > 0 then ActivityBoards.drawAll(near) end
+        Wait(#near > 0 and 0 or ActivityBoards.CHECK_INTERVAL)
+    end
+end
+
+---Dessine les écrans proches du plus loin au plus proche de la caméra : les polygones ne se
+---masquent pas entre eux (le dernier dessiné passe devant), seul l'ordre les superpose correctement.
+---@param configs table[] entrées de Config.FreeroamBoards.boards
+function ActivityBoards.drawAll(configs)
+    local camera = GetFinalRenderedCamCoord()
+    local distances = {}
+    for _, config in ipairs(configs) do distances[config] = #(camera - config.coords) end
+    table.sort(configs, function(a, b) return distances[a] > distances[b] end)
+
+    local now = GetGameTimer()
+    for _, config in ipairs(configs) do
+        local board = ActivityBoards.create(config)
+        ActivityBoards.draw(board, config)
+        if now - board.sentAt > ActivityBoards.RESEND_INTERVAL then ActivityBoards.send(board) end
     end
 end
 
