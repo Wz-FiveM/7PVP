@@ -49,6 +49,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     { name: 'cvcVehicle', group: 'vehicles', label: 'CVC', kind: 'model', category: false, modified: false, hint: 'Véhicule du convoi de chaque équipe.', value: 'granger' },
+    { name: 'bikeVehicle', group: 'vehicles', label: '1VS1 Bike', kind: 'model', category: false, modified: false, hint: 'Moto des deux joueurs, recréée à chaque manche.', value: 'bati' },
     {
       name: 'places', group: 'positions', label: 'PNJ et tableau', kind: 'places', category: false, modified: false,
       hint: 'PNJ des modes de jeu et tableau du classement. Place-toi à l\'endroit voulu : le PNJ (ou l\'écran) regardera dans la même direction que toi.',
@@ -56,6 +57,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { key: 'freeroam_hub/chase', label: 'PNJ · Course poursuite', coords: { x: 213.4, y: -943, z: 30.7, w: 60 } },
         { key: 'freeroam_hub/cvc', label: 'PNJ · CVC', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
         { key: 'freeroam_hub/gunfight', label: 'PNJ · 1VS1 GunFight', coords: { x: 196.6, y: -912.6, z: 30.7, w: 180 } },
+        { key: 'freeroam_hub/bike', label: 'PNJ · 1VS1 Bike', coords: { x: 190, y: -914, z: 30.7, w: 180 } },
         { key: 'chase/board', label: 'Tableau du classement (course poursuite)', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
       ],
     },
@@ -80,6 +82,11 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       name: 'gunfightSpawns', group: 'positions', label: 'Spawns 1VS1 GunFight', kind: 'pair', category: false, modified: false,
       hint: 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face.',
       value: [{ x: 1000, y: -3090, z: 5.9, w: 270 }, { x: 1040, y: -3090, z: 5.9, w: 90 }],
+    },
+    {
+      name: 'bikeSpawns', group: 'positions', label: 'Spawns 1VS1 Bike', kind: 'pair', category: false, modified: false,
+      hint: 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre.',
+      value: [{ x: 1300, y: 3120, z: 40.4, w: 286 }, { x: 1640, y: 3220, z: 41, w: 106 }],
     },
   ],
 };

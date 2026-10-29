@@ -1,6 +1,6 @@
----1VS1 GunFight côté client (server/modules/activities/gunfight_service.lua) : placement au départ,
----pistolet, limite de la zone de combat, caméra sur l'adversaire après la mort, HUD.
----Le serveur décide des vivants et de la fin des manches ; il bloque aussi les tirs hors manche.
+---Duels 1VS1 côté client, GunFight (à pied) et Bike (à moto) (server/modules/activities/gunfight_service.lua) :
+---placement au départ, moto, pistolet, limite de la zone de combat, caméra sur l'adversaire après la
+---mort, HUD. Le serveur décide des vivants et de la fin des manches ; il bloque aussi les tirs hors manche.
 ---@class GunfightModule
 local Gunfight = PVP.define('Gunfight')
 local State = PVP.use('State')
@@ -10,13 +10,20 @@ local Death = PVP.use('Death')
 local Freeroam = PVP.use('Freeroam')
 local Events = PVP.use('Events')
 
-Gunfight.ACTIVITY = 'gunfight'
 Gunfight.FADE = 400
--- Pendant le compte à rebours : pas de déplacement ni de tir
-Gunfight.LOCKED_CONTROLS = { 21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 44, 140, 141, 142, 257 }
+Gunfight.PLATE = '1VS1'
+-- Pendant le compte à rebours : pas de déplacement ni de tir, à pied comme à moto
+Gunfight.LOCKED_CONTROLS = {
+    21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 44, 140, 141, 142, 257,
+    59, 60, 63, 64, 68, 69, 70, 71, 72, 75, 76, 92, 106,
+}
 
+---@type string|nil mode du duel en cours ('gunfight' ou 'bike', clé de Config.FreeroamActivities)
+Gunfight.activity = nil
 ---@type table|nil manche en cours (données envoyées par le serveur)
 Gunfight.round = nil
+---@type integer|nil moto de la manche (1VS1 Bike)
+Gunfight.vehicle = nil
 Gunfight.lockedUntil = 0
 Gunfight.arenaBlip = nil
 Gunfight.outside = false
@@ -47,16 +54,17 @@ end
 
 ---@return boolean un 1VS1 est en cours pour ce joueur
 function Gunfight.isActive()
-    return State.activity == Gunfight.ACTIVITY
+    return Gunfight.activity ~= nil and State.activity == Gunfight.activity
 end
 
 -- ---------------------------------------------------------------------------
 -- Manche
 -- ---------------------------------------------------------------------------
 
----@param data table round, opponent, opponentId, spawn, arena, kit, countdown, roundTime, ...
+---@param data table activity, round, opponent, opponentId, spawn, vehicle, arena, kit, countdown, ...
 function Gunfight.startRound(data)
-    State.activity = Gunfight.ACTIVITY
+    Gunfight.activity = data.activity
+    State.activity = data.activity
     Gunfight.round = data
     Gunfight.lockedUntil = GetGameTimer() + data.countdown * 1000
     Nui.send('gunfightHud', {
@@ -86,13 +94,44 @@ function Gunfight.startRound(data)
     SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, spawn.z, false, false, false)
     local timeout = GetGameTimer() + 5000
     while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < timeout do Wait(0) end
-    SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z), false, false, false)
+    local ground = PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z)
+    SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, ground, false, false, false)
     SetEntityHeading(ped, spawn.w)
     ClearPedBloodDamage(ped)
 
     Gunfight.giveKit(ped, data.kit)
+    Gunfight.deleteVehicle()
+    if data.vehicle then Gunfight.createVehicle(data.vehicle, spawn, ground) end
     Gunfight.drawArena(data.arena)
     DoScreenFadeIn(Gunfight.FADE)
+end
+
+---1VS1 Bike : moto de la manche, le joueur dessus.
+---@param model string
+---@param spawn vector4
+---@param ground number
+function Gunfight.createVehicle(model, spawn, ground)
+    local hash = GetHashKey(model)
+    if not PedUtils.loadModel(hash) then return end
+    local vehicle = CreateVehicle(hash, spawn.x, spawn.y, ground + 0.5, spawn.w, true, false)
+    SetModelAsNoLongerNeeded(hash)
+    if vehicle == 0 then return end
+
+    SetEntityAsMissionEntity(vehicle, true, true)
+    SetVehicleOnGroundProperly(vehicle)
+    SetVehicleNumberPlateText(vehicle, Gunfight.PLATE)
+    SetVehRadioStation(vehicle, 'OFF')
+    SetVehicleEngineOn(vehicle, true, true, false)
+    SetPedIntoVehicle(PlayerPedId(), vehicle, -1)
+    Gunfight.vehicle = vehicle
+end
+
+function Gunfight.deleteVehicle()
+    if Gunfight.vehicle and DoesEntityExist(Gunfight.vehicle) then
+        SetEntityAsMissionEntity(Gunfight.vehicle, true, true)
+        DeleteVehicle(Gunfight.vehicle)
+    end
+    Gunfight.vehicle = nil
 end
 
 ---@param ped integer
@@ -179,6 +218,8 @@ function Gunfight.finish(data)
         NetworkResurrectLocalPlayer(spawn.x, spawn.y, spawn.z, spawn.w, true, false)
         State.dead = false
     end
+    -- 1VS1 Bike : on descend de la moto avant qu'elle soit supprimée
+    if IsPedInAnyVehicle(PlayerPedId(), false) then ClearPedTasksImmediately(PlayerPedId()) end
     Gunfight.cleanup()
     local ped = PlayerPedId()
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
@@ -195,9 +236,11 @@ function Gunfight.finish(data)
 end
 
 function Gunfight.cleanup()
+    Gunfight.deleteVehicle()
     if Gunfight.arenaBlip and DoesBlipExist(Gunfight.arenaBlip) then RemoveBlip(Gunfight.arenaBlip) end
     Gunfight.arenaBlip = nil
     Gunfight.round = nil
     Gunfight.outside = false
-    if State.activity == Gunfight.ACTIVITY then State.activity = nil end
+    if Gunfight.isActive() then State.activity = nil end
+    Gunfight.activity = nil
 end

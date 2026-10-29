@@ -494,7 +494,8 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CVC : fin',
     run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 } } }),
   },
-  { label: '1VS1 : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2 } }) },
+  { label: '1VS1 : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2, label: '1VS1 GunFight' } }) },
+  { label: '1VS1 Bike : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2, label: '1VS1 Bike' } }) },
   {
     label: '1VS1 : manche',
     run: () => {

@@ -25,6 +25,13 @@ Config.FreeroamActivities = {
         icon = 'weapon',
         enabled = true,
     },
+    bike = {
+        label = '1VS1 Bike',
+        tagline = 'Moto et pistolet · 3 manches',
+        description = "Deux joueurs apparaissent chacun sur une moto, loin l'un de l'autre, avec un pistolet : à vous de vous rejoindre et de vous affronter. Une seule vie par manche, premier à 3 manches.",
+        icon = 'vehicle',
+        enabled = true,
+    },
 }
 
 Config.Freeroam = {

@@ -1,7 +1,7 @@
 ---Réglages du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») :
----  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC ;
+---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC, moto du 1VS1 Bike ;
 ---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
----              points de départ des équipes du CVC dans chaque arène, des deux joueurs du 1VS1 GunFight.
+---              points de départ des équipes du CVC dans chaque arène, des deux joueurs des 1VS1.
 ---Les changements s'appliquent tout de suite et sont enregistrés en base (pvp_freeroam_settings) :
 ---ils remplacent les fichiers de config/ au démarrage. « Valeurs par défaut » revient au fichier.
 ---Chaque réglage passe par une valeur « simple » (tables et nombres, sans vecteurs) : c'est elle
@@ -67,6 +67,14 @@ FreeroamConfigService.SETTINGS = {
         path = { 'Cvc', 'vehicle' },
     },
     {
+        name = 'bikeVehicle',
+        group = 'vehicles',
+        kind = 'model',
+        label = '1VS1 Bike',
+        hint = 'Moto des deux joueurs, recréée à chaque manche.',
+        path = { 'Bike', 'vehicle' },
+    },
+    {
         name = 'places',
         group = 'positions',
         kind = 'places',
@@ -96,6 +104,14 @@ FreeroamConfigService.SETTINGS = {
         label = 'Spawns 1VS1 GunFight',
         hint = 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face. La zone de combat est un cercle autour du milieu des deux points.',
         path = { 'Gunfight', 'spawns' },
+    },
+    {
+        name = 'bikeSpawns',
+        group = 'positions',
+        kind = 'pair',
+        label = 'Spawns 1VS1 Bike',
+        hint = 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre. La zone de combat est un cercle autour du milieu des deux points.',
+        path = { 'Bike', 'spawns' },
     },
 }
 

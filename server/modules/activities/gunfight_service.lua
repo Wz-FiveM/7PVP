@@ -1,8 +1,10 @@
----1VS1 GunFight (Config.Gunfight) : file d'attente, duel au pistolet en manches à une seule vie.
+---Duels 1VS1 du Freeroam : 1VS1 GunFight (Config.Gunfight, à pied) et 1VS1 Bike (Config.Bike, à moto).
+---File d'attente par mode, duel au pistolet en manches à une seule vie.
 ---Le serveur décide de tout (vivants, fin de manche, tirs autorisés) ; les clients placent le joueur,
----donnent l'arme et affichent l'état.
+---créent la moto, donnent l'arme et affichent l'état.
 ---@class GunfightMatch
 ---@field id integer
+---@field mode string clé de GunfightService.MODES
 ---@field bucket integer
 ---@field players integer[] les deux joueurs (départ 1 et 2)
 ---@field scores table<integer, integer> manches gagnées par joueur
@@ -22,12 +24,14 @@ local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 
-GunfightService.ID = 'gunfight'
+-- Modes de duel : clé de Config.FreeroamActivities -> table de Config (relue à chaque manche :
+-- les spawns et la moto modifiés dans le panneau admin s'appliquent tout de suite)
+GunfightService.MODES = { gunfight = 'Gunfight', bike = 'Bike' }
 GunfightService.PLAYERS = 2
 GunfightService.CHECK_INTERVAL = 250
 
----@type integer[] joueurs en attente
-GunfightService.queue = {}
+---@type table<string, integer[]> joueurs en attente, par mode
+GunfightService.queues = {}
 ---@type table<integer, GunfightMatch>
 GunfightService.matches = {}
 ---@type table<integer, integer> joueur -> partie
@@ -35,7 +39,12 @@ GunfightService.playerMatch = {}
 GunfightService.nextId = 0
 
 function GunfightService.init()
-    ActivityService.register(GunfightService.ID, GunfightService.toggleQueue)
+    for mode in pairs(GunfightService.MODES) do
+        GunfightService.queues[mode] = {}
+        ActivityService.register(mode, function(player)
+            return GunfightService.toggleQueue(player, mode)
+        end)
+    end
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         GunfightService.leave(playerSource)
@@ -46,50 +55,84 @@ end
 -- File d'attente
 -- ---------------------------------------------------------------------------
 
----PNJ du 1VS1 : rejoint la file, ou la quitte si on y est déjà.
+---@param mode string
+---@return string
+function GunfightService.label(mode)
+    return Config.FreeroamActivities[mode].label
+end
+
+---@param mode string
+---@return table Config.Gunfight ou Config.Bike
+function GunfightService.config(mode)
+    return Config[GunfightService.MODES[mode]]
+end
+
+---@param source integer
+---@return string|nil mode dont le joueur est dans la file
+---@return integer|nil position dans la file
+function GunfightService.queuedIn(source)
+    for mode, queue in pairs(GunfightService.queues) do
+        for index, queued in ipairs(queue) do
+            if queued == source then return mode, index end
+        end
+    end
+    return nil, nil
+end
+
+---PNJ du 1VS1 : rejoint la file de ce mode, ou la quitte si on y est déjà.
 ---@param player PvpPlayer
+---@param mode string
 ---@return boolean, string
-function GunfightService.toggleQueue(player)
+function GunfightService.toggleQueue(player, mode)
     local source = player.source
+    local label = GunfightService.label(mode)
     if GunfightService.playerMatch[source] then return false, 'Tu es déjà dans un 1VS1.' end
     if ChaseService.playerMatch[source] or CvcService.playerMatch[source] then
         return false, 'Termine d\'abord ta partie en cours.'
     end
 
-    for index, queued in ipairs(GunfightService.queue) do
-        if queued == source then
-            table.remove(GunfightService.queue, index)
-            TriggerClientEvent(Events.client.gunfightQueue, source, false)
-            GunfightService.updateQueue()
-            return true, 'Tu as quitté la file du 1VS1.'
-        end
+    local queuedMode, index = GunfightService.queuedIn(source)
+    if queuedMode and queuedMode ~= mode then
+        return false, ('Tu es déjà dans la file du %s.'):format(GunfightService.label(queuedMode))
+    end
+    if queuedMode then
+        table.remove(GunfightService.queues[mode], index)
+        TriggerClientEvent(Events.client.gunfightQueue, source, false)
+        GunfightService.updateQueue(mode)
+        return true, ('Tu as quitté la file du %s.'):format(label)
     end
 
-    GunfightService.queue[#GunfightService.queue + 1] = source
-    GunfightService.updateQueue()
+    local queue = GunfightService.queues[mode]
+    queue[#queue + 1] = source
+    GunfightService.updateQueue(mode)
     if GunfightService.playerMatch[source] then return true, 'Adversaire trouvé : le duel commence !' end
-    return true, 'Tu rejoins la file du 1VS1. Reparle à l\'organisateur pour la quitter.'
+    return true, ('Tu rejoins la file du %s. Reparle à l\'organisateur pour la quitter.'):format(label)
 end
 
 ---Deux joueurs dans la file : la partie se lance tout de suite.
-function GunfightService.updateQueue()
-    while #GunfightService.queue >= GunfightService.PLAYERS do
-        GunfightService.startMatch({ table.remove(GunfightService.queue, 1), table.remove(GunfightService.queue, 1) })
+---@param mode string
+function GunfightService.updateQueue(mode)
+    local queue = GunfightService.queues[mode]
+    while #queue >= GunfightService.PLAYERS do
+        GunfightService.startMatch(mode, { table.remove(queue, 1), table.remove(queue, 1) })
     end
-    for _, source in ipairs(GunfightService.queue) do
-        TriggerClientEvent(Events.client.gunfightQueue, source, { count = #GunfightService.queue, needed = GunfightService.PLAYERS })
+    for _, source in ipairs(queue) do
+        TriggerClientEvent(Events.client.gunfightQueue, source, {
+            count = #queue,
+            needed = GunfightService.PLAYERS,
+            label = GunfightService.label(mode),
+        })
     end
 end
 
 ---Déconnexion ou départ du Freeroam : sort de la file, ou abandonne la partie.
 ---@param source integer
 function GunfightService.leave(source)
-    for index, queued in ipairs(GunfightService.queue) do
-        if queued == source then
-            table.remove(GunfightService.queue, index)
-            GunfightService.updateQueue()
-            return
-        end
+    local queuedMode, index = GunfightService.queuedIn(source)
+    if queuedMode then
+        table.remove(GunfightService.queues[queuedMode], index)
+        GunfightService.updateQueue(queuedMode)
+        return
     end
 
     local match = GunfightService.matches[GunfightService.playerMatch[source]]
@@ -117,12 +160,14 @@ function GunfightService.scoresFor(match, source)
     return { us = match.scores[source] or 0, them = match.scores[GunfightService.opponentOf(match, source)] or 0 }
 end
 
+---@param mode string
 ---@param players integer[]
-function GunfightService.startMatch(players)
+function GunfightService.startMatch(mode, players)
     GunfightService.nextId = GunfightService.nextId + 1
     local match = {
         id = GunfightService.nextId,
-        bucket = Config.Gunfight.bucketBase + GunfightService.nextId,
+        mode = mode,
+        bucket = GunfightService.config(mode).bucketBase + GunfightService.nextId,
         players = players,
         scores = {},
         round = 0,
@@ -138,41 +183,46 @@ function GunfightService.startMatch(players)
         SetPlayerRoutingBucket(source, match.bucket)
         TriggerClientEvent(Events.client.gunfightQueue, source, false)
     end
-    Logger.info('[gunfight] partie n°%d : %s contre %s', match.id, GetPlayerName(players[1]) or '?', GetPlayerName(players[2]) or '?')
+    Logger.info('[%s] partie n°%d : %s contre %s', mode, match.id,GetPlayerName(players[1]) or '?', GetPlayerName(players[2]) or '?')
     GunfightService.startRound(match)
 end
 
----Nouvelle manche : chaque joueur à son départ (on échange les côtés à chaque manche), arme redonnée.
+---Nouvelle manche : chaque joueur à son départ (on échange les côtés à chaque manche), arme
+---(et moto en 1VS1 Bike) redonnée.
 ---@param match GunfightMatch
 function GunfightService.startRound(match)
     if match.phase == 'ended' then return end
     match.round = match.round + 1
     match.phase = 'countdown'
     match.dead = {}
-    local spawns = Config.Gunfight.spawns
+    local config = GunfightService.config(match.mode)
+    local spawns = config.spawns
     local center = (spawns[1].xyz + spawns[2].xyz) / 2
 
     for index, source in ipairs(match.players) do
         local side = (index + match.round) % 2 + 1
         TriggerClientEvent(Events.client.gunfightRound, source, {
+            activity = match.mode,
+            label = GunfightService.label(match.mode),
             round = match.round,
             opponent = GetPlayerName(GunfightService.opponentOf(match, source)) or '?',
             opponentId = GunfightService.opponentOf(match, source),
             spawn = spawns[side],
-            arena = { center = center, radius = Config.Gunfight.radius },
-            kit = Config.Gunfight.kit,
-            countdown = Config.Gunfight.countdown,
-            roundTime = Config.Gunfight.roundTime,
-            outsideDamage = Config.Gunfight.outsideDamage,
-            roundsToWin = Config.Gunfight.roundsToWin,
+            vehicle = config.vehicle, -- nil en 1VS1 GunFight (à pied)
+            arena = { center = center, radius = config.radius },
+            kit = config.kit,
+            countdown = config.countdown,
+            roundTime = config.roundTime,
+            outsideDamage = config.outsideDamage,
+            roundsToWin = config.roundsToWin,
             scores = GunfightService.scoresFor(match, source),
         })
     end
 
-    SetTimeout(Config.Gunfight.countdown * 1000, function()
+    SetTimeout(config.countdown * 1000, function()
         if match.phase ~= 'countdown' then return end
         match.phase = 'running'
-        match.endAt = GetGameTimer() + Config.Gunfight.roundTime * 1000
+        match.endAt = GetGameTimer() + config.roundTime * 1000
         CreateThread(function()
             GunfightService.runRound(match)
         end)
@@ -228,9 +278,10 @@ function GunfightService.endRound(match, winner, reason)
         })
     end
 
-    SetTimeout(Config.Gunfight.roundPause * 1000, function()
+    local config = GunfightService.config(match.mode)
+    SetTimeout(config.roundPause * 1000, function()
         if match.phase ~= 'pause' then return end
-        if winner and match.scores[winner] >= Config.Gunfight.roundsToWin then
+        if winner and match.scores[winner] >= config.roundsToWin then
             return GunfightService.endMatch(match, winner, nil)
         end
         GunfightService.startRound(match)
@@ -261,7 +312,7 @@ function GunfightService.endMatch(match, winner, reason)
             })
         end
     end
-    Logger.info('[gunfight] partie n°%d terminée (%d - %d)', match.id, match.scores[match.players[1]], match.scores[match.players[2]])
+    Logger.info('[%s] partie n°%d terminée (%d - %d)', match.mode, match.id, match.scores[match.players[1]], match.scores[match.players[2]])
 end
 
 ---Tirs entre deux joueurs : nil si ce n'est pas une affaire du 1VS1, sinon autorisé ou non
@@ -278,11 +329,15 @@ function GunfightService.damageAllowed(attacker, victim)
 end
 
 ---@param source integer
----@return boolean dans la file ou dans une partie
+---@return boolean dans une file ou dans une partie
 function GunfightService.isBusy(source)
-    if GunfightService.playerMatch[source] then return true end
-    for _, queued in ipairs(GunfightService.queue) do
-        if queued == source then return true end
-    end
-    return false
+    return GunfightService.playerMatch[source] ~= nil or GunfightService.queuedIn(source) ~= nil
+end
+
+---@param source integer
+---@return string|nil partie en cours (mode spectateur admin)
+function GunfightService.describePlayer(source)
+    local match = GunfightService.matches[GunfightService.playerMatch[source]]
+    if not match then return nil end
+    return 'Partie de ' .. GunfightService.label(match.mode)
 end

@@ -25,7 +25,7 @@ const ROLE_LABELS = { thief: 'VOLEUR', cop: 'POLICIER' };
 /** Équipes du CVC, dans l'ordre des départs (config/cvc.lua) */
 const TEAM_LABELS = ['Équipe Alpha', 'Équipe Bravo'];
 
-/** Joueurs du 1VS1 GunFight, dans l'ordre des départs (config/gunfight.lua) */
+/** Joueurs des 1VS1 (GunFight, Bike), dans l'ordre des départs (config/gunfight.lua, config/bike.lua) */
 const DUEL_LABELS = ['Joueur 1', 'Joueur 2'];
 
 /** Les courses en cours sont relues à ce rythme (ms) tant que l'onglet est ouvert */

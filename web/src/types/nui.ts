@@ -69,8 +69,8 @@ export type NuiMessage =
   | { action: 'cvcOutside'; data: { outside: boolean } }
   | { action: 'cvcBanner'; data: { result: 'won' | 'lost' | 'draw'; reason: string; round: number; scores: CvcScores } }
   | { action: 'cvcEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: CvcScores } }
-  /** 1VS1 GunFight : file d'attente, HUD de manche, hors zone, résultats */
-  | { action: 'gunfightQueue'; data: { count: number; needed?: number } }
+  /** 1VS1 (GunFight, Bike) : file d'attente, HUD de manche, hors zone, résultats */
+  | { action: 'gunfightQueue'; data: { count: number; needed?: number; label?: string } }
   | { action: 'gunfightHud'; data: { open: boolean } & Partial<GunfightHudData> }
   | { action: 'gunfightState'; data: { remaining: number } }
   | { action: 'gunfightOutside'; data: { outside: boolean } }

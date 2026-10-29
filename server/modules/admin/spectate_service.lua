@@ -63,7 +63,8 @@ function SpectateService.describe(source)
     local chase = ChaseService.describePlayer(source)
     if chase then return chase end
     if CvcService.playerMatch[source] then return 'Partie de CVC' end
-    if GunfightService.playerMatch[source] then return 'Partie de 1VS1 GunFight' end
+    local duel = GunfightService.describePlayer(source)
+    if duel then return duel end
     return nil
 end
 

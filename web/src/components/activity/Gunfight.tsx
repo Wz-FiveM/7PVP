@@ -31,9 +31,10 @@ function useSecondsLeft(total: number, at: number): number {
   return Math.max(0, Math.ceil(total - (now - at) / 1000));
 }
 
-/** 1VS1 GunFight : file d'attente, HUD de manche (score, adversaire, temps), hors zone, résultats. */
+/** 1VS1 (GunFight, Bike) : file d'attente, HUD de manche (score, adversaire, temps), hors zone, résultats. */
 export function Gunfight() {
-  const [queue, setQueue] = useState(false);
+  /** Nom du mode dont on attend un adversaire, null hors file */
+  const [queue, setQueue] = useState<string | null>(null);
   const [hud, setHud] = useState<(GunfightHudData & { at: number }) | null>(null);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [outside, setOutside] = useState(false);
@@ -49,7 +50,7 @@ export function Gunfight() {
     (message: NuiMessage) => {
       switch (message.action) {
         case 'gunfightQueue':
-          return setQueue(message.data.count > 0);
+          return setQueue(message.data.count > 0 ? (message.data.label ?? '1VS1') : null);
         case 'gunfightHud': {
           const { open, ...data } = message.data;
           setRemaining(null);
@@ -85,7 +86,7 @@ export function Gunfight() {
     <>
       {queue && !hud && (
         <div className="chase-queue">
-          <span className="disp chase-queue__title">1VS1 GunFight</span>
+          <span className="disp chase-queue__title">{queue}</span>
           <span className="mono chase-queue__text">En attente d'un adversaire · 1/2</span>
         </div>
       )}

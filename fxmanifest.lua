@@ -23,6 +23,7 @@ shared_scripts {
     'config/chase.lua',
     'config/cvc.lua',
     'config/gunfight.lua',
+    'config/bike.lua',
     'config/npcs.lua',
     'config/market.lua',
     'config/anticheat.lua',
