@@ -55,6 +55,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       value: [
         { key: 'freeroam_hub/chase', label: 'PNJ · Course poursuite', coords: { x: 213.4, y: -943, z: 30.7, w: 60 } },
         { key: 'freeroam_hub/cvc', label: 'PNJ · CVC', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
+        { key: 'freeroam_hub/gunfight', label: 'PNJ · 1VS1 GunFight', coords: { x: 196.6, y: -912.6, z: 30.7, w: 180 } },
         { key: 'chase/board', label: 'Tableau du classement (course poursuite)', coords: { x: 216.4, y: -944.8, z: 30.7, w: 60 } },
       ],
     },
@@ -74,6 +75,11 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { label: 'Désert de Senora', spawns: [{ x: 2050, y: 3050, z: 45, w: 0 }, { x: 2640, y: 3230, z: 50, w: 0 }] },
         { label: 'Port de Los Santos', spawns: [{ x: 820, y: -3020, z: 5.9, w: 0 }, { x: 1280, y: -3190, z: 5.9, w: 0 }] },
       ],
+    },
+    {
+      name: 'gunfightSpawns', group: 'positions', label: 'Spawns 1VS1 GunFight', kind: 'pair', category: false, modified: false,
+      hint: 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face.',
+      value: [{ x: 1000, y: -3090, z: 5.9, w: 270 }, { x: 1040, y: -3090, z: 5.9, w: 90 }],
     },
   ],
 };

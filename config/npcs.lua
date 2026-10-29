@@ -23,6 +23,7 @@ Config.SafeNpcs = {
         -- Freeroam : PNJ des modes de jeu (activity = clé de Config.FreeroamActivities)
         { zone = 'freeroam_hub', role = 'activity', activity = 'chase', model = 's_m_y_cop_01', coords = vector4(213.4, -943.0, 30.7, 60.0), scenario = 'WORLD_HUMAN_COP_IDLES' },
         { zone = 'freeroam_hub', role = 'activity', activity = 'cvc', model = 's_m_y_blackops_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
+        { zone = 'freeroam_hub', role = 'activity', activity = 'gunfight', model = 's_m_y_swat_01', coords = vector4(196.6, -912.6, 30.7, 180.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
 
         { zone = 'legion', role = 'stash', model = 'cs_bankman', coords = vector4(186.8, -941.6, 30.1, 340.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'legion', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },

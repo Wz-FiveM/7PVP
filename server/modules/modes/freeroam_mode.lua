@@ -11,6 +11,7 @@ local Utils = PVP.use('Utils')
 local Zones = PVP.use('Zones')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
+local GunfightService = PVP.use('GunfightService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
@@ -43,6 +44,7 @@ function FreeroamMode.leave(player)
     player.freeroamPvp = false
     ChaseService.leave(player.source)
     CvcService.leave(player.source)
+    GunfightService.leave(player.source)
     VehicleService.deleteMenuVehicle(player.source)
     TriggerClientEvent(Events.client.freeroamCleanup, player.source)
 end
@@ -76,8 +78,10 @@ function FreeroamMode.onWeaponDamage(sender, data)
             local owner = NetworkGetEntityOwner(ped)
             local victim = PlayerService.get(owner)
             if victim and GetPlayerPed(owner) == ped then
-                -- CVC : seulement entre équipes adverses ; sinon, PvP activé par les deux joueurs
+                -- CVC : seulement entre équipes adverses ; 1VS1 : seulement entre les deux joueurs
+                -- pendant la manche ; sinon, PvP activé par les deux joueurs
                 local allowed = CvcService.damageAllowed(attacker.source, owner)
+                if allowed == nil then allowed = GunfightService.damageAllowed(attacker.source, owner) end
                 if allowed == nil then allowed = attacker.freeroamPvp and victim.freeroamPvp end
                 if not allowed then
                     CancelEvent()

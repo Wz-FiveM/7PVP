@@ -355,6 +355,20 @@ export interface CvcStateData {
   alive: CvcScores;
 }
 
+/** 1VS1 GunFight (server/modules/activities/gunfight_service.lua) : manches gagnées par soi et par l'adversaire */
+export interface GunfightScores {
+  us: number;
+  them: number;
+}
+export interface GunfightHudData {
+  round: number;
+  opponent: string;
+  countdown: number;
+  roundTime: number;
+  roundsToWin: number;
+  scores: GunfightScores;
+}
+
 /** Mode de jeu du Freeroam, lancé depuis son PNJ (Config.FreeroamActivities) */
 export interface ActivityInfo {
   id: string;

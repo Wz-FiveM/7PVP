@@ -2,7 +2,7 @@ import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type {
   ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, ChaseElo,
-  ChaseScores, CvcHudData, CvcStateData, CvcScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
+  ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -69,6 +69,13 @@ export type NuiMessage =
   | { action: 'cvcOutside'; data: { outside: boolean } }
   | { action: 'cvcBanner'; data: { result: 'won' | 'lost' | 'draw'; reason: string; round: number; scores: CvcScores } }
   | { action: 'cvcEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: CvcScores } }
+  /** 1VS1 GunFight : file d'attente, HUD de manche, hors zone, résultats */
+  | { action: 'gunfightQueue'; data: { count: number; needed?: number } }
+  | { action: 'gunfightHud'; data: { open: boolean } & Partial<GunfightHudData> }
+  | { action: 'gunfightState'; data: { remaining: number } }
+  | { action: 'gunfightOutside'; data: { outside: boolean } }
+  | { action: 'gunfightBanner'; data: { result: 'won' | 'lost' | 'draw'; reason: string; round: number; scores: GunfightScores } }
+  | { action: 'gunfightEnd'; data: { result: 'won' | 'lost' | 'draw'; reason?: string; scores: GunfightScores } }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
 

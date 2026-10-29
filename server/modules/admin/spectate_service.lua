@@ -15,6 +15,7 @@ local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
+local GunfightService = PVP.use('GunfightService')
 local Events = PVP.use('Events')
 
 -- Position du joueur regardé renvoyée à l'admin à ce rythme (ms) : tant que son personnage
@@ -43,11 +44,11 @@ function SpectateService.isWatching(source)
     return SpectateService.watching[source] ~= nil
 end
 
----Dans une partie ou une file de course poursuite / CVC : son bucket appartient déjà à la partie.
+---Dans une partie ou une file de course poursuite / CVC / 1VS1 : son bucket appartient déjà à la partie.
 ---@param source integer
 ---@return boolean
 function SpectateService.inActivity(source)
-    if ChaseService.playerMatch[source] or CvcService.playerMatch[source] then return true end
+    if ChaseService.playerMatch[source] or CvcService.playerMatch[source] or GunfightService.isBusy(source) then return true end
     for _, queue in ipairs({ ChaseService.queue, CvcService.queue }) do
         for _, queued in ipairs(queue) do
             if queued == source then return true end
@@ -62,6 +63,7 @@ function SpectateService.describe(source)
     local chase = ChaseService.describePlayer(source)
     if chase then return chase end
     if CvcService.playerMatch[source] then return 'Partie de CVC' end
+    if GunfightService.playerMatch[source] then return 'Partie de 1VS1 GunFight' end
     return nil
 end
 

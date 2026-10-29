@@ -1,7 +1,7 @@
 ---Réglages du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») :
 ---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC ;
 ---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
----              points de départ des équipes du CVC dans chaque arène.
+---              points de départ des équipes du CVC dans chaque arène, des deux joueurs du 1VS1 GunFight.
 ---Les changements s'appliquent tout de suite et sont enregistrés en base (pvp_freeroam_settings) :
 ---ils remplacent les fichiers de config/ au démarrage. « Valeurs par défaut » revient au fichier.
 ---Chaque réglage passe par une valeur « simple » (tables et nombres, sans vecteurs) : c'est elle
@@ -29,6 +29,7 @@ FreeroamConfigService.KINDS = {
     vehicles = { get = 'getPath', set = 'setPath', validate = 'validateVehicles' }, -- { model, label (, category) }[]
     model = { get = 'getPath', set = 'setPath', validate = 'model' }, -- un modèle de véhicule
     points = { get = 'getPoints', set = 'setPoints', validate = 'validatePoints' }, -- { x, y, z, w }[]
+    pair = { get = 'getPoints', set = 'setPoints', validate = 'validatePair' }, -- exactement deux { x, y, z, w }
     arenas = { get = 'getArenas', set = 'setArenas', validate = 'validateArenas' }, -- { label, spawns }[]
     places = { get = 'getPlaces', set = 'setPlaces', validate = 'validatePlaces' }, -- { key, label, coords }[]
 }
@@ -87,6 +88,14 @@ FreeroamConfigService.SETTINGS = {
         kind = 'arenas',
         label = 'Spawns CVC',
         hint = 'Départ de chaque équipe dans chaque arène : les véhicules sont alignés derrière ce point, tournés vers le centre de l\'arène.',
+    },
+    {
+        name = 'gunfightSpawns',
+        group = 'positions',
+        kind = 'pair',
+        label = 'Spawns 1VS1 GunFight',
+        hint = 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face. La zone de combat est un cercle autour du milieu des deux points.',
+        path = { 'Gunfight', 'spawns' },
     },
 }
 
@@ -341,6 +350,15 @@ function FreeroamConfigService.validatePoints(data)
         clean[#clean + 1] = coords
     end
     if #clean == 0 or #clean > FreeroamConfigService.MAX_POINTS then return nil end
+    return clean
+end
+
+---Les deux départs du 1VS1 GunFight.
+---@param data any
+---@return table[]|nil
+function FreeroamConfigService.validatePair(data)
+    local clean = FreeroamConfigService.validatePoints(data)
+    if not clean or #clean ~= 2 then return nil end
     return clean
 end
 

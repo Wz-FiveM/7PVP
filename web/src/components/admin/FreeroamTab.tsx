@@ -25,6 +25,9 @@ const ROLE_LABELS = { thief: 'VOLEUR', cop: 'POLICIER' };
 /** Équipes du CVC, dans l'ordre des départs (config/cvc.lua) */
 const TEAM_LABELS = ['Équipe Alpha', 'Équipe Bravo'];
 
+/** Joueurs du 1VS1 GunFight, dans l'ordre des départs (config/gunfight.lua) */
+const DUEL_LABELS = ['Joueur 1', 'Joueur 2'];
+
 /** Les courses en cours sont relues à ce rythme (ms) tant que l'onglet est ouvert */
 const REFRESH_INTERVAL = 5000;
 
@@ -238,6 +241,8 @@ function SettingEditor({ draft, onChange }: { draft: FreeroamSetting; onChange: 
       );
     case 'points':
       return <PointList points={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
+    case 'pair':
+      return <PairList points={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
     case 'arenas':
       return <ArenaList arenas={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
     case 'places':
@@ -408,6 +413,22 @@ function PointList({ points, onChange }: { points: MapPoint[]; onChange: (points
       </ul>
       <button className="btn btn--small" onClick={add}>+ Ajouter ma position</button>
     </>
+  );
+}
+
+/** Deux départs fixes (1VS1 GunFight) : pas d'ajout ni de retrait. */
+function PairList({ points, onChange }: { points: [MapPoint, MapPoint]; onChange: (points: [MapPoint, MapPoint]) => void }) {
+  return (
+    <ul className="admin-points">
+      {points.map((point, index) => (
+        <PointRow
+          key={index}
+          label={DUEL_LABELS[index]}
+          point={point}
+          onChange={(next) => onChange((index === 0 ? [next, points[1]] : [points[0], next]) as [MapPoint, MapPoint])}
+        />
+      ))}
+    </ul>
   );
 }
 

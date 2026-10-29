@@ -21,6 +21,8 @@ function resetScreens(): void {
   sendNui({ action: 'chaseVote', data: { open: false } });
   sendNui({ action: 'cvcHud', data: { open: false } });
   sendNui({ action: 'cvcOutside', data: { outside: false } });
+  sendNui({ action: 'gunfightHud', data: { open: false } });
+  sendNui({ action: 'gunfightOutside', data: { outside: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -491,6 +493,27 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'CVC : fin',
     run: () => sendNui({ action: 'cvcEnd', data: { result: 'won', scores: { us: 3, them: 1 } } }),
+  },
+  { label: '1VS1 : file', run: () => sendNui({ action: 'gunfightQueue', data: { count: 1, needed: 2 } }) },
+  {
+    label: '1VS1 : manche',
+    run: () => {
+      sendNui({ action: 'gunfightQueue', data: { count: 0 } });
+      sendNui({
+        action: 'gunfightHud',
+        data: { open: true, round: 3, opponent: 'Kevin', countdown: 3, roundTime: 120, roundsToWin: 3, scores: { us: 1, them: 1 } },
+      });
+      sendNui({ action: 'gunfightState', data: { remaining: 94 } });
+    },
+  },
+  {
+    label: '1VS1 : manche gagnée',
+    run: () =>
+      sendNui({ action: 'gunfightBanner', data: { result: 'won', reason: 'Wezor a remporté le duel.', round: 3, scores: { us: 2, them: 1 } } }),
+  },
+  {
+    label: '1VS1 : fin',
+    run: () => sendNui({ action: 'gunfightEnd', data: { result: 'lost', scores: { us: 2, them: 3 } } }),
   },
   { label: 'Compteur (en voiture)', run: () => sendNui({ action: 'speedometer', data: { visible: true, speed: 127, rpm: 0.82, gear: '4', engine: 74 } }) },
   { label: 'Compteur : sortir', run: () => sendNui({ action: 'speedometer', data: { visible: false } }) },

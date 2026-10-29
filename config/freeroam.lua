@@ -18,6 +18,13 @@ Config.FreeroamActivities = {
         icon = 'vehicle',
         enabled = true,
     },
+    gunfight = {
+        label = '1VS1 GunFight',
+        tagline = 'Duel au pistolet · 3 manches',
+        description = "Deux joueurs face à face, un pistolet chacun et une seule vie par manche : le premier qui tue l'autre gagne la manche. Premier à 3 manches.",
+        icon = 'weapon',
+        enabled = true,
+    },
 }
 
 Config.Freeroam = {

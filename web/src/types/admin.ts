@@ -126,6 +126,7 @@ export type FreeroamSetting = {
   | { kind: 'vehicles'; category: boolean; value: FreeroamVehicle[] }
   | { kind: 'model'; category: false; value: string }
   | { kind: 'points'; category: false; value: MapPoint[] }
+  | { kind: 'pair'; category: false; value: [MapPoint, MapPoint] }
   | { kind: 'arenas'; category: false; value: CvcArenaSpawns[] }
   | { kind: 'places'; category: false; value: FreeroamPlace[] }
 );
