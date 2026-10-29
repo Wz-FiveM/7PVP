@@ -17,7 +17,7 @@ interface LootSectionProps {
   onItemContextMenu: (event: MouseEvent, stack: ItemStack) => void;
 }
 
-/** Contenu d'un butin ouvert (largage) : on glisse les objets vers son sac ou son conteneur protégé. */
+/** Contenu d'un butin ouvert (largage, butin d'un joueur) : on glisse les objets vers son sac ou son conteneur protégé. */
 export function LootSection({ loot, selected, onSelect, onQuickTake, onTakeAll, onItemContextMenu }: LootSectionProps) {
   const { state } = useGame();
   const { drag, begin } = useDrag();

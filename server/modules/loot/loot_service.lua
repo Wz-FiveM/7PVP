@@ -9,7 +9,7 @@
 ---@field label string|nil texte de l'action (ex : « Fouiller le largage »)
 ---@field kind string|nil 'airdrop' pour un largage (contrats)
 ---@field solid boolean|nil objet avec collisions (caisse), sinon on le traverse (sac)
----@field browse boolean|nil s'ouvre comme un inventaire : on prend les objets un par un (largage)
+---@field browse boolean|nil s'ouvre comme un inventaire : on prend les objets un par un (largage, butin d'un joueur)
 ---@field title string|nil nom affiché dans l'inventaire (browse)
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
 ---@field bucket integer bucket de routage où il est tombé (monde PvP ou monde zombies) : seuls ses joueurs le voient
@@ -273,7 +273,7 @@ function LootService.pickup(source, id)
 end
 
 -- ---------------------------------------------------------------------------
--- Butins « browse » (largages) : inventaire ouvert, objets pris un par un
+-- Butins « browse » (largages, butins de joueurs) : inventaire ouvert, objets pris un par un
 -- ---------------------------------------------------------------------------
 
 ---Ouvre le butin : son contenu s'affiche à droite de l'inventaire du joueur.

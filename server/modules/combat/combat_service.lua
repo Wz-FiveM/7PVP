@@ -132,7 +132,13 @@ end
 ---@param victim PvpPlayer
 ---@param coords? vector3 position du sac (défaut : position du joueur)
 function CombatService.dropVictimLoot(victim, coords)
-    LootService.drop(coords or victim:getCoords(), victim:takeBag(), { bucket = GetPlayerRoutingBucket(victim.source) })
+    LootService.drop(coords or victim:getCoords(), victim:takeBag(), {
+        bucket = GetPlayerRoutingBucket(victim.source),
+        -- Ouvert comme un coffre : on glisse dans son sac ce qu'on veut garder
+        browse = true,
+        label = 'Fouiller le butin',
+        title = ('Butin de %s'):format(victim.name),
+    })
 end
 
 ---@param victim PvpPlayer
