@@ -12,6 +12,7 @@ local Events = PVP.use('Events')
 
 Pause.CONTROL_ESCAPE = 200 -- INPUT_FRONTEND_PAUSE_ALTERNATE (Échap)
 Pause.CONTROL_PAUSE = 199 -- INPUT_FRONTEND_PAUSE (P)
+Pause.CONTROL_CANCEL = 202 -- INPUT_FRONTEND_CANCEL (Retour)
 -- Après la fermeture d'une interface, la touche Échap relâchée ne doit pas rouvrir la pause
 Pause.FOCUS_GRACE = 400
 -- Délai avant d'ouvrir un menu de GTA (le focus de l'interface doit être rendu au jeu)
@@ -36,7 +37,7 @@ end
 function Pause.loop()
     while true do
         Wait(0)
-        if IsNuiFocused() or Pause.open then
+        if IsNuiFocused() or Pause.open or IsPauseMenuActive() then
             Pause.lastFocus = GetGameTimer()
         end
 
@@ -108,13 +109,32 @@ function Pause.runAction(action)
     Pause[method]()
 end
 
+---@return boolean Échap ou Retour pressé (contrôles joueur ou frontend)
+function Pause.cancelPressed()
+    for _, pad in ipairs({ 0, 2 }) do
+        if IsDisabledControlJustPressed(pad, Pause.CONTROL_CANCEL)
+            or IsDisabledControlJustPressed(pad, Pause.CONTROL_ESCAPE) then
+            return true
+        end
+    end
+    return false
+end
+
 ---Carte de GTA (menu pause natif, directement sur l'onglet carte).
+---Échap la ferme d'un coup au lieu de remonter aux onglets du menu pause.
 function Pause.openMap()
     CreateThread(function()
         Wait(Pause.FRONTEND_DELAY)
         ActivateFrontendMenu(GetHashKey('FE_MENU_VERSION_MP_PAUSE'), false, -1)
         Wait(100)
         PauseMenuceptionGoDeeper(0)
+        while IsPauseMenuActive() do
+            if Pause.cancelPressed() then
+                SetFrontendActive(false)
+                break
+            end
+            Wait(0)
+        end
     end)
 end
 
