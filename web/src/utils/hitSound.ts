@@ -129,11 +129,12 @@ function synthesize(ctx: AudioContext, kind: HitSoundKind, t: number) {
       ping(ctx, t, 5800, 0.25, 0.08);
       break;
     case 'cod_head':
-      // « Dink » de casque : claquement sec puis cloche métallique qui résonne, sans glissement de note
-      crack(ctx, t, 6500, 1.6, 1, 0.025);
-      ping(ctx, t, 2350, 0.7, 0.26, 'sine', 0.99);
-      ping(ctx, t, 3720, 0.45, 0.19, 'sine', 0.99);
-      ping(ctx, t, 6110, 0.25, 0.12, 'sine', 0.99);
+      // « Tink » façon CoD : clic très sec du hitmarker, puis résonance métallique courte (notes qui ne s'accordent pas)
+      crack(ctx, t, 7800, 1.1, 1.2, 0.012);
+      crack(ctx, t, 3300, 1.4, 0.9, 0.018);
+      ping(ctx, t + 0.004, 2870, 0.8, 0.16, 'sine', 1);
+      ping(ctx, t + 0.004, 4310, 0.2, 0.11, 'square', 1);
+      ping(ctx, t + 0.004, 6440, 0.35, 0.08, 'sine', 1);
       break;
     case 'armor':
       // Plaque touchée : impact plus mat, sans tintement
