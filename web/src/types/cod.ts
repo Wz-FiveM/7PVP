@@ -143,6 +143,16 @@ export interface CodKillData {
   streak?: string;
   headshot: boolean;
 }
+export interface CodMedalData {
+  id: string;
+  label: string;
+}
+/** Carte à droite de l'écran : exploit ou série déployée par un joueur */
+export interface CodCardData extends CodMedalData {
+  kind: 'medal' | 'streak';
+  name: string;
+  friendly: boolean;
+}
 export interface CodStreakState {
   streak: number;
   items: { id: string; label: string }[];

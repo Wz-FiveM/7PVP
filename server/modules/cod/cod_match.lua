@@ -52,6 +52,15 @@ CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après une série revient �
 CodMatch.JOIN_SYNC_DELAY = 2000 -- ms après l'arrivée d'un joueur avant de lui envoyer les unités et colis en jeu
 CodMatch.RESYNC_HOP = 500 -- ms hors du bucket de la partie pour recréer les copies des autres joueurs
 CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'un joueur
+-- Médaille selon le nombre de kills enchaînés (au-delà du dernier : la dernière)
+CodMatch.MULTI_KILLS = {
+    false,
+    { id = 'double', label = 'Doublé' },
+    { id = 'triple', label = 'Triplé' },
+    { id = 'fury', label = 'Fureur' },
+    { id = 'frenzy', label = 'Frénésie' },
+    { id = 'massacre', label = 'Massacre' },
+}
 
 ---@param id integer
 ---@param playlist table entrée de Config.Cod.playlists
@@ -440,6 +449,33 @@ function CodMatch:award(source, amount, label)
     TriggerClientEvent(Events.client.codScore, source, { xp = amount, label = label })
 end
 
+---Médaille au centre de l'écran du joueur.
+---@param source integer
+---@param id string
+---@param label string nom à traduire
+function CodMatch:medal(source, id, label)
+    TriggerClientEvent(Events.client.codMedal, source, { id = id, label = label })
+end
+
+---Carte à droite de l'écran de toute la partie : exploit ou série déployée par un joueur.
+---@param source integer
+---@param kind 'medal'|'streak'
+---@param id string
+---@param label string nom à traduire
+function CodMatch:card(source, kind, id, label)
+    local key = self:sideKey(source)
+    local name = self.stats[source].name
+    for _, other in ipairs(self.players) do
+        TriggerClientEvent(Events.client.codCard, other, {
+            kind = kind,
+            id = id,
+            label = label,
+            name = name,
+            friendly = self:sideKey(other) == key,
+        })
+    end
+end
+
 ---@param weapon any hash envoyé par le client (signé ou non)
 ---@return string|nil nom de l'arme à traduire
 ---@return string|nil id de l'arme, pour sa silhouette dans le fil des kills
@@ -554,21 +590,22 @@ function CodMatch:rewardKill(killer, source, headshot)
     if not self.firstBlood then
         self.firstBlood = true
         self:award(killer, xp.firstBlood, Locale.t('Premier sang'))
+        self:medal(killer, 'first_blood', 'Premier sang')
     end
     if stats.lastKiller == source then
         stats.lastKiller = nil
         self:award(killer, xp.revenge, Locale.t('Revanche'))
+        self:medal(killer, 'revenge', 'Revanche')
     end
     self.stats[source].lastKiller = killer
 
     stats.multiKill = now - stats.lastKillAt <= Config.Cod.multiKillWindow * 1000 and stats.multiKill + 1 or 1
     stats.lastKillAt = now
-    if stats.multiKill == 2 then
-        self:award(killer, xp.multiKill, Locale.t('Doublé'))
-    elseif stats.multiKill == 3 then
-        self:award(killer, xp.multiKill * 2, Locale.t('Triplé'))
-    elseif stats.multiKill > 3 then
-        self:award(killer, xp.multiKill * (stats.multiKill - 1), Locale.t('Massacre'))
+    local medal = CodMatch.MULTI_KILLS[math.min(stats.multiKill, #CodMatch.MULTI_KILLS)]
+    if medal then
+        self:award(killer, xp.multiKill * (stats.multiKill - 1), Locale.t(medal.label))
+        self:medal(killer, medal.id, medal.label)
+        self:card(killer, 'medal', medal.id, medal.label)
     end
 
     if self:hasPerk(killer, 'scavenger') then TriggerClientEvent(Events.client.codScavenge, killer) end

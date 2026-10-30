@@ -1137,6 +1137,169 @@
 .cod-scores__xp {
   color: var(--cod-accent-hi);
 }
+
+/* Médailles au centre : les exploits du joueur */
+.cod-medals {
+  position: absolute;
+  top: 18vh;
+  left: 50%;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  transform: translateX(-50%);
+}
+.cod-medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  animation: cod-medal 2.8s ease-out both;
+}
+@keyframes cod-medal {
+  0% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+  7% {
+    opacity: 1;
+    transform: scale(0.94);
+  }
+  11% {
+    transform: scale(1);
+  }
+  88% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+.cod-medal__art {
+  display: block;
+  width: 6.5rem;
+  height: 6.5rem;
+  overflow: visible;
+  filter: drop-shadow(0 0.125rem 0.375rem rgba(0, 0, 0, 0.75));
+}
+.cod-medal__label {
+  font-family: var(--cod-font);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: var(--ombre-texte);
+}
+
+/* Cartes à droite : exploits et séries déployées de toute la partie */
+.cod-cards {
+  position: absolute;
+  top: 2.5vh;
+  right: 1.5vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 24rem;
+}
+.cod-card {
+  --tone: #5f9a1f;
+  --tone-hi: #8cc63a;
+  animation: cod-card-in 0.25s ease-out, cod-card-out 0.35s ease-in 4.65s forwards;
+}
+.cod-card--enemy {
+  --tone: #a3261c;
+  --tone-hi: #dc4a35;
+}
+@keyframes cod-card-in {
+  from {
+    opacity: 0;
+    transform: translateX(2rem);
+  }
+}
+@keyframes cod-card-out {
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+}
+.cod-card__name {
+  display: block;
+  padding: 0.125rem 0.75rem 0.125rem 4.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: linear-gradient(90deg, var(--tone), var(--tone-hi));
+  border-radius: 0.375rem 0.375rem 0 0;
+  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.6);
+}
+.cod-card__band {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 3.5rem;
+  padding: 0 0.75rem 0 1rem;
+  overflow: hidden;
+  background: #101c28;
+  /* Bords déchirés à gauche et en bas */
+  clip-path: polygon(0 0, 100% 0, 100% 96%, 72% 100%, 46% 95%, 18% 100%, 1% 94%, 2% 70%, 0 50%, 1.5% 28%);
+}
+.cod-card__art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58%;
+  height: 100%;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%);
+  mask-image: linear-gradient(90deg, transparent, #000 45%);
+}
+.cod-card__icon {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+.cod-card__icon .cod-medal__art {
+  width: 100%;
+  height: 100%;
+}
+.cod-card__icon .cod-streak__icon {
+  position: absolute;
+  width: 1.375rem;
+  height: 1.375rem;
+  color: var(--cod-white);
+  opacity: 1;
+}
+.cod-card__text {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: var(--cod-font);
+  text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.9);
+}
+.cod-card__kicker {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tone-hi);
+}
+.cod-card__label {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 .cod-notice {
   position: absolute;
   top: 14vh;

@@ -101,23 +101,8 @@ function CodStreaks.use(match, source, target)
     local id = table.remove(stats.streakItems)
     local streak = CodProfileService.streaks[id]
     CodStreaks.STARTERS[id](match, source, streak, target)
-    CodStreaks.announce(match, source, streak)
+    match:card(source, 'streak', streak.id, streak.label)
     CodStreaks.sendState(match, source)
-end
-
----@param match table
----@param source integer
----@param streak table
-function CodStreaks.announce(match, source, streak)
-    local key = match:sideKey(source)
-    for _, other in ipairs(match.players) do
-        local friendly = match:sideKey(other) == key
-        TriggerClientEvent(Events.client.codNotice, other, {
-            text = friendly and Locale.t('%s : %s', match.stats[source].name, Locale.t(streak.label))
-                or Locale.t('Ennemi : %s', Locale.t(streak.label)),
-            friendly = friendly,
-        })
-    end
 end
 
 -- ---------------------------------------------------------------------------

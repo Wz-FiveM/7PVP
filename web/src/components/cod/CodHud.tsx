@@ -3,11 +3,12 @@ import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
-  CodBoardEntry, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
+  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodMedalData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { WeaponSilhouette } from '../hud/Killfeed';
 import { Icon } from '../icons/Icon';
+import { CodCallingCard, CodMedal, CodMedalFrame } from './CodMedal';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
@@ -16,6 +17,10 @@ const FEED_TIME = 5000;
 const FEED_SIZE = 5;
 const SCORE_TIME = 1800;
 const SCORE_SIZE = 4;
+const MEDAL_TIME = 2800; // ms, à garder égal à l'animation de .cod-medal
+const MEDAL_SIZE = 3;
+const CARD_TIME = 5000; // ms, à garder égal à l'animation de .cod-card
+const CARD_SIZE = 4;
 const NOTICE_TIME = 3500;
 const BANNER_TIME = 5000;
 
@@ -36,6 +41,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   useT();
   const [feed, setFeed] = useState<(CodKillData & Timed)[]>([]);
   const [scores, setScores] = useState<({ xp: number; label: string } & Timed)[]>([]);
+  const [medals, setMedals] = useState<(CodMedalData & { key: number })[]>([]);
+  const [cards, setCards] = useState<(CodCardData & { key: number })[]>([]);
   const [streak, setStreak] = useState<CodStreakState | null>(null);
   const [notice, setNotice] = useState<({ text: string; friendly?: boolean } & Timed) | null>(null);
   const [dead, setDead] = useState<(CodDeadData & { at: number }) | null>(null);
@@ -60,6 +67,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
       case 'codHud':
         setFeed([]);
         setScores([]);
+        setMedals([]);
+        setCards([]);
         setDead(null);
         setOutside(false);
         setScoreboard(false);
@@ -82,6 +91,18 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         const id = Date.now() + Math.random();
         setScores((current) => [{ ...message.data, id }, ...current].slice(0, SCORE_SIZE));
         window.setTimeout(() => setScores((current) => current.filter((entry) => entry.id !== id)), SCORE_TIME);
+        return;
+      }
+      case 'codMedal': {
+        const key = Date.now() + Math.random();
+        setMedals((current) => [...current, { ...message.data, key }].slice(-MEDAL_SIZE));
+        window.setTimeout(() => setMedals((current) => current.filter((entry) => entry.key !== key)), MEDAL_TIME);
+        return;
+      }
+      case 'codCard': {
+        const key = Date.now() + Math.random();
+        setCards((current) => [...current, { ...message.data, key }].slice(-CARD_SIZE));
+        window.setTimeout(() => setCards((current) => current.filter((entry) => entry.key !== key)), CARD_TIME);
         return;
       }
       case 'codStreak':
@@ -152,6 +173,21 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
               <span>{entry.label}</span>
             </div>
           ))}
+        </div>
+      )}
+      {medals.length > 0 && (
+        <div className="cod-medals">
+          {medals.map((entry) => (
+            <div className="cod-medal" key={entry.key}>
+              <CodMedal id={entry.id} />
+              <span className="cod-medal__label">{t(entry.label)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {cards.length > 0 && (
+        <div className="cod-cards">
+          {cards.map((entry) => <FeatCard key={entry.key} card={entry} />)}
         </div>
       )}
       {notice && (
@@ -369,6 +405,33 @@ function FeedRow({ entry, team }: { entry: CodKillData & Timed; team: CodTeamId 
         {entry.headshot && <Icon name="crosshair" size={14} strokeWidth={2.2} />}
       </span>
       <span className={`cod-feed__name ${tone(entry.victimTeam)}`}>{entry.victim}</span>
+    </div>
+  );
+}
+
+/** Carte à droite de l'écran : bandeau au nom du joueur (vert : allié, rouge : ennemi), puis l'exploit ou la série déployée. */
+function FeatCard({ card }: { card: CodCardData }) {
+  useT();
+  return (
+    <div className={card.friendly ? 'cod-card cod-card--friend' : 'cod-card cod-card--enemy'}>
+      <span className="cod-card__name">{card.name}</span>
+      <div className="cod-card__band">
+        <CodCallingCard />
+        <span className="cod-card__icon">
+          {card.kind === 'medal' ? (
+            <CodMedal id={card.id} />
+          ) : (
+            <>
+              <CodMedalFrame />
+              <CodStreakIcon id={card.id} />
+            </>
+          )}
+        </span>
+        <span className="cod-card__text">
+          {card.kind === 'streak' && <span className="cod-card__kicker">{t('Série déployée')}</span>}
+          <span className="cod-card__label">{t(card.label)}</span>
+        </span>
+      </div>
     </div>
   );
 }
