@@ -510,6 +510,12 @@
     repeating-linear-gradient(135deg, rgba(240, 195, 60, 0.18) 0 0.5rem, transparent 0.5rem 1.5rem),
     linear-gradient(120deg, #5c5f63, #26282b);
 }
+.cod-map__art--nuketown {
+  background:
+    linear-gradient(0deg, rgba(8, 9, 10, 0.92), rgba(8, 9, 10, 0.1) 75%),
+    repeating-linear-gradient(60deg, rgba(0, 0, 0, 0.2) 0 0.35rem, transparent 0.35rem 1.4rem),
+    linear-gradient(120deg, #a8743f, #3f2c1c);
+}
 .cod-map__votes {
   position: relative;
   font-family: var(--cod-font);

@@ -346,6 +346,8 @@ Config.Cod = {
         { id = 'scrapyard', label = 'La Casse', place = 'Rogers Salvage, La Puerta', radius = 70.0 },
         { id = 'sawmill', label = 'La Scierie', place = 'Paleto Bay', radius = 80.0 },
         { id = 'construction', label = 'Le Chantier', place = 'Pillbox Hill', radius = 70.0 },
+        -- Décor de la ressource 7PVP_nuketown : sans elle, cette carte n'est que de la mer
+        { id = 'nuketown', label = 'Nuketown', place = 'Île au nord-est de Paleto Bay', radius = 60.0 },
     },
 
     -- Écran de chargement : caméra derrière le point de départ, regardant le milieu de la carte.
@@ -415,4 +417,17 @@ Config.CodSpawns = {
     },
     construction_flags = { vector4(-150.0, -980.0, 27.3, 0.0), vector4(-120.0, -980.0, 27.3, 0.0), vector4(-90.0, -980.0, 27.3, 0.0) },
     construction_sites = { vector4(-120.0, -1010.0, 27.3, 0.0), vector4(-120.0, -950.0, 27.3, 0.0) },
+
+    -- Points relevés dans les fichiers de collision de la carte : cours de la maison verte (alpha) et de la maison jaune (bravo),
+    -- drapeaux du nord au sud du cul-de-sac, sites devant chaque maison. Jamais joués en jeu, à ajuster au panneau admin.
+    nuketown_alpha = {
+        vector4(5955.0, 10011.0, 13.4, 270.0), vector4(5959.0, 10007.0, 13.4, 270.0), vector4(5961.0, 10015.0, 13.4, 270.0),
+        vector4(5965.0, 10009.0, 13.4, 270.0), vector4(5954.0, 10006.0, 13.4, 270.0),
+    },
+    nuketown_bravo = {
+        vector4(6038.0, 10011.0, 13.5, 90.0), vector4(6041.0, 10009.0, 13.4, 90.0), vector4(6037.0, 10006.0, 13.5, 90.0),
+        vector4(6034.0, 10004.0, 13.4, 90.0), vector4(6040.0, 10015.0, 13.4, 90.0),
+    },
+    nuketown_flags = { vector4(5997.0, 10014.0, 13.5, 0.0), vector4(6005.0, 9994.0, 13.2, 0.0), vector4(5998.0, 9975.0, 13.4, 0.0) },
+    nuketown_sites = { vector4(5988.0, 10003.0, 13.5, 0.0), vector4(6014.0, 9997.0, 13.4, 0.0) },
 }
