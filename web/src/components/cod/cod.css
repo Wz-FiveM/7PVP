@@ -249,6 +249,10 @@
   padding: 0;
   list-style: none;
 }
+.cod-list--scroll {
+  min-height: 0;
+  overflow-y: auto;
+}
 .cod-list__row {
   display: flex;
   align-items: center;
@@ -737,6 +741,25 @@
   inset: 0;
   background: rgba(255, 255, 255, 0.04);
   animation: cod-crt-flicker 900ms steps(1) infinite;
+}
+/* Le balayage du drone : tourne autour du joueur, placé bas sur la carte du jeu */
+.cod-crt__sweep {
+  position: absolute;
+  top: 79%;
+  left: 50%;
+  width: 200%;
+  aspect-ratio: 1;
+  background: conic-gradient(transparent 0 240deg, rgba(110, 255, 170, 0) 240deg, rgba(110, 255, 170, 0.32) 358deg, rgba(190, 255, 215, 0.9) 360deg);
+  border-radius: 50%;
+  animation: cod-crt-sweep 3s linear infinite;
+}
+@keyframes cod-crt-sweep {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 @keyframes cod-crt-roll {
   from {

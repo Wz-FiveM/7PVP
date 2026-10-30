@@ -8,6 +8,28 @@ local Logger = PVP.use('Logger')
 Appearance.palettes = nil
 -- À l'arrivée en jeu, le chargement peut prendre bien plus que les 5 s par défaut
 Appearance.MODEL_TIMEOUT = 30000
+Appearance.MAX_HEALTH = 200 -- 100 points de vie (100 = mort), pour les deux sexes
+Appearance.HEALTH_CHECK_INTERVAL = 500
+
+function Appearance.init()
+    -- Le modèle féminin n'a que 175 de vie max par défaut, et le jeu peut y revenir à la résurrection
+    CreateThread(function()
+        while true do
+            Appearance.ensureMaxHealth(PlayerPedId())
+            Wait(Appearance.HEALTH_CHECK_INTERVAL)
+        end
+    end)
+end
+
+---Un ped qui était plein reste plein avec sa nouvelle vie max.
+---@param ped integer
+function Appearance.ensureMaxHealth(ped)
+    local maxHealth = GetEntityMaxHealth(ped)
+    if maxHealth == Appearance.MAX_HEALTH then return end
+    local full = GetEntityHealth(ped) >= maxHealth
+    SetPedMaxHealth(ped, Appearance.MAX_HEALTH)
+    if full then SetEntityHealth(ped, Appearance.MAX_HEALTH) end
+end
 
 ---Change le modèle du joueur si le sexe ne correspond pas. Le ped change alors :
 ---les armes et l'apparence doivent être réappliquées.
@@ -26,6 +48,7 @@ function Appearance.ensureModel(sex)
     SetPlayerModel(PlayerId(), model)
     SetModelAsNoLongerNeeded(model)
     SetPedDefaultComponentVariation(PlayerPedId())
+    Appearance.ensureMaxHealth(PlayerPedId())
     return true
 end
 

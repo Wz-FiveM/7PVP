@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
@@ -25,6 +25,7 @@ const CARD_SIZE = 4;
 const NOTICE_TIME = 3500;
 const BANNER_TIME = 5000;
 const KILL_CARD_TIME = 3500; // ms, à garder égal à l'animation de .cod-pcard-popup
+const RADAR_SLACK = 500; // ms de marge entre deux relevés du drone
 
 interface Timed {
   id: number;
@@ -58,6 +59,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const [roundCountdown, setRoundCountdown] = useState<{ seconds: number; at: number } | null>(null);
   const [nuke, setNuke] = useState<{ seconds: number; at: number } | null>(null);
   const [jammed, setJammed] = useState(false);
+  const [radar, setRadar] = useState<number | null>(null);
+  const radarTimer = useRef<number>();
   const [tablet, setTablet] = useState<CodTabletView | null>(null);
 
   const showNotice = useCallback((text: string, friendly?: boolean) => {
@@ -81,6 +84,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         setBanner(null);
         setNuke(null);
         setJammed(false);
+        setRadar(null);
         setProtection(null);
         setRoundCountdown(null);
         setTablet(null);
@@ -143,6 +147,11 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return setNuke({ seconds: message.data.seconds, at: Date.now() });
       case 'codJam':
         return setJammed(message.data.active);
+      case 'codRadar':
+        // Le balayage tourne tant que les relevés du drone arrivent
+        window.clearTimeout(radarTimer.current);
+        radarTimer.current = window.setTimeout(() => setRadar(null), message.data.seconds * 1000 + RADAR_SLACK);
+        return setRadar(message.data.seconds);
       case 'codTablet': {
         const { state, seconds, title, help } = message.data;
         // Le titre et l'aide ne sont envoyés qu'à l'ouverture
@@ -160,7 +169,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
     <>
       {!flying && (
         <>
-          {!jammed && <RadarFilter />}
+          {!jammed && <RadarFilter sweep={radar} />}
           <Vitals name={name} />
           <BottomLeft hud={hud} live={live} rank={rank} />
           <BottomRight streak={streak} keys={catalog?.keys} />
@@ -239,8 +248,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   );
 }
 
-/** Filtre de vieux téléviseur, posé exactement sur la carte du jeu. */
-function RadarFilter() {
+/** Filtre de vieux téléviseur, posé exactement sur la carte du jeu ; sweep : durée d'un tour du balayage du drone, en secondes. */
+function RadarFilter({ sweep }: { sweep: number | null }) {
   const { minimap } = useGame().state;
   if (!minimap?.visible) return null;
   return (
@@ -252,7 +261,9 @@ function RadarFilter() {
         width: `${(minimap.right - minimap.left) * 100}%`,
         height: `${(minimap.bottom - minimap.top) * 100}%`,
       }}
-    />
+    >
+      {sweep !== null && <span className="cod-crt__sweep" style={{ animationDuration: `${sweep}s` }} />}
+    </div>
   );
 }
 

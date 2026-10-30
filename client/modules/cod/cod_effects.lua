@@ -120,6 +120,7 @@ function CodEffects.onUav(data)
         SetBlipAsShortRange(blip, false)
         CodEffects.keepBlip(blip, data.ttl * 1000)
     end
+    Nui.send('codRadar', { seconds = data.ttl })
 end
 
 ---@param data { duration: integer }

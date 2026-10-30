@@ -725,6 +725,7 @@ export const DEV_ACTIONS: DevAction[] = [
       sendNui({ action: 'codCard', data: { kind: 'streak', id: 'uav', label: 'Drone', name: 'Rook', banner: 'million', friendly: false } });
     },
   },
+  { label: 'CoD : relevé du drone', run: () => sendNui({ action: 'codRadar', data: { seconds: 3 } }) },
   {
     label: 'CoD : tablette',
     run: () => sendNui({ action: 'codTablet', data: { state: 'opening', seconds: 1.4, title: 'Missile Predator', help: ['Souris : diriger', 'Clic gauche : accélérer'] } }),

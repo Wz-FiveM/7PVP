@@ -210,7 +210,7 @@ export function StreaksTab({ profile, catalog, onProfile }: { profile: CodProfil
   return (
     <section className="cod-column cod-column--wide">
       <span className="cod-label">{t('Séries choisies : {count}/{max}', { count: chosen.length, max: catalog.maxStreaks })}</span>
-      <ul className="cod-list">
+      <ul className="cod-list cod-list--scroll">
         {catalog.streaks.map((streak) => {
           const locked = streak.rank > profile.rank;
           const active = chosen.includes(streak.id);

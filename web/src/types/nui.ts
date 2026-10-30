@@ -116,6 +116,7 @@ export type NuiMessage =
   | { action: 'codRoundStart'; data: { countdown: number } }
   | { action: 'codNuke'; data: { seconds: number } }
   | { action: 'codJam'; data: { active: boolean } }
+  | { action: 'codRadar'; data: { seconds: number } }
   | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[] } }
   | { action: 'codTabletStatus'; data: { altitude?: number; boost?: boolean; weapon?: string; ready?: number; remaining?: number } }
   | { action: 'codEnd'; data: CodEndData }
