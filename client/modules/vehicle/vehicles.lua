@@ -146,19 +146,19 @@ end
 -- Tir à bord : armes montées (mitrailleuses, missiles, tourelles, véhicules volants) et drive-by
 Vehicles.FIRE_CONTROLS = { 68, 69, 70, 91, 92, 114, 331 }
 
----En PvP, on ne tire pas depuis un véhicule (conducteur, passager ou tourelle) : seules les armes
----de l'inventaire comptent, à pied. Touches de tir coupées à chaque image ; armes montées
+---En PvP et en 1VS1 Bike, on ne tire pas depuis un véhicule (conducteur, passager ou tourelle) : seules
+---les armes de l'inventaire comptent, à pied. Touches de tir coupées à chaque image ; armes montées
 ---désactivées dès qu'on monte puis revérifiées (en plus de SetPlayerCanDoDriveBy, coupé dans Zone.setSafe).
----En Freeroam, seules les armes montées (mitrailleuses de la Revolter, missiles...) sont coupées :
+---Ailleurs en Freeroam, seules les armes montées (mitrailleuses de la Revolter, missiles...) sont coupées :
 ---le drive-by avec ses propres armes reste possible.
 function Vehicles.weaponLoop()
     local nextCheck = 0
     while true do
         local ped = PlayerPedId()
-        local inPvp = State.inPvp()
-        local vehicle = (inPvp or State.mode == 'freeroam') and GetVehiclePedIsIn(ped, false) or 0
+        local noDriveBy = State.noDriveBy()
+        local vehicle = (noDriveBy or State.mode == 'freeroam') and GetVehiclePedIsIn(ped, false) or 0
         if vehicle ~= 0 then
-            if inPvp then Vehicles.blockFiring() end
+            if noDriveBy then Vehicles.blockFiring() end
             if GetGameTimer() >= nextCheck then
                 Vehicles.disableWeapons(ped, vehicle)
                 nextCheck = GetGameTimer() + Vehicles.WEAPON_CHECK_INTERVAL

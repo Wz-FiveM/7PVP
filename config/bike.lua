@@ -2,8 +2,8 @@
 -- (même service : server/modules/activities/gunfight_service.lua).
 --  1. Les joueurs rejoignent la file ; dès que deux joueurs attendent, la partie se lance.
 --  2. Chaque manche : les deux joueurs apparaissent sur une moto, loin l'un de l'autre, avec un
---     pistolet. Ils doivent se rejoindre et s'affronter. Une seule vie : le premier qui tue l'autre
---     gagne la manche.
+--     pistolet. Ils doivent se rejoindre et s'affronter, à pied : pas de drive-by. Une seule vie : le
+--     premier qui tue l'autre gagne la manche.
 --  3. Le premier à `roundsToWin` manches gagne la partie.
 -- Chaque partie se joue dans son propre bucket : plusieurs duels en même temps au même endroit.
 Config.Bike = {

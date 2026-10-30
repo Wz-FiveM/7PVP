@@ -9,6 +9,7 @@ local PedUtils = PVP.use('PedUtils')
 local Death = PVP.use('Death')
 local Freeroam = PVP.use('Freeroam')
 local Events = PVP.use('Events')
+local Zone = PVP.use('Zone')
 
 Gunfight.FADE = 400
 Gunfight.PLATE = '1VS1'
@@ -65,6 +66,8 @@ end
 function Gunfight.startRound(data)
     Gunfight.activity = data.activity
     State.activity = data.activity
+    -- 1VS1 Bike : drive-by coupé (State.noDriveBy)
+    Zone.applyProtection()
     Gunfight.round = data
     Gunfight.lockedUntil = GetGameTimer() + data.countdown * 1000
     Nui.send('gunfightHud', {
@@ -241,6 +244,8 @@ function Gunfight.cleanup()
     Gunfight.arenaBlip = nil
     Gunfight.round = nil
     Gunfight.outside = false
-    if Gunfight.isActive() then State.activity = nil end
+    local wasActive = Gunfight.isActive()
+    if wasActive then State.activity = nil end
     Gunfight.activity = nil
+    if wasActive then Zone.applyProtection() end
 end

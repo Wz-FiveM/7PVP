@@ -43,6 +43,11 @@ function State.inPvp()
     return State.mode == 'pvp'
 end
 
+---@return boolean jamais de tir en véhicule : PvP et 1VS1 Bike (on descend de la moto pour se battre)
+function State.noDriveBy()
+    return State.inPvp() or State.activity == 'bike'
+end
+
 ---@return boolean
 function State.isAlive()
     return State.spawned and not State.dead
