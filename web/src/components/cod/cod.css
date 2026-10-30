@@ -1109,13 +1109,13 @@
   transform: translateX(-50%);
   text-shadow: var(--ombre-texte);
 }
-.cod-predator {
+.cod-tablet {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 /* La tablette monte du bas de l'écran et finit par le couvrir : la coupure vers la caméra ne se voit pas */
-.cod-predator__raise {
+.cod-tablet__raise {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -1128,9 +1128,9 @@
   border-radius: 1.2vw;
   background: #050709;
   box-shadow: 0 2vw 6vw rgba(0, 0, 0, 0.7);
-  animation: cod-predator-raise linear forwards;
+  animation: cod-tablet-raise linear forwards;
 }
-@keyframes cod-predator-raise {
+@keyframes cod-tablet-raise {
   0% {
     transform: translate(-50%, 70vh) scale(0.8);
   }
@@ -1144,19 +1144,19 @@
     transform: translate(-50%, -50%) scale(5);
   }
 }
-.cod-predator__view {
+.cod-tablet__view {
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px);
 }
-.cod-predator__bezel {
+.cod-tablet__bezel {
   position: absolute;
   inset: 0;
   border: 2.2vh solid #15171a;
   border-radius: 4vh;
   box-shadow: inset 0 0 12vh rgba(0, 0, 0, 0.75), 0 0 0 4vh #15171a;
 }
-.cod-predator__title {
+.cod-tablet__title {
   position: absolute;
   top: 6vh;
   left: 4vw;
@@ -1168,7 +1168,7 @@
   color: var(--cod-accent);
   text-shadow: var(--ombre-texte);
 }
-.cod-predator__altitude {
+.cod-tablet__info {
   position: absolute;
   top: 6vh;
   right: 4vw;
@@ -1181,7 +1181,7 @@
   text-shadow: var(--ombre-texte);
 }
 /* Le point d'impact : toujours le centre de l'image */
-.cod-predator__reticle {
+.cod-tablet__reticle {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -1192,27 +1192,27 @@
   opacity: 0.85;
   transform: translate(-50%, -50%);
 }
-.cod-predator__reticle::before,
-.cod-predator__reticle::after {
+.cod-tablet__reticle::before,
+.cod-tablet__reticle::after {
   content: '';
   position: absolute;
   background: var(--cod-accent);
 }
-.cod-predator__reticle::before {
+.cod-tablet__reticle::before {
   left: 50%;
   top: -1.6vh;
   bottom: -1.6vh;
   width: 2px;
   transform: translateX(-50%);
 }
-.cod-predator__reticle::after {
+.cod-tablet__reticle::after {
   top: 50%;
   left: -1.6vh;
   right: -1.6vh;
   height: 2px;
   transform: translateY(-50%);
 }
-.cod-predator__boost {
+.cod-tablet__boost {
   position: absolute;
   top: 62%;
   left: 50%;
@@ -1224,7 +1224,27 @@
   transform: translateX(-50%);
   text-shadow: var(--ombre-texte);
 }
-.cod-predator__help {
+.cod-tablet__weapon {
+  position: absolute;
+  bottom: 11vh;
+  left: 50%;
+  display: flex;
+  width: 14rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--cod-font);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--cod-white);
+  transform: translateX(-50%);
+  text-shadow: var(--ombre-texte);
+}
+.cod-tablet__weapon .cod-xpbar {
+  width: 100%;
+}
+.cod-tablet__help {
   position: absolute;
   bottom: 6vh;
   left: 50%;
@@ -1236,34 +1256,34 @@
   white-space: nowrap;
   text-shadow: var(--ombre-texte);
 }
-.cod-predator__fade {
+.cod-tablet__fade {
   position: absolute;
   inset: 0;
   background: #050709;
-  animation: cod-predator-fade 400ms ease-out forwards;
+  animation: cod-tablet-fade 400ms ease-out forwards;
 }
-@keyframes cod-predator-fade {
+@keyframes cod-tablet-fade {
   to {
     opacity: 0;
   }
 }
-.cod-predator__lost {
+.cod-tablet__lost {
   position: absolute;
   inset: 0;
   background:
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 2px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0 3px, transparent 3px 7px),
     #24272b;
-  animation: cod-predator-static 120ms steps(3) infinite;
+  animation: cod-tablet-static 120ms steps(3) infinite;
 }
-.cod-predator__lost .cod-predator__title {
+.cod-tablet__lost .cod-tablet__title {
   top: 50%;
   left: 50%;
   font-size: 2rem;
   color: var(--cod-white);
   transform: translate(-50%, -50%);
 }
-@keyframes cod-predator-static {
+@keyframes cod-tablet-static {
   to {
     background-position: 0 9px, 14px 0, 0 0;
   }

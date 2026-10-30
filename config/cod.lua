@@ -60,6 +60,7 @@ Config.Cod = {
         plant = 200,
         defuse = 300,
         roundWin = 100,
+        unitDestroyed = 200, -- tourelle ou appareil ennemi détruit
         win = 800,
         loss = 300,
         draw = 500,
@@ -178,15 +179,93 @@ Config.Cod = {
     maxStreaks = 3,
     defaultStreaks = { 'uav', 'counter_uav', 'predator' },
     streaks = {
+        -- target : ce que le client envoie à l'utilisation ('aim' : le point visé, 'front' : le sol devant le joueur)
         { id = 'uav', kills = 3, rank = 1, duration = 30, label = 'Drone', description = 'Les ennemis apparaissent sur la carte pendant 30 s.' },
+        { id = 'care_package', kills = 4, rank = 3, target = 'aim', label = 'Colis de ravitaillement', description = 'Un colis tombe là où tu vises, avec une série au hasard.' },
         { id = 'counter_uav', kills = 4, rank = 1, duration = 30, label = 'Contre-drone', description = 'Coupe la carte des ennemis pendant 30 s.' },
+        { id = 'sentry', kills = 5, rank = 5, target = 'front', label = 'Tourelle', description = 'Une tourelle devant toi tire seule sur les ennemis.' },
         { id = 'predator', kills = 5, rank = 1, label = 'Missile Predator', description = 'Guide un missile depuis ta tablette jusqu\'au sol.' },
+        { id = 'precision', kills = 6, rank = 8, target = 'aim', label = 'Frappe de précision', description = 'Des avions bombardent en ligne l\'endroit que tu vises.' },
+        { id = 'harrier', kills = 7, rank = 14, target = 'aim', label = 'Harrier', description = 'Bombarde l\'endroit que tu vises, puis reste sur place et tire.' },
+        { id = 'helicopter', kills = 7, rank = 10, label = 'Hélicoptère d\'attaque', description = 'Un hélicoptère tourne au-dessus de la carte et tire sur les ennemis.' },
         { id = 'juggernaut', kills = 7, rank = 12, label = 'Juggernaut', description = 'Armure pleine et minigun jusqu\'à ta mort.' },
+        { id = 'airdrop', kills = 8, rank = 17, target = 'aim', label = 'Largage d\'urgence', description = 'Quatre colis tombent là où tu vises.' },
+        { id = 'pave_low', kills = 9, rank = 22, label = 'Pave Low', description = 'Un hélicoptère blindé, plus puissant et plus résistant.' },
+        { id = 'stealth', kills = 9, rank = 20, target = 'aim', label = 'Bombardier furtif', description = 'Un long tapis de bombes, sans repère ni alerte pour les ennemis.' },
+        { id = 'chopper_gunner', kills = 11, rank = 26, label = 'Hélico mitrailleur', description = 'Prends le minigun d\'un hélicoptère depuis ta tablette.' },
+        { id = 'ac130', kills = 11, rank = 28, label = 'AC-130', description = 'Prends les trois canons d\'un AC-130 depuis ta tablette.' },
+        { id = 'emp', kills = 15, rank = 34, duration = 60, label = 'EMP', description = 'Détruit les séries ennemies et bloque carte et séries pendant 60 s.' },
         { id = 'nuke', kills = 15, rank = 30, duration = 10, label = 'Frappe nucléaire', description = 'Après 10 s, ton camp remporte la partie.' },
     },
     uavSweep = 3, -- secondes entre deux relevés du drone
+    tabletTime = 1.4, -- secondes pour sortir la tablette (missile Predator, hélico mitrailleur, AC-130)
+    -- Bombardements en ligne, centrés sur le point visé, dans la direction du regard du joueur.
+    -- delay : secondes avant les bombes ; length : m ; interval : ms entre deux bombes ; radius : m de chaque bombe ;
+    -- damage : dégâts au centre, décroissant jusqu'au bord ; plane : avion qui passe ; warn : alerte sonore pour tous
+    precision = { delay = 3, bombs = 8, length = 50.0, interval = 150, radius = 10.0, damage = 220, explosion = 5, plane = 'lazer', planes = 3, warn = true },
+    stealth = { delay = 4, bombs = 16, length = 130.0, interval = 120, radius = 11.0, damage = 240, explosion = 5, plane = 'hydra', planes = 1, warn = false },
+    harrierBombing = { delay = 3, bombs = 6, length = 36.0, interval = 150, radius = 9.0, damage = 200, explosion = 5, plane = 'hydra', planes = 2, warn = true },
+
+    -- Colis : ils tombent là où le joueur vise et s'ouvrent en maintenant la touche d'action
+    crates = {
+        fallTime = 8, -- secondes de chute
+        lifetime = 60, -- secondes au sol avant de disparaître
+        ownerHold = 1.5, -- secondes pour ouvrir son propre colis
+        otherHold = 6, -- secondes pour ouvrir celui d'un autre, ennemi ou allié
+        takeRange = 3.5, -- m
+        spread = 8.0, -- m entre le point visé et les colis du largage d'urgence
+        airdropCount = 4,
+        -- Contenu tiré au sort : plus le poids est grand, plus la série est fréquente
+        contents = {
+            { id = 'uav', weight = 22 }, { id = 'counter_uav', weight = 16 }, { id = 'predator', weight = 14 },
+            { id = 'sentry', weight = 14 }, { id = 'precision', weight = 10 }, { id = 'harrier', weight = 8 },
+            { id = 'helicopter', weight = 8 }, { id = 'pave_low', weight = 4 }, { id = 'chopper_gunner', weight = 2 },
+            { id = 'ac130', weight = 1 }, { id = 'emp', weight = 1 },
+        },
+    },
+
+    -- Unités : affichées localement par chaque client, les dégâts sont appliqués par le serveur.
+    --   duration : secondes ; hits : touches à encaisser avant d'être détruite ; label : arme du fil des kills
+    --   orbit : tourne autour du milieu de la carte (rayon en part de celui de la carte), orbitSpeed : radians/s
+    --   height : m au-dessus du point ; aircraft : modèle de véhicule, sinon model et base sont des objets
+    --   interval : ms entre deux tirs ; damage : par tir ; accuracy : chance de toucher ; range : m (toute la carte sinon)
+    --   piloted : le joueur tire lui-même depuis sa tablette (weapons, cooldown en ms ; explosion : type de GTA)
+    units = {
+        sentry = {
+            model = 'w_mg_minigun', base = 'prop_box_ammo03a', gunHeight = 0.75,
+            duration = 60, hits = 25, range = 50.0, interval = 220, damage = 20, accuracy = 0.75, label = 'Tourelle',
+        },
+        helicopter = {
+            aircraft = 'buzzard', orbit = 0.65, orbitSpeed = 0.18, height = 50.0, blip = 43,
+            duration = 45, hits = 45, interval = 240, damage = 22, accuracy = 0.55, label = 'Hélicoptère d\'attaque',
+        },
+        pave_low = {
+            aircraft = 'savage', orbit = 0.5, orbitSpeed = 0.15, height = 55.0, blip = 43,
+            duration = 60, hits = 110, interval = 160, damage = 26, accuracy = 0.6, label = 'Pave Low',
+        },
+        harrier = {
+            aircraft = 'hydra', height = 40.0, blip = 16,
+            duration = 30, hits = 40, interval = 200, damage = 24, accuracy = 0.55, label = 'Harrier',
+        },
+        chopper_gunner = {
+            aircraft = 'annihilator', orbit = 1.0, orbitSpeed = 0.12, height = 65.0, blip = 43, fov = 55.0,
+            duration = 40, hits = 80, piloted = true, label = 'Hélico mitrailleur',
+            weapons = {
+                { label = 'Minigun', cooldown = 100, radius = 3.0, damage = 45 },
+            },
+        },
+        ac130 = {
+            aircraft = 'titan', orbit = 2.2, orbitSpeed = 0.08, height = 230.0, blip = 16, fov = 40.0,
+            duration = 40, hits = 200, piloted = true, label = 'AC-130',
+            weapons = {
+                { label = '105 mm', cooldown = 5000, radius = 12.0, damage = 320, explosion = 5 },
+                { label = '40 mm', cooldown = 1200, radius = 6.0, damage = 150, explosion = 3 },
+                { label = '25 mm', cooldown = 120, radius = 2.5, damage = 45 },
+            },
+        },
+    },
+
     predator = {
-        tablet = 1.4, -- secondes pour sortir la tablette avant de prendre le missile en main
         height = 250.0, -- m au-dessus du milieu de la carte au départ
         floor = 20.0, -- m sous le milieu de la carte : explose là si le sol n'est pas chargé
         speed = 35.0, -- m/s
@@ -197,7 +276,7 @@ Config.Cod = {
         fov = 60.0,
         radius = 12.0, -- m
         damage = 300, -- dégâts au centre, décroissant jusqu'au bord
-        explosionType = 5,
+        explosion = 5,
     },
     juggernaut = { weapon = 'WEAPON_MINIGUN', ammo = 1000, armor = 100 },
     bombExplosion = 5, -- type d'explosion de la bombe (Recherche & Destruction)

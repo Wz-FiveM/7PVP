@@ -671,16 +671,27 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : tableau des scores', run: () => sendNui({ action: 'codScoreboard', data: { open: true } }) },
   { label: 'CoD : fermer le tableau', run: () => sendNui({ action: 'codScoreboard', data: { open: false } }) },
   { label: 'CoD : série', run: () => sendNui({ action: 'codStreakEarned', data: { label: 'Drone' } }) },
-  { label: 'CoD : tablette du missile', run: () => sendNui({ action: 'codPredator', data: { state: 'opening', seconds: 1.4 } }) },
+  {
+    label: 'CoD : tablette',
+    run: () => sendNui({ action: 'codTablet', data: { state: 'opening', seconds: 1.4, title: 'Missile Predator', help: ['Souris : diriger', 'Clic gauche : accélérer'] } }),
+  },
   {
     label: 'CoD : vol du missile',
     run: () => {
-      sendNui({ action: 'codPredator', data: { state: 'flying' } });
-      window.setTimeout(() => sendNui({ action: 'codPredatorStatus', data: { altitude: 184, boost: true } }), 100);
+      sendNui({ action: 'codTablet', data: { state: 'flying', title: 'Missile Predator', help: ['Souris : diriger', 'Clic gauche : accélérer'] } });
+      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { altitude: 184, boost: true } }), 100);
     },
   },
-  { label: 'CoD : signal du missile perdu', run: () => sendNui({ action: 'codPredator', data: { state: 'lost' } }) },
-  { label: 'CoD : fin du missile', run: () => sendNui({ action: 'codPredator', data: { state: false } }) },
+  {
+    label: 'CoD : AC-130',
+    run: () => {
+      sendNui({ action: 'codTablet', data: { state: 'flying', title: 'AC-130', help: ['Souris : viser', 'Clic gauche : tirer', 'Clic droit : changer d\'arme'] } });
+      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { weapon: '105 mm', ready: 0.6, remaining: 27 } }), 100);
+    },
+  },
+  { label: 'CoD : signal perdu', run: () => sendNui({ action: 'codTablet', data: { state: 'lost' } }) },
+  { label: 'CoD : fin de la tablette', run: () => sendNui({ action: 'codTablet', data: { state: false } }) },
+  { label: 'CoD : ouverture du colis', run: () => sendNui({ action: 'codAction', data: { kind: 'crate', seconds: 6 } }) },
   { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3 } }) },
   { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
   {

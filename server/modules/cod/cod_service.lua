@@ -10,6 +10,8 @@
 local CodService = PVP.define('CodService')
 local CodMatch = PVP.use('CodMatch')
 local CodStreaks = PVP.use('CodStreaks')
+local CodUnits = PVP.use('CodUnits')
+local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
@@ -52,13 +54,29 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then match:setHolding(source, holding) end
     end)
-    RegisterNetEvent(Events.server.codUseStreak, function()
+    RegisterNetEvent(Events.server.codUseStreak, function(target)
         local match = CodService.matchOf(source)
-        if match then CodStreaks.use(match, source) end
+        if match then CodStreaks.use(match, source, target) end
     end)
     RegisterNetEvent(Events.server.codPredatorImpact, function(target)
         local match = CodService.matchOf(source)
         if match then CodStreaks.predatorImpact(match, source, target) end
+    end)
+    RegisterNetEvent(Events.server.codUnitFire, function(id, target)
+        local match = CodService.matchOf(source)
+        if match then CodUnits.fire(match, source, id, target) end
+    end)
+    RegisterNetEvent(Events.server.codPilotFire, function(id, index, target)
+        local match = CodService.matchOf(source)
+        if match then CodUnits.pilotFire(match, source, id, index, target) end
+    end)
+    RegisterNetEvent(Events.server.codUnitHit, function(id)
+        local match = CodService.matchOf(source)
+        if match then CodUnits.hit(match, source, id) end
+    end)
+    RegisterNetEvent(Events.server.codCrateTake, function(id)
+        local match = CodService.matchOf(source)
+        if match then CodCrates.take(match, source, id) end
     end)
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         CodService.leave(playerSource)

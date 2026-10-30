@@ -28,6 +28,10 @@ Events.server = {
     codObjective = '7pvp:server:codObjective',
     codUseStreak = '7pvp:server:codUseStreak',
     codPredatorImpact = '7pvp:server:codPredatorImpact',
+    codUnitFire = '7pvp:server:codUnitFire',
+    codPilotFire = '7pvp:server:codPilotFire',
+    codUnitHit = '7pvp:server:codUnitHit',
+    codCrateTake = '7pvp:server:codCrateTake',
     spectateNext = '7pvp:server:spectateNext',
     spectateStop = '7pvp:server:spectateStop',
 }

@@ -7,7 +7,7 @@ import type {
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
-import { CodPredatorScreen, type CodPredatorView } from './CodPredatorScreen';
+import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
 
 const FEED_TIME = 5000;
 const FEED_SIZE = 5;
@@ -44,7 +44,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const [roundCountdown, setRoundCountdown] = useState<{ seconds: number; at: number } | null>(null);
   const [nuke, setNuke] = useState<{ seconds: number; at: number } | null>(null);
   const [jammed, setJammed] = useState(false);
-  const [predator, setPredator] = useState<CodPredatorView | null>(null);
+  const [tablet, setTablet] = useState<CodTabletView | null>(null);
 
   const showNotice = useCallback((text: string, friendly?: boolean) => {
     const id = Date.now() + Math.random();
@@ -66,7 +66,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         setJammed(false);
         setProtection(null);
         setRoundCountdown(null);
-        setPredator(null);
+        setTablet(null);
         if (!message.data.open || !message.data.playlist) setStreak(null);
         return;
       case 'codKill': {
@@ -110,14 +110,19 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return setNuke({ seconds: message.data.seconds, at: Date.now() });
       case 'codJam':
         return setJammed(message.data.active);
-      case 'codPredator':
-        return setPredator(message.data.state ? { state: message.data.state, seconds: message.data.seconds ?? 0 } : null);
+      case 'codTablet': {
+        const { state, seconds, title, help } = message.data;
+        // Le titre et l'aide ne sont envoyés qu'à l'ouverture
+        return setTablet((current) => (state
+          ? { state, seconds: seconds ?? 0, title: title ?? current?.title ?? '', help: help ?? current?.help ?? [] }
+          : null));
+      }
     }
   }, [showNotice]);
   useNuiMessage(handleMessage);
 
   if (!hud) return null;
-  const flying = predator?.state === 'flying' || predator?.state === 'lost';
+  const flying = tablet?.state === 'flying' || tablet?.state === 'lost';
   return (
     <>
       {!flying && (
@@ -128,7 +133,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
           <TopCenter hud={hud} live={live} />
         </>
       )}
-      {predator && <CodPredatorScreen view={predator} />}
+      {tablet && <CodTabletScreen view={tablet} />}
 
       {feed.length > 0 && (
         <div className="cod-feed">
@@ -354,9 +359,10 @@ function DeadBar({ dead }: { dead: CodDeadData & { at: number } }) {
 
 function ActionBar({ action }: { action: { kind: string; seconds: number; at: number } }) {
   useT();
+  const labels: Record<string, string> = { plant: t('Pose de la bombe'), defuse: t('Désamorçage'), crate: t('Ouverture du colis') };
   return (
     <div className="cod-action-bar">
-      <span className="cod-label">{action.kind === 'plant' ? t('Pose de la bombe') : t('Désamorçage')}</span>
+      <span className="cod-label">{labels[action.kind]}</span>
       <span className="cod-xpbar">
         <span className="cod-action-bar__fill" style={{ animationDuration: `${action.seconds}s` }} />
       </span>

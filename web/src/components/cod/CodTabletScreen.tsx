@@ -3,48 +3,68 @@ import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import type { NuiMessage } from '../../types/nui';
 
-export interface CodPredatorView {
+export interface CodTabletView {
   state: 'opening' | 'flying' | 'lost';
   seconds: number;
+  title: string;
+  help: string[];
 }
 
-/** Tablette du missile Predator : elle monte à l'écran, puis son cadre entoure l'image du missile. */
-export function CodPredatorScreen({ view }: { view: CodPredatorView }) {
+interface TabletStatus {
+  altitude?: number;
+  boost?: boolean;
+  weapon?: string;
+  ready?: number;
+  remaining?: number;
+}
+
+/** Tablette des séries pilotées : elle monte à l'écran, puis son cadre entoure l'image de la caméra. */
+export function CodTabletScreen({ view }: { view: CodTabletView }) {
   useT();
-  const [status, setStatus] = useState({ altitude: 0, boost: false });
+  const [status, setStatus] = useState<TabletStatus>({});
 
   const handleMessage = useCallback((message: NuiMessage) => {
-    if (message.action === 'codPredatorStatus') setStatus(message.data);
+    if (message.action === 'codTabletStatus') setStatus(message.data);
   }, []);
   useNuiMessage(handleMessage);
 
   if (view.state === 'opening') {
     return (
-      <div className="cod-predator">
-        <div className="cod-predator__raise" style={{ animationDuration: `${view.seconds}s` }}>
-          <span className="cod-label">{t('Liaison au missile')}</span>
+      <div className="cod-tablet">
+        <div className="cod-tablet__raise" style={{ animationDuration: `${view.seconds}s` }}>
+          <span className="cod-label">{t('Liaison en cours')}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="cod-predator">
-      <div className="cod-predator__view">
-        <span className="cod-predator__title">{t('Missile Predator')}</span>
-        <span className="cod-predator__altitude">{t('ALT {meters} M', { meters: status.altitude })}</span>
-        <span className="cod-predator__reticle" />
-        {status.boost && <span className="cod-predator__boost">{t('ACCÉLÉRATION')}</span>}
-        <span className="cod-predator__help">
-          <span>{t('Souris : diriger')}</span>
-          <span>{t('Clic gauche : accélérer')}</span>
+    <div className="cod-tablet">
+      <div className="cod-tablet__view">
+        <span className="cod-tablet__title">{t(view.title)}</span>
+        <span className="cod-tablet__info">
+          {status.altitude !== undefined && t('ALT {meters} M', { meters: status.altitude })}
+          {status.remaining !== undefined && t('{seconds} S', { seconds: status.remaining })}
         </span>
-        <span className="cod-predator__fade" />
+        <span className="cod-tablet__reticle" />
+        {status.boost && <span className="cod-tablet__boost">{t('ACCÉLÉRATION')}</span>}
+        {status.weapon && (
+          <span className="cod-tablet__weapon">
+            <span>{t(status.weapon)}</span>
+            <span className="cod-xpbar">
+              <span style={{ width: `${(status.ready ?? 1) * 100}%` }} />
+            </span>
+          </span>
+        )}
+        <span className="cod-tablet__help">
+          {view.help.map((line) => <span key={line}>{t(line)}</span>)}
+        </span>
+        <span className="cod-tablet__fade" />
       </div>
-      <span className="cod-predator__bezel" />
+      <span className="cod-tablet__bezel" />
       {view.state === 'lost' && (
-        <div className="cod-predator__lost">
-          <span className="cod-predator__title">{t('Signal perdu')}</span>
+        <div className="cod-tablet__lost">
+          <span className="cod-tablet__title">{t('Signal perdu')}</span>
         </div>
       )}
     </div>

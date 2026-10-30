@@ -9,6 +9,8 @@
 ---    onLeave(match, source, stats)   un joueur est parti
 ---@class CodRulesModule
 local CodRules = PVP.define('CodRules')
+local CodUnits = PVP.use('CodUnits')
+local CodCrates = PVP.use('CodCrates')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -298,7 +300,7 @@ function CodRules.Snd.tick(match, now, delta)
     end
 end
 
----Effet de l'explosion (créée par un seul client, voir CodEffects.blast).
+---Effet de l'explosion (créée par un seul client, voir CodEffects.explode).
 ---@param match table
 function CodRules.Snd.explode(match)
     for _, site in ipairs(match.sites) do
@@ -444,6 +446,8 @@ function CodRules.Snd.startRound(match)
         match:broadcast(Events.client.codNotice, { text = Locale.t('Changement de camp') })
     end
     match.bomb = false
+    CodUnits.clear(match)
+    CodCrates.clear(match)
     match.phase = 'countdown'
     match.runAt = now + countdown * 1000
     match.endAt = match.runAt + settings.roundTime * 1000

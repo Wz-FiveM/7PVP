@@ -13,7 +13,9 @@ local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local CodObjectives = PVP.use('CodObjectives')
 local CodEffects = PVP.use('CodEffects')
-local CodPredator = PVP.use('CodPredator')
+local CodTablet = PVP.use('CodTablet')
+local CodUnits = PVP.use('CodUnits')
+local CodCrates = PVP.use('CodCrates')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -62,11 +64,14 @@ Cod.cam = nil -- caméra du menu
 Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
 Cod.weapons = {}
+---@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front')
+Cod.streakTargets = {}
 
 function Cod.init()
     for _, list in pairs(Config.Cod.weapons) do
         for _, entry in ipairs(list) do Cod.weapons[entry.id] = entry end
     end
+    for _, entry in ipairs(Config.Cod.streaks) do Cod.streakTargets[entry.id] = entry.target end
     for _, team in ipairs({ 'alpha', 'bravo' }) do
         local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
         Cod.teamGroups[team] = group
@@ -263,7 +268,7 @@ end
 ---Sélecteur de classe en partie : s'applique à la prochaine apparition.
 ---@param open boolean
 function Cod.setPicker(open)
-    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodPredator.isActive()) then return end
+    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodTablet.isActive()) then return end
     if open == Cod.pickerOpen then return end
     Cod.pickerOpen = open
     SetNuiFocus(open, open)
@@ -319,7 +324,7 @@ end
 ---@param appearance table|nil
 ---@param protection integer secondes de protection affichées
 function Cod.placeAt(spawn, class, appearance, protection)
-    CodPredator.stop()
+    CodTablet.stop()
     Spawn.spawnAt(spawn, appearance)
     if not Cod.match then return end
     Cod.applyClass(class)
@@ -522,7 +527,9 @@ function Cod.loop()
             Cod.updateScoreboard()
             Cod.drawMates()
             if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
+            CodUnits.frame(now)
             if not Cod.ended then
+                CodCrates.frame(now)
                 CodObjectives.frame()
                 CodEffects.frame(now)
                 if State.isAlive() then
@@ -587,7 +594,7 @@ end
 ---Appelé à la mort (Death.check) : le serveur compte le kill et renvoie un point de réapparition.
 function Cod.onDeath()
     State.dead = true
-    CodPredator.stop()
+    CodTablet.stop()
     if Cod.outside then
         Cod.outside = false
         Nui.send('codOutside', { outside = false })
@@ -608,11 +615,18 @@ end
 -- Séries
 -- ---------------------------------------------------------------------------
 
----Touche des séries : la dernière gagnée.
+---Touche des séries : la dernière gagnée. Certaines partent du point visé ou du sol devant le joueur.
 function Cod.useStreak()
     if not Cod.isActive() or Cod.ended or not State.isAlive() or IsNuiFocused() then return end
-    if CodPredator.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
-    TriggerServerEvent(Events.server.codUseStreak)
+    if CodTablet.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
+    local mode = Cod.streakTargets[Cod.streakItems[#Cod.streakItems].id]
+    local target = nil
+    if mode == 'aim' then
+        target = CodEffects.aimPoint()
+    elseif mode == 'front' then
+        target = CodEffects.frontPoint()
+    end
+    TriggerServerEvent(Events.server.codUseStreak, target)
 end
 
 -- ---------------------------------------------------------------------------
@@ -624,7 +638,7 @@ end
 function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
-    CodPredator.stop()
+    CodTablet.stop()
     Cod.setPicker(false)
     Pause.close()
     CodObjectives.stopHolding()
@@ -634,7 +648,9 @@ end
 
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
-    CodPredator.stop()
+    CodTablet.stop()
+    CodUnits.clear()
+    CodCrates.clear()
     Cod.setPicker(false)
     Pause.close()
     Cod.match = nil

@@ -1,15 +1,24 @@
----Effets du mode Call of Duty : atouts, drone, carte coupée, missile Predator, frappe nucléaire, bombe.
----Les dégâts du missile sont calculés par le serveur (voir server/modules/cod/cod_streaks.lua) :
+---Effets du mode Call of Duty : atouts, drone, carte coupée, explosions des séries, avions, EMP, frappe nucléaire, bombe.
+---Les dégâts des séries sont calculés par le serveur (voir server/modules/cod/cod_streaks.lua) :
 ---le client ne fait que les appliquer à son personnage et afficher l'effet.
 ---@class CodEffectsModule
 local CodEffects = PVP.define('CodEffects')
 local Cod = PVP.use('Cod')
 local CodPredator = PVP.use('CodPredator')
 local Nui = PVP.use('Nui')
+local PedUtils = PVP.use('PedUtils')
 local Events = PVP.use('Events')
 
+CodEffects.AIM_DISTANCE = 300.0
+CodEffects.FRONT_DISTANCE = 1.8 -- m entre le joueur et la tourelle
 CodEffects.REVENGE_TIME = 6000
 CodEffects.SHAKE_DISTANCE = 60.0
+CodEffects.PLANE_SPEED = 110.0 -- m/s
+CodEffects.PLANE_HEIGHT = 120.0 -- m au-dessus du point visé
+CodEffects.PLANE_SPACING = 25.0 -- m entre deux avions d'une formation
+
+-- Effets gérés par d'autres modules (CodUnits, CodCrates) : type -> fonction
+CodEffects.EXTERNAL = {}
 
 ---@type { blip: integer, untilAt: integer }[] repères temporaires (drone, tueur)
 CodEffects.blips = {}
@@ -21,7 +30,9 @@ CodEffects.HANDLERS = {
     uav = 'onUav',
     jam = 'onJam',
     predatorCall = 'onPredatorCall',
-    predatorBlast = 'onPredatorBlast',
+    blast = 'onBlast',
+    flyby = 'onFlyby',
+    empBlast = 'onEmpBlast',
     hurt = 'onHurt',
     juggernaut = 'onJuggernaut',
     streakEarned = 'onStreakEarned',
@@ -34,8 +45,9 @@ CodEffects.HANDLERS = {
 
 function CodEffects.init()
     RegisterNetEvent(Events.client.codEffect, function(data)
-        local method = type(data) == 'table' and CodEffects.HANDLERS[data.type]
-        if method and Cod.isActive() then CodEffects[method](data) end
+        if type(data) ~= 'table' or not Cod.isActive() then return end
+        local handler = CodEffects.EXTERNAL[data.type] or CodEffects[CodEffects.HANDLERS[data.type]]
+        if handler then handler(data) end
     end)
 end
 
@@ -125,8 +137,33 @@ function CodEffects.markRevenge(coords)
 end
 
 -- ---------------------------------------------------------------------------
--- Missile Predator
+-- Séries
 -- ---------------------------------------------------------------------------
+
+---@return vector3 direction du regard de la caméra
+function CodEffects.camDirection()
+    local rotation = GetGameplayCamRot(2)
+    local pitch, yaw = math.rad(rotation.x), math.rad(rotation.z)
+    return vector3(-math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch))
+end
+
+---@return { x: number, y: number, z: number, heading: number } point visé par la caméra, et son cap
+function CodEffects.aimPoint()
+    local from = GetGameplayCamCoord()
+    local to = from + CodEffects.camDirection() * CodEffects.AIM_DISTANCE
+    local ray = StartExpensiveSynchronousShapeTestLosProbe(from.x, from.y, from.z, to.x, to.y, to.z, 1 + 16, PlayerPedId(), 7)
+    local _, hit, coords = GetShapeTestResult(ray)
+    local point = hit == 1 and coords or to
+    return { x = point.x, y = point.y, z = point.z, heading = GetGameplayCamRot(2).z }
+end
+
+---@return { x: number, y: number, z: number, heading: number } sol juste devant le joueur, et son cap
+function CodEffects.frontPoint()
+    local ped = PlayerPedId()
+    local point = GetOffsetFromEntityInWorldCoords(ped, 0.0, CodEffects.FRONT_DISTANCE, 0.0)
+    local found, ground = GetGroundZFor_3dCoord(point.x, point.y, point.z + 2.0, false)
+    return { x = point.x, y = point.y, z = found and ground or point.z - 1.0, heading = GetEntityHeading(ped) }
+end
 
 ---@param data { pilot: integer }
 function CodEffects.onPredatorCall(data)
@@ -134,10 +171,62 @@ function CodEffects.onPredatorCall(data)
     if data.pilot == Cod.match.self then CodPredator.launch() end
 end
 
----Là où le missile a touché, qui peut être un toit : pas de recalage sur le sol.
----@param data { x: number, y: number, z: number, owner: boolean, explosion: integer }
-function CodEffects.onPredatorBlast(data)
-    CodEffects.explode(data.x, data.y, data.z, data.owner, data.explosion, 2.0)
+---Une bombe est posée au sol ; un obus ou un missile explose là où il a touché, qui peut être un toit.
+---@param data { x: number, y: number, z: number, owner: boolean, explosion: integer, snap: boolean }
+function CodEffects.onBlast(data)
+    local z = data.z
+    if data.snap then
+        local found, ground = GetGroundZFor_3dCoord(data.x, data.y, data.z + 30.0, false)
+        if found then z = ground end
+    end
+    CodEffects.explode(data.x, data.y, z, data.owner, data.explosion, 2.0)
+end
+
+---Avions qui passent au-dessus du point au moment où les bombes tombent. Copie locale chez chaque client.
+---@param data { x: number, y: number, z: number, heading: number, model: string, planes: integer, delay: number, warn: boolean }
+function CodEffects.onFlyby(data)
+    if data.warn then PlaySoundFrontend(-1, '5_SEC_WARNING', 'HUD_MINI_GAME_SOUNDSET', true) end
+    CreateThread(function()
+        local match = Cod.match
+        local model = GetHashKey(data.model)
+        if not PedUtils.loadModel(model) or Cod.match ~= match then return end
+        local yaw = math.rad(data.heading)
+        local forward = vector3(-math.sin(yaw), math.cos(yaw), 0.0)
+        local right = vector3(math.cos(yaw), math.sin(yaw), 0.0)
+        local center = vector3(data.x, data.y, data.z + CodEffects.PLANE_HEIGHT)
+
+        local planes = {}
+        for index = 1, data.planes do
+            local plane = CreateVehicle(model, center.x, center.y, center.z, data.heading, false, false)
+            SetEntityCollision(plane, false, false)
+            FreezeEntityPosition(plane, true)
+            SetEntityInvincible(plane, true)
+            SetVehicleEngineOn(plane, true, true, false)
+            ControlLandingGear(plane, 3)
+            planes[index] = { entity = plane, offset = right * (index - (data.planes + 1) / 2) * CodEffects.PLANE_SPACING }
+        end
+        SetModelAsNoLongerNeeded(model)
+
+        local start = GetGameTimer()
+        local duration = data.delay * 2000
+        while Cod.match == match and GetGameTimer() - start < duration do
+            local along = (GetGameTimer() - start - duration / 2) / 1000 * CodEffects.PLANE_SPEED
+            for _, plane in ipairs(planes) do
+                local coords = center + forward * along + plane.offset
+                SetEntityCoordsNoOffset(plane.entity, coords.x, coords.y, coords.z, false, false, false)
+            end
+            Wait(0)
+        end
+        for _, plane in ipairs(planes) do
+            if DoesEntityExist(plane.entity) then DeleteEntity(plane.entity) end
+        end
+    end)
+end
+
+---@param data { enemy: boolean }
+function CodEffects.onEmpBlast(data)
+    AnimpostfxPlay('ExplosionJosh3', 800, false)
+    if data.enemy then ShakeGameplayCam('LARGE_EXPLOSION_SHAKE', 0.4) end
 end
 
 ---Explosion sans dégâts créée par un seul client (l'explosion est synchronisée pour les autres).

@@ -18,9 +18,13 @@
 ---@field multiKill integer
 ---@field lastKiller integer|nil
 ---@field damagedBy table<integer, integer> tireur -> GetGameTimer() de sa dernière touche
----@field strikeBy integer|nil dernier joueur dont le missile Predator a touché ce joueur
+---@field strikeBy integer|nil dernier joueur dont une série a touché ce joueur
 ---@field strikeAt integer
+---@field strikeLabel string|nil nom de cette série, pour le fil des kills
 ---@field predatorUntil integer|nil GetGameTimer() de fin du vol de son missile, nil sans missile en vol
+---@field pilotUnit integer|nil unité qu'il pilote depuis sa tablette
+---@field empUntil integer|nil GetGameTimer() de fin de l'EMP ennemi : ses séries sont bloquées
+---@field nextUnitHit integer|nil GetGameTimer() à partir duquel une touche sur une unité compte
 ---@field holding boolean touche d'objectif maintenue (bombe)
 ---@field actionProgress number secondes de pose ou de désamorçage
 ---@field nextResync integer|nil GetGameTimer() à partir duquel une resynchronisation est permise
@@ -29,6 +33,8 @@
 local CodMatch = PVP.define('CodMatch')
 local CodRules = PVP.use('CodRules')
 local CodStreaks = PVP.use('CodStreaks')
+local CodUnits = PVP.use('CodUnits')
+local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
 local CodService = PVP.use('CodService')
 local PlayerService = PVP.use('PlayerService')
@@ -41,7 +47,8 @@ CodMatch.TICK = 250 -- ms entre deux passages des règles (drapeaux, bombe, dron
 CodMatch.BROADCAST = 1000 -- ms entre deux envois de l'état aux joueurs
 CodMatch.SPAWN_CHOICES = 3 -- tirage parmi les points les plus éloignés des ennemis
 CodMatch.RECENT_SPAWN = 5000 -- ms : un point qui vient de servir compte comme occupé
-CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après un missile revient à son pilote
+CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après une série revient à celui qui l'a lancée
+CodMatch.JOIN_SYNC_DELAY = 2000 -- ms après l'arrivée d'un joueur avant de lui envoyer les unités et colis en jeu
 CodMatch.RESYNC_HOP = 500 -- ms hors du bucket de la partie pour recréer les copies des autres joueurs
 CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'un joueur
 
@@ -175,6 +182,12 @@ function CodMatch:addPlayer(source)
         objectives = self.rules.objectives(self),
     })
     CodStreaks.sendState(self, source)
+    -- Après le fondu d'arrivée : le client ignore les effets tant qu'il n'a pas pris la partie en main
+    SetTimeout(CodMatch.JOIN_SYNC_DELAY, function()
+        if not self.stats[source] then return end
+        CodUnits.sendActive(self, source)
+        CodCrates.sendActive(self, source)
+    end)
 end
 
 ---@param a integer
@@ -385,8 +398,8 @@ end
 
 ---@param source integer victime
 ---@param killerId any server id du tueur, calculé par le client de la victime
----@return integer|nil tueur, s'il est ennemi et assez proche (ou le pilote d'un missile Predator)
----@return boolean tué par le missile
+---@return integer|nil tueur, s'il est ennemi et assez proche (ou l'auteur d'une série)
+---@return boolean tué par une série
 function CodMatch:resolveKiller(source, killerId)
     local victim = self.stats[source]
     killerId = tonumber(killerId)
@@ -443,12 +456,13 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     victim.actionProgress = 0
     victim.streak = 0
     victim.predatorUntil = nil
+    CodUnits.onOwnerDied(self, source)
     CodStreaks.sendState(self, source)
 
     local running = self.phase == 'running'
-    local killer, byMissile = nil, false
-    if running then killer, byMissile = self:resolveKiller(source, killerId) end
-    local weaponLabel = byMissile and 'Missile Predator' or (killer and CodMatch.weaponLabel(weapon)) or nil
+    local killer, byStreak = nil, false
+    if running then killer, byStreak = self:resolveKiller(source, killerId) end
+    local weaponLabel = byStreak and victim.strikeLabel or (killer and CodMatch.weaponLabel(weapon)) or nil
     if killer then
         self:rewardKill(killer, source, headshot == true)
     end
@@ -568,6 +582,7 @@ function CodMatch:removePlayer(source)
         if member == source then table.remove(self.players, position) break end
     end
     if not stats then return end
+    CodUnits.onOwnerLeft(self, source)
     self.stats[source] = nil
     if self.phase == 'ended' then return end
 
