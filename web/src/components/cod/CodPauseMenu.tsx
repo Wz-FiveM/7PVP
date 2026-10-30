@@ -226,6 +226,8 @@ function OptionsTab({ info }: { info: PauseInfo }) {
   useT();
   const keys: [string, string][] = [
     [info.keys.menu, t('Tableau des scores (maintenir)')],
+    [info.keys.codPrimary, t('Arme principale')],
+    [info.keys.codSecondary, t('Arme secondaire')],
     [info.keys.codStreak, t('Utiliser une série')],
     [info.keys.codClass, t('Changer de classe')],
     ['E', t('Poser ou désamorcer la bombe (maintenir)')],

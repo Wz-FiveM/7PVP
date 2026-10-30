@@ -138,6 +138,14 @@ function Cod.init()
         Cod.setPicker(not Cod.pickerOpen)
     end, false)
     RegisterKeyMapping('pvp_cod_class', Locale.t('Call of Duty : changer de classe'), 'keyboard', Config.Cod.classKey)
+    RegisterCommand('pvp_cod_primary', function()
+        Cod.selectWeapon('primary')
+    end, false)
+    RegisterKeyMapping('pvp_cod_primary', Locale.t('Call of Duty : arme principale'), 'keyboard', Config.Cod.primaryKey)
+    RegisterCommand('pvp_cod_secondary', function()
+        Cod.selectWeapon('secondary')
+    end, false)
+    RegisterKeyMapping('pvp_cod_secondary', Locale.t('Call of Duty : arme secondaire'), 'keyboard', Config.Cod.secondaryKey)
 
     RegisterNUICallback('codQueue', function(data, cb)
         cb(Callback.await(Events.callbacks.codQueue, data.playlist) or { ok = false })
@@ -404,6 +412,19 @@ function Cod.giveWeapon(ped, id)
     SetPedInfiniteAmmo(ped, false, hash)
     SetPedAmmo(ped, hash, entry and entry.ammo or 0)
     return hash
+end
+
+---Touches d'armes : celles de GTA (1 à 9) sont coupées partout (Shortcuts.DISABLED_CONTROLS).
+---La mitrailleuse du Juggernaut prend la place de l'arme principale, sinon elle serait perdue en changeant d'arme.
+---@param slot 'primary'|'secondary'
+function Cod.selectWeapon(slot)
+    if not Cod.isActive() or Cod.ended or not Cod.class or not State.isAlive() or IsNuiFocused() then return end
+    if CodTablet.isActive() or CodLoading.isActive() or CodLoadout.isActive() or CodObjectives.acting then return end
+    local ped = PlayerPedId()
+    local hash = GetHashKey(Cod.class[slot])
+    local juggernaut = GetHashKey(Config.Cod.juggernaut.weapon)
+    if slot == 'primary' and HasPedGotWeapon(ped, juggernaut, false) then hash = juggernaut end
+    SetCurrentPedWeapon(ped, hash, true)
 end
 
 ---Atout Charognard : chaque kill recharge les munitions de la classe.

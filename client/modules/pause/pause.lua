@@ -94,6 +94,8 @@ function Pause.buildInfo()
             teleport = Config.Teleport.key,
             codClass = Config.Cod.classKey,
             codStreak = Config.Cod.streakKey,
+            codPrimary = Config.Cod.primaryKey,
+            codSecondary = Config.Cod.secondaryKey,
         },
     }
 end

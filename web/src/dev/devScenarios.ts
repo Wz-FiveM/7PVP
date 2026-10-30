@@ -183,7 +183,7 @@ export const DEV_SCREENS: DevScreen[] = [
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2' },
           },
         },
       });
@@ -261,7 +261,7 @@ export const DEV_SCREENS: DevScreen[] = [
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'cod', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2' },
           },
         },
       });

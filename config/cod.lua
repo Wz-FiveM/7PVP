@@ -47,6 +47,8 @@ Config.Cod = {
     -- Le tableau des scores se maintient sur la touche du menu (Config.MenuKey).
     streakKey = 'G',
     classKey = 'B',
+    primaryKey = '1',
+    secondaryKey = '2',
 
     knife = 'WEAPON_KNIFE',
 

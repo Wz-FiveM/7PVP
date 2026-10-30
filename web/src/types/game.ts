@@ -349,7 +349,7 @@ export interface PauseInfo {
   deaths: number;
   npcKills: number;
   isAdmin: boolean;
-  keys: { menu: string; chat: string; admin: string; noclip: string; teleport: string; codClass: string; codStreak: string };
+  keys: { menu: string; chat: string; admin: string; noclip: string; teleport: string; codClass: string; codStreak: string; codPrimary: string; codSecondary: string };
 }
 
 /** Compteur de vitesse (client/modules/hud/speedometer.lua) */
