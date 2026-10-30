@@ -28,6 +28,7 @@ function resetScreens(): void {
   sendNui({ action: 'codMenu', data: { open: false } });
   sendNui({ action: 'codHud', data: { open: false } });
   sendNui({ action: 'codLoading', data: { open: false } });
+  sendNui({ action: 'codLoadout', data: { open: false } });
   sendNui({ action: 'codPicker', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
@@ -231,6 +232,14 @@ export const DEV_SCREENS: DevScreen[] = [
       sendNui({ action: 'codStreak', data: { streak: 2, items: [{ id: 'uav', label: 'Drone' }], next: { label: 'Missile Predator', kills: 5 } } });
       sendNui({ action: 'vitals', data: { ...mockVitals, weapon: 'weapon_carbinerifle', clip: 30, reserve: 220 } });
       sendNui({ action: 'minimap', data: { visible: true, left: 0.03, right: 0.1706, top: 0.034, bottom: 0.21 } });
+    },
+  },
+  {
+    id: 'cod-loadout',
+    label: 'CoD : choix de la classe',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'cod-hud')?.open();
+      sendNui({ action: 'codLoadout', data: { open: true, seconds: 12, profile: mockCodProfile } });
     },
   },
   {

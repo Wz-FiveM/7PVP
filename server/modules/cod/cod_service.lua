@@ -41,6 +41,10 @@ function CodService.init()
     Callback.register(Events.callbacks.codLeaderboard, CodProfileService.leaderboard)
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)
 
+    RegisterNetEvent(Events.server.codDeploy, function()
+        local match = CodService.matchOf(source)
+        if match then match:deploy(source) end
+    end)
     -- Envoyé par le joueur mort : son tueur, l'arme et s'il a été touché à la tête
     RegisterNetEvent(Events.server.codDied, function(killerId, weapon, headshot)
         local match = CodService.matchOf(source)

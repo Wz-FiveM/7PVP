@@ -9,6 +9,7 @@
 ---@field assists integer
 ---@field xp integer XP gagnée dans la partie
 ---@field alive boolean
+---@field deploying boolean encore sur l'écran de choix de classe (pas vivant : caché, sans point de départ réservé)
 ---@field protectedUntil integer GetGameTimer() de fin de la protection d'apparition
 ---@field streak integer kills depuis la dernière mort
 ---@field bestStreak integer
@@ -146,7 +147,8 @@ function CodMatch:addPlayer(source)
         deaths = 0,
         assists = 0,
         xp = 0,
-        alive = true,
+        alive = false,
+        deploying = true,
         protectedUntil = 0,
         streak = 0,
         bestStreak = 0,
@@ -177,9 +179,7 @@ function CodMatch:addPlayer(source)
         outsideDamage = settings.outsideDamage,
         countdown = countdown,
         remaining = math.max(0, math.ceil((self.endAt - now) / 1000)),
-        protection = settings.spawnProtection,
         spawn = self:chooseSpawn(source, true),
-        class = stats.class,
         appearance = player and player.appearance,
         objectives = self.rules.objectives(self),
     })
@@ -262,21 +262,33 @@ end
 ---Réapparition, avec la classe choisie entre-temps.
 ---@param source integer
 ---@param ownSide? boolean
-function CodMatch:respawn(source, ownSide)
+---@param delay? integer secondes à ajouter à la protection (compte à rebours du lancement)
+function CodMatch:respawn(source, ownSide, delay)
     if self.phase == 'ended' or CodService.playerMatch[source] ~= self.id then return end
     local stats = self.stats[source]
+    local protection = Config.Cod.spawnProtection + (delay or 0)
     stats.alive = true
+    stats.deploying = false
     stats.damagedBy = {}
     stats.holding = false
     stats.actionProgress = 0
     stats.predatorUntil = nil
     stats.class = CodProfileService.selectedClass(source)
-    stats.protectedUntil = GetGameTimer() + Config.Cod.spawnProtection * 1000
+    stats.protectedUntil = GetGameTimer() + protection * 1000
     TriggerClientEvent(Events.client.codSpawn, source, {
         spawn = self:chooseSpawn(source, ownSide == true),
         class = stats.class,
-        protection = Config.Cod.spawnProtection,
+        protection = protection,
     })
+end
+
+---Fin de l'écran de choix de classe : première apparition, de son côté de la carte.
+---@param source integer
+function CodMatch:deploy(source)
+    local stats = self.stats[source]
+    if not stats or not stats.deploying then return end
+    local countdown = self.phase == 'countdown' and math.max(0, math.ceil((self.runAt - GetGameTimer()) / 1000)) or 0
+    self:respawn(source, true, countdown)
 end
 
 -- ---------------------------------------------------------------------------

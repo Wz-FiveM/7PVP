@@ -290,7 +290,7 @@ end
 -- ---------------------------------------------------------------------------
 
 ---Arrivée dans la partie (lancement ou partie rejointe en cours).
----@param data table self, playlist, map, team, teams, arena, countdown, remaining, spawn, class, objectives, ...
+---@param data table self, playlist, map, team, teams, arena, countdown, remaining, spawn, appearance, objectives, ...
 function Cod.start(data)
     DoScreenFadeOut(Cod.FADE)
     while not IsScreenFadedOut() do Wait(0) end
@@ -313,13 +313,15 @@ function Cod.start(data)
         countdown = data.countdown,
         remaining = data.remaining,
     })
-    Cod.placeAt(data.spawn, data.class, data.appearance, data.countdown + data.protection)
+    CodLoadout.prepare(data)
     CodLoading.finish()
+    CodLoadout.open(data)
 end
 
 ---@param data { spawn: vector4, class: table, protection: integer }
 function Cod.respawn(data)
     if not Cod.match then return end
+    CodLoadout.close()
     Cod.placeAt(data.spawn, data.class, nil, data.protection)
 end
 
@@ -533,7 +535,7 @@ function Cod.loop()
             Cod.drawMates()
             if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
             CodUnits.frame(now)
-            if not Cod.ended then
+            if not Cod.ended and not CodLoadout.isActive() then
                 CodCrates.frame(now)
                 CodObjectives.frame()
                 CodEffects.frame(now)
@@ -643,6 +645,8 @@ end
 function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
+    if CodLoadout.isActive() then DoScreenFadeIn(Cod.FADE) end
+    CodLoadout.close()
     CodLoading.stop()
     CodTablet.stop()
     Cod.setPicker(false)
@@ -654,6 +658,7 @@ end
 
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
+    CodLoadout.close()
     CodLoading.stop()
     CodTablet.stop()
     CodUnits.clear()

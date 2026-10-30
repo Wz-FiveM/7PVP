@@ -156,6 +156,13 @@ export interface CodRoundEndData {
   reason: string;
   scores: Record<CodTeamId, number>;
 }
+/** Écran de choix de classe à l'arrivée dans une partie */
+export interface CodLoadoutData {
+  seconds: number;
+  at: number;
+  /** texture du portrait du personnage, absent s'il n'a pas pu être pris */
+  portrait?: string;
+}
 export interface CodLoadingData {
   map: { label: string; place: string };
   playlist: string;

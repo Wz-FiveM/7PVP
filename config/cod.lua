@@ -28,7 +28,9 @@ Config.Cod = {
     voteChoices = 3, -- cartes proposées au vote
     joinMinRemaining = 90, -- secondes : en dessous, une partie en cours n'accepte plus de nouveaux joueurs
     loadTime = 6, -- secondes d'écran de chargement à chaque arrivée dans une partie, avant le compte à rebours
-    countdown = 8, -- secondes bloqué au point de départ au lancement, une fois l'écran de chargement passé
+    countdown = 15, -- secondes bloqué au point de départ au lancement, une fois l'écran de chargement passé
+    loadoutTime = 12, -- secondes pour choisir sa classe, à l'arrivée dans une partie (après l'écran de chargement)
+    loadoutCamera = { height = 1.3, fov = 50.0 }, -- vue aérienne de l'écran de classe (height : en rayons de la zone de combat)
     endScreen = 12, -- secondes de résultats avant le retour au menu
 
     respawnDelay = 3, -- secondes avant de réapparaître après une mort

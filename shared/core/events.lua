@@ -23,6 +23,7 @@ Events.server = {
     cvcVehicle = '7pvp:server:cvcVehicle',
     chaseReport = '7pvp:server:chaseReport',
     gungameDied = '7pvp:server:gungameDied',
+    codDeploy = '7pvp:server:codDeploy',
     codDied = '7pvp:server:codDied',
     codResync = '7pvp:server:codResync',
     codObjective = '7pvp:server:codObjective',

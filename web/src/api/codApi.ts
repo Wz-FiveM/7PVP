@@ -26,4 +26,7 @@ export const codApi = {
     }),
 
   closePicker: () => fetchNui<void>('codPickerClose'),
+
+  /** quitte l'écran de choix de classe et rejoint la partie */
+  deploy: () => fetchNui<void>('codDeploy'),
 };
