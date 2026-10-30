@@ -37,8 +37,8 @@ export const mockCodCatalog: CodCatalog = {
   ],
   streaks: [
     { id: 'uav', kills: 3, rank: 1, label: 'Drone', description: 'Les ennemis apparaissent sur la carte pendant 30 s.' },
-    { id: 'counter_uav', kills: 4, rank: 3, label: 'Contre-drone', description: 'Coupe la carte des ennemis pendant 30 s.' },
-    { id: 'airstrike', kills: 5, rank: 5, label: 'Frappe aérienne', description: 'Bombarde l\'endroit que tu vises.' },
+    { id: 'counter_uav', kills: 4, rank: 1, label: 'Contre-drone', description: 'Coupe la carte des ennemis pendant 30 s.' },
+    { id: 'airstrike', kills: 5, rank: 1, label: 'Frappe aérienne', description: 'Bombarde l\'endroit que tu vises.' },
     { id: 'juggernaut', kills: 7, rank: 12, label: 'Juggernaut', description: 'Armure pleine et minigun jusqu\'à ta mort.' },
     { id: 'nuke', kills: 15, rank: 30, label: 'Frappe nucléaire', description: 'Après 10 s, ton camp remporte la partie.' },
   ],

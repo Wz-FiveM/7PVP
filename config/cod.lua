@@ -176,11 +176,11 @@ Config.Cod = {
     -- Séries d'éliminations : `kills` sans mourir pour en gagner une, utilisée avec streakKey.
     -- Chaque joueur en équipe jusqu'à maxStreaks.
     maxStreaks = 3,
-    defaultStreaks = { 'uav' },
+    defaultStreaks = { 'uav', 'counter_uav', 'airstrike' },
     streaks = {
         { id = 'uav', kills = 3, rank = 1, duration = 30, label = 'Drone', description = 'Les ennemis apparaissent sur la carte pendant 30 s.' },
-        { id = 'counter_uav', kills = 4, rank = 3, duration = 30, label = 'Contre-drone', description = 'Coupe la carte des ennemis pendant 30 s.' },
-        { id = 'airstrike', kills = 5, rank = 5, label = 'Frappe aérienne', description = 'Bombarde l\'endroit que tu vises.' },
+        { id = 'counter_uav', kills = 4, rank = 1, duration = 30, label = 'Contre-drone', description = 'Coupe la carte des ennemis pendant 30 s.' },
+        { id = 'airstrike', kills = 5, rank = 1, label = 'Frappe aérienne', description = 'Bombarde l\'endroit que tu vises.' },
         { id = 'juggernaut', kills = 7, rank = 12, label = 'Juggernaut', description = 'Armure pleine et minigun jusqu\'à ta mort.' },
         { id = 'nuke', kills = 15, rank = 30, duration = 10, label = 'Frappe nucléaire', description = 'Après 10 s, ton camp remporte la partie.' },
     },
