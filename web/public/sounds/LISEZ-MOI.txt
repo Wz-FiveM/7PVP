@@ -6,6 +6,7 @@ Pour un son différent selon le type de touche, dépose ici un .ogg (prioritaire
   hit_armor.ogg  touche encaissée par l'armure
   hit_head.ogg   tir à la tête
   hit_kill.ogg   coup mortel
+  hit_cod_head.ogg  tir à la tête en mode Call of Duty (sans ce fichier : son synthétisé, jamais hitmarker.mp3)
 
 Garde-les très courts (moins de 0,3 s) et vérifie que tu as le droit de les utiliser.
 Sans aucun fichier, le jeu joue un son synthétisé (web/src/utils/hitSound.ts).

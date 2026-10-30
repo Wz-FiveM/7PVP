@@ -5,13 +5,17 @@
  *  - sinon, hitmarker.mp3 (même dossier) sert pour toutes les touches ;
  *  - sans aucun fichier, son synthétisé avec Web Audio : claquement sec et métallique (bruit filtré + « tic »),
  *    tintement brillant sur la tête, impact mat sur l'armure, coup sourd et grave sur un kill.
+ *
+ * cod_head (tir à la tête en mode Call of Duty) n'utilise jamais hitmarker.mp3 : il doit rester différent des autres touches.
  */
-export type HitSoundKind = 'body' | 'armor' | 'head' | 'kill';
+export type HitSoundKind = 'body' | 'armor' | 'head' | 'kill' | 'cod_head';
 
 const VOLUME = 0.4;
 /** Plusieurs touches dans la même rafale : un son toutes les 45 ms au plus */
 const MIN_INTERVAL = 45;
-const KINDS: HitSoundKind[] = ['body', 'armor', 'head', 'kill'];
+const KINDS: HitSoundKind[] = ['body', 'armor', 'head', 'kill', 'cod_head'];
+/** Jamais avalés par la limite de la rafale */
+const ALWAYS_PLAYED: HitSoundKind[] = ['kill', 'cod_head'];
 
 let context: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -95,11 +99,11 @@ function crack(ctx: AudioContext, at: number, frequency: number, q: number, gain
 }
 
 /** Tintement : sinus qui glisse légèrement vers le bas (le « tic » métallique). */
-function ping(ctx: AudioContext, at: number, frequency: number, gain: number, duration: number, type: OscillatorType = 'sine') {
+function ping(ctx: AudioContext, at: number, frequency: number, gain: number, duration: number, type: OscillatorType = 'sine', glide = 0.82) {
   const oscillator = ctx.createOscillator();
   oscillator.type = type;
   oscillator.frequency.setValueAtTime(frequency, at);
-  oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.82, at + duration);
+  oscillator.frequency.exponentialRampToValueAtTime(frequency * glide, at + duration);
   oscillator.connect(envelope(ctx, at, gain, duration));
   oscillator.start(at);
   oscillator.stop(at + duration + 0.02);
@@ -124,6 +128,13 @@ function synthesize(ctx: AudioContext, kind: HitSoundKind, t: number) {
       ping(ctx, t, 2900, 0.55, 0.11);
       ping(ctx, t, 5800, 0.25, 0.08);
       break;
+    case 'cod_head':
+      // « Dink » de casque : claquement sec puis cloche métallique qui résonne, sans glissement de note
+      crack(ctx, t, 6500, 1.6, 1, 0.025);
+      ping(ctx, t, 2350, 0.7, 0.26, 'sine', 0.99);
+      ping(ctx, t, 3720, 0.45, 0.19, 'sine', 0.99);
+      ping(ctx, t, 6110, 0.25, 0.12, 'sine', 0.99);
+      break;
     case 'armor':
       // Plaque touchée : impact plus mat, sans tintement
       crack(ctx, t, 2200, 1.2, 0.9, 0.04);
@@ -145,14 +156,14 @@ function synthesize(ctx: AudioContext, kind: HitSoundKind, t: number) {
 
 export function playHitSound(kind: HitSoundKind): void {
   const now = performance.now();
-  if (kind !== 'kill' && now - lastPlayed < MIN_INTERVAL) return;
+  if (!ALWAYS_PLAYED.includes(kind) && now - lastPlayed < MIN_INTERVAL) return;
   lastPlayed = now;
 
   const ctx = getContext();
   if (!ctx || !master) return;
   const t = ctx.currentTime + 0.005;
 
-  const file = files[kind] ?? shared;
+  const file = files[kind] ?? (kind === 'cod_head' ? null : shared);
   if (file) {
     const source = ctx.createBufferSource();
     source.buffer = file;

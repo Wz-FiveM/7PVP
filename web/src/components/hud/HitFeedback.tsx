@@ -36,7 +36,7 @@ function strongest(a: HitKind, b: HitKind): HitKind {
 }
 
 /** Hitmarker au centre de l'écran et dégâts infligés à côté, quand on touche un joueur. */
-export function HitFeedback() {
+export function HitFeedback({ mode }: { mode: string | null }) {
   const [marker, setMarker] = useState<{ id: number; kind: HitKind } | null>(null);
   const [numbers, setNumbers] = useState<DamageNumber[]>([]);
   const nextId = useRef(0);
@@ -47,7 +47,8 @@ export function HitFeedback() {
     const now = Date.now();
 
     setMarker({ id, kind });
-    playHitSound(kind);
+    // Call of Duty : le tir à la tête a son propre son, même quand il tue
+    playHitSound(mode === 'cod' && hit.headshot ? 'cod_head' : kind);
     window.setTimeout(() => setMarker((current) => (current?.id === id ? null : current)), MARKER_DURATION);
 
     setNumbers((list) => {
@@ -60,7 +61,7 @@ export function HitFeedback() {
       return [...list, { id, value: hit.damage, kind, at: now, offset: list.length % 3 }].slice(-MAX_NUMBERS);
     });
     window.setTimeout(() => setNumbers((list) => list.filter((n) => n.id !== id)), NUMBER_DURATION);
-  }, []);
+  }, [mode]);
 
   const handleMessage = useCallback(
     (message: NuiMessage) => {

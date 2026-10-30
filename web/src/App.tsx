@@ -47,7 +47,7 @@ export function App() {
       {creating && <UiGuard name="creator"><CharacterCreator /></UiGuard>}
       {!creating && inLobby && <UiGuard name="lobby"><Lobby /></UiGuard>}
       {inPvp && state.ready && !state.menu.open && !state.death.active && <UiGuard name="hud"><Hud /></UiGuard>}
-      {!creating && !inLobby && state.mode && <UiGuard name="hits"><HitFeedback /></UiGuard>}
+      {!creating && !inLobby && state.mode && <UiGuard name="hits"><HitFeedback mode={state.mode} /></UiGuard>}
       {/* Monté hors du HUD : les effets survivent à l'ouverture du menu (masqués pendant ce temps) */}
       {inPvp && (
         <UiGuard name="effects">
