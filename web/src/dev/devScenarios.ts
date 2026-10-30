@@ -706,7 +706,7 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CoD : médaille (triplé)',
     run: () => {
       sendNui({ action: 'codMedal', data: { id: 'triple', label: 'Triplé' } });
-      sendNui({ action: 'codCard', data: { kind: 'medal', id: 'triple', label: 'Triplé', name: 'Wezor', friendly: true } });
+      sendNui({ action: 'codCard', data: { kind: 'medal', id: 'triple', label: 'Triplé', name: 'Wezor', banner: 'skulls', friendly: true } });
     },
   },
   {
@@ -715,14 +715,14 @@ export const DEV_ACTIONS: DevAction[] = [
       sendNui({ action: 'codMedal', data: { id: 'first_blood', label: 'Premier sang' } });
       sendNui({ action: 'codMedal', data: { id: 'revenge', label: 'Revanche' } });
       sendNui({ action: 'codMedal', data: { id: 'massacre', label: 'Massacre' } });
-      sendNui({ action: 'codCard', data: { kind: 'medal', id: 'frenzy', label: 'Frénésie', name: 'Rook', friendly: false } });
+      sendNui({ action: 'codCard', data: { kind: 'medal', id: 'frenzy', label: 'Frénésie', name: 'Rook', banner: 'million', friendly: false } });
     },
   },
   {
     label: 'CoD : série déployée',
     run: () => {
-      sendNui({ action: 'codCard', data: { kind: 'streak', id: 'predator', label: 'Missile Predator', name: 'Kaze', friendly: true } });
-      sendNui({ action: 'codCard', data: { kind: 'streak', id: 'uav', label: 'Drone', name: 'Rook', friendly: false } });
+      sendNui({ action: 'codCard', data: { kind: 'streak', id: 'predator', label: 'Missile Predator', name: 'Kaze', banner: 'flames', friendly: true } });
+      sendNui({ action: 'codCard', data: { kind: 'streak', id: 'uav', label: 'Drone', name: 'Rook', banner: 'million', friendly: false } });
     },
   },
   {

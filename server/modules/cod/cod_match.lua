@@ -465,12 +465,14 @@ end
 function CodMatch:card(source, kind, id, label)
     local key = self:sideKey(source)
     local name = self.stats[source].name
+    local banner = CodProfileService.playerCard(source).banner
     for _, other in ipairs(self.players) do
         TriggerClientEvent(Events.client.codCard, other, {
             kind = kind,
             id = id,
             label = label,
             name = name,
+            banner = banner,
             friendly = self:sideKey(other) == key,
         })
     end

@@ -122,26 +122,3 @@ export function CodMedalFrame({ tier = DEFAULT_TIER, children }: { tier?: MedalT
 export function CodMedal({ id }: { id: string }) {
   return <CodMedalFrame tier={TIERS[id]}>{pictureFor(id)}</CodMedalFrame>;
 }
-
-/** Fond de carte de visite : papier déchiré, crâne au pochoir et bandeau noir, fondu vers la gauche. */
-export function CodCallingCard() {
-  return (
-    <svg className="cod-card__art" viewBox="0 0 150 54" preserveAspectRatio="xMaxYMid slice" aria-hidden="true">
-      <path d="M0 0h150v54H0z" fill="#bdb8a8" />
-      <path d="M0 0h62L52 16l14 12-10 26H0z" fill="#8f8a7b" />
-      <path d="M58 0h34l-6 12 8 10-12 12 6 20H52l10-24-12-14z" fill="#d6d1c0" />
-      <g fill="#1a1a1c" fontFamily="inherit" fontWeight="700">
-        <text x="60" y="11" fontSize="8" transform="rotate(-6 60 11)">7PVP</text>
-        <text x="56" y="49" fontSize="6" transform="rotate(4 56 49)">M.I.A. 0600</text>
-        <text x="114" y="8" fontSize="5" transform="rotate(3 114 8)">FOR DISTRIB.</text>
-      </g>
-      <g transform="translate(98 4) scale(0.92)">
-        <path d="M24 2C11 2 3 11 3 22c0 7 3 12 8 15v9h26v-9c5-3 8-8 8-15C45 11 37 2 24 2z" fill="#f2efe4" stroke="#1a1a1c" strokeWidth="2" />
-        <path d="M24 28l-3 6h6zM17 40v6M24 40v6M31 40v6" fill="#1a1a1c" stroke="#1a1a1c" strokeWidth="1.4" />
-      </g>
-      <path d="M92 19l52-3 2 11-54 3z" fill="#0d0d0f" />
-      <path d="M82 30l10 6-8 8-7-6z" fill="#f28a2e" />
-      <path d="M88 38l6 3-3 6-5-3z" fill="#f28a2e" opacity="0.7" />
-    </svg>
-  );
-}

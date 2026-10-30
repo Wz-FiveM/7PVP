@@ -177,6 +177,8 @@ export interface CodMedalData {
 export interface CodCardData extends CodMedalData {
   kind: 'medal' | 'streak';
   name: string;
+  /** Bannière de la carte de joueur */
+  banner: string;
   friendly: boolean;
 }
 export interface CodStreakState {

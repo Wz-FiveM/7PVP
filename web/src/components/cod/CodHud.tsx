@@ -8,9 +8,9 @@ import type {
 import type { NuiMessage } from '../../types/nui';
 import { WeaponSilhouette } from '../hud/Killfeed';
 import { Icon } from '../icons/Icon';
-import { CodCallingCard, CodMedal, CodMedalFrame } from './CodMedal';
+import { CodMedal, CodMedalFrame } from './CodMedal';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
-import { CodPlayerCard } from './CodPlayerCard';
+import { bannerUrl, CodPlayerCard } from './CodPlayerCard';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
 
@@ -430,7 +430,7 @@ function FeatCard({ card }: { card: CodCardData }) {
     <div className={card.friendly ? 'cod-card cod-card--friend' : 'cod-card cod-card--enemy'}>
       <span className="cod-card__name">{card.name}</span>
       <div className="cod-card__band">
-        <CodCallingCard />
+        <img className="cod-card__art" src={bannerUrl(card.banner)} alt="" draggable={false} />
         <span className="cod-card__icon">
           {card.kind === 'medal' ? (
             <CodMedal id={card.id} />
