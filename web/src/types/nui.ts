@@ -6,7 +6,7 @@ import type {
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
-  CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
+  CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillData, CodLoadingData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
 } from './cod';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -91,9 +91,11 @@ export type NuiMessage =
   | { action: 'gungameKill'; data: GungameKillData }
   | { action: 'gungameOutside'; data: { outside: boolean } }
   | { action: 'gungameEnd'; data: GungameEndData }
-  /** Call of Duty : menu du mode, file et vote, HUD de partie, résultats */
+  /** Call of Duty : menu du mode, file et vote, écran de chargement, HUD de partie, résultats */
   | { action: 'codMenu'; data: { open: boolean; profile?: CodProfile; catalog?: CodCatalog } }
   | { action: 'codQueue'; data: CodQueueData }
+  | { action: 'codLoading'; data: ({ open: true } & CodLoadingData) | { open: false } }
+  | { action: 'codLoadingProgress'; data: { progress: number } }
   | { action: 'codPicker'; data: { open: boolean; profile?: CodProfile } }
   | { action: 'codHud'; data: { open: boolean } & Partial<CodHudData> }
   | { action: 'codState'; data: CodStateData }

@@ -1585,3 +1585,77 @@
   text-transform: uppercase;
   color: var(--cod-muted);
 }
+
+/* Écran de chargement d'une partie : la carte est vue en jeu, derrière ------------- */
+
+.cod-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6vh 3.25vw 3.5vh;
+  background:
+    radial-gradient(ellipse 45% 32% at 0 0, rgba(0, 0, 0, 0.5), transparent),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.45), transparent 22%);
+}
+.cod-loading__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--cod-font);
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-shadow: 0 0.0625rem 0.375rem rgba(0, 0, 0, 0.65);
+}
+.cod-loading__map {
+  margin: 0;
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--cod-accent);
+}
+.cod-loading__place {
+  font-size: 2rem;
+  color: rgba(242, 243, 240, 0.82);
+}
+.cod-loading__mode {
+  font-size: 1.5rem;
+  color: var(--cod-muted);
+}
+.cod-loading__foot {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  width: min(60vw, 76rem);
+}
+.cod-loading__tip {
+  margin: 0;
+  padding: 0.5rem 1.25rem;
+  font-family: var(--cod-font);
+  font-size: 1.125rem;
+  font-weight: 600;
+  background: var(--cod-panel);
+}
+.cod-loading__track {
+  display: block;
+  height: 0.125rem;
+  background: var(--cod-line);
+}
+.cod-loading__track > span {
+  display: block;
+  height: 100%;
+  background: var(--cod-accent);
+  transition: width 120ms linear;
+}
+.cod-loading__status {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  font-family: var(--cod-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--cod-muted);
+  text-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.65);
+}

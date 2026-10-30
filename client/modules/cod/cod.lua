@@ -13,6 +13,7 @@ local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local CodObjectives = PVP.use('CodObjectives')
 local CodEffects = PVP.use('CodEffects')
+local CodLoading = PVP.use('CodLoading')
 local CodTablet = PVP.use('CodTablet')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
@@ -269,7 +270,7 @@ end
 ---Sélecteur de classe en partie : s'applique à la prochaine apparition.
 ---@param open boolean
 function Cod.setPicker(open)
-    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodTablet.isActive()) then return end
+    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodTablet.isActive() or CodLoading.isActive()) then return end
     if open == Cod.pickerOpen then return end
     Cod.pickerOpen = open
     SetNuiFocus(open, open)
@@ -301,6 +302,7 @@ function Cod.start(data)
     Cod.drawArena(data.arena)
     Cod.setMinimapTop(true)
     CodObjectives.setup(data.objectives, data.team)
+    CodLoading.start(data)
     Nui.send('codHud', {
         open = true,
         self = data.self,
@@ -312,6 +314,7 @@ function Cod.start(data)
         remaining = data.remaining,
     })
     Cod.placeAt(data.spawn, data.class, data.appearance, data.countdown + data.protection)
+    CodLoading.finish()
 end
 
 ---@param data { spawn: vector4, class: table, protection: integer }
@@ -523,7 +526,7 @@ function Cod.loop()
     while true do
         if Cod.isActive() then
             local now = GetGameTimer()
-            if Cod.ended or now < Cod.lockedUntil or CodObjectives.acting then
+            if Cod.ended or now < Cod.lockedUntil or CodObjectives.acting or CodLoading.isActive() then
                 for _, control in ipairs(Cod.LOCKED_CONTROLS) do DisableControlAction(0, control, true) end
             end
             Cod.updateScoreboard()
@@ -620,7 +623,7 @@ end
 ---Touche des séries : la dernière gagnée. Certaines partent du point visé ou du sol devant le joueur.
 function Cod.useStreak()
     if not Cod.isActive() or Cod.ended or not State.isAlive() or IsNuiFocused() then return end
-    if CodTablet.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
+    if CodTablet.isActive() or CodLoading.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
     local mode = Cod.streakTargets[Cod.streakItems[#Cod.streakItems].id]
     local target = nil
     if mode == 'aim' then
@@ -640,6 +643,7 @@ end
 function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
+    CodLoading.stop()
     CodTablet.stop()
     Cod.setPicker(false)
     Pause.close()
@@ -650,6 +654,7 @@ end
 
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
+    CodLoading.stop()
     CodTablet.stop()
     CodUnits.clear()
     CodCrates.clear()

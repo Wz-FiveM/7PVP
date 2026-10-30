@@ -165,6 +165,7 @@ client_scripts {
     'client/modules/cod/cod.lua',
     'client/modules/cod/cod_objectives.lua',
     'client/modules/cod/cod_effects.lua',
+    'client/modules/cod/cod_loading.lua',
     'client/modules/cod/cod_tablet.lua',
     'client/modules/cod/cod_predator.lua',
     'client/modules/cod/cod_units.lua',

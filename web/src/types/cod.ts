@@ -156,6 +156,12 @@ export interface CodRoundEndData {
   reason: string;
   scores: Record<CodTeamId, number>;
 }
+export interface CodLoadingData {
+  map: { label: string; place: string };
+  playlist: string;
+  tip: string;
+}
+
 export interface CodEndData {
   result: 'won' | 'lost' | 'draw';
   reason: string;

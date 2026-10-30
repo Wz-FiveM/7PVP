@@ -59,6 +59,7 @@ CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'u
 function CodMatch.new(id, playlist, map)
     local settings = Config.Cod
     local now = GetGameTimer()
+    local waiting = settings.loadTime + settings.countdown
     local match = setmetatable({
         id = id,
         bucket = settings.bucketBase + id,
@@ -71,8 +72,8 @@ function CodMatch.new(id, playlist, map)
         sides = { alpha = 'alpha', bravo = 'bravo' },
         recentSpawns = {},
         phase = 'countdown',
-        runAt = now + settings.countdown * 1000,
-        endAt = now + (settings.countdown + playlist.time) * 1000,
+        runAt = now + waiting * 1000,
+        endAt = now + (waiting + playlist.time) * 1000,
         firstBlood = false,
         lastTick = now,
         nextBroadcast = 0,
@@ -112,7 +113,7 @@ function CodMatch:start(players)
     end
     Logger.info('[cod] partie n°%d : %s sur %s, %d joueurs', self.id, self.playlist.id, self.map.id, #players)
 
-    SetTimeout(Config.Cod.countdown * 1000, function()
+    SetTimeout((Config.Cod.loadTime + Config.Cod.countdown) * 1000, function()
         if self.phase == 'countdown' then self.phase = 'running' end
     end)
     CreateThread(function()
@@ -163,7 +164,8 @@ function CodMatch:addPlayer(source)
     SetPlayerRoutingBucket(source, self.bucket)
 
     local stats = self.stats[source]
-    local countdown = math.max(0, math.ceil((self.runAt - now) / 1000))
+    -- Une partie rejointe en cours passe aussi par l'écran de chargement : bloqué et protégé pendant ce temps
+    local countdown = math.max(settings.loadTime, math.ceil((self.runAt - now) / 1000))
     stats.protectedUntil = now + (countdown + settings.spawnProtection) * 1000
     TriggerClientEvent(Events.client.codStart, source, {
         self = source,

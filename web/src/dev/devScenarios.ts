@@ -27,6 +27,7 @@ function resetScreens(): void {
   sendNui({ action: 'gungameHud', data: { open: false } });
   sendNui({ action: 'codMenu', data: { open: false } });
   sendNui({ action: 'codHud', data: { open: false } });
+  sendNui({ action: 'codLoading', data: { open: false } });
   sendNui({ action: 'codPicker', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
@@ -643,6 +644,16 @@ export const DEV_ACTIONS: DevAction[] = [
           ],
         },
       }),
+  },
+  {
+    label: 'CoD : chargement',
+    run: () => {
+      sendNui({
+        action: 'codLoading',
+        data: { open: true, map: { label: 'Terminal', place: 'Port de Los Santos' }, playlist: 'Match à mort par équipe', tip: 'La santé remonte toute seule après quelques secondes sans dégâts.' },
+      });
+      window.setTimeout(() => sendNui({ action: 'codLoadingProgress', data: { progress: 43 } }), 100);
+    },
   },
   { label: 'CoD : file', run: () => sendNui({ action: 'codQueue', data: { count: 1, playlist: 'tdm', names: ['Wezor'], needed: 2, max: 12, startIn: false, maps: false, vote: false } }) },
   {

@@ -27,7 +27,8 @@ Config.Cod = {
     queueDelay = 25, -- secondes de vote de carte une fois `minPlayers` atteint
     voteChoices = 3, -- cartes proposées au vote
     joinMinRemaining = 90, -- secondes : en dessous, une partie en cours n'accepte plus de nouveaux joueurs
-    countdown = 8, -- secondes bloqué au point de départ au lancement
+    loadTime = 6, -- secondes d'écran de chargement à chaque arrivée dans une partie, avant le compte à rebours
+    countdown = 8, -- secondes bloqué au point de départ au lancement, une fois l'écran de chargement passé
     endScreen = 12, -- secondes de résultats avant le retour au menu
 
     respawnDelay = 3, -- secondes avant de réapparaître après une mort
@@ -301,6 +302,21 @@ Config.Cod = {
         { id = 'scrapyard', label = 'La Casse', place = 'Rogers Salvage, La Puerta', radius = 70.0 },
         { id = 'sawmill', label = 'La Scierie', place = 'Paleto Bay', radius = 80.0 },
         { id = 'construction', label = 'Le Chantier', place = 'Pillbox Hill', radius = 70.0 },
+    },
+
+    -- Écran de chargement : caméra derrière le point de départ, regardant le milieu de la carte.
+    -- distance et height sont en proportion du rayon de la carte ; push = part du trajet vers le milieu parcourue.
+    loadingView = { distance = 1.0, height = 0.7, fov = 55.0, push = 0.08 },
+    loadingTips = {
+        'La santé remonte toute seule après quelques secondes sans dégâts.',
+        'Tu peux changer de classe en pleine partie : elle s\'applique à ta prochaine apparition.',
+        'Tirer met fin à ta protection d\'apparition.',
+        'Hors de la zone de combat, tu perds de la vie chaque seconde.',
+        'Toucher un ennemi juste avant qu\'un allié ne l\'élimine te rapporte une assistance.',
+        'En Domination, plus vous êtes nombreux sur un drapeau, plus vite il est capturé.',
+        'En Recherche & Destruction, tu n\'as qu\'une seule vie par manche.',
+        'Enchaîner les kills en quelques secondes rapporte de l\'XP en plus.',
+        'Le premier kill de la partie rapporte un bonus d\'XP.',
     },
 }
 
