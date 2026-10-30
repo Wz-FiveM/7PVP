@@ -42,7 +42,8 @@ function CodMode.onWeaponDamage(sender, data)
         local ped = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
         if ped ~= 0 and DoesEntityExist(ped) then
             local owner = NetworkGetEntityOwner(ped)
-            if PlayerService.get(owner) and GetPlayerPed(owner) == ped and not CodService.damageAllowed(sender, owner) then
+            -- attacker.source et pas sender : le jeu envoie sender en texte, les parties sont indexées par nombre
+            if PlayerService.get(owner) and GetPlayerPed(owner) == ped and not CodService.damageAllowed(attacker.source, owner) then
                 CancelEvent()
                 return
             end
