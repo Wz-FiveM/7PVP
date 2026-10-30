@@ -745,6 +745,18 @@ export const DEV_ACTIONS: DevAction[] = [
       window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { weapon: '105 mm', ready: 0.6, remaining: 27 } }), 100);
     },
   },
+  {
+    label: 'CoD : hélico mitrailleur',
+    run: () => {
+      sendNui({ action: 'codTablet', data: { state: 'flying', clear: true, title: 'Hélico mitrailleur', help: ['Souris : viser', 'Clic gauche : tirer'] } });
+      for (let shot = 1; shot <= 30; shot++) {
+        window.setTimeout(() => {
+          sendNui({ action: 'codTabletStatus', data: { weapon: 'Minigun', ready: 1, remaining: 34, firing: shot < 30 } });
+          if (shot % 8 === 0) sendNui({ action: 'hit', data: { damage: 45, armor: 0, headshot: false, fatal: false } });
+        }, shot * 100);
+      }
+    },
+  },
   { label: 'CoD : signal perdu', run: () => sendNui({ action: 'codTablet', data: { state: 'lost' } }) },
   { label: 'CoD : fin de la tablette', run: () => sendNui({ action: 'codTablet', data: { state: false } }) },
   { label: 'CoD : ouverture du colis', run: () => sendNui({ action: 'codAction', data: { kind: 'crate', seconds: 6 } }) },

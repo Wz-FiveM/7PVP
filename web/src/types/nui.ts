@@ -119,8 +119,8 @@ export type NuiMessage =
   | { action: 'codJam'; data: { active: boolean } }
   | { action: 'codRadar'; data: { seconds: number } }
   | { action: 'codGunfire'; data: { volume: number } }
-  | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[] } }
-  | { action: 'codTabletStatus'; data: { altitude?: number; boost?: boolean; weapon?: string; ready?: number; remaining?: number } }
+  | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[]; clear?: boolean } }
+  | { action: 'codTabletStatus'; data: { altitude?: number; boost?: boolean; weapon?: string; ready?: number; remaining?: number; firing?: boolean } }
   | { action: 'codEnd'; data: CodEndData }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };

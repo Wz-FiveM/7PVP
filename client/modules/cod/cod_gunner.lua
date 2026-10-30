@@ -7,6 +7,7 @@ local Cod = PVP.use('Cod')
 local CodTablet = PVP.use('CodTablet')
 local CodUnits = PVP.use('CodUnits')
 local Events = PVP.use('Events')
+local PedUtils = PVP.use('PedUtils')
 
 CodGunner.CONTROL_LOOK_LR = 1
 CodGunner.CONTROL_LOOK_UD = 2
@@ -18,6 +19,8 @@ CodGunner.PITCH_MAX = -10.0
 CodGunner.AIM_DISTANCE = 900.0
 CodGunner.PROBE_FLAGS = 1 + 2 + 4 + 8 + 16 -- carte, véhicules, personnages, objets
 CodGunner.CAMERA_DROP = 3.0 -- m sous l'appareil
+CodGunner.RECOIL_TIME = 120 -- ms pour que le minigun revienne en place après un tir
+CodGunner.FIRING_TIME = 150 -- ms après un tir pendant lesquelles des douilles sortent encore
 
 ---@param unit table unité de CodUnits, déjà enregistrée
 function CodGunner.launch(unit)
@@ -27,6 +30,7 @@ function CodGunner.launch(unit)
         title = unit.settings.label,
         help = help,
         onReady = function(session) CodGunner.fly(session, unit) end,
+        onStop = function(session) CodGunner.removeGun(session, unit) end,
     })
 end
 
@@ -40,7 +44,10 @@ function CodGunner.fly(session, unit)
     session.pitch = math.max(CodGunner.PITCH_MIN, math.min(CodGunner.PITCH_MAX, math.deg(math.atan(toCenter.z, #toCenter.xy))))
     session.weaponIndex = 1
     session.ready = {}
-    CodTablet.startView(session, coords, session.pitch, session.yaw, unit.settings.fov)
+    CodTablet.startView(session, coords, session.pitch, session.yaw, unit.settings.fov, unit.settings.doorGun ~= nil)
+    if unit.settings.doorGun then
+        CreateThread(function() CodGunner.createGun(session, unit) end)
+    end
 
     while CodTablet.session == session and CodUnits.units[unit.id] == unit do
         CodTablet.lockControls()
@@ -57,6 +64,52 @@ function CodGunner.cameraCoords(unit)
     return vector3(coords.x, coords.y, coords.z - CodGunner.CAMERA_DROP)
 end
 
+---Minigun au premier plan, vu par le seul pilote.
+---@param session table
+---@param unit table
+function CodGunner.createGun(session, unit)
+    local settings = unit.settings.doorGun
+    local model = GetHashKey(settings.model)
+    if not PedUtils.loadModel(model) or CodTablet.session ~= session then return end
+    local coords = CodGunner.cameraCoords(unit)
+    local gun = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+    SetModelAsNoLongerNeeded(model)
+    SetEntityCollision(gun, false, false)
+    FreezeEntityPosition(gun, true)
+    local bone = GetEntityBoneIndexByName(gun, CodUnits.MUZZLE_BONE)
+    session.gunBarrel = bone == -1 and settings.barrel
+        or #GetOffsetFromEntityGivenWorldCoords(gun, GetWorldPositionOfEntityBone(gun, bone))
+    session.gun = gun
+end
+
+---@param session table
+---@param unit table
+function CodGunner.removeGun(session, unit)
+    unit.gunMuzzle = nil
+    if session.gun and DoesEntityExist(session.gun) then DeleteEntity(session.gun) end
+    session.gun = nil
+end
+
+---Replace le minigun devant la caméra, le canon dans l'axe du regard, et retient sa bouche pour les tirs (CodUnits).
+---@param session table
+---@param unit table
+---@param coords vector3 caméra
+---@param now integer
+function CodGunner.placeGun(session, unit, coords, now)
+    local settings = unit.settings.doorGun
+    local pitch, yaw = math.rad(session.pitch), math.rad(session.yaw)
+    local forward = CodGunner.direction(session)
+    local right = vector3(math.cos(yaw), math.sin(yaw), 0.0)
+    local up = vector3(math.sin(yaw) * math.sin(pitch), -math.cos(yaw) * math.sin(pitch), math.cos(pitch))
+
+    local kick = settings.kick * math.max(0.0, 1.0 - (now - (session.lastShot or 0)) / CodGunner.RECOIL_TIME)
+    local jitter = (math.random() - 0.5) * kick
+    local position = coords + forward * (settings.forward - kick) + right * (settings.right + jitter) + up * (settings.up + jitter)
+    SetEntityCoordsNoOffset(session.gun, position.x, position.y, position.z, false, false, false)
+    SetEntityRotation(session.gun, 0.0, -session.pitch, session.yaw - CodUnits.BARREL_YAW, 2, false)
+    unit.gunMuzzle = position + forward * session.gunBarrel
+end
+
 ---@param session table
 ---@param unit table
 function CodGunner.frame(session, unit)
@@ -69,6 +122,7 @@ function CodGunner.frame(session, unit)
     session.pitch = math.max(CodGunner.PITCH_MIN, math.min(CodGunner.PITCH_MAX, session.pitch))
     SetCamCoord(session.cam, coords.x, coords.y, coords.z)
     SetCamRot(session.cam, session.pitch, 0.0, session.yaw, 2)
+    if session.gun then CodGunner.placeGun(session, unit, coords, now) end
 
     local aim = CodGunner.aimPoint(session, coords, unit)
     CodTablet.frame(coords, aim)
@@ -82,6 +136,7 @@ function CodGunner.frame(session, unit)
     if now >= readyAt and IsDisabledControlPressed(0, CodGunner.CONTROL_FIRE) then
         readyAt = now + weapon.cooldown
         session.ready[session.weaponIndex] = readyAt
+        session.lastShot = now
         TriggerServerEvent(Events.server.codPilotFire, unit.id, session.weaponIndex, { x = aim.x, y = aim.y, z = aim.z })
     end
 
@@ -89,7 +144,15 @@ function CodGunner.frame(session, unit)
         weapon = weapon.label,
         ready = 1 - math.max(0, readyAt - now) / weapon.cooldown,
         remaining = math.max(0, math.ceil(unit.remaining - (now - unit.born) / 1000 + unit.elapsed)),
+        firing = unit.settings.doorGun ~= nil and now - (session.lastShot or 0) < CodGunner.FIRING_TIME,
     })
+end
+
+---@param session table
+---@return vector3 direction du regard
+function CodGunner.direction(session)
+    local pitch, yaw = math.rad(session.pitch), math.rad(session.yaw)
+    return vector3(-math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch))
 end
 
 ---@param session table
@@ -97,8 +160,7 @@ end
 ---@param unit table
 ---@return vector3 point du décor au centre de l'image (à la hauteur du milieu de la carte si rien n'est touché)
 function CodGunner.aimPoint(session, from, unit)
-    local pitch, yaw = math.rad(session.pitch), math.rad(session.yaw)
-    local direction = vector3(-math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch))
+    local direction = CodGunner.direction(session)
     local to = from + direction * CodGunner.AIM_DISTANCE
     local ray = StartExpensiveSynchronousShapeTestLosProbe(from.x, from.y, from.z, to.x, to.y, to.z, CodGunner.PROBE_FLAGS, unit.entity or 0, 7)
     local _, hit, coords = GetShapeTestResult(ray)

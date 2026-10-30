@@ -194,8 +194,10 @@ end
 ---@param settings { radius: number, damage: number, explosion: integer|nil }
 ---@param label string arme affichée dans le fil des kills
 ---@param flat? boolean bombe larguée : le client la pose au sol et la hauteur des joueurs ne compte pas
+---@return number dégâts infligés
 function CodStreaks.blast(match, source, point, settings, label, flat)
     local now = GetGameTimer()
+    local dealt = 0
     for _, other in ipairs(match.players) do
         if settings.explosion then
             TriggerClientEvent(Events.client.codEffect, other, {
@@ -211,10 +213,12 @@ function CodStreaks.blast(match, source, point, settings, label, flat)
             local hit = flat and #(coords.xy - point.xy) or #(coords - point)
             if hit <= settings.radius then
                 local ratio = 1 - hit / settings.radius * CodStreaks.BLAST_FALLOFF
+                dealt = dealt + settings.damage * ratio
                 CodStreaks.hurtPlayer(match, source, other, settings.damage * ratio, label)
             end
         end
     end
+    return dealt
 end
 
 -- ---------------------------------------------------------------------------

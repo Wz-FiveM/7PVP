@@ -275,6 +275,10 @@ Config.Cod = {
             weapons = {
                 { label = 'Minigun', cooldown = 100, radius = 3.0, damage = 45 },
             },
+            -- Vue à bord, en couleurs, avec le minigun au premier plan.
+            -- forward, right, up : place du modèle depuis la caméra, en m ; barrel : m jusqu'à la bouche du canon si le
+            -- modèle n'a pas d'os de bouche ; kick : recul en m ; flashScale : flamme ; volume : son du tir, de 0 à 1
+            doorGun = { model = 'w_mg_minigun', forward = 1.0, right = 0.0, up = -0.5, barrel = 1.0, kick = 0.04, flashScale = 0.5, volume = 0.7 },
         },
         ac130 = {
             aircraft = 'titan', orbit = 2.2, orbitSpeed = 0.08, height = 230.0, blip = 16, fov = 40.0,

@@ -156,10 +156,10 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         radarTimer.current = window.setTimeout(() => setRadar(null), message.data.seconds * 1000 + RADAR_SLACK);
         return setRadar(message.data.seconds);
       case 'codTablet': {
-        const { state, seconds, title, help } = message.data;
-        // Le titre et l'aide ne sont envoyés qu'à l'ouverture
+        const { state, seconds, title, help, clear } = message.data;
+        // Le titre et l'aide ne sont envoyés qu'à l'ouverture, la vue à bord qu'au décollage
         return setTablet((current) => (state
-          ? { state, seconds: seconds ?? 0, title: title ?? current?.title ?? '', help: help ?? current?.help ?? [] }
+          ? { state, seconds: seconds ?? 0, title: title ?? current?.title ?? '', help: help ?? current?.help ?? [], clear: clear ?? current?.clear ?? false }
           : null));
       }
     }

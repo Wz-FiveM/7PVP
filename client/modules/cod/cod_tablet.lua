@@ -21,8 +21,14 @@ CodTablet.STATUS_INTERVAL = 100 -- ms entre deux envois de l'état au HUD
 CodTablet.MARKER_SCALE = 0.03 -- taille des cercles sur les joueurs, en proportion de l'altitude
 CodTablet.MARKER_MIN = 1.2
 CodTablet.ENEMY_COLOR = { 255, 90, 60 }
+-- Losange au-dessus des joueurs en vue à bord, dessiné par-dessus le décor. Tailles en proportion de la hauteur d'écran
+CodTablet.ICON_HEIGHT = 1.5 -- m au-dessus du centre du personnage
+CodTablet.ICON_SIZE = 0.03
+CodTablet.ICON_OUTLINE = 0.006
+CodTablet.ICON_ROWS = 4 -- bandes de chaque côté de celle du milieu
+CodTablet.ICON_OUTLINE_COLOR = { 0, 0, 0 }
 
----@type table|nil séance en cours : weapon, tablet, cam, onStop, nextStatus
+---@type table|nil séance en cours : weapon, tablet, cam, onStop, nextStatus, clear
 CodTablet.session = nil
 
 ---@return boolean
@@ -90,15 +96,17 @@ end
 ---@param pitch number
 ---@param yaw number
 ---@param fov number
-function CodTablet.startView(session, coords, pitch, yaw, fov)
+---@param clear boolean|nil vue à bord : ni filtre ni cadre de tablette, losanges sur les joueurs
+function CodTablet.startView(session, coords, pitch, yaw, fov, clear)
+    session.clear = clear
     session.cam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(session.cam, coords.x, coords.y, coords.z)
     SetCamRot(session.cam, pitch, 0.0, yaw, 2)
     SetCamFov(session.cam, fov)
     SetCamActive(session.cam, true)
     RenderScriptCams(true, false, 0, true, true)
-    SetTimecycleModifier(CodTablet.CAMERA_FILTER)
-    Nui.send('codTablet', { state = 'flying' })
+    if not clear then SetTimecycleModifier(CodTablet.CAMERA_FILTER) end
+    Nui.send('codTablet', { state = 'flying', clear = clear == true })
 end
 
 ---À chaque image de vol : le décor et ses collisions se chargent autour du point regardé, pas de la caméra.
@@ -108,7 +116,11 @@ function CodTablet.frame(coords, focus)
     SetFocusPosAndVel(focus.x, focus.y, focus.z, 0.0, 0.0, 0.0)
     RequestCollisionAtCoord(focus.x, focus.y, focus.z)
     HideHudAndRadarThisFrame()
-    CodTablet.drawPlayers(coords.z - Cod.match.arena.center.z)
+    if CodTablet.session and CodTablet.session.clear then
+        CodTablet.drawIcons()
+    else
+        CodTablet.drawPlayers(coords.z - Cod.match.arena.center.z)
+    end
 end
 
 ---@param session table
@@ -120,21 +132,55 @@ function CodTablet.sendStatus(session, status)
     Nui.send('codTabletStatus', status)
 end
 
----Cercle au sol sous chaque joueur vivant : bleu pour les coéquipiers, rouge pour les ennemis.
----@param altitude number
-function CodTablet.drawPlayers(altitude)
+---Chaque joueur vivant : bleu pour les coéquipiers, rouge pour les ennemis.
+---@param draw fun(coords: vector3, color: integer[])
+function CodTablet.forEachPlayer(draw)
     local mates = {}
     for _, id in ipairs(Cod.mates) do mates[id] = true end
     local me = PlayerId()
-    local size = math.max(altitude * CodTablet.MARKER_SCALE, CodTablet.MARKER_MIN)
     for _, player in ipairs(GetActivePlayers()) do
         local ped = GetPlayerPed(player)
         if player ~= me and not IsPedDeadOrDying(ped, true) then
-            local coords = GetEntityCoords(ped)
-            local color = mates[GetPlayerServerId(player)] and Cod.MATE_COLOR or CodTablet.ENEMY_COLOR
-            DrawMarker(27, coords.x, coords.y, coords.z - 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, size, size, 1.0,
-                color[1], color[2], color[3], 220, false, false, 2, false, nil, nil, false)
+            draw(GetEntityCoords(ped), mates[GetPlayerServerId(player)] and Cod.MATE_COLOR or CodTablet.ENEMY_COLOR)
         end
+    end
+end
+
+---Cercle au sol sous chaque joueur.
+---@param altitude number
+function CodTablet.drawPlayers(altitude)
+    local size = math.max(altitude * CodTablet.MARKER_SCALE, CodTablet.MARKER_MIN)
+    CodTablet.forEachPlayer(function(coords, color)
+        DrawMarker(27, coords.x, coords.y, coords.z - 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, size, size, 1.0,
+            color[1], color[2], color[3], 220, false, false, 2, false, nil, nil, false)
+    end)
+end
+
+---Losange au-dessus de chaque joueur, de la même taille à l'écran quelle que soit la distance.
+function CodTablet.drawIcons()
+    local aspect = GetAspectRatio(false)
+    CodTablet.forEachPlayer(function(coords, color)
+        local visible, x, y = GetScreenCoordFromWorldCoord(coords.x, coords.y, coords.z + CodTablet.ICON_HEIGHT)
+        if visible then
+            CodTablet.drawDiamond(x, y, CodTablet.ICON_SIZE + CodTablet.ICON_OUTLINE, aspect, CodTablet.ICON_OUTLINE_COLOR)
+            CodTablet.drawDiamond(x, y, CodTablet.ICON_SIZE, aspect, color)
+        end
+    end)
+end
+
+---Un losange fait de bandes horizontales : le jeu ne sait dessiner à l'écran que des rectangles droits sans texture.
+---@param x number
+---@param y number
+---@param size number hauteur, en proportion de celle de l'écran
+---@param aspect number
+---@param color integer[]
+function CodTablet.drawDiamond(x, y, size, aspect, color)
+    local rows = CodTablet.ICON_ROWS
+    local rowHeight = size / (rows * 2 + 1)
+    for row = -rows, rows do
+        local width = size / aspect * (1 - math.abs(row) / (rows + 1))
+        -- Les bandes se chevauchent d'un rien pour qu'aucun trait ne les sépare
+        DrawRect(x, y + row * rowHeight, width, rowHeight * 1.2, color[1], color[2], color[3], 255)
     end
 end
 

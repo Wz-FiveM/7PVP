@@ -197,7 +197,11 @@ function CodUnits.pilotFire(match, source, id, index, target)
     unit.ready[tonumber(index)] = now + weapon.cooldown - CodUnits.SHOT_SLACK
 
     match:broadcast(Events.client.codEffect, { type = 'unitShot', id = unit.id, x = point.x, y = point.y, z = point.z })
-    CodStreaks.blast(match, source, point, weapon, settings.label)
+    local dealt = CodStreaks.blast(match, source, point, weapon, settings.label)
+    -- Ces dégâts n'ont pas de tireur dans le jeu : la victime ne peut pas les signaler (client/modules/combat/hits.lua)
+    if settings.doorGun and dealt > 0 then
+        TriggerClientEvent(Events.client.hitConfirm, source, { damage = math.floor(dealt), armor = 0, headshot = false, fatal = false })
+    end
 end
 
 ---Un ennemi a touché l'unité (détecté par son client) : elle a un nombre de touches à encaisser.

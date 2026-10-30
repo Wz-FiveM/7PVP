@@ -188,14 +188,17 @@ end
 ---@param direction vector3
 ---@param to vector3
 function CodUnits.showShot(unit, muzzle, direction, to)
-    local start = unit.muzzleBone and GetWorldPositionOfEntityBone(unit.entity, unit.muzzleBone) or muzzle
+    local start = unit.gunMuzzle or unit.muzzleBone and GetWorldPositionOfEntityBone(unit.entity, unit.muzzleBone) or muzzle
     if HasNamedPtfxAssetLoaded('core') then
         UseParticleFxAssetNextCall('core')
         StartParticleFxNonLoopedAtCoord(CodUnits.MUZZLE_FLASH, start.x, start.y, start.z,
-            0.0, 0.0, GetHeadingFromVector_2d(direction.x, direction.y) + 90.0, CodUnits.FLASH_SCALE, false, false, false)
+            0.0, 0.0, GetHeadingFromVector_2d(direction.x, direction.y) + 90.0,
+            unit.gunMuzzle and unit.settings.doorGun.flashScale or CodUnits.FLASH_SCALE, false, false, false)
     end
     CodUnits.tracers[#CodUnits.tracers + 1] = { from = start, to = to, untilAt = GetGameTimer() + CodUnits.TRACER_TIME }
-    if not unit.settings.piloted then
+    if unit.gunMuzzle then
+        Nui.send('codGunfire', { volume = unit.settings.doorGun.volume })
+    elseif not unit.settings.piloted then
         local proximity = 1.0 - #(GetEntityCoords(PlayerPedId()) - start) / CodUnits.GUN_RANGE
         if proximity > 0.0 then Nui.send('codGunfire', { volume = proximity * proximity }) end
     end
