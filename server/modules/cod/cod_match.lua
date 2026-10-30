@@ -527,8 +527,10 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     self:broadcast(Events.client.codKill, {
         killer = killer and self.stats[killer].name or nil,
         killerTeam = killer and self.stats[killer].team or nil,
+        killerId = killer,
         victim = victim.name,
         victimTeam = victim.team,
+        victimCard = killer and CodProfileService.playerCard(source) or nil,
         weapon = weaponId,
         streak = streakId,
         headshot = killer ~= nil and headshot == true,
@@ -543,6 +545,7 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
         killer = killer and self.stats[killer].name or nil,
         weapon = weaponLabel,
         respawn = canRespawn and Config.Cod.respawnDelay or false,
+        card = killer and CodProfileService.playerCard(killer) or nil,
         spectate = killer or self:livingMate(source),
         revenge = revenge,
     })

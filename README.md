@@ -160,6 +160,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   ├── loot.lua                Tables de butin des PNJ
 │   ├── locale.lua              Langues disponibles
 │   ├── cod.lua                 Mode Call of Duty : listes de jeu, armes, atouts, séries, rangs, cartes
+│   ├── cod_player_cards.lua    Mode Call of Duty : bannières, emblèmes et tag des cartes de joueur
 │   └── zones.lua               Zones safe / PvE
 ├── locales/                    Traductions (en.json, es.json... : texte français -> traduction)
 ├── tools/locales.js            Vérifie et fusionne les traductions

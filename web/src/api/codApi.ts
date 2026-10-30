@@ -1,5 +1,5 @@
 import { fetchNui } from './nui';
-import type { CodActionResult, CodClass, CodLeaderboardRow } from '../types/cod';
+import type { CodActionResult, CodClass, CodLeaderboardRow, CodPlayerCardChoice } from '../types/cod';
 
 /** Mode Call of Duty (voir client/modules/cod/cod.lua). Le serveur valide chaque choix. */
 export const codApi = {
@@ -13,6 +13,9 @@ export const codApi = {
 
   saveStreaks: (streaks: string[]) =>
     fetchNui<CodActionResult>('codSaveStreaks', { streaks }, { ok: true, message: 'Séries enregistrées.' }),
+
+  savePlayerCard: (card: CodPlayerCardChoice) =>
+    fetchNui<CodActionResult>('codSavePlayerCard', { card }, { ok: true, message: 'Carte de joueur enregistrée.' }),
 
   selectClass: (index: number) => fetchNui<CodActionResult>('codSelectClass', { index }, { ok: true }),
 

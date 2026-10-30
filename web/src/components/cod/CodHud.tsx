@@ -3,13 +3,14 @@ import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
-  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodMedalData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
+  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { WeaponSilhouette } from '../hud/Killfeed';
 import { Icon } from '../icons/Icon';
 import { CodCallingCard, CodMedal, CodMedalFrame } from './CodMedal';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
+import { CodPlayerCard } from './CodPlayerCard';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
 
@@ -23,6 +24,7 @@ const CARD_TIME = 5000; // ms, à garder égal à l'animation de .cod-card
 const CARD_SIZE = 4;
 const NOTICE_TIME = 3500;
 const BANNER_TIME = 5000;
+const KILL_CARD_TIME = 3500; // ms, à garder égal à l'animation de .cod-pcard-popup
 
 interface Timed {
   id: number;
@@ -46,6 +48,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const [streak, setStreak] = useState<CodStreakState | null>(null);
   const [notice, setNotice] = useState<({ text: string; friendly?: boolean } & Timed) | null>(null);
   const [dead, setDead] = useState<(CodDeadData & { at: number }) | null>(null);
+  const [killCard, setKillCard] = useState<(CodPlayerCardData & Timed) | null>(null);
+  const self = hud?.self;
   const [protection, setProtection] = useState<{ seconds: number; at: number } | null>(null);
   const [outside, setOutside] = useState(false);
   const [scoreboard, setScoreboard] = useState(false);
@@ -70,6 +74,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         setMedals([]);
         setCards([]);
         setDead(null);
+        setKillCard(null);
         setOutside(false);
         setScoreboard(false);
         setAction(null);
@@ -85,6 +90,10 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         const id = Date.now() + Math.random();
         setFeed((current) => [...current, { ...message.data, id }].slice(-FEED_SIZE));
         window.setTimeout(() => setFeed((current) => current.filter((entry) => entry.id !== id)), FEED_TIME);
+        if (message.data.victimCard && message.data.killerId === self) {
+          setKillCard({ ...message.data.victimCard, id });
+          window.setTimeout(() => setKillCard((current) => (current?.id === id ? null : current)), KILL_CARD_TIME);
+        }
         return;
       }
       case 'codScore': {
@@ -142,7 +151,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
           : null));
       }
     }
-  }, [showNotice]);
+  }, [showNotice, self]);
   useNuiMessage(handleMessage);
 
   if (!hud) return null;
@@ -196,6 +205,11 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
 
       <Countdown hud={hud} round={roundCountdown} />
       {protection && <Protection protection={protection} />}
+      {killCard && !dead && (
+        <div className="cod-pcard-popup" key={killCard.id}>
+          <CodPlayerCard card={killCard} label={t('Éliminé')} />
+        </div>
+      )}
       {dead && <DeadBar dead={dead} />}
       {action && <ActionBar action={action} />}
       {nuke && <NukeCounter nuke={nuke} />}
@@ -456,7 +470,9 @@ function DeadBar({ dead }: { dead: CodDeadData & { at: number } }) {
   const seconds = useSecondsLeft(dead.respawn || 0, dead.at);
   return (
     <div className="cod-dead">
-      <span className="cod-dead__title">{dead.killer ? t('Tué par {name}', { name: dead.killer }) : t('Tu es mort')}</span>
+      {dead.card
+        ? <CodPlayerCard card={dead.card} label={t('Tué par')} />
+        : <span className="cod-dead__title">{dead.killer ? t('Tué par {name}', { name: dead.killer }) : t('Tu es mort')}</span>}
       {dead.weapon && <span className="cod-label">{t(dead.weapon)}</span>}
       <span className="cod-dead__next">
         {dead.respawn === false ? t('Prochaine manche bientôt') : t('Réapparition dans {seconds} s', { seconds })}

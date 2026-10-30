@@ -1,0 +1,208 @@
+/* Carte de joueur du mode Call of Duty : bannière, emblème, pseudo, tag de clan, rang. */
+
+.cod-pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  width: 23rem;
+  max-width: 100%;
+  text-shadow: var(--ombre-texte);
+}
+.cod-pcard__label {
+  font-family: var(--cod-font);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--cod-white);
+}
+.cod-pcard__banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  aspect-ratio: 5;
+  padding: 0 0.625rem;
+  overflow: hidden;
+  outline: 0.0625rem solid rgba(0, 0, 0, 0.6);
+  background-position: center;
+  background-size: cover;
+}
+/* Le voile à gauche garde le pseudo lisible sur toutes les bannières */
+.cod-pcard__banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(5, 6, 7, 0.72), rgba(5, 6, 7, 0.42) 48%, transparent 78%);
+}
+.cod-pcard__banner > * {
+  position: relative;
+}
+.cod-pcard__emblem {
+  flex: none;
+  height: 78%;
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.8));
+}
+.cod-pcard__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cod-pcard__name {
+  overflow: hidden;
+  font-family: var(--cod-font);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--cod-white);
+}
+.cod-pcard__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--cod-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--cod-white);
+}
+.cod-pcard__rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.cod-pcard__rank svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: var(--cod-white);
+  filter: drop-shadow(0 0.0625rem 0.0625rem rgba(0, 0, 0, 0.8));
+}
+
+/* Version basse, pour les listes de joueurs */
+.cod-pcard--compact {
+  width: 100%;
+}
+.cod-pcard--compact .cod-pcard__banner {
+  aspect-ratio: auto;
+  height: 2.125rem;
+}
+.cod-pcard--compact .cod-pcard__text {
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.cod-pcard--compact .cod-pcard__name {
+  font-size: 0.875rem;
+}
+.cod-pcard--compact .cod-pcard__meta {
+  flex: none;
+  font-size: 0.75rem;
+}
+
+/* Au kill : apparaît sous le viseur, puis s'efface */
+.cod-pcard-popup {
+  position: absolute;
+  bottom: 14vh;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: cod-pcard-in 0.2s ease-out, cod-pcard-out 0.3s ease-in 3.2s forwards;
+}
+@keyframes cod-pcard-in {
+  from {
+    opacity: 0;
+    transform: translate(calc(-50% - 1.5rem), 0);
+  }
+}
+@keyframes cod-pcard-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* À la mort : carte du tueur à la place du titre */
+.cod-dead .cod-pcard__label {
+  color: var(--cod-danger);
+}
+
+/* Onglet de personnalisation */
+.cod-pcard-tab__names {
+  font-family: var(--cod-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cod-accent-hi);
+}
+.cod-pcard-grid {
+  display: grid;
+  gap: 0.3125rem;
+  flex: 1;
+  align-content: start;
+  min-height: 0;
+  margin: 0;
+  padding: 0 0.25rem 0.25rem 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.cod-pcard-grid--banner {
+  grid-template-columns: 1fr 1fr;
+}
+.cod-pcard-grid--emblem {
+  grid-template-columns: repeat(5, 1fr);
+}
+.cod-pcard-grid__item {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0.125rem solid transparent;
+  outline-offset: -0.125rem;
+  background: rgba(14, 15, 17, 0.72);
+  cursor: pointer;
+}
+.cod-pcard-grid__item img {
+  display: block;
+  width: 100%;
+}
+.cod-pcard-grid--banner .cod-pcard-grid__item img {
+  aspect-ratio: 5;
+  object-fit: cover;
+}
+.cod-pcard-grid--emblem .cod-pcard-grid__item {
+  padding: 0.375rem;
+}
+.cod-pcard-grid--emblem .cod-pcard-grid__item img {
+  aspect-ratio: 1;
+}
+.cod-pcard-grid__item:hover:not(:disabled) {
+  outline-color: var(--cod-white);
+}
+.cod-pcard-grid__item--active,
+.cod-pcard-grid__item--active:hover:not(:disabled) {
+  outline-color: var(--cod-accent);
+}
+.cod-pcard-grid__item--locked {
+  cursor: not-allowed;
+}
+.cod-pcard-grid__item--locked img {
+  opacity: 0.32;
+  filter: grayscale(1);
+}
+.cod-pcard-grid__rank {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--cod-font);
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--cod-white);
+  text-shadow: var(--ombre-texte);
+}

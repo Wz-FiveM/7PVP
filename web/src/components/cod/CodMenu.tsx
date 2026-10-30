@@ -6,13 +6,16 @@ import { useGame } from '../../store/GameContext';
 import type { CodCatalog, CodLeaderboardRow, CodProfile, CodQueueData } from '../../types/cod';
 import { CodClassEditor } from './CodClassEditor';
 import { BracketButton, CodOperator, RankBadge, useSecondsLeft } from './CodParts';
+import { CodPlayerCard } from './CodPlayerCard';
+import { CodPlayerCardTab } from './CodPlayerCardTab';
 
-type Tab = 'play' | 'classes' | 'streaks' | 'profile' | 'board';
+type Tab = 'play' | 'classes' | 'streaks' | 'card' | 'profile' | 'board';
 
 const TABS: { id: Tab; label: string; title: string; subtitle: string }[] = [
   { id: 'play', label: 'Salon', title: 'Multijoueur', subtitle: 'Salon d\'attente' },
   { id: 'classes', label: 'Classes', title: 'Classes', subtitle: 'Compose ton équipement' },
   { id: 'streaks', label: 'Séries', title: 'Séries', subtitle: 'Choisis tes séries d\'éliminations' },
+  { id: 'card', label: 'Carte de joueur', title: 'Carte de joueur', subtitle: 'Vue par ceux que tu élimines' },
   { id: 'profile', label: 'Profil', title: 'Profil', subtitle: 'Ta progression' },
   { id: 'board', label: 'Classement', title: 'Classement', subtitle: 'Les meilleurs joueurs' },
 ];
@@ -56,6 +59,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
         {tab === 'play' && <PlayTab catalog={catalog} queue={queue} />}
         {tab === 'classes' && <CodClassEditor profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'streaks' && <StreaksTab profile={profile} catalog={catalog} onProfile={onProfile} />}
+        {tab === 'card' && <CodPlayerCardTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'profile' && <ProfileTab profile={profile} />}
         {tab === 'board' && <BoardTab />}
       </div>
@@ -165,13 +169,18 @@ function QueueStatus({ queue, playlistLabel }: { queue: CodQueueData | null; pla
 function PlayerSlots({ queue, max }: { queue: CodQueueData | null; max: number }) {
   useT();
   const names = queue?.names ?? [];
+  const cards = queue?.cards ?? [];
   return (
     <ul className="cod-slots">
       {Array.from({ length: max }, (_, index) => (
-        <li key={index} className={names[index] ? 'cod-slot cod-slot--filled' : 'cod-slot'}>
-          <span className="cod-slot__index">{index + 1}</span>
-          <span>{names[index] ?? t('Recherche de joueurs…')}</span>
-        </li>
+        cards[index]
+          ? <li key={index}><CodPlayerCard card={cards[index]} compact /></li>
+          : (
+            <li key={index} className={names[index] ? 'cod-slot cod-slot--filled' : 'cod-slot'}>
+              <span className="cod-slot__index">{index + 1}</span>
+              <span>{names[index] ?? t('Recherche de joueurs…')}</span>
+            </li>
+          )
       ))}
     </ul>
   );
@@ -261,6 +270,7 @@ function ProfileTab({ profile }: { profile: CodProfile }) {
           <span className="cod-profile__name">{profile.name}</span>
         </div>
       </div>
+      <CodPlayerCard card={{ ...profile.card, name: profile.name, rank: profile.rank }} />
       <dl className="cod-stats">
         {stats.map(([label, value]) => (
           <div key={label} className="cod-stats__row">

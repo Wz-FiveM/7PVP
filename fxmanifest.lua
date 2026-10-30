@@ -29,6 +29,7 @@ shared_scripts {
     'config/bike.lua',
     'config/gungame.lua',
     'config/cod.lua',
+    'config/cod_player_cards.lua',
     'config/boards.lua',
     'config/npcs.lua',
     'config/market.lua',
@@ -206,4 +207,6 @@ files {
     'web/build/items/*',
     'web/build/sounds/*',
     'web/build/brand/*',
+    'web/build/cod/banners/*',
+    'web/build/cod/emblems/*',
 }

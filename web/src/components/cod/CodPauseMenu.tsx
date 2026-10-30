@@ -8,8 +8,9 @@ import { CodClassEditor } from './CodClassEditor';
 import { CodScoreTable } from './CodHud';
 import { StreaksTab } from './CodMenu';
 import { CodOperator, formatTime, useSecondsLeft } from './CodParts';
+import { CodPlayerCardTab } from './CodPlayerCardTab';
 
-type Tab = 'game' | 'classes' | 'streaks' | 'options';
+type Tab = 'game' | 'classes' | 'streaks' | 'card' | 'options';
 
 interface CodPauseMenuProps {
   /** null : pas de partie (fin de partie, retour au menu en cours) */
@@ -33,6 +34,7 @@ export function CodPauseMenu({ hud, live, profile, catalog, onProfile }: CodPaus
     tabs.push(
       { id: 'classes', label: t('Classes'), subtitle: t('S\'applique à ta prochaine apparition') },
       { id: 'streaks', label: t('Séries'), subtitle: t('Choisis tes séries d\'éliminations') },
+      { id: 'card', label: t('Carte de joueur'), subtitle: t('Vue par ceux que tu élimines') },
     );
   }
   tabs.push({ id: 'options', label: t('Options'), subtitle: t('Touches et langue') });
@@ -84,6 +86,7 @@ export function CodPauseMenu({ hud, live, profile, catalog, onProfile }: CodPaus
         )}
         {tab === 'classes' && profile && catalog && <CodClassEditor profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'streaks' && profile && catalog && <StreaksTab profile={profile} catalog={catalog} onProfile={onProfile} />}
+        {tab === 'card' && profile && catalog && <CodPlayerCardTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'options' && <OptionsTab info={info} />}
       </div>
     </div>

@@ -32,6 +32,12 @@ export interface CodPlaylist {
   time: number;
   scoreLimit: number;
 }
+/** Bannière ou emblème de la carte de joueur (config/cod_player_cards.lua) */
+export interface CodCardAsset {
+  id: string;
+  label: string;
+  rank: number;
+}
 export interface CodCatalog {
   playlists: CodPlaylist[];
   primary: CodCatalogEntry[];
@@ -41,6 +47,9 @@ export interface CodCatalog {
   streaks: CodStreakInfo[];
   maxStreaks: number;
   classNameLength: number;
+  banners: CodCardAsset[];
+  emblems: CodCardAsset[];
+  tagLength: number;
   keys: { streak: string; class: string; scoreboard: string };
 }
 
@@ -52,6 +61,18 @@ export interface CodClass {
   equipment: string | false;
   /** un atout par niveau (1, 2, 3) */
   perks: string[];
+}
+/** Choix du joueur */
+export interface CodPlayerCardChoice {
+  banner: string;
+  emblem: string;
+  /** tag de clan, peut être vide */
+  tag: string;
+}
+/** Carte telle que la voient les autres joueurs */
+export interface CodPlayerCardData extends CodPlayerCardChoice {
+  name: string;
+  rank: number;
 }
 export interface CodProfile {
   name: string;
@@ -70,6 +91,7 @@ export interface CodProfile {
   selected: number;
   classes: CodClass[];
   streaks: string[];
+  card: CodPlayerCardChoice;
 }
 
 export interface CodMapVote {
@@ -83,6 +105,7 @@ export interface CodQueueData {
   count: number;
   playlist?: string;
   names?: string[];
+  cards?: CodPlayerCardData[];
   needed?: number;
   max?: number;
   startIn?: number | false;
@@ -135,6 +158,9 @@ export interface CodKillData {
   /** Absent : mort sans tueur (chute, hors zone) */
   killer?: string;
   killerTeam?: CodTeamId | false;
+  killerId?: number;
+  /** Carte de la victime, à montrer au tueur */
+  victimCard?: CodPlayerCardData;
   victim: string;
   victimTeam: CodTeamId | false;
   /** Arme du coup mortel (image de web/public/items) */
@@ -164,6 +190,8 @@ export interface CodDeadData {
   weapon?: string;
   /** secondes, false : pas de réapparition avant la prochaine manche */
   respawn: number | false;
+  /** Carte du tueur */
+  card?: CodPlayerCardData;
 }
 export interface CodRoundEndData {
   result: 'won' | 'lost';

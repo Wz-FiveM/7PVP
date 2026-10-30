@@ -182,6 +182,7 @@ Events.callbacks = {
     codVote = 'cod:vote',
     codSaveClass = 'cod:saveClass',
     codSaveStreaks = 'cod:saveStreaks',
+    codSavePlayerCard = 'cod:savePlayerCard',
     codSelectClass = 'cod:selectClass',
     codLeaderboard = 'cod:leaderboard',
     codLeaveMatch = 'cod:leaveMatch',

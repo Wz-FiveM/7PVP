@@ -1,6 +1,23 @@
-import type { CodBoardEntry, CodCatalog, CodProfile } from '../types/cod';
+import type { CodBoardEntry, CodCardAsset, CodCatalog, CodPlayerCardData, CodProfile } from '../types/cod';
 
-/** Données factices du mode Call of Duty (npm run dev uniquement), extraites de config/cod.lua. */
+/** Données factices du mode Call of Duty (npm run dev uniquement), extraites de config/cod.lua et cod_player_cards.lua. */
+const banners: CodCardAsset[] = [
+  ['steel', 'Acier brossé', 1], ['woodland', 'Camouflage forêt', 1], ['desert', 'Camouflage désert', 1], ['digital', 'Camouflage urbain', 1],
+  ['carbon', 'Carbone', 1], ['hazard', 'Zone dangereuse', 2], ['skyline', 'Los Santos', 4], ['radar', 'Balayage radar', 8],
+  ['million', 'Un million', 6], ['flames', 'Fournaise', 11], ['thermal', 'Vision thermique', 14], ['arctic', 'Camouflage arctique', 17],
+  ['storm', 'Orage', 20], ['skulls', 'Ossuaire', 23], ['circuit', 'Circuit imprimé', 26], ['squadron', 'Escadrille', 29],
+  ['scope', 'Lunette de tir', 32], ['blood', 'Bain de sang', 36], ['chopper', 'Soleil couchant', 40], ['nuke', 'Champignon', 45],
+  ['gold', 'Or massif', 50], ['legend', 'Légende', 55],
+].map(([id, label, rank]) => ({ id, label, rank } as CodCardAsset));
+const emblems: CodCardAsset[] = [
+  ['star', 'Étoile', 1], ['skull', 'Crâne', 1], ['crosshair', 'Viseur', 1], ['shield', 'Écusson', 1], ['bolt', 'Éclair', 1],
+  ['cherries', 'Cerises', 2], ['spade', 'As de pique', 3], ['heart', 'Cœur', 5], ['flame', 'Flamme', 7], ['dice', 'Dés', 9],
+  ['grenade', 'Grenade à main', 12], ['knives', 'Couteaux', 15], ['clover', 'Trèfle', 18], ['anchor', 'Ancre', 21], ['eye', 'Œil', 24],
+  ['dollar', 'Billet vert', 27], ['eightball', 'Boule 8', 30], ['moon', 'Lune', 33], ['helmet', 'Casque', 35], ['wings', 'Ailes', 38],
+  ['radiation', 'Radiation', 41], ['pirate', 'Pavillon noir', 43], ['diamond', 'Diamant', 46], ['swords', 'Épées', 48], ['crown', 'Couronne', 51],
+  ['medal', 'Médaille', 53], ['king', 'Roi des morts', 55],
+].map(([id, label, rank]) => ({ id, label, rank } as CodCardAsset));
+
 export const mockCodCatalog: CodCatalog = {
   playlists: [
     { id: 'tdm', label: 'Match à mort par équipe', short: 'MME', description: 'Deux équipes, réapparition immédiate : la première à 75 kills gagne.', teams: true, minPlayers: 2, maxPlayers: 12, time: 600, scoreLimit: 75 },
@@ -55,6 +72,9 @@ export const mockCodCatalog: CodCatalog = {
   ],
   maxStreaks: 3,
   classNameLength: 20,
+  banners,
+  emblems,
+  tagLength: 4,
   keys: { streak: 'G', class: 'B', scoreboard: 'TAB' },
 };
 
@@ -82,6 +102,13 @@ export const mockCodProfile: CodProfile = {
     { name: 'Polyvalent', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: false, perks: defaultPerks },
   ],
   streaks: ['uav', 'predator'],
+  card: { banner: 'million', emblem: 'cherries', tag: 'thic' },
+};
+
+export const mockCodCards: Record<string, CodPlayerCardData> = {
+  rook: { name: 'Rook', tag: 'thic', banner: 'million', emblem: 'cherries', rank: 43 },
+  kaze: { name: 'Kaze', tag: 'KZ', banner: 'flames', emblem: 'skull', rank: 27 },
+  nyx: { name: 'Nyx', tag: '', banner: 'skyline', emblem: 'moon', rank: 12 },
 };
 
 export const mockCodBoard: CodBoardEntry[] = [

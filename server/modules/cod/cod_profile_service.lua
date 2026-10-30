@@ -8,6 +8,11 @@
 ---@field equipment string|false
 ---@field perks string[] un atout par niveau (1, 2, 3)
 
+---@class CodPlayerCard
+---@field banner string
+---@field emblem string
+---@field tag string tag de clan, peut être vide
+
 ---@class CodProfile
 ---@field identifier string
 ---@field name string
@@ -21,6 +26,7 @@
 ---@field selected integer classe choisie
 ---@field classes CodClass[]
 ---@field streaks string[] séries choisies
+---@field card CodPlayerCard
 
 ---@class CodProfileServiceModule
 local CodProfileService = PVP.define('CodProfileService')
@@ -39,10 +45,16 @@ CodProfileService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_cod_profiles (
     selected_class TINYINT NOT NULL DEFAULT 1,
     classes LONGTEXT NULL,
     streaks LONGTEXT NULL,
+    player_card LONGTEXT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (identifier),
     KEY idx_xp (xp)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]]
+
+-- Évolutions du schéma pour les bases créées avant l'ajout d'une colonne
+CodProfileService.MIGRATIONS = {
+    'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS player_card LONGTEXT NULL AFTER streaks',
+}
 
 ---@type table<integer, CodProfile> par joueur connecté dans le mode
 CodProfileService.profiles = {}
@@ -54,6 +66,8 @@ CodProfileService.secondary = {}
 CodProfileService.equipment = {}
 CodProfileService.perks = {}
 CodProfileService.streaks = {}
+CodProfileService.banners = {}
+CodProfileService.emblems = {}
 -- Séries retirées du jeu, encore enregistrées dans les profils : ancienne -> remplaçante
 CodProfileService.REPLACED_STREAKS = { airstrike = 'predator' }
 
@@ -63,9 +77,12 @@ function CodProfileService.init()
     for _, entry in ipairs(Config.Cod.weapons.equipment) do CodProfileService.equipment[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.perks) do CodProfileService.perks[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.streaks) do CodProfileService.streaks[entry.id] = entry end
+    for _, entry in ipairs(Config.CodPlayerCards.banners) do CodProfileService.banners[entry.id] = entry end
+    for _, entry in ipairs(Config.CodPlayerCards.emblems) do CodProfileService.emblems[entry.id] = entry end
 
     MySQL.ready(function()
         MySQL.query.await(CodProfileService.SCHEMA)
+        for _, query in ipairs(CodProfileService.MIGRATIONS) do MySQL.query.await(query) end
     end)
 end
 
@@ -105,7 +122,7 @@ end
 ---@return string[] noms à traduire
 function CodProfileService.unlocksBetween(from, to)
     local labels = {}
-    for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.perks, Config.Cod.streaks }) do
+    for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.perks, Config.Cod.streaks, Config.CodPlayerCards.banners, Config.CodPlayerCards.emblems }) do
         for _, entry in ipairs(list) do
             if entry.rank > from and entry.rank <= to then labels[#labels + 1] = entry.label end
         end
@@ -150,6 +167,7 @@ function CodProfileService.load(player)
     end
     profile.streaks = CodProfileService.cleanStreaks(savedStreaks, rank) or { table.unpack(Config.Cod.defaultStreaks) }
     if not profile.classes[profile.selected] then profile.selected = 1 end
+    profile.card = CodProfileService.cleanPlayerCard(CodProfileService.decode(row.player_card), rank) or CodProfileService.defaultPlayerCard()
     CodProfileService.profiles[player.source] = profile
     return profile
 end
@@ -174,18 +192,25 @@ function CodProfileService.copyClass(class)
     }
 end
 
+---@return CodPlayerCard
+function CodProfileService.defaultPlayerCard()
+    local default = Config.CodPlayerCards.default
+    return { banner = default.banner, emblem = default.emblem, tag = default.tag }
+end
+
 ---@param profile CodProfile
 function CodProfileService.save(profile)
     MySQL.insert(
-        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE name = VALUES(name), xp = VALUES(xp), kills = VALUES(kills), deaths = VALUES(deaths),
               assists = VALUES(assists), wins = VALUES(wins), losses = VALUES(losses), best_streak = VALUES(best_streak),
-              selected_class = VALUES(selected_class), classes = VALUES(classes), streaks = VALUES(streaks)]],
+              selected_class = VALUES(selected_class), classes = VALUES(classes), streaks = VALUES(streaks),
+              player_card = VALUES(player_card)]],
         {
             profile.identifier, profile.name, profile.xp, profile.kills, profile.deaths, profile.assists,
             profile.wins, profile.losses, profile.bestStreak, profile.selected,
-            json.encode(profile.classes), json.encode(profile.streaks),
+            json.encode(profile.classes), json.encode(profile.streaks), json.encode(profile.card),
         }
     )
 end
@@ -261,6 +286,17 @@ function CodProfileService.cleanStreaks(data, rank)
     return clean
 end
 
+---@param data any carte reçue du client ou lue en base
+---@param rank integer
+---@return CodPlayerCard|nil carte propre, ou nil si un choix n'existe pas ou n'est pas débloqué
+function CodProfileService.cleanPlayerCard(data, rank)
+    if type(data) ~= 'table' or type(data.tag) ~= 'string' then return nil end
+    if not CodProfileService.unlocked(CodProfileService.banners, data.banner, rank) then return nil end
+    if not CodProfileService.unlocked(CodProfileService.emblems, data.emblem, rank) then return nil end
+    local tag = data.tag:gsub('[^%w%-_!%.]', ''):sub(1, Config.CodPlayerCards.tagLength)
+    return { banner = data.banner, emblem = data.emblem, tag = tag }
+end
+
 -- ---------------------------------------------------------------------------
 -- Actions du menu
 -- ---------------------------------------------------------------------------
@@ -293,6 +329,34 @@ function CodProfileService.saveStreaks(source, data)
     profile.streaks = clean
     CodProfileService.save(profile)
     return { ok = true, message = Locale.t('Séries enregistrées.'), profile = CodProfileService.describe(profile) }
+end
+
+---@param source integer
+---@param data any
+---@return { ok: boolean, message?: string, profile?: table }
+function CodProfileService.savePlayerCard(source, data)
+    local profile = CodProfileService.profiles[source]
+    if not profile then return { ok = false } end
+    local clean = CodProfileService.cleanPlayerCard(data, CodProfileService.rankOf(source))
+    if not clean then return { ok = false, message = Locale.t('Carte invalide : un choix n\'est pas débloqué.') } end
+    profile.card = clean
+    CodProfileService.save(profile)
+    return { ok = true, message = Locale.t('Carte de joueur enregistrée.'), profile = CodProfileService.describe(profile) }
+end
+
+---Carte vue par les autres joueurs (kill, mort, salon).
+---@param source integer
+---@return table
+function CodProfileService.playerCard(source)
+    local profile = CodProfileService.profiles[source]
+    local card = profile and profile.card or Config.CodPlayerCards.default
+    return {
+        name = GetPlayerName(source) or '?',
+        tag = card.tag,
+        banner = card.banner,
+        emblem = card.emblem,
+        rank = CodProfileService.rankOf(source),
+    }
 end
 
 ---Classe utilisée à la prochaine apparition.
@@ -412,6 +476,7 @@ function CodProfileService.describe(profile)
         selected = profile.selected,
         classes = profile.classes,
         streaks = profile.streaks,
+        card = profile.card,
     }
 end
 
@@ -427,6 +492,9 @@ function CodProfileService.catalog()
         streaks = Config.Cod.streaks,
         maxStreaks = Config.Cod.maxStreaks,
         classNameLength = Config.Cod.classNameLength,
+        banners = Config.CodPlayerCards.banners,
+        emblems = Config.CodPlayerCards.emblems,
+        tagLength = Config.CodPlayerCards.tagLength,
         keys = { streak = Config.Cod.streakKey, class = Config.Cod.classKey, scoreboard = Config.MenuKeyLabel },
     }
 end

@@ -43,6 +43,7 @@ function CodService.init()
         if result.ok and match then CodStreaks.sendState(match, source) end
         return result
     end)
+    Callback.register(Events.callbacks.codSavePlayerCard, CodProfileService.savePlayerCard)
     Callback.register(Events.callbacks.codSelectClass, CodProfileService.selectClass)
     Callback.register(Events.callbacks.codLeaderboard, CodProfileService.leaderboard)
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)
@@ -218,8 +219,11 @@ end
 function CodService.sendQueue(playlist)
     local queue = CodService.queues[playlist.id]
     local startIn = queue.startAt and math.ceil((queue.startAt - GetGameTimer()) / 1000) or false
-    local names = {}
-    for index, source in ipairs(queue.players) do names[index] = GetPlayerName(source) or '?' end
+    local names, cards = {}, {}
+    for index, source in ipairs(queue.players) do
+        names[index] = GetPlayerName(source) or '?'
+        cards[index] = CodProfileService.playerCard(source)
+    end
     local maps = false
     if queue.maps then
         maps = {}
@@ -236,6 +240,7 @@ function CodService.sendQueue(playlist)
             playlist = playlist.id,
             count = #queue.players,
             names = names,
+            cards = cards,
             needed = playlist.minPlayers,
             max = playlist.maxPlayers,
             startIn = startIn,

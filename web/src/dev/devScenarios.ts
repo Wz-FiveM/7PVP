@@ -1,6 +1,6 @@
 import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
-import { mockCodBoard, mockCodCatalog, mockCodProfile } from './codMocks';
+import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile } from './codMocks';
 import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 
 /**
@@ -678,7 +678,7 @@ export const DEV_ACTIONS: DevAction[] = [
       sendNui({
         action: 'codQueue',
         data: {
-          count: 3, playlist: 'tdm', names: ['Wezor', 'Kaze', 'Nyx'], needed: 2, max: 12, startIn: 22, vote: 'port',
+          count: 3, playlist: 'tdm', names: ['Wezor', 'Kaze', 'Nyx'], cards: [{ ...mockCodProfile.card, name: 'Wezor', rank: mockCodProfile.rank }, mockCodCards.kaze, mockCodCards.nyx], needed: 2, max: 12, startIn: 22, vote: 'port',
           maps: [
             { id: 'port', label: 'Terminal', place: 'Port de Los Santos', votes: 2 },
             { id: 'scrapyard', label: 'La Casse', place: 'Rogers Salvage, La Puerta', votes: 1 },
@@ -691,7 +691,7 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CoD : kill',
     run: () => {
       sendNui({ action: 'codKill', data: { killer: 'Nyx', killerTeam: 'bravo', victim: 'Rook', victimTeam: 'alpha', weapon: 'WEAPON_GRENADE', headshot: false } });
-      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', victim: 'Rook', victimTeam: 'bravo', weapon: 'WEAPON_CARBINERIFLE', headshot: true } });
+      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', killerId: 1, victimCard: mockCodCards.rook, victim: 'Rook', victimTeam: 'bravo', weapon: 'WEAPON_CARBINERIFLE', headshot: true } });
       sendNui({ action: 'codKill', data: { killer: 'Rook', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'WEAPON_HEAVYSNIPER', headshot: false } });
       sendNui({ action: 'codKill', data: { killer: 'Kaze', killerTeam: 'alpha', victim: 'Nyx', victimTeam: 'bravo', streak: 'predator', headshot: false } });
       sendNui({ action: 'codKill', data: { victim: 'Kaze', victimTeam: 'alpha', headshot: false } });
@@ -746,7 +746,7 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : signal perdu', run: () => sendNui({ action: 'codTablet', data: { state: 'lost' } }) },
   { label: 'CoD : fin de la tablette', run: () => sendNui({ action: 'codTablet', data: { state: false } }) },
   { label: 'CoD : ouverture du colis', run: () => sendNui({ action: 'codAction', data: { kind: 'crate', seconds: 6 } }) },
-  { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3 } }) },
+  { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3, card: mockCodCards.rook } }) },
   { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
   {
     label: 'CoD : fin',

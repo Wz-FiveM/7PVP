@@ -166,6 +166,9 @@ function Cod.init()
     RegisterNUICallback('codSaveStreaks', function(data, cb)
         cb(Cod.storeProfile(Callback.await(Events.callbacks.codSaveStreaks, data.streaks)))
     end)
+    RegisterNUICallback('codSavePlayerCard', function(data, cb)
+        cb(Cod.storeProfile(Callback.await(Events.callbacks.codSavePlayerCard, data.card)))
+    end)
     RegisterNUICallback('codSelectClass', function(data, cb)
         cb(Cod.storeProfile(Callback.await(Events.callbacks.codSelectClass, data.index)))
     end)
@@ -640,9 +643,9 @@ function Cod.onDeath()
     TriggerServerEvent(Events.server.codDied, PedUtils.getKillerServerId(ped), GetPedCauseOfDeath(ped), Death.getCause(ped).headshot)
 end
 
----@param data { killer: string|nil, weapon: string|nil, respawn: integer|false, spectate: integer|nil, revenge: vector3|nil }
+---@param data { killer: string|nil, weapon: string|nil, respawn: integer|false, card: table|nil, spectate: integer|nil, revenge: vector3|nil }
 function Cod.onDead(data)
-    Nui.send('codDead', { killer = data.killer, weapon = data.weapon, respawn = data.respawn })
+    Nui.send('codDead', { killer = data.killer, weapon = data.weapon, respawn = data.respawn, card = data.card })
     if data.spectate then Death.spectate(data.spectate) end
     if data.revenge then CodEffects.markRevenge(data.revenge) end
 end
