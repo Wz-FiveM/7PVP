@@ -266,13 +266,14 @@ Config.Cod = {
     -- Unités : affichées localement par chaque client, les dégâts sont appliqués par le serveur.
     --   duration : secondes ; hits : touches à encaisser avant d'être détruite ; label : arme du fil des kills
     --   orbit : tourne autour du milieu de la carte (rayon en part de celui de la carte), orbitSpeed : radians/s
-    --   height : m au-dessus du point ; aircraft : modèle de véhicule, sinon model et base sont des objets
+    --   height : m au-dessus du point ; aircraft : modèle de véhicule, sinon model est un objet posé au sol
+    --   gunHeight : m entre le sol et le canon ; barrelYaw : cap du canon quand l'objet a le cap 0 ; barrelLength : m entre l'axe et la bouche
     --   interval : ms entre deux tirs ; damage : par tir ; accuracy : chance de toucher ; range : m (toute la carte sinon)
     --   burst : tirs d'une rafale, suivie d'une pause de burstPause ms
     --   piloted : le joueur tire lui-même depuis sa tablette (weapons, cooldown en ms ; explosion : type de GTA)
     units = {
         sentry = {
-            model = 'w_mg_minigun', base = 'prop_box_ammo03a', gunHeight = 0.75,
+            model = 'p_rcss_s', gunHeight = 1.0, barrelYaw = 0.0, barrelLength = 0.8,
             duration = 60, hits = 25, range = 50.0, interval = 220, damage = 8, accuracy = 0.75, label = 'Tourelle',
         },
         helicopter = {

@@ -31,7 +31,7 @@ CodUnits.DESTROYED_EXPLOSION = 5
 CodUnits.COLOR_FRIEND = 3
 CodUnits.COLOR_ENEMY = 1
 
----@type table<integer, table> id -> unité (données du serveur, born, entity, extra, blip, nextShot)
+---@type table<integer, table> id -> unité (données du serveur, born, entity, blip, nextShot)
 CodUnits.units = {}
 CodUnits.nextHitCheck = 0
 ---@type { from: vector3, to: vector3, untilAt: integer }[]
@@ -73,10 +73,10 @@ function CodUnits.createModels(unit)
         SetHeliBladesFullSpeed(unit.entity)
         ControlLandingGear(unit.entity, 3)
     else
-        unit.entity = CreateObject(model, coords.x, coords.y, coords.z + settings.gunHeight, false, false, false)
+        unit.entity = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+        PlaceObjectOnGroundProperly(unit.entity)
         CodUnits.findBarrel(unit)
         CodUnits.aimGun(unit)
-        CodUnits.createBase(unit, coords)
     end
     SetModelAsNoLongerNeeded(model)
     FreezeEntityPosition(unit.entity, true)
@@ -92,7 +92,7 @@ end
 ---Le canon d'un modèle d'arme n'est pas dans l'axe du cap de l'objet : on le mesure sur son os de bouche.
 ---@param unit table
 function CodUnits.findBarrel(unit)
-    unit.barrelYaw = CodUnits.BARREL_YAW
+    unit.barrelYaw = unit.settings.barrelYaw or CodUnits.BARREL_YAW
     local bone = GetEntityBoneIndexByName(unit.entity, CodUnits.MUZZLE_BONE)
     if bone == -1 then return end
     unit.muzzleBone = bone
@@ -108,18 +108,6 @@ function CodUnits.aimGun(unit)
     if unit.entity and DoesEntityExist(unit.entity) then
         SetEntityHeading(unit.entity, unit.heading - (unit.barrelYaw or 0.0))
     end
-end
-
----@param unit table
----@param coords vector3
-function CodUnits.createBase(unit, coords)
-    local model = GetHashKey(unit.settings.base)
-    if not PedUtils.loadModel(model) or CodUnits.units[unit.id] ~= unit then return end
-    unit.extra = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
-    PlaceObjectOnGroundProperly(unit.extra)
-    FreezeEntityPosition(unit.extra, true)
-    SetEntityInvincible(unit.extra, true)
-    SetModelAsNoLongerNeeded(model)
 end
 
 ---@param unit table
@@ -149,7 +137,6 @@ function CodUnits.remove(unit)
     CodUnits.units[unit.id] = nil
     if unit.blip and DoesBlipExist(unit.blip) then RemoveBlip(unit.blip) end
     if unit.entity and DoesEntityExist(unit.entity) then DeleteEntity(unit.entity) end
-    if unit.extra and DoesEntityExist(unit.extra) then DeleteEntity(unit.extra) end
 end
 
 function CodUnits.clear()
@@ -179,7 +166,12 @@ function CodUnits.onShot(data)
     local aim = to
     if data.target == Cod.match.self then aim = to + vector3(-direction.y, direction.x, 0.0) * CodUnits.TARGET_MISS end
     ShootSingleBulletBetweenCoords(muzzle.x, muzzle.y, muzzle.z, aim.x, aim.y, aim.z, 0, true, CodUnits.BULLET, 0, true, false, -1.0)
-    CodUnits.showShot(unit, muzzle, direction, to, data.gunfire)
+    -- La balle part loin du modèle pour ne pas le toucher ; la flamme, elle, reste au bout du canon
+    local tip = muzzle
+    if unit.settings.barrelLength then
+        tip = from + direction * unit.settings.barrelLength + vector3(0.0, 0.0, unit.settings.gunHeight)
+    end
+    CodUnits.showShot(unit, tip, direction, to, data.gunfire)
 end
 
 ---Une balle du jeu se voit à peine : flamme à la bouche du canon et traçante jusqu'au point visé.
@@ -278,7 +270,7 @@ end
 ---@param to vector3
 ---@return boolean
 function CodUnits.canSee(unit, from, to)
-    local ray = StartExpensiveSynchronousShapeTestLosProbe(from.x, from.y, from.z, to.x, to.y, to.z, CodUnits.SIGHT_FLAGS, unit.extra or unit.entity or 0, 7)
+    local ray = StartExpensiveSynchronousShapeTestLosProbe(from.x, from.y, from.z, to.x, to.y, to.z, CodUnits.SIGHT_FLAGS, unit.entity or 0, 7)
     local _, hit, _, _, entity = GetShapeTestResult(ray)
     return hit == 0 or entity == unit.entity
 end
@@ -298,7 +290,7 @@ function CodUnits.checkPlayerShots(now)
     local _, hit, _, _, entity = GetShapeTestResult(ray)
     if hit ~= 1 then return end
     for _, unit in pairs(CodUnits.units) do
-        if not unit.friendly and (entity == unit.entity or entity == unit.extra) then
+        if not unit.friendly and entity == unit.entity then
             TriggerServerEvent(Events.server.codUnitHit, unit.id)
             return
         end
