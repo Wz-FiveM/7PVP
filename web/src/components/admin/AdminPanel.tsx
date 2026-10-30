@@ -4,26 +4,38 @@ import { useGame } from '../../store/GameContext';
 import { FreeroamTab } from './FreeroamTab';
 import { LootTab } from './LootTab';
 import { PlayersTab } from './PlayersTab';
+import { PositionsTab } from './PositionsTab';
 import { SelfTab } from './SelfTab';
 import { ServerTab } from './ServerTab';
 import './admin.css';
 
-/** wide : onglet qui a besoin de place (le panneau s'élargit) */
-const TABS: { id: string; label: string; component: ComponentType; wide?: boolean }[] = [
+/**
+ * wide : onglet qui a besoin de place (le panneau s'élargit)
+ * flush : l'onglet gère lui-même ses marges et son défilement
+ */
+const TABS: { id: string; label: string; component: ComponentType; wide?: boolean; flush?: boolean }[] = [
   { id: 'players', label: 'Joueurs', component: PlayersTab },
   { id: 'self', label: 'Moi', component: SelfTab },
   { id: 'server', label: 'Serveur', component: ServerTab },
   { id: 'loot', label: 'Butin', component: LootTab, wide: true },
   { id: 'freeroam', label: 'Freeroam', component: FreeroamTab, wide: true },
+  { id: 'positions', label: 'Positions', component: PositionsTab, wide: true, flush: true },
 ];
+
+/** Dernier onglet ouvert : le panneau est démonté à sa fermeture, et il faut le fermer pour se déplacer */
+let rememberedTab = TABS[0].id;
 
 /** Panneau admin (F10), à droite pour garder le jeu visible. */
 export function AdminPanel() {
   const t = useT();
   const { actions } = useGame();
-  const [tabId, setTabId] = useState(TABS[0].id);
+  const [tabId, setTabId] = useState(rememberedTab);
   const tab = TABS.find((entry) => entry.id === tabId)!;
   const Tab = tab.component;
+
+  useEffect(() => {
+    rememberedTab = tabId;
+  }, [tabId]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -54,7 +66,7 @@ export function AdminPanel() {
           </button>
         ))}
       </nav>
-      <div className="admin__body">
+      <div className={tab.flush ? 'admin__body admin__body--flush' : 'admin__body'}>
         <Tab />
       </div>
     </aside>

@@ -1,4 +1,4 @@
-import type { AdminPlayer, FreeroamAdminData, LootAdminData } from '../types/admin';
+import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -67,7 +67,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
-      name: 'chaseStarts', group: 'positions', label: 'Départs course poursuite', kind: 'points', category: false, modified: true,
+      name: 'chaseStarts', group: 'positions', label: 'Départs course poursuite', short: 'Course poursuite', point: 'Départ', kind: 'points', category: false, modified: true,
       hint: 'Un départ est tiré au sort à chaque manche : le voleur part ici, dans ta direction, le policier juste derrière.',
       value: [
         { x: 220, y: -1040, z: 29.2, w: 160 },
@@ -76,7 +76,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
-      name: 'cvcSpawns', group: 'positions', label: 'Spawns CVC', kind: 'arenas', category: false, modified: false,
+      name: 'cvcSpawns', group: 'positions', label: 'Spawns CVC', short: 'CVC', kind: 'arenas', category: false, modified: false,
       hint: 'Départ de chaque équipe dans chaque arène : les véhicules sont alignés derrière ce point, tournés vers le centre.',
       value: [
         { label: 'Désert de Senora', spawns: [{ x: 2050, y: 3050, z: 45, w: 0 }, { x: 2640, y: 3230, z: 50, w: 0 }] },
@@ -84,17 +84,17 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
-      name: 'gunfightSpawns', group: 'positions', label: 'Spawns 1VS1 GunFight', kind: 'pair', category: false, modified: false,
+      name: 'gunfightSpawns', group: 'positions', label: 'Spawns 1VS1 GunFight', short: '1VS1 GunFight', kind: 'pair', category: false, modified: false,
       hint: 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face.',
       value: [{ x: 1000, y: -3090, z: 5.9, w: 270 }, { x: 1040, y: -3090, z: 5.9, w: 90 }],
     },
     {
-      name: 'bikeSpawns', group: 'positions', label: 'Spawns 1VS1 Bike', kind: 'pair', category: false, modified: false,
+      name: 'bikeSpawns', group: 'positions', label: 'Spawns 1VS1 Bike', short: '1VS1 Bike', kind: 'pair', category: false, modified: false,
       hint: 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre.',
       value: [{ x: 1300, y: 3120, z: 40.4, w: 286 }, { x: 1640, y: 3220, z: 41, w: 106 }],
     },
     {
-      name: 'gungameSpawns', group: 'positions', label: 'Spawns Gungame', kind: 'points', category: false, modified: false,
+      name: 'gungameSpawns', group: 'positions', label: 'Spawns Gungame', short: 'Gungame', point: 'Apparition', kind: 'points', category: false, modified: false,
       hint: 'Points d\'apparition des joueurs, dans ta direction : on réapparaît sur celui le plus loin des autres.',
       value: [
         { x: 1020, y: -3045, z: 5.9, w: 180 },
@@ -103,6 +103,16 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { x: 975, y: -3090, z: 5.9, w: 270 },
       ],
     },
+    ...['Terminal', 'La Casse', 'La Scierie', 'Le Chantier'].flatMap((map) => [
+      { key: 'alpha', short: 'Départs 1', point: 'Apparition', letters: false, count: 5, hint: 'Apparitions du premier camp, dans ta direction.' },
+      { key: 'bravo', short: 'Départs 2', point: 'Apparition', letters: false, count: 5, hint: 'Apparitions du second camp, dans ta direction.' },
+      { key: 'flags', short: 'Drapeaux', point: 'Drapeau', letters: true, count: 3, hint: "Drapeaux de la Domination : A, B, C dans l'ordre de la liste. Évite de les placer à côté des départs." },
+      { key: 'sites', short: 'Sites de bombe', point: 'Site', letters: true, count: 2, hint: "Sites de Recherche & Destruction : A, B dans l'ordre de la liste." },
+    ].map(({ key, count, ...list }): FreeroamSetting => ({
+      ...list,
+      name: `cod_${map}_${key}`, group: 'cod', label: `${map} · ${list.short}`, section: map, kind: 'points', category: false, modified: map === 'Terminal' && key === 'flags',
+      value: Array.from({ length: count }, (_, index) => ({ x: 995 + index * 15, y: -3045, z: 5.9, w: 180 })),
+    }))),
   ],
 };
 import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';

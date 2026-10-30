@@ -1,4 +1,4 @@
----Réglages du Freeroam modifiables en jeu (panneau admin F10, onglet « Freeroam ») :
+---Réglages du Freeroam modifiables en jeu (panneau admin F10, onglets « Freeroam » et « Positions ») :
 ---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC, moto du 1VS1 Bike ;
 ---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
 ---              points de départ des équipes du CVC dans chaque arène, des deux joueurs des 1VS1,
@@ -37,10 +37,13 @@ FreeroamConfigService.KINDS = {
 }
 
 -- Réglages modifiables, dans l'ordre du panneau (label et hint traduits à l'envoi au panneau).
---  group    : section du panneau ('vehicles' ou 'positions')
+--  group    : section du panneau ('vehicles', 'positions' ou 'cod')
 --  path     : emplacement dans Config (Config[path[1]][path[2]]), pour les sortes qui en ont besoin
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
 --  sync     : lu par les clients (renvoyé à tous à chaque changement)
+--  short    : nom court, dans le menu de l'onglet « Positions »
+--  section  : carte Call of Duty, sous laquelle la liste est rangée
+--  point    : nom d'un point de la liste (« Drapeau 1 ») ; letters : numérotés A, B, C
 FreeroamConfigService.SETTINGS = {
     {
         name = 'chaseVehicles',
@@ -89,6 +92,8 @@ FreeroamConfigService.SETTINGS = {
         group = 'positions',
         kind = 'points',
         label = 'Départs course poursuite',
+        short = 'Course poursuite',
+        point = 'Départ',
         hint = 'Un départ est tiré au sort à chaque manche : le voleur part ici, dans ta direction, le policier juste derrière. Choisis une route droite, en ville.',
         path = { 'Chase', 'starts' },
     },
@@ -97,6 +102,7 @@ FreeroamConfigService.SETTINGS = {
         group = 'positions',
         kind = 'arenas',
         label = 'Spawns CVC',
+        short = 'CVC',
         hint = 'Départ de chaque équipe dans chaque arène : les véhicules sont alignés derrière ce point, tournés vers le centre de l\'arène.',
     },
     {
@@ -104,6 +110,7 @@ FreeroamConfigService.SETTINGS = {
         group = 'positions',
         kind = 'pair',
         label = 'Spawns 1VS1 GunFight',
+        short = '1VS1 GunFight',
         hint = 'Départ de chaque joueur (ils échangent de côté à chaque manche), dans ta direction : place-les face à face. La zone de combat est un cercle autour du milieu des deux points.',
         path = { 'Gunfight', 'spawns' },
     },
@@ -112,6 +119,7 @@ FreeroamConfigService.SETTINGS = {
         group = 'positions',
         kind = 'pair',
         label = 'Spawns 1VS1 Bike',
+        short = '1VS1 Bike',
         hint = 'Départ de chaque moto (les joueurs échangent de côté à chaque manche), dans ta direction : place-les loin l\'un de l\'autre. La zone de combat est un cercle autour du milieu des deux points.',
         path = { 'Bike', 'spawns' },
     },
@@ -120,6 +128,8 @@ FreeroamConfigService.SETTINGS = {
         group = 'positions',
         kind = 'points',
         label = 'Spawns Gungame',
+        short = 'Gungame',
+        point = 'Apparition',
         hint = 'Points d\'apparition des joueurs, dans ta direction : on réapparaît sur celui le plus loin des autres. Répartis-les tout autour de l\'arène ; la zone de combat est un cercle autour de leur milieu.',
         path = { 'Gungame', 'spawns' },
     },
@@ -127,10 +137,10 @@ FreeroamConfigService.SETTINGS = {
 
 -- Call of Duty : les points de chaque carte (config/cod.lua), dans leur propre section du panneau
 FreeroamConfigService.COD_LISTS = {
-    { key = 'alpha', label = 'Départs 1', hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
-    { key = 'bravo', label = 'Départs 2', hint = 'Apparitions du second camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
-    { key = 'flags', label = 'Drapeaux', hint = 'Drapeaux de la Domination : A, B, C dans l\'ordre de la liste. Évite de les placer à côté des départs.' },
-    { key = 'sites', label = 'Sites de bombe', hint = 'Sites de Recherche & Destruction : A, B dans l\'ordre de la liste.' },
+    { key = 'alpha', label = 'Départs 1', point = 'Apparition', hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'bravo', label = 'Départs 2', point = 'Apparition', hint = 'Apparitions du second camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'flags', label = 'Drapeaux', point = 'Drapeau', letters = true, hint = 'Drapeaux de la Domination : A, B, C dans l\'ordre de la liste. Évite de les placer à côté des départs.' },
+    { key = 'sites', label = 'Sites de bombe', point = 'Site', letters = true, hint = 'Sites de Recherche & Destruction : A, B dans l\'ordre de la liste.' },
 }
 for _, map in ipairs(Config.Cod.maps) do
     for _, list in ipairs(FreeroamConfigService.COD_LISTS) do
@@ -140,6 +150,10 @@ for _, map in ipairs(Config.Cod.maps) do
             group = 'cod',
             kind = 'points',
             label = ('%s · %s'):format(map.label, list.label),
+            short = list.label,
+            section = map.label,
+            point = list.point,
+            letters = list.letters,
             hint = list.hint,
             path = { 'CodSpawns', key },
         }
@@ -470,6 +484,10 @@ function FreeroamConfigService.getCallback(source)
             kind = setting.kind,
             label = Locale.t(setting.label),
             hint = Locale.t(setting.hint),
+            short = setting.short and Locale.t(setting.short),
+            section = setting.section and Locale.t(setting.section),
+            point = setting.point and Locale.t(setting.point),
+            letters = setting.letters == true,
             category = setting.category == true,
             value = FreeroamConfigService.get(setting),
             modified = FreeroamConfigService.modified[setting.name] == true,

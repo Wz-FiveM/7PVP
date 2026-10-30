@@ -114,7 +114,7 @@ export interface FreeroamPlace {
   coords: MapPoint;
 }
 
-/** Réglage de l'onglet « Freeroam » (server/modules/freeroam/freeroam_config_service.lua) */
+/** Réglage des onglets « Freeroam » et « Positions » (server/modules/freeroam/freeroam_config_service.lua) */
 export type FreeroamSetting = {
   name: string;
   group: 'vehicles' | 'positions' | 'cod';
@@ -122,6 +122,14 @@ export type FreeroamSetting = {
   hint: string;
   /** différent du fichier de config */
   modified: boolean;
+  /** nom court, dans le menu de l'onglet « Positions » */
+  short?: string;
+  /** carte Call of Duty : ses listes de points sont regroupées sous elle */
+  section?: string;
+  /** nom d'un point de la liste (« Drapeau », « Apparition »...) */
+  point?: string;
+  /** points numérotés A, B, C plutôt que 1, 2, 3 */
+  letters?: boolean;
 } & (
   | { kind: 'vehicles'; category: boolean; value: FreeroamVehicle[] }
   | { kind: 'model'; category: false; value: string }

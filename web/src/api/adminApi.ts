@@ -30,7 +30,7 @@ export const adminApi = {
   lootZones: (zones: Record<string, string>) =>
     fetchNui<AdminActionResult>('adminLootZones', { zones }, { ok: true, message: 'Zones enregistrées (simulé)' }),
 
-  /** Onglet « Freeroam » : véhicules et positions des modes de jeu, courses poursuite en cours */
+  /** Onglets « Freeroam » et « Positions » : véhicules et positions des modes de jeu, courses poursuite en cours */
   freeroam: () => fetchNui<FreeroamAdminData>('adminFreeroam', {}, mockFreeroamAdmin),
 
   /** `kind` : le client vérifie les modèles de véhicule avant l'envoi */

@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
   ChaseMatchInfo,
   ChasePhase,
-  CvcArenaSpawns,
   FreeroamAdminData,
-  FreeroamPlace,
   FreeroamSetting,
   FreeroamVehicle,
-  MapPoint,
 } from '../../types/admin';
 
 const PHASE_LABELS: Record<ChasePhase, string> = {
@@ -23,21 +20,12 @@ const PHASE_LABELS: Record<ChasePhase, string> = {
 
 const ROLE_LABELS = { thief: 'VOLEUR', cop: 'POLICIER' };
 
-/** Équipes du CVC, dans l'ordre des départs (config/cvc.lua) */
-const TEAM_LABELS = ['Équipe Alpha', 'Équipe Bravo'];
-
-/** Joueurs des 1VS1 (GunFight, Bike), dans l'ordre des départs (config/gunfight.lua, config/bike.lua) */
-const DUEL_LABELS = ['Joueur 1', 'Joueur 2'];
-
 /** Les courses en cours sont relues à ce rythme (ms) tant que l'onglet est ouvert */
 const REFRESH_INTERVAL = 5000;
 
 const copy = (setting: FreeroamSetting): FreeroamSetting => JSON.parse(JSON.stringify(setting));
 
-const formatPoint = (point: MapPoint) =>
-  `${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} · ${Math.round(point.w)}°`;
-
-/** Freeroam : courses poursuite en cours (mode spectateur), véhicules et positions des modes de jeu, enregistrés en base. */
+/** Freeroam : courses poursuite en cours (mode spectateur) et véhicules des modes de jeu, enregistrés en base. */
 export function FreeroamTab() {
   useT();
   const { state, actions } = useGame();
@@ -98,8 +86,6 @@ export function FreeroamTab() {
       </p>
 
       <SettingsSection title={t('Véhicules des modes de jeu')} settings={settings.filter((s) => s.group === 'vehicles')} onSaved={load} />
-      <SettingsSection title={t('Positions')} settings={settings.filter((s) => s.group === 'positions')} onSaved={load} />
-      <SettingsSection title={t('Cartes Call of Duty')} settings={settings.filter((s) => s.group === 'cod')} onSaved={load} />
     </div>
   );
 }
@@ -155,7 +141,7 @@ function ChaseCard({ match, spectating, onSpectate }: ChaseCardProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Réglages : un groupe (véhicules ou positions), un réglage affiché à la fois
+// Réglages : un groupe de véhicules, un réglage affiché à la fois
 // ---------------------------------------------------------------------------
 
 interface SettingsSectionProps {
@@ -249,14 +235,8 @@ function SettingEditor({ draft, onChange }: { draft: FreeroamSetting; onChange: 
           onChange={(event) => onChange({ ...draft, value: event.target.value.trim().toLowerCase() })}
         />
       );
-    case 'points':
-      return <PointList points={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
-    case 'pair':
-      return <PairList points={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
-    case 'arenas':
-      return <ArenaList arenas={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
-    case 'places':
-      return <PlaceList places={draft.value} onChange={(value) => onChange({ ...draft, value })} />;
+    default:
+      return null;
   }
 }
 
@@ -335,7 +315,7 @@ function VehicleList({ vehicles, category, onChange }: VehicleListProps) {
 }
 
 /** Monter, descendre, retirer (jamais le dernier : une liste ne peut pas être vide). */
-function RowButtons<T>({ index, list, onChange }: { index: number; list: T[]; onChange: (list: T[]) => void }) {
+export function RowButtons<T>({ index, list, onChange }: { index: number; list: T[]; onChange: (list: T[]) => void }) {
   useT();
   const move = (offset: number) => {
     const next = [...list];
@@ -356,135 +336,5 @@ function RowButtons<T>({ index, list, onChange }: { index: number; list: T[]; on
         ✕
       </button>
     </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Positions
-// ---------------------------------------------------------------------------
-
-/** Position actuelle de l'admin, ou null (message d'erreur affiché) */
-function usePosition() {
-  const { actions } = useGame();
-  return useCallback(async () => {
-    const result = await adminApi.position();
-    if (!result?.ok || !result.point) {
-      actions.notify(t('Position indisponible.'), 'error');
-      return null;
-    }
-    return result.point;
-  }, [actions]);
-}
-
-interface PointRowProps {
-  label: string;
-  point: MapPoint;
-  onChange: (point: MapPoint) => void;
-  /** boutons en plus, en fin de ligne */
-  children?: ReactNode;
-}
-
-/** Une position : coordonnées, « Ma position » (la remplace par celle de l'admin) et « Y aller ». */
-function PointRow({ label, point, onChange, children }: PointRowProps) {
-  useT();
-  const { actions } = useGame();
-  const position = usePosition();
-  const place = async () => {
-    const next = await position();
-    if (next) onChange(next);
-  };
-  return (
-    <li className={children ? 'admin-point admin-point--list' : 'admin-point'}>
-      <span className="admin-point__label">{label}</span>
-      <span className="mono muted admin-point__coords">{formatPoint(point)}</span>
-      <button className="btn btn--small btn--primary" onClick={place}>{t('Ma position')}</button>
-      <button className="btn btn--small" onClick={() => actions.adminAction({ action: 'gotoPoint', ...point })}>{t('Y aller')}</button>
-      {children}
-    </li>
-  );
-}
-
-function PointList({ points, onChange }: { points: MapPoint[]; onChange: (points: MapPoint[]) => void }) {
-  useT();
-  const position = usePosition();
-  const add = async () => {
-    const point = await position();
-    if (point) onChange([...points, point]);
-  };
-  return (
-    <>
-      <ul className="admin-points">
-        {points.map((point, index) => (
-          <PointRow
-            key={index}
-            label={t('Départ {number}', { number: index + 1 })}
-            point={point}
-            onChange={(next) => onChange(points.map((entry, i) => (i === index ? next : entry)))}
-          >
-            <RowButtons index={index} list={points} onChange={onChange} />
-          </PointRow>
-        ))}
-      </ul>
-      <button className="btn btn--small" onClick={add}>{t('+ Ajouter ma position')}</button>
-    </>
-  );
-}
-
-/** Deux départs fixes (1VS1 GunFight) : pas d'ajout ni de retrait. */
-function PairList({ points, onChange }: { points: [MapPoint, MapPoint]; onChange: (points: [MapPoint, MapPoint]) => void }) {
-  useT();
-  return (
-    <ul className="admin-points">
-      {points.map((point, index) => (
-        <PointRow
-          key={index}
-          label={t(DUEL_LABELS[index])}
-          point={point}
-          onChange={(next) => onChange((index === 0 ? [next, points[1]] : [points[0], next]) as [MapPoint, MapPoint])}
-        />
-      ))}
-    </ul>
-  );
-}
-
-function ArenaList({ arenas, onChange }: { arenas: CvcArenaSpawns[]; onChange: (arenas: CvcArenaSpawns[]) => void }) {
-  useT();
-  const setSpawn = (arenaIndex: number, team: number, point: MapPoint) =>
-    onChange(
-      arenas.map((arena, i) =>
-        i === arenaIndex
-          ? { ...arena, spawns: (team === 0 ? [point, arena.spawns[1]] : [arena.spawns[0], point]) as [MapPoint, MapPoint] }
-          : arena,
-      ),
-    );
-  return (
-    <div className="admin-arenas">
-      {arenas.map((arena, arenaIndex) => (
-        <div key={arena.label} className="admin-arena">
-          <span className="disp admin-arena__label">{t(arena.label)}</span>
-          <ul className="admin-points">
-            {arena.spawns.map((spawn, team) => (
-              <PointRow key={team} label={t(TEAM_LABELS[team])} point={spawn} onChange={(point) => setSpawn(arenaIndex, team, point)} />
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PlaceList({ places, onChange }: { places: FreeroamPlace[]; onChange: (places: FreeroamPlace[]) => void }) {
-  useT();
-  return (
-    <ul className="admin-points">
-      {places.map((place, index) => (
-        <PointRow
-          key={place.key}
-          label={t(place.label)}
-          point={place.coords}
-          onChange={(coords) => onChange(places.map((entry, i) => (i === index ? { ...entry, coords } : entry)))}
-        />
-      ))}
-    </ul>
   );
 }
