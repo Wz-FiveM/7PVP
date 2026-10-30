@@ -7,6 +7,7 @@ local Nui = PVP.use('Nui')
 local Chase = PVP.use('Chase')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Activities.isOpen = false
 
@@ -17,7 +18,7 @@ function Activities.init()
     end)
     RegisterNUICallback('activityStart', function(data, cb)
         local result = Callback.await(Events.callbacks.activityStart, type(data) == 'table' and data.id or nil)
-            or { ok = false, message = 'Le serveur ne répond pas.' }
+            or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
         -- Partie lancée tout de suite (2e joueur de la file) : le vote de la course a déjà pris
         -- le curseur, on ferme la fenêtre sans le lui retirer (les autres modes n'en ont pas besoin)
         if result.ok then Activities.close(Chase.voting) end

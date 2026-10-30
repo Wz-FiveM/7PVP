@@ -4,6 +4,7 @@
 local Noclip = PVP.define('Noclip')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
+local Locale = PVP.use('Locale')
 
 Noclip.active = false
 -- Touches maintenues envoyées à l'aide à l'écran (pour n'envoyer qu'aux changements)
@@ -57,7 +58,7 @@ end
 function Noclip.helpKeys()
     local keys = {}
     for _, entry in ipairs(Noclip.HELP_KEYS) do
-        local label = entry.label
+        local label = entry.label and Locale.t(entry.label)
         if not label then
             -- Le jeu renvoie « t_Z » pour une touche texte
             local button = GetControlInstructionalButton(0, entry.control, true) or ''

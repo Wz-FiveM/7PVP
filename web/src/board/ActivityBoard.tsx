@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon, type IconName } from '../components/icons/Icon';
+import { setLanguage, useT } from '../i18n';
 import type { BoardRow } from '../types/game';
 
 /** Contenu envoyé par Lua avec SendDuiMessage (client/modules/activities/activity_boards.lua) */
@@ -9,6 +10,8 @@ interface BoardData {
   /** Nom du mode de jeu (Config.FreeroamActivities) */
   title: string;
   icon?: IconName;
+  /** Langue du joueur (Locale.lang) */
+  lang?: string;
 }
 
 /** Exemple affiché dans le navigateur (npm run dev), hors du jeu */
@@ -31,12 +34,21 @@ const isBrowser = !('invokeNative' in window);
 
 /** Classement ELO d'un mode de jeu du Freeroam, affiché sur son écran dans la zone safe. */
 export function ActivityBoard() {
+  const t = useT();
   const [data, setData] = useState<BoardData | null>(isBrowser ? PREVIEW : null);
+  /** Dernière langue demandée (le contenu est renvoyé toutes les 2 s) */
+  const lang = useRef<string | null>(null);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       const payload = typeof event.data === 'string' ? safeParse(event.data) : event.data;
-      if (payload && Array.isArray((payload as BoardData).rows)) setData(payload as BoardData);
+      if (!payload || !Array.isArray((payload as BoardData).rows)) return;
+      const board = payload as BoardData;
+      if (board.lang && board.lang !== lang.current) {
+        lang.current = board.lang;
+        setLanguage(board.lang);
+      }
+      setData(board);
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
@@ -53,16 +65,16 @@ export function ActivityBoard() {
           <Icon name={data?.icon ?? 'trophy'} size={44} strokeWidth={2} />
         </span>
         <span className="board__heading">
-          <span className="mono board__eyebrow">Classement ELO</span>
+          <span className="mono board__eyebrow">{t('Classement ELO')}</span>
           <span className="disp board__title">{data?.title ?? ''}</span>
         </span>
-        <span className="mono board__hint">PNJ à côté pour jouer</span>
+        <span className="mono board__hint">{t('PNJ à côté pour jouer')}</span>
       </header>
 
       <div className="board__columns mono">
         <span>#</span>
-        <span>Joueur</span>
-        <span>V / D / N</span>
+        <span>{t('Joueur')}</span>
+        <span>{t('V / D / N')}</span>
         <span>ELO</span>
       </div>
 

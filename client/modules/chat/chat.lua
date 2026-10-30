@@ -5,6 +5,7 @@ local Chat = PVP.define('Chat')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Chat.open = false
 
@@ -12,7 +13,7 @@ function Chat.init()
     RegisterCommand('pvp_chat', function()
         Chat.openInput()
     end, false)
-    RegisterKeyMapping('pvp_chat', 'Ouvrir le chat', 'keyboard', Config.Chat.key)
+    RegisterKeyMapping('pvp_chat', Locale.t('Ouvrir le chat'), 'keyboard', Config.Chat.key)
 
     RegisterNetEvent(Events.client.chatMessage, function(message)
         Nui.send('chatMessage', message)

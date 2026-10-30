@@ -18,6 +18,7 @@ local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Actions disponibles : méthode à appeler et besoin d'un joueur cible
 AdminService.ACTIONS = {
@@ -71,10 +72,10 @@ end
 
 ---Réponse d'une commande : console du serveur ou chat du joueur.
 ---@param source integer 0 = console
----@param text string
+---@param text string|table message à traduire (Locale.t), en français dans la console
 function AdminService.reply(source, text)
     if source == 0 then
-        Logger.info('%s', text)
+        Logger.info('%s', Locale.resolve(text, Locale.SOURCE))
     else
         ChatService.system(source, text)
     end
@@ -109,27 +110,27 @@ function AdminService.commandSetAdmin(source, arg, isAdmin)
     local command = isAdmin and 'setadmin' or 'removeadmin'
     local identifier, name, player = AdminService.resolveTarget(arg)
     if not identifier then
-        return AdminService.reply(source, ('Usage : %s <id du joueur | license:xxxx>'):format(command))
+        return AdminService.reply(source, Locale.t('Usage : %s <id du joueur | license:xxxx>', command))
     end
 
     if not PlayerRepository.setAdmin(identifier, isAdmin) then
-        return AdminService.reply(source, ('Aucun joueur avec la licence %s en base.'):format(identifier))
+        return AdminService.reply(source, Locale.t('Aucun joueur avec la licence %s en base.', identifier))
     end
 
     local label = name or identifier
     if player then
         player.isAdmin = isAdmin
         AdminService.sendStatus(player.source)
-        player:notify(isAdmin and 'Tu es maintenant admin (F10).' or 'Tes droits admin ont été retirés.', 'info')
+        player:notify(isAdmin and Locale.t('Tu es maintenant admin (F10).') or Locale.t('Tes droits admin ont été retirés.'), 'info')
         if not isAdmin and AdminService.isAdmin(player.source) then
-            AdminService.reply(source, ('%s reste admin via server.cfg (ACE %s).'):format(label, Config.Admin.Ace))
+            AdminService.reply(source, Locale.t('%s reste admin via server.cfg (ACE %s).', label, Config.Admin.Ace))
         end
     end
 
     local by = source == 0 and 'console' or GetPlayerName(source)
     Logger.info('[admin] %s : %s %s', by, command, label)
     DiscordService.adminCommand(source, command, label)
-    AdminService.reply(source, ('%s %s.'):format(label, isAdmin and 'est maintenant admin' or 'n\'est plus admin'))
+    AdminService.reply(source, isAdmin and Locale.t('%s est maintenant admin.', label) or Locale.t('%s n\'est plus admin.', label))
 end
 
 ---admins : liste des admins enregistrés en base
@@ -137,16 +138,20 @@ end
 function AdminService.commandListAdmins(source)
     local admins = PlayerRepository.listAdmins()
     if #admins == 0 then
-        return AdminService.reply(source, 'Aucun admin enregistré en base (les admins de server.cfg ne sont pas listés).')
+        return AdminService.reply(source, Locale.t('Aucun admin enregistré en base (les admins de server.cfg ne sont pas listés).'))
     end
 
     local online = {}
     for _, player in pairs(PlayerService.all()) do online[player.identifier] = player.source end
 
-    AdminService.reply(source, ('%d admin(s) :'):format(#admins))
+    AdminService.reply(source, Locale.t('%d admin(s) :', #admins))
     for _, admin in ipairs(admins) do
         local id = online[admin.identifier]
-        AdminService.reply(source, ('  %s  %s  %s'):format(admin.name, admin.identifier, id and ('[en ligne, ID ' .. id .. ']') or ''))
+        if id then
+            AdminService.reply(source, Locale.t('  %s  %s  [en ligne, ID %s]', admin.name, admin.identifier, id))
+        else
+            AdminService.reply(source, ('  %s  %s  '):format(admin.name, admin.identifier))
+        end
     end
 end
 
@@ -196,24 +201,26 @@ function AdminService.handleAction(source, data)
     if not AdminService.isAdmin(source) then
         Logger.warn('[admin] %s (%s) a tenté une action admin sans permission', GetPlayerName(source), source)
         DiscordService.adminDenied(source)
-        return { ok = false, message = 'Accès refusé.' }
+        return { ok = false, message = Locale.t('Accès refusé.') }
     end
     if type(data) ~= 'table' then return { ok = false } end
 
     local action = AdminService.ACTIONS[data.action]
-    if not action then return { ok = false, message = 'Action inconnue.' } end
+    if not action then return { ok = false, message = Locale.t('Action inconnue.') } end
 
     local target = data.target and PlayerService.get(data.target)
     if action.target and not target then
-        return { ok = false, message = 'Joueur introuvable.' }
+        return { ok = false, message = Locale.t('Joueur introuvable.') }
     end
 
     -- Un admin peut déplacer ou soigner un joueur : pas d'alerte anti-cheat juste après
     if target then AntiCheatService.grace(target.source) end
     local ok, message = AdminService[action.method](source, target, data)
+    -- Journal et Discord en français ; l'admin reçoit le message traduit dans sa langue
+    local logged = message and Locale.resolve(message, Locale.SOURCE)
     Logger.info('[admin] %s : %s%s%s', GetPlayerName(source), data.action,
-        target and (' -> ' .. target.name) or '', message and (' (' .. message .. ')') or '')
-    if ok then DiscordService.adminAction(source, data.action, target, data, message) end
+        target and (' -> ' .. target.name) or '', logged and (' (' .. logged .. ')') or '')
+    if ok then DiscordService.adminAction(source, data.action, target, data, logged) end
     return { ok = ok, message = message }
 end
 
@@ -237,71 +244,71 @@ end
 
 ---@param target PvpPlayer
 function AdminService.giveItem(_, target, data)
-    if not Items.exists(data.item) then return false, 'Objet inconnu.' end
+    if not Items.exists(data.item) then return false, Locale.t('Objet inconnu.') end
     local count = math.floor(tonumber(data.count) or 0)
-    if count < 1 or count > Config.Admin.MaxGiveCount then return false, 'Quantité invalide.' end
+    if count < 1 or count > Config.Admin.MaxGiveCount then return false, Locale.t('Quantité invalide.') end
     local container = data.container == 'protected' and 'protected' or 'bag'
 
     local added = target:giveItem(data.item, count, container)
     target:sync()
     if added < count then
-        return added > 0, ('%d / %d donné(s) : conteneur trop lourd.'):format(added, count)
+        return added > 0, Locale.t('%d / %d donné(s) : conteneur trop lourd.', added, count)
     end
-    return true, ('%s donné à %s.'):format(Items.describe({ [data.item] = count }), target.name)
+    return true, Locale.t('%s donné à %s.', Items.describeText({ [data.item] = count }), target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.giveMoney(_, target, data)
     local amount = math.floor(tonumber(data.amount) or 0)
-    if amount < 1 or amount > Config.Admin.MaxGiveMoney then return false, 'Montant invalide.' end
+    if amount < 1 or amount > Config.Admin.MaxGiveMoney then return false, Locale.t('Montant invalide.') end
     target:addMoney(amount)
     target:sync()
-    return true, ('$%d donné à %s.'):format(amount, target.name)
+    return true, Locale.t('$%d donné à %s.', amount, target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.heal(_, target)
     AdminService.command(target, 'heal')
-    return true, ('%s soigné.'):format(target.name)
+    return true, Locale.t('%s soigné.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.revive(_, target)
     if not target.dead then
         AdminService.command(target, 'heal')
-        return true, ('%s n\'était pas mort : soigné.'):format(target.name)
+        return true, Locale.t('%s n\'était pas mort : soigné.', target.name)
     end
     -- Annule la réapparition automatique en zone safe (voir SpawnService.scheduleRespawn)
     target.dead = false
     AdminService.command(target, 'revive')
-    return true, ('%s réanimé.'):format(target.name)
+    return true, Locale.t('%s réanimé.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.kill(_, target)
     AdminService.command(target, 'kill')
-    return true, ('%s tué.'):format(target.name)
+    return true, Locale.t('%s tué.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.freeze(_, target, data)
     local frozen = data.state == true
     AdminService.command(target, 'freeze', frozen)
-    return true, ('%s %s.'):format(target.name, frozen and 'gelé' or 'dégelé')
+    return true, frozen and Locale.t('%s gelé.', target.name) or Locale.t('%s dégelé.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.gotoPlayer(source, target)
-    if not AdminService.sameMode(source, target) then return false, 'Ce joueur est dans un autre mode.' end
+    if not AdminService.sameMode(source, target) then return false, Locale.t('Ce joueur est dans un autre mode.') end
     TriggerClientEvent(Events.client.adminCommand, source, 'teleport', target:getCoords())
-    return true, ('Téléporté sur %s.'):format(target.name)
+    return true, Locale.t('Téléporté sur %s.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.bringPlayer(source, target)
-    if not AdminService.sameMode(source, target) then return false, 'Ce joueur est dans un autre mode.' end
+    if not AdminService.sameMode(source, target) then return false, Locale.t('Ce joueur est dans un autre mode.') end
     AdminService.command(target, 'teleport', GetEntityCoords(GetPlayerPed(source)))
-    return true, ('%s ramené.'):format(target.name)
+    return true, Locale.t('%s ramené.', target.name)
 end
 
 ---Mode spectateur (voir SpectateService) : la caméra de l'admin suit le joueur, même en partie.
@@ -316,19 +323,20 @@ end
 
 ---@param target PvpPlayer
 function AdminService.sendToLobby(_, target)
-    if not target.mode then return false, 'Ce joueur est déjà au lobby.' end
+    if not target.mode then return false, Locale.t('Ce joueur est déjà au lobby.') end
     ModeRegistry.get(target.mode).leave(target)
     LobbyService.open(target)
-    target:notify('Un admin t\'a renvoyé au lobby.', 'info')
-    return true, ('%s renvoyé au lobby.'):format(target.name)
+    target:notify(Locale.t('Un admin t\'a renvoyé au lobby.'), 'info')
+    return true, Locale.t('%s renvoyé au lobby.', target.name)
 end
 
 ---@param target PvpPlayer
 function AdminService.kick(_, target, data)
     local reason = type(data.reason) == 'string' and data.reason:sub(1, 120) or ''
-    if reason == '' then reason = 'Aucune raison' end
+    local given = reason ~= ''
+    if not given then reason = 'Aucune raison' end
     DropPlayer(target.source, ('Expulsé par un admin : %s'):format(reason))
-    return true, ('%s expulsé (%s).'):format(target.name, reason)
+    return true, Locale.t('%s expulsé (%s).', target.name, given and reason or Locale.t('Aucune raison'))
 end
 
 -- ---------------------------------------------------------------------------
@@ -337,7 +345,7 @@ end
 
 function AdminService.announce(_, _, data)
     local text = ChatService.sanitize(data.text)
-    if not text then return false, 'Message vide.' end
+    if not text then return false, Locale.t('Message vide.') end
 
     if data.mode == 'all' then
         for _, mode in ipairs(Config.Lobby.Modes) do
@@ -346,9 +354,9 @@ function AdminService.announce(_, _, data)
     elseif ModeRegistry.getConfig(data.mode) then
         ChatService.announce(data.mode, '[ADMIN] ' .. text)
     else
-        return false, 'Mode inconnu.'
+        return false, Locale.t('Mode inconnu.')
     end
-    return true, 'Annonce envoyée.'
+    return true, Locale.t('Annonce envoyée.')
 end
 
 ---Largage immédiat, au point de l'admin s'il est en PvP, sinon à un point de la config.
@@ -357,24 +365,24 @@ function AdminService.airdrop(source)
     local admin = PlayerService.get(source)
     local coords = admin and admin.mode == 'pvp' and admin:getCoords() or nil
     AirdropService.spawn(coords)
-    return true, 'Largage lancé.'
+    return true, Locale.t('Largage lancé.')
 end
 
 ---Horde immédiate dans la zone PvE la plus proche de l'admin.
 ---@param source integer
 function AdminService.horde(source)
     local admin = PlayerService.get(source)
-    if not admin or admin.mode ~= 'pvp' then return false, 'Rejoins le PvP pour lancer une horde.' end
+    if not admin or admin.mode ~= 'pvp' then return false, Locale.t('Rejoins le PvP pour lancer une horde.') end
     local closest, best = nil, math.huge
     for _, zone in pairs(PveService.zones) do
         local distance = #(admin:getCoords() - zone.zone.coords)
         if distance < best then closest, best = zone, distance end
     end
-    if not HordeService.start(closest) then return false, 'Une horde est déjà en cours.' end
-    return true, ('Horde lancée : %s.'):format(closest.zone.label)
+    if not HordeService.start(closest) then return false, Locale.t('Une horde est déjà en cours.') end
+    return true, Locale.t('Horde lancée : %s.', Locale.t(closest.zone.label))
 end
 
 function AdminService.clearLoot()
     local count = LootService.clearAll()
-    return true, ('%d sac(s) de butin supprimé(s).'):format(count)
+    return true, Locale.t('%d sac(s) de butin supprimé(s).', count)
 end

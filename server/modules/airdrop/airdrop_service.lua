@@ -18,6 +18,7 @@ local ChatService = PVP.use('ChatService')
 local Utils = PVP.use('Utils')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, Airdrop>
 AirdropService.drops = {}
@@ -63,12 +64,12 @@ function AirdropService.spawn(coords)
     AirdropService.drops[drop.id] = drop
 
     TriggerClientEvent(Events.client.airdropSpawn, -1, AirdropService.describe(drop))
-    ChatService.announce('pvp', 'Un avion de largage traverse la carte ! Suis son repère jaune.')
-    ModeRegistry.broadcast('pvp', Events.client.notify, 'Avion de largage en approche : suis son repère sur la carte.', 'info')
+    ChatService.announce('pvp', Locale.t('Un avion de largage traverse la carte ! Suis son repère jaune.'))
+    ModeRegistry.broadcast('pvp', Events.client.notify, Locale.t('Avion de largage en approche : suis son repère sur la carte.'), 'info')
     Logger.info('[largage] n°%d en approche (%.0f, %.0f)', drop.id, drop.coords.x, drop.coords.y)
 
     SetTimeout((drop.releaseAt - now) * 1000, function()
-        if AirdropService.drops[drop.id] then ChatService.announce('pvp', 'La caisse est larguée !') end
+        if AirdropService.drops[drop.id] then ChatService.announce('pvp', Locale.t('La caisse est larguée !')) end
     end)
     SetTimeout((drop.unlockAt - now) * 1000, function()
         AirdropService.open(drop.id)
@@ -86,15 +87,15 @@ function AirdropService.open(id)
 
     LootService.drop(drop.coords, LootService.roll(Config.Airdrops.loot), {
         model = Config.Airdrops.model,
-        label = 'Fouiller le largage',
+        label = Locale.t('Fouiller le largage'),
         kind = 'airdrop',
         solid = true,
         lifetime = Config.Airdrops.lifetime,
         -- Ouvert comme un inventaire : chacun prend ce qu'il veut, à la main
         browse = true,
-        title = 'Largage',
+        title = Locale.t('Largage'),
     })
-    ChatService.announce('pvp', 'Le largage aérien est ouvert !')
+    ChatService.announce('pvp', Locale.t('Le largage aérien est ouvert !'))
 end
 
 ---Données envoyées aux clients : durées restantes plutôt que des dates (horloges différentes).

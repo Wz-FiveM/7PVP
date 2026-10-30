@@ -1,3 +1,4 @@
+import { useT } from '../../../i18n';
 import type { DrawableLimit, DrawableValue } from '../../../types/appearance';
 import { Stepper } from './Stepper';
 
@@ -12,6 +13,7 @@ interface DrawableControlProps {
 
 /** Vêtement ou accessoire : modèle puis variante (texture). */
 export function DrawableControl({ label, value, limit, allowNone, onChange }: DrawableControlProps) {
+  const t = useT();
   return (
     <div className="ctl-group">
       <Stepper
@@ -24,7 +26,7 @@ export function DrawableControl({ label, value, limit, allowNone, onChange }: Dr
       />
       {value.drawable >= 0 && limit.textures > 1 && (
         <Stepper
-          label="Variante"
+          label={t('Variante')}
           value={value.texture}
           count={limit.textures}
           onChange={(texture) => onChange({ ...value, texture })}

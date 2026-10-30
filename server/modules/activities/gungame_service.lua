@@ -35,6 +35,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 GungameService.ID = 'gungame'
 GungameService.TICK = 1000 -- ms entre deux envois de l'état (temps, classement)
@@ -95,28 +96,28 @@ end
 ---@return boolean, string
 function GungameService.toggleQueue(player)
     local source = player.source
-    if GungameService.playerMatch[source] then return false, 'Tu es déjà dans une partie de Gungame.' end
+    if GungameService.playerMatch[source] then return false, Locale.t('Tu es déjà dans une partie de Gungame.') end
 
     local index = GungameService.queueIndex(source)
     if index then
         table.remove(GungameService.queue, index)
         TriggerClientEvent(Events.client.gungameQueue, source, false)
         GungameService.updateQueue()
-        return true, 'Tu as quitté la file du Gungame.'
+        return true, Locale.t('Tu as quitté la file du Gungame.')
     end
     if GungameService.busyElsewhere(source) then
-        return false, 'Termine d\'abord ta partie en cours (ou quitte sa file).'
+        return false, Locale.t('Termine d\'abord ta partie en cours (ou quitte sa file).')
     end
 
     local match = GungameService.joinableMatch()
     if match then
         GungameService.addPlayer(match, source)
-        return true, 'Tu rejoins la partie de Gungame en cours !'
+        return true, Locale.t('Tu rejoins la partie de Gungame en cours !')
     end
     GungameService.queue[#GungameService.queue + 1] = source
     GungameService.updateQueue()
-    if GungameService.playerMatch[source] then return true, 'La partie de Gungame commence !' end
-    return true, 'Tu rejoins la file du Gungame. Reparle à l\'organisateur pour la quitter.'
+    if GungameService.playerMatch[source] then return true, Locale.t('La partie de Gungame commence !') end
+    return true, Locale.t('Tu rejoins la file du Gungame. Reparle à l\'organisateur pour la quitter.')
 end
 
 ---Compte à rebours dès qu'il y a assez de joueurs ; partie lancée tout de suite si c'est plein.
@@ -193,7 +194,7 @@ function GungameService.leave(source)
         if member == source then table.remove(match.players, position) break end
     end
     if #match.players < Config.Gungame.minPlayers then
-        GungameService.endMatch(match, 'Plus assez de joueurs : la partie s\'arrête.')
+        GungameService.endMatch(match, Locale.t('Plus assez de joueurs : la partie s\'arrête.'))
     end
 end
 
@@ -340,7 +341,7 @@ function GungameService.run(match)
         if GetGameTimer() >= match.endAt then
             local ranking = GungameService.ranking(match, false)
             local leader = ranking[1] and match.stats[ranking[1]].name or '?'
-            return GungameService.endMatch(match, ('Temps écoulé : %s est le plus avancé.'):format(leader))
+            return GungameService.endMatch(match, Locale.t('Temps écoulé : %s est le plus avancé.', leader))
         end
         GungameService.broadcastState(match)
     end
@@ -442,7 +443,7 @@ function GungameService.onDied(source, killerId, weapon)
         if stats.level >= #settings.levels then
             -- Kill avec la dernière arme : la partie est gagnée (niveau « au-delà » pour le classement)
             stats.level = #settings.levels + 1
-            return GungameService.endMatch(match, ('%s a terminé le Gungame !'):format(stats.name))
+            return GungameService.endMatch(match, Locale.t('%s a terminé le Gungame !', stats.name))
         end
         GungameService.setLevel(match, killer, stats.level + 1, 'kill')
     elseif match.phase == 'running' and settings.suicideDemotes then
@@ -514,7 +515,7 @@ end
 
 ---Fin de partie : classement, ELO, retour dans la zone safe du Freeroam.
 ---@param match GungameMatch
----@param reason string
+---@param reason string|table message à traduire (Locale.t)
 function GungameService.endMatch(match, reason)
     if match.phase == 'ended' then return end
     match.phase = 'ended'
@@ -543,7 +544,7 @@ function GungameService.endMatch(match, reason)
             })
         end
     end
-    Logger.info('[gungame] partie n°%d terminée : %s', match.id, reason)
+    Logger.info('[gungame] partie n°%d terminée : %s', match.id, Locale.resolve(reason, Locale.SOURCE))
 end
 
 ---Tirs entre deux joueurs : nil si ce n'est pas une affaire du Gungame, sinon autorisé ou non
@@ -574,5 +575,5 @@ end
 ---@return string|nil partie en cours (mode spectateur admin)
 function GungameService.describePlayer(source)
     if not GungameService.playerMatch[source] then return nil end
-    return 'Partie de Gungame'
+    return Locale.t('Partie de Gungame')
 end

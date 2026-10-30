@@ -28,6 +28,7 @@ local State = PVP.use('State')
 local PedUtils = PVP.use('PedUtils')
 local DuiLabels = PVP.use('DuiLabels')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Airdrop.STREAM_DISTANCE = 450.0
 Airdrop.TEXT_DISTANCE = 60.0
@@ -178,7 +179,7 @@ function Airdrop.createPlaneBlip(drop, position)
     SetBlipAsShortRange(blip, false)
     SetBlipRotation(blip, math.floor(-drop.heading))
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName('Avion de largage')
+    AddTextComponentSubstringPlayerName(Locale.t('Avion de largage'))
     EndTextCommandSetBlipName(blip)
     drop.planeBlip = blip
 end
@@ -192,7 +193,7 @@ function Airdrop.createDropBlip(drop)
     SetBlipAsShortRange(blip, false)
     SetBlipFlashes(blip, true)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName('Largage aérien')
+    AddTextComponentSubstringPlayerName(Locale.t('Largage aérien'))
     EndTextCommandSetBlipName(blip)
     drop.blip = blip
 end
@@ -326,15 +327,15 @@ end
 function Airdrop.drawLabel(drop, coords, falling, now)
     local subtitle, progress
     if falling then
-        subtitle = 'En chute'
+        subtitle = Locale.t('En chute')
         progress = 1 - (drop.landAt - now) / (Config.Airdrops.fallTime * 1000)
     else
         local seconds = math.max(0, math.ceil((drop.unlockAt - now) / 1000))
-        subtitle = ('Ouverture dans %d s'):format(seconds)
+        subtitle = Locale.t('Ouverture dans %d s', seconds)
         progress = 1 - (drop.unlockAt - now) / (Config.Airdrops.unlockDelay * 1000)
     end
     DuiLabels.draw('airdrop:' .. drop.id, coords, {
-        title = 'Largage aérien',
+        title = Locale.t('Largage aérien'),
         subtitle = subtitle,
         accent = 'critique',
         icon = 'crate',

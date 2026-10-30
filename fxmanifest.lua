@@ -12,6 +12,7 @@ dependency 'oxmysql'
 shared_scripts {
     'shared/core/module.lua',
     'config/main.lua',
+    'config/locale.lua',
     'config/items.lua',
     'config/vehicles.lua',
     'config/shop.lua',
@@ -37,6 +38,7 @@ shared_scripts {
     'config/presence.lua',
     'config/admin.lua',
     'shared/core/logger.lua',
+    'shared/core/locale.lua',
     'shared/core/events.lua',
     'shared/modules/utils.lua',
     'shared/modules/progression.lua',
@@ -112,6 +114,7 @@ server_scripts {
 
 client_scripts {
     'client/core/callback.lua',
+    'client/modules/locale/language.lua',
     'client/modules/state/state.lua',
     'client/modules/nui/nui.lua',
     'client/modules/nui/help_notify.lua',
@@ -175,6 +178,7 @@ loadscreen 'web/build/loading.html'
 loadscreen_manual_shutdown 'yes'
 
 files {
+    'locales/*.json',
     'web/build/index.html',
     'web/build/loading.html',
     'web/build/dui.html',

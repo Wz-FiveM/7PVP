@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
+import { t, useT } from '../../i18n';
 import type { GungameEndData, GungameHudData, GungameKillData, GungameStateData, GungameTopEntry } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
 import { EloDelta } from './EloDelta';
@@ -38,7 +39,11 @@ interface FeedEntry extends GungameKillData {
 }
 
 const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-const ordinal = (place: number) => (place === 1 ? '1er' : `${place}e`);
+/** Titre du résultat hors victoire : « 2e place »... */
+const placeTitle = (place: number) => (place === 1 ? t('1er place') : t('{place}e place', { place }));
+/** « 2E SUR 8 JOUEURS »... */
+const placeLine = (place: number, players: number) =>
+  place === 1 ? t('1ER SUR {players} JOUEURS', { players }) : t('{place}E SUR {players} JOUEURS', { place, players });
 
 function useSecondsLeft(total: number, at: number): number {
   const [now, setNow] = useState(Date.now);
@@ -51,6 +56,7 @@ function useSecondsLeft(total: number, at: number): number {
 
 /** Gungame : file d'attente, HUD (arme, progression, rang, temps), classement, kills, hors zone, résultats. */
 export function Gungame() {
+  useT();
   const [queue, setQueue] = useState<Queue | null>(null);
   const [hud, setHud] = useState<(GungameHudData & { at: number }) | null>(null);
   const [live, setLive] = useState<GungameStateData | null>(null);
@@ -122,14 +128,14 @@ export function Gungame() {
                 <>
                   <span className="gg-feed__name">{entry.killer}</span>
                   <span className={entry.knife ? 'mono gg-feed__how gg-feed__how--knife' : 'mono gg-feed__how'}>
-                    {entry.knife ? 'COUTEAU' : 'KILL'}
+                    {entry.knife ? t('COUTEAU') : t('KILL')}
                   </span>
                   <span className="gg-feed__name">{entry.victim}</span>
                 </>
               ) : (
                 <>
                   <span className="gg-feed__name">{entry.victim}</span>
-                  <span className="mono gg-feed__how">SUICIDE</span>
+                  <span className="mono gg-feed__how">{t('SUICIDE')}</span>
                 </>
               )}
             </div>
@@ -138,24 +144,24 @@ export function Gungame() {
       )}
       {hud && toast && (
         <div className={`gg-toast gg-toast--${toast.tone}`} key={toast.id}>
-          <span className="mono gg-toast__title">{toast.title}</span>
+          <span className="mono gg-toast__title">{t(toast.title)}</span>
           <span className="disp gg-toast__weapon">
-            {toast.level}. {toast.weapon}
+            {toast.level}. {t(toast.weapon)}
           </span>
         </div>
       )}
       {hud && outside && (
         <div className="cvc-outside">
-          <span className="disp">Hors zone</span>
-          <span>Reviens dans la zone de combat : tu perds de la vie</span>
+          <span className="disp">{t('Hors zone')}</span>
+          <span>{t('Reviens dans la zone de combat : tu perds de la vie')}</span>
         </div>
       )}
       {end && (
         <div className={`chase-banner chase-banner--${end.result === 'won' ? 'good' : 'neutral'}`} key={end.id}>
-          <span className="disp chase-banner__title">{end.result === 'won' ? 'Victoire' : `${ordinal(end.place)} place`}</span>
+          <span className="disp chase-banner__title">{end.result === 'won' ? t('Victoire') : placeTitle(end.place)}</span>
           <span className="chase-banner__text">{end.reason}</span>
           <span className="mono chase-banner__score">
-            {ordinal(end.place).toUpperCase()} SUR {end.players} JOUEURS
+            {placeLine(end.place, end.players)}
           </span>
           {Array.isArray(end.top) && end.top.length > 0 && (
             <ol className="gg-results">
@@ -163,8 +169,8 @@ export function Gungame() {
                 <li className="gg-results__row" key={`${entry.name}-${index}`}>
                   <span className="mono gg-results__place">{index + 1}</span>
                   <span className="gg-results__name">{entry.name}</span>
-                  <span className="mono gg-results__stat">NIV. {entry.level}</span>
-                  <span className="mono gg-results__stat">{entry.kills} KILLS</span>
+                  <span className="mono gg-results__stat">{t('NIV. {level}', { level: entry.level })}</span>
+                  <span className="mono gg-results__stat">{t('{kills} KILLS', { kills: entry.kills })}</span>
                 </li>
               ))}
             </ol>
@@ -177,14 +183,15 @@ export function Gungame() {
 }
 
 function GungameQueue({ queue }: { queue: Queue }) {
+  useT();
   const startIn = useSecondsLeft(queue.startIn ?? 0, queue.at);
   return (
     <div className="chase-queue">
       <span className="disp chase-queue__title">Gungame</span>
       <span className="mono chase-queue__text">
         {queue.startIn !== undefined
-          ? `${queue.count} joueurs · départ dans ${startIn} s`
-          : `En attente de joueurs · ${queue.count}/${queue.needed}`}
+          ? t('{count} joueurs · départ dans {seconds} s', { count: queue.count, seconds: startIn })
+          : t('En attente de joueurs · {count}/{needed}', { count: queue.count, needed: queue.needed })}
       </span>
     </div>
   );
@@ -199,6 +206,7 @@ function GungameHud({
   live: GungameStateData | null;
   protection: { seconds: number; at: number } | null;
 }) {
+  useT();
   const countdown = useSecondsLeft(hud.countdown, hud.at);
   const remainingAtStart = useSecondsLeft(hud.remaining, hud.at);
   const protectedFor = useSecondsLeft(protection?.seconds ?? 0, protection?.at ?? 0);
@@ -213,7 +221,7 @@ function GungameHud({
           <span className="disp cvc-hud__team">Gungame</span>
           {live && (
             <span className="mono cvc-hud__round">
-              RANG {live.rank}/{live.players}
+              {t('RANG {rank}/{players}', { rank: live.rank, players: live.players })}
             </span>
           )}
           <span className="mono cvc-hud__time">{formatTime(live?.remaining ?? remainingAtStart)}</span>
@@ -224,8 +232,8 @@ function GungameHud({
             <span className="gg-hud__total">/{total}</span>
           </span>
           <span className="gg-hud__names">
-            <span className="disp gg-hud__current">{weapon}</span>
-            <span className="mono gg-hud__next">{next ? `SUIVANTE : ${next.toUpperCase()}` : 'UN KILL POUR GAGNER'}</span>
+            <span className="disp gg-hud__current">{t(weapon)}</span>
+            <span className="mono gg-hud__next">{next ? t('SUIVANTE : {weapon}', { weapon: t(next).toUpperCase() }) : t('UN KILL POUR GAGNER')}</span>
           </span>
         </div>
         <div className="gg-hud__progress">
@@ -244,11 +252,11 @@ function GungameHud({
         </div>
         {live && (
           <div className="cvc-hud__alive">
-            <span className="mono">KILLS : {live.kills}</span>
-            <span className="mono">MORTS : {live.deaths}</span>
+            <span className="mono">{t('KILLS : {count}', { count: live.kills })}</span>
+            <span className="mono">{t('MORTS : {count}', { count: live.deaths })}</span>
           </div>
         )}
-        {protectedFor > 0 && countdown === 0 && <span className="mono gg-hud__shield">PROTÉGÉ · {protectedFor} S</span>}
+        {protectedFor > 0 && countdown === 0 && <span className="mono gg-hud__shield">{t('PROTÉGÉ · {seconds} S', { seconds: protectedFor })}</span>}
       </div>
       {countdown > 0 && (
         <div className="chase-countdown" key={countdown}>
@@ -260,15 +268,16 @@ function GungameHud({
 }
 
 function GungameTop({ top }: { top: GungameTopEntry[] }) {
+  useT();
   if (!Array.isArray(top) || top.length === 0) return null;
   return (
     <div className="gg-top">
-      <span className="mono gg-top__title">CLASSEMENT</span>
+      <span className="mono gg-top__title">{t('CLASSEMENT')}</span>
       {top.map((entry, index) => (
         <div className="gg-top__row" key={`${entry.name}-${index}`}>
           <span className="mono gg-top__place">{index + 1}</span>
           <span className="gg-top__name">{entry.name}</span>
-          <span className="mono gg-top__level">NIV. {entry.level}</span>
+          <span className="mono gg-top__level">{t('NIV. {level}', { level: entry.level })}</span>
         </div>
       ))}
     </div>

@@ -8,6 +8,7 @@ local Loot = PVP.use('Loot')
 local Interaction = PVP.use('Interaction')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Trade.USAGE = 'Utilisation : /trade [ID] · /trade accepter · /trade refuser · /trade annuler'
 
@@ -49,12 +50,12 @@ function Trade.command(arg)
         return Trade.request(Events.callbacks.tradeRespond, arg == 'accepter')
     end
     if arg == 'annuler' then return Trade.request(Events.callbacks.tradeCancel) end
-    if arg and not tonumber(arg) then return Nui.notify(Trade.USAGE, 'error') end
+    if arg and not tonumber(arg) then return Nui.notify(Locale.t(Trade.USAGE), 'error') end
 
     local target = tonumber(arg)
     if not target then
         local nearest = Interaction.nearestPlayer()
-        if not nearest then return Nui.notify('Personne à côté de toi. ' .. Trade.USAGE, 'error') end
+        if not nearest then return Nui.notify(Locale.t('Personne à côté de toi.') .. ' ' .. Locale.t(Trade.USAGE), 'error') end
         target = GetPlayerServerId(nearest)
     end
     Trade.request(Events.callbacks.tradeRequest, target)
@@ -75,7 +76,7 @@ end
 
 ---@param request { from: integer, fromName: string }
 function Trade.onRequest(request)
-    Nui.notify(('%s te propose un échange : /trade accepter ou /trade refuser.'):format(request.fromName), 'info')
+    Nui.notify(Locale.t('%s te propose un échange : /trade accepter ou /trade refuser.', request.fromName), 'info')
 end
 
 ---Échange mis à jour par le serveur, false : terminé ou annulé.

@@ -1,8 +1,10 @@
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { itemLabel } from '../../utils/inventory';
 
 /** Arme en main et munitions (chargeur / réserve), en bas à droite. */
 export function AmmoCounter() {
+  const t = useT();
   const { state } = useGame();
   const { vitals, config } = state;
   if (!vitals.weapon) return null;
@@ -13,7 +15,7 @@ export function AmmoCounter() {
   return (
     <div className="ammo">
       <span className="disp ammo__weapon">
-        {item.label}
+        {t(item.label)}
         {item.ammo && ` · ${itemLabel(config, item.ammo)}`}
       </span>
       {item.ammo && (

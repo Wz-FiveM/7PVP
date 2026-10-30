@@ -14,6 +14,8 @@ local Loot = PVP.use('Loot')
 local Trade = PVP.use('Trade')
 local Lobby = PVP.use('Lobby')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
+local Language = PVP.use('Language')
 
 -- Commandes coupées quand le menu laisse le clavier au jeu : caméra et roue de la souris, tir,
 -- visée, corps à corps, roue des armes, armes et radio du véhicule, menu pause de GTA
@@ -29,7 +31,7 @@ function Nui.init()
     RegisterCommand('pvp_menu_tab', function()
         Nui.toggleMenu()
     end, false)
-    RegisterKeyMapping('pvp_menu_tab', 'Ouvrir l\'inventaire / le menu 7PVP', 'keyboard', Config.MenuKey)
+    RegisterKeyMapping('pvp_menu_tab', Locale.t('Ouvrir l\'inventaire / le menu 7PVP'), 'keyboard', Config.MenuKey)
 
     RegisterNUICallback('ready', function(_, cb)
         Hud.invalidate()
@@ -131,10 +133,11 @@ function Nui.init()
     end)
 end
 
+---Les messages à traduire venus du serveur (Locale.t) sont traduits ici, dans la langue du joueur.
 ---@param action string
 ---@param data? any
 function Nui.send(action, data)
-    SendNUIMessage({ action = action, data = data })
+    SendNUIMessage({ action = action, data = Locale.resolve(data) })
 end
 
 ---@param text string
@@ -146,6 +149,7 @@ end
 ---@return table
 function Nui.buildInitPayload()
     return {
+        locale = Language.payload(),
         config = {
             shop = Config.Shop,
             items = Config.Items,

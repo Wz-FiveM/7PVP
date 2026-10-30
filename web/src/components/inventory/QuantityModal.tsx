@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useT } from '../../i18n';
 
 interface QuantityModalProps {
   title: string;
@@ -9,6 +10,7 @@ interface QuantityModalProps {
 }
 
 export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }: QuantityModalProps) {
+  const t = useT();
   const [count, setCount] = useState(max);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,7 +55,7 @@ export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }:
               className="qty__btn"
               onClick={() => setCount(clamp(count - 1))}
               disabled={count <= 1}
-              aria-label="Diminuer"
+              aria-label={t('Diminuer')}
             >
               −
             </button>
@@ -72,19 +74,19 @@ export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }:
               className="qty__btn"
               onClick={() => setCount(clamp(count + 1))}
               disabled={count >= max}
-              aria-label="Augmenter"
+              aria-label={t('Augmenter')}
             >
               +
             </button>
           </div>
           <span className="modal__max">/ {max}</span>
           <button type="button" className="btn btn--small cut-s" onClick={() => setCount(max)}>
-            Tout
+            {t('Tout')}
           </button>
         </div>
         <div className="modal__actions">
           <button type="button" className="btn cut-s" onClick={onCancel}>
-            Annuler
+            {t('Annuler')}
           </button>
           <button type="submit" className="btn btn--primary cut-s">
             {confirmLabel}

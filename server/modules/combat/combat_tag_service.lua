@@ -12,6 +12,7 @@ local BountyService = PVP.use('BountyService')
 local PveWorldService = PVP.use('PveWorldService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Le statut n'est renvoyé au client qu'une fois par seconde au plus (rafales)
 CombatTagService.NOTIFY_INTERVAL = 1000
@@ -121,7 +122,7 @@ function CombatTagService.onPlayerLeaving(source)
 
     local killer = player.lastAttacker and PlayerService.get(player.lastAttacker)
     if killer then
-        CombatService.rewardPlayerKill(killer, player, ('%s s\'est déconnecté en combat'):format(player.name))
+        CombatService.rewardPlayerKill(killer, player, Locale.t('%s s\'est déconnecté en combat', player.name))
     end
     CombatService.broadcastKill(killer and killer.name, player.name, 'disconnect', nil, {
         killerId = killer and killer.source,

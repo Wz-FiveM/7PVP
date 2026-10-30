@@ -35,6 +35,7 @@ local Zones = PVP.use('Zones')
 local ContractService = PVP.use('ContractService')
 local SeasonService = PVP.use('SeasonService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 PlayerObject.__index = PlayerObject
 
@@ -175,7 +176,7 @@ function PlayerObject:addXp(amount)
     local before = self:getLevel()
     self.xp = self.xp + amount
     if self:getLevel() > before then
-        self:notify(('Niveau %d atteint !'):format(self:getLevel()), 'success')
+        self:notify(Locale.t('Niveau %d atteint !', self:getLevel()), 'success')
     end
 end
 

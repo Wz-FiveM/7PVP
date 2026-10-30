@@ -18,6 +18,7 @@ local Npcs = PVP.use('Npcs')
 local Bounty = PVP.use('Bounty')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Interaction.NEAREST_DISTANCE = 5.0
 Interaction.RAY_DISTANCE = 60.0
@@ -46,7 +47,7 @@ function Interaction.init()
         Interaction.release()
     end, false)
     -- Nom de commande nouveau : la touche par défaut s'applique aussi à ceux qui avaient F1
-    RegisterKeyMapping('+pvp_interaction', 'Menu d\'interaction 7PVP (maintenir)', 'keyboard', Config.InteractionKey)
+    RegisterKeyMapping('+pvp_interaction', Locale.t('Menu d\'interaction 7PVP (maintenir)'), 'keyboard', Config.InteractionKey)
 
     RegisterNUICallback('interactionClose', function(_, cb)
         Interaction.close()
@@ -262,10 +263,10 @@ function Interaction.selfItems()
     return {
         -- Première ligne « :name » : affichée en en-tête du menu
         { kind = 'info', id = 'self:name', label = player.name or GetPlayerName(PlayerId()), icon = 'profile' },
-        { kind = 'info', id = 'serverId', label = 'ID Serveur', icon = 'contract', value = tostring(GetPlayerServerId(PlayerId())) },
-        { kind = 'info', id = 'level', label = 'Niveau', icon = 'trophy', value = tostring(player.level or 1) },
+        { kind = 'info', id = 'serverId', label = Locale.t('ID Serveur'), icon = 'contract', value = tostring(GetPlayerServerId(PlayerId())) },
+        { kind = 'info', id = 'level', label = Locale.t('Niveau'), icon = 'trophy', value = tostring(player.level or 1) },
         { kind = 'separator', id = 'separator' },
-        { kind = 'submenu', id = 'team', label = 'Équipe', icon = 'group', children = Interaction.teamItems() },
+        { kind = 'submenu', id = 'team', label = Locale.t('Équipe'), icon = 'group', children = Interaction.teamItems() },
     }
 end
 
@@ -273,11 +274,11 @@ end
 ---@return table[]
 function Interaction.playerItems(target)
     local items = {
-        { kind = 'info', id = 'player:name', label = target.name or 'Joueur', icon = 'profile', value = ('ID %d'):format(target.serverId) },
+        { kind = 'info', id = 'player:name', label = target.name or Locale.t('Joueur'), icon = 'profile', value = ('ID %d'):format(target.serverId) },
     }
     for _, entry in ipairs(Bounty.list) do
         if entry.id == target.serverId then
-            items[#items + 1] = { kind = 'info', id = 'player:bounty', label = 'Prime', icon = 'money', value = ('$%d'):format(entry.amount) }
+            items[#items + 1] = { kind = 'info', id = 'player:bounty', label = Locale.t('Prime'), icon = 'money', value = ('$%d'):format(entry.amount) }
         end
     end
     items[#items + 1] = { kind = 'separator', id = 'separator' }
@@ -286,18 +287,18 @@ function Interaction.playerItems(target)
     local isMate = Group.isMember(target.serverId)
     local isLeader = Group.data and Group.data.leader == me
     if isMate then
-        items[#items + 1] = { kind = 'info', id = 'player:mate', label = 'Coéquipier', icon = 'group' }
+        items[#items + 1] = { kind = 'info', id = 'player:mate', label = Locale.t('Coéquipier'), icon = 'group' }
         if isLeader then
-            items[#items + 1] = { kind = 'action', id = 'player:kick', label = 'Exclure de l\'équipe', icon = 'exit' }
+            items[#items + 1] = { kind = 'action', id = 'player:kick', label = Locale.t('Exclure de l\'équipe'), icon = 'exit' }
         end
     else
         items[#items + 1] = {
-            kind = 'action', id = 'player:invite', label = 'Inviter dans l\'équipe', icon = 'group',
+            kind = 'action', id = 'player:invite', label = Locale.t('Inviter dans l\'équipe'), icon = 'group',
             disabled = Group.data ~= false and not isLeader,
         }
     end
     items[#items + 1] = {
-        kind = 'action', id = 'player:trade', label = 'Proposer un échange', icon = 'trade',
+        kind = 'action', id = 'player:trade', label = Locale.t('Proposer un échange'), icon = 'trade',
         disabled = not Interaction.inReach(target.entity, Config.Trade.maxDistance),
     }
     return items
@@ -307,11 +308,11 @@ end
 ---@return table[]
 function Interaction.lootItems(target)
     local bag = Loot.bags[target.lootId]
-    local label = bag and (bag.label or (bag.netId and 'Corps de zombie' or 'Sac de butin')) or 'Butin'
+    local label = bag and (bag.label or (bag.netId and Locale.t('Corps de zombie') or Locale.t('Sac de butin'))) or Locale.t('Butin')
     return {
         { kind = 'info', id = 'loot:name', label = label, icon = 'crate' },
         { kind = 'separator', id = 'separator' },
-        { kind = 'action', id = 'loot:take', label = 'Fouiller', icon = 'inventory', disabled = not Interaction.inReach(target.entity) },
+        { kind = 'action', id = 'loot:take', label = Locale.t('Fouiller'), icon = 'inventory', disabled = not Interaction.inReach(target.entity) },
     }
 end
 
@@ -321,11 +322,11 @@ function Interaction.npcItems(target)
     local npc = Config.SafeNpcs.npcs[target.npcIndex]
     local role = npc and Npcs.describe(npc) or {}
     return {
-        { kind = 'info', id = 'npc:name', label = role.label or 'PNJ', icon = role.icon or 'profile' },
+        { kind = 'info', id = 'npc:name', label = role.label or Locale.t('PNJ'), icon = role.icon or 'profile' },
         { kind = 'separator', id = 'separator' },
         -- Même portée que les services du PNJ (coffre, boutique...), vérifiée par le serveur
         {
-            kind = 'action', id = 'npc:talk', label = role.action or 'Parler', icon = 'help',
+            kind = 'action', id = 'npc:talk', label = role.action or Locale.t('Parler'), icon = 'help',
             disabled = not Interaction.inReach(target.entity, Config.SafeNpcs.useDistance),
         },
     }
@@ -338,10 +339,10 @@ function Interaction.vehicleItems(target)
     local name = GetLabelText(GetDisplayNameFromVehicleModel(model))
     local near = Interaction.inReach(target.entity)
     local items = {
-        { kind = 'info', id = 'vehicle:name', label = name ~= 'NULL' and name or 'Véhicule', icon = 'crate' },
+        { kind = 'info', id = 'vehicle:name', label = name ~= 'NULL' and name or Locale.t('Véhicule'), icon = 'crate' },
         { kind = 'separator', id = 'separator' },
-        { kind = 'action', id = 'vehicle:driver', label = 'Monter (conducteur)', icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, -1) },
-        { kind = 'action', id = 'vehicle:passenger', label = 'Monter (passager)', icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, 0) },
+        { kind = 'action', id = 'vehicle:driver', label = Locale.t('Monter (conducteur)'), icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, -1) },
+        { kind = 'action', id = 'vehicle:passenger', label = Locale.t('Monter (passager)'), icon = 'exit', disabled = not near or not IsVehicleSeatFree(target.entity, 0) },
     }
     -- Pas de « Ranger » ici : un véhicule se range assis dedans (touche K, voir Vehicles)
     return items
@@ -354,14 +355,14 @@ function Interaction.teamItems()
         {
             kind = 'action',
             id = 'team:invite',
-            label = nearest and ('Inviter %s'):format(GetPlayerName(nearest)) or 'Inviter le joueur le plus proche',
+            label = nearest and Locale.t('Inviter %s', GetPlayerName(nearest)) or Locale.t('Inviter le joueur le plus proche'),
             icon = 'group',
             disabled = nearest == nil,
         },
     }
     if Group.data then
-        table.insert(items, 1, { kind = 'info', id = 'team:size', label = 'Membres', icon = 'group', value = tostring(#Group.data.members) })
-        items[#items + 1] = { kind = 'action', id = 'team:leave', label = 'Quitter l\'équipe', icon = 'exit' }
+        table.insert(items, 1, { kind = 'info', id = 'team:size', label = Locale.t('Membres'), icon = 'group', value = tostring(#Group.data.members) })
+        items[#items + 1] = { kind = 'action', id = 'team:leave', label = Locale.t('Quitter l\'équipe'), icon = 'exit' }
     end
     return items
 end
@@ -428,6 +429,6 @@ end
 
 function Interaction.inviteNearest()
     local nearest = Interaction.nearestPlayer()
-    if not nearest then return Nui.notify('Personne à côté de toi.', 'error') end
+    if not nearest then return Nui.notify(Locale.t('Personne à côté de toi.'), 'error') end
     Interaction.report(Callback.await(Events.callbacks.groupInvite, GetPlayerServerId(nearest)))
 end

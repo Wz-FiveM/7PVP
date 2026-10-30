@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { formatMoney } from '../../utils/format';
 
@@ -16,6 +17,7 @@ function useRealTime(): Date {
 
 /** Heure réelle, heure du jeu et niveau, en haut à droite. */
 export function StatusPanel() {
+  const t = useT();
   const { state } = useGame();
   const { player, config } = state;
   const now = useRealTime();
@@ -30,18 +32,18 @@ export function StatusPanel() {
       </span>
       {state.clock && (
         <span className={state.clock.night ? 'mono status__clock status__clock--night' : 'mono status__clock'}>
-          EN JEU {pad(state.clock.hour)}:{pad(state.clock.minute)}
-          {state.clock.night && ' · NUIT'}
+          {t('EN JEU {time}', { time: `${pad(state.clock.hour)}:${pad(state.clock.minute)}` })}
+          {state.clock.night && ` · ${t('NUIT')}`}
         </span>
       )}
       {player.streak > 0 && (
         <span className="mono status__streak">
-          SÉRIE ×{player.streak}
-          {player.bounty > 0 && <span className="status__bounty"> · PRIME {formatMoney(player.bounty)}</span>}
+          {t('SÉRIE ×{streak}', { streak: player.streak })}
+          {player.bounty > 0 && <span className="status__bounty"> · {t('PRIME {amount}', { amount: formatMoney(player.bounty) })}</span>}
         </span>
       )}
       <div className="status__level">
-        <span className="disp">Niv. {player.level}</span>
+        <span className="disp">{t('Niv. {level}', { level: player.level })}</span>
         <span className="status__xp">
           <span style={{ width: `${progress}%` }} />
         </span>

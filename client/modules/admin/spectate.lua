@@ -11,6 +11,7 @@ local HelpNotify = PVP.use('HelpNotify')
 local Noclip = PVP.use('Noclip')
 local Admin = PVP.use('Admin')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Spectate.CONTROL_STOP = 194 -- INPUT_FRONTEND_RRIGHT (Retour arrière)
 Spectate.CONTROL_PREVIOUS = 174 -- INPUT_CELLPHONE_LEFT (flèche gauche)
@@ -113,8 +114,8 @@ function Spectate.step()
         TriggerServerEvent(Events.server.spectateNext, 1)
     end
 
-    local situation = Spectate.label and (' · ' .. Spectate.label) or ''
-    HelpNotify.show('Retour', ('Quitter · %s%s · ← → autre joueur'):format(Spectate.name, situation))
+    local situation = Spectate.label and (' · ' .. Locale.resolve(Spectate.label)) or ''
+    HelpNotify.show(Locale.t('Retour'), Locale.t('Quitter · %s%s · ← → autre joueur', Spectate.name, situation))
 
     local now = GetGameTimer()
     if now < Spectate.nextMove then return end

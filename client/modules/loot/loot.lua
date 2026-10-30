@@ -16,6 +16,7 @@ local HelpNotify = PVP.use('HelpNotify')
 local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Loot.STREAM_DISTANCE = 60.0
 Loot.DRAW_DISTANCE = 15.0
@@ -181,7 +182,7 @@ function Loot.renderBag(id, bag, pos)
     local reach = bag.solid and Config.LootPickupDistance + 1.0 or Config.LootPickupDistance
     if dist < reach and State.isAlive() then
         HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
-            bag.label or (bag.netId and 'Fouiller le corps' or 'Ramasser le butin'))
+            Locale.resolve(bag.label) or (bag.netId and Locale.t('Fouiller le corps') or Locale.t('Ramasser le butin')))
         if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
             Loot.interact(id)
         end
@@ -208,7 +209,7 @@ end
 function Loot.openContainer(id)
     local result = Callback.await(Events.callbacks.lootOpen, id)
     if not result or not result.ok then
-        return Nui.notify(result and result.message or 'Butin indisponible.', 'error')
+        return Nui.notify(result and result.message or Locale.t('Butin indisponible.'), 'error')
     end
     Loot.openId = id
     Nui.send('lootContainer', { open = true, id = id, label = result.label, items = result.items })
@@ -222,7 +223,7 @@ function Loot.onContents(id, items)
     if id ~= Loot.openId then return end
     if not items then
         Loot.closeContainer()
-        return Nui.notify('Le butin est vide.', 'info')
+        return Nui.notify(Locale.t('Le butin est vide.'), 'info')
     end
     Nui.send('lootContainer', { open = true, id = id, items = items })
 end

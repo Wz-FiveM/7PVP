@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import type { ContainerId, GameConfig, Inventory, ItemStack, ItemStacks, ItemType, StashId } from '../types/game';
 
 const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, vehicle: 4, case: 5, material: 6, money: 7 };
@@ -28,9 +29,9 @@ export function moveTargets(from: ContainerId, stash: StashId | null): Container
 
 /** Libellé de l'action « déplacer vers » dans le menu contextuel. */
 export function moveLabel(to: ContainerId, config: GameConfig): string {
-  if (to === 'bag') return 'Vers le sac';
-  if (to === 'protected') return 'Protéger';
-  return `Ranger : ${config.containers[to]?.label ?? 'Coffre'}`;
+  if (to === 'bag') return t('Vers le sac');
+  if (to === 'protected') return t('Protéger');
+  return t('Ranger : {container}', { container: t(config.containers[to]?.label ?? 'Coffre') });
 }
 
 /** Lua encode les tables vides en `[]` : on normalise en paires [nom, quantité]. */
@@ -56,7 +57,11 @@ export function weightOf(stacks: ItemStacks | undefined, config: GameConfig): nu
 export const isShortcutItem = (type: ItemType | undefined): boolean =>
   type === 'weapon' || type === 'consumable' || type === 'vehicle';
 
-export const itemLabel =(config: GameConfig, name: string): string => config.items[name]?.label ?? name;
+/** Nom de l'objet dans la langue du joueur (l'identifiant si l'objet est inconnu) */
+export function itemLabel(config: GameConfig, name: string): string {
+  const label = config.items[name]?.label;
+  return label ? t(label) : name;
+}
 
 /** Accessoires fixés sur une arme. */
 export function fittedAttachments(inventory: { attachments?: Record<string, Record<string, boolean>> | [] }, weapon: string): string[] {

@@ -8,6 +8,7 @@ import { tradeApi } from '../api/tradeApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockCaseReel, mockLobbyModes, mockVitals } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
+import { setLanguage, t } from '../i18n';
 import type { KillfeedEntry, ToastKind } from '../types/game';
 import type { ActionResult, CaseOpenResult, NuiMessage } from '../types/nui';
 import { GameContext, type GameActions } from './GameContext';
@@ -70,6 +71,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'menu', ...message.data });
         case 'notify':
           return notify(message.data.text, message.data.kind);
+        case 'locale':
+          return void setLanguage(message.data.lang, message.data.languages);
         case 'killfeed':
           return pushKill(message.data);
         case 'death':
@@ -137,6 +140,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         timer = window.setTimeout(() => attempt(Math.min(delay * 2, READY_MAX_DELAY)), delay);
         return;
       }
+      // Dictionnaire chargé avant le premier rendu : pas de texte français affiché un instant
+      if (payload.locale) await setLanguage(payload.locale.lang, payload.locale.languages);
+      if (cancelled) return;
       dispatch({ type: 'init', payload });
       // Dans le navigateur : données factices ; l'écran affiché se choisit dans le panneau de dev
       if (isEnvBrowser()) dispatch({ type: 'vitals', vitals: mockVitals });
@@ -201,7 +207,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           : { ok: false };
         const result = await (withPoints ? gameApi.caseOpenPoints(id, mock) : gameApi.caseOpen(id, mock));
         if (!result?.ok || !result.reel || !result.winner) {
-          notify(result?.message ?? 'Ouverture impossible.', 'error');
+          notify(result?.message ?? t('Ouverture impossible.'), 'error');
           return;
         }
         dispatch({ type: 'case/spin', spin: { caseId: id, reel: result.reel, winner: result.winner, duration: result.duration ?? 6.5 } });
@@ -300,7 +306,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       joinMode: async (mode) => {
         const result = await gameApi.joinMode(mode);
         if (!result?.ok) {
-          notify(result?.message ?? 'Impossible de rejoindre ce mode.', 'error');
+          notify(result?.message ?? t('Impossible de rejoindre ce mode.'), 'error');
           return;
         }
         // En jeu, Lua ferme le lobby ; dans le navigateur on le simule

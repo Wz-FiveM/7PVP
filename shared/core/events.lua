@@ -97,6 +97,8 @@ Events.internal = {
     -- Profil chargé depuis la base (statut admin, données à envoyer au client...)
     playerLoaded = '7pvp:internal:playerLoaded',
     playerUnloading = '7pvp:internal:playerUnloading',
+    -- Client : le joueur a changé de langue (argument : code de la langue)
+    languageChanged = '7pvp:internal:languageChanged',
 }
 
 -- Transport des callbacks (voir server/core/callback.lua et client/core/callback.lua)

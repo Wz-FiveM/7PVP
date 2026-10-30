@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { GroupVital } from '../../types/game';
 import { Icon } from '../icons/Icon';
@@ -15,6 +16,7 @@ function Bar({ value, kind }: { value: number; kind: 'health' | 'armor' }) {
 
 /** Équipe (gauche de l'écran) : une carte par membre, avec sa vie et son armure. */
 export function SquadPanel() {
+  const t = useT();
   const { state } = useGame();
   const { group, groupVitals, player } = state;
   const ref = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export function SquadPanel() {
             <span className="team-card__body">
               <span className={isMe ? 'team-card__name team-card__name--me' : 'team-card__name'}>
                 {member.name}
-                {down && <span className="mono team-card__state">À TERRE</span>}
+                {down && <span className="mono team-card__state">{t('À TERRE')}</span>}
               </span>
               <Bar value={health} kind="health" />
               <Bar value={vital?.armor ?? 0} kind="armor" />

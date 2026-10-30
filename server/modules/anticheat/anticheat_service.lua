@@ -16,6 +16,7 @@ local BanRepository = PVP.use('BanRepository')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 AntiCheatService.WATCH_INTERVAL = 1000
 AntiCheatService.VITALS_INTERVAL = 2000
@@ -418,7 +419,7 @@ function AntiCheatService.commandBan(source, args)
     local days = math.floor(tonumber(args[2]) or -1)
     local reason = table.concat(args, ' ', 3)
     if not identifier or days < 0 or reason == '' then
-        return AdminService.reply(source, 'Usage : ban <id | license:xxxx> <jours, 0 = définitif> <raison>')
+        return AdminService.reply(source, Locale.t('Usage : ban <id | license:xxxx> <jours, 0 = définitif> <raison>'))
     end
 
     local by = source == 0 and 'console' or GetPlayerName(source)
@@ -428,29 +429,30 @@ function AntiCheatService.commandBan(source, args)
         DropPlayer(player.source, ('7PVP : tu es banni (%s).'):format(reason))
     end
     Logger.info('[ban] %s bannit %s (%s, %s)', by, name or identifier, days > 0 and (days .. ' j') or 'définitif', reason)
-    AdminService.reply(source, ('%s banni %s.'):format(name or identifier, days > 0 and ('pour ' .. days .. ' jour(s)') or 'définitivement'))
+    AdminService.reply(source, days > 0 and Locale.t('%s banni pour %d jour(s).', name or identifier, days)
+        or Locale.t('%s banni définitivement.', name or identifier))
 end
 
 ---@param source integer
 ---@param identifier string|nil
 function AntiCheatService.commandUnban(source, identifier)
     if not identifier or not identifier:match('^license:%x+$') then
-        return AdminService.reply(source, 'Usage : unban <license:xxxx> (voir la commande bans)')
+        return AdminService.reply(source, Locale.t('Usage : unban <license:xxxx> (voir la commande bans)'))
     end
     if not BanRepository.unban(identifier) then
-        return AdminService.reply(source, ('Aucun ban pour %s.'):format(identifier))
+        return AdminService.reply(source, Locale.t('Aucun ban pour %s.', identifier))
     end
     Logger.info('[ban] %s débannit %s', source == 0 and 'console' or GetPlayerName(source), identifier)
-    AdminService.reply(source, ('%s débanni.'):format(identifier))
+    AdminService.reply(source, Locale.t('%s débanni.', identifier))
 end
 
 ---@param source integer
 function AntiCheatService.commandList(source)
     local bans = BanRepository.list()
-    if #bans == 0 then return AdminService.reply(source, 'Aucun ban en cours.') end
-    AdminService.reply(source, ('%d ban(s) en cours :'):format(#bans))
+    if #bans == 0 then return AdminService.reply(source, Locale.t('Aucun ban en cours.')) end
+    AdminService.reply(source, Locale.t('%d ban(s) en cours :', #bans))
     for _, ban in ipairs(bans) do
-        AdminService.reply(source, ('  %s  %s  jusqu\'au %s  (%s, par %s)'):format(ban.name, ban.identifier,
-            ban.expires_at or 'définitif', ban.reason, ban.banned_by))
+        AdminService.reply(source, Locale.t('  %s  %s  jusqu\'au %s  (%s, par %s)', ban.name, ban.identifier,
+            ban.expires_at or Locale.t('définitif'), ban.reason, ban.banned_by))
     end
 end

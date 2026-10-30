@@ -9,6 +9,7 @@ local AntiCheatService = PVP.use('AntiCheatService')
 local Callback = PVP.use('Callback')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 TeleportService.CHECK_INTERVAL = 250
 
@@ -38,22 +39,22 @@ end
 
 ---@param player PvpPlayer|nil
 ---@param zone table|nil
----@return boolean, string|nil
+---@return boolean, table|nil
 function TeleportService.check(player, zone)
     if not player or player.mode ~= 'pvp' then
-        return false, 'Téléportation disponible en mode PvP.'
+        return false, Locale.t('Téléportation disponible en mode PvP.')
     end
     if player.dead then
-        return false, 'Attends de réapparaître.'
+        return false, Locale.t('Attends de réapparaître.')
     end
     if not zone or zone.type ~= 'safe' or not Zones.inMode(zone, 'pvp') then
-        return false, 'Zone safe inconnue.'
+        return false, Locale.t('Zone safe inconnue.')
     end
     if player:getZone() == zone then
-        return false, 'Tu es déjà dans cette zone safe.'
+        return false, Locale.t('Tu es déjà dans cette zone safe.')
     end
     if CombatTagService.isTagged(player) then
-        return false, ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player))
+        return false, Locale.t('Tu es en combat : attends %d s.', CombatTagService.remaining(player))
     end
     return true
 end
@@ -68,7 +69,7 @@ function TeleportService.request(source, zoneId)
         return { ok = false, message = message }
     end
     if TeleportService.pending[source] then
-        return { ok = false, message = 'Une téléportation est déjà en cours.' }
+        return { ok = false, message = Locale.t('Une téléportation est déjà en cours.') }
     end
 
     if player:isInSafeZone() then
@@ -85,7 +86,7 @@ function TeleportService.request(source, zoneId)
     return {
         ok = true,
         channel = Config.Teleport.channel,
-        message = ('Téléportation vers %s dans %d s : ne bouge pas.'):format(zone.label, Config.Teleport.channel),
+        message = Locale.t('Téléportation vers %s dans %d s : ne bouge pas.', Locale.t(zone.label), Config.Teleport.channel),
     }
 end
 
@@ -113,22 +114,22 @@ end
 
 ---@param player PvpPlayer
 ---@param start vector3
----@return string|nil raison de l'annulation
+---@return table|nil raison de l'annulation (Locale.t)
 function TeleportService.interruption(player, start)
     if player.dead or player.mode ~= 'pvp' then
-        return 'Téléportation annulée.'
+        return Locale.t('Téléportation annulée.')
     end
     if CombatTagService.isTagged(player) then
-        return 'Téléportation annulée : tu es en combat.'
+        return Locale.t('Téléportation annulée : tu es en combat.')
     end
     if #(player:getCoords() - start) > Config.Teleport.maxMove then
-        return 'Téléportation annulée : tu as bougé.'
+        return Locale.t('Téléportation annulée : tu as bougé.')
     end
     return nil
 end
 
 ---@param player PvpPlayer
----@param message string
+---@param message table Locale.t
 function TeleportService.cancel(player, message)
     TeleportService.pending[player.source] = nil
     TriggerClientEvent(Events.client.teleportCancel, player.source)

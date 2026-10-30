@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { SectionTitle } from '../menu/SectionTitle';
 import { useDrag } from './DragProvider';
@@ -6,6 +7,7 @@ import { EmptyTile } from './EmptyTile';
 import { ItemTile } from './ItemTile';
 
 export function ShortcutBar() {
+  const t = useT();
   const { state, actions } = useGame();
   const { drag, begin } = useDrag();
   const { config, player } = state;
@@ -13,7 +15,7 @@ export function ShortcutBar() {
 
   return (
     <section className="container">
-      <SectionTitle title="Raccourcis" aside="TOUCHES 1 – 7" />
+      <SectionTitle title={t('Raccourcis')} aside={t('TOUCHES 1 – 7')} />
       <div className="tile-grid">
         {Array.from({ length: config.shortcutSlots }, (_, i) => {
           const slot = i + 1;

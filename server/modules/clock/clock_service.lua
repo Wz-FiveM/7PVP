@@ -7,6 +7,7 @@ local ClockService = PVP.define('ClockService')
 local Clock = PVP.use('Clock')
 local PlayerService = PVP.use('PlayerService')
 local AdminService = PVP.use('AdminService')
+local Locale = PVP.use('Locale')
 
 -- Republication régulière : recale les clients (une seule valeur, très léger)
 ClockService.PUBLISH_INTERVAL = 30000
@@ -44,27 +45,27 @@ end
 ---@param args string[]
 function ClockService.command(source, args)
     if source > 0 and not AdminService.isAdmin(source) then
-        return ClockService.reply(source, 'Commande réservée aux admins.', 'error')
+        return ClockService.reply(source, Locale.t('Commande réservée aux admins.'), 'error')
     end
     if args[1] == 'reset' then
         Clock.offset = 0
         ClockService.publish()
-        return ClockService.reply(source, 'Heure du jeu revenue au cycle normal.', 'success')
+        return ClockService.reply(source, Locale.t('Heure du jeu revenue au cycle normal.'), 'success')
     end
 
     local hour, minute = tonumber(args[1]), tonumber(args[2] or 0)
     if not hour or not minute or hour < 0 or hour > 23 or minute < 0 or minute > 59 then
-        return ClockService.reply(source, 'Utilisation : /heure <0-23> [minutes], ou /heure reset', 'error')
+        return ClockService.reply(source, Locale.t('Utilisation : /heure <0-23> [minutes], ou /heure reset'), 'error')
     end
     ClockService.set(math.floor(hour), math.floor(minute))
-    ClockService.reply(source, ('Heure du jeu réglée sur %02d:%02d pour tout le monde.'):format(hour, minute), 'success')
+    ClockService.reply(source, Locale.t('Heure du jeu réglée sur %02d:%02d pour tout le monde.', hour, minute), 'success')
 end
 
 ---@param source integer
----@param message string
+---@param message string|table message à traduire (Locale.t), en français dans la console
 ---@param kind 'success'|'error'
 function ClockService.reply(source, message, kind)
     local player = source > 0 and PlayerService.get(source)
     if player then return player:notify(message, kind) end
-    print(('[7PVP] %s'):format(message))
+    print(('[7PVP] %s'):format(Locale.resolve(message, Locale.SOURCE)))
 end

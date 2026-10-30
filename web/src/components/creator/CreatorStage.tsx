@@ -1,4 +1,5 @@
 import { useRef, type MouseEvent } from 'react';
+import { useT } from '../../i18n';
 import { useCreator } from '../../store/CreatorProvider';
 import type { CameraPreset } from '../../types/appearance';
 import { currentUiScale } from '../../utils/scale';
@@ -16,6 +17,7 @@ const ROTATE_THROTTLE = 40;
 
 /** Zone libre à droite : on y voit le personnage et on le tourne en glissant. */
 export function CreatorStage() {
+  const t = useT();
   const { state, actions } = useCreator();
   const lastX = useRef<number | null>(null);
   const pending = useRef(0);
@@ -55,7 +57,7 @@ export function CreatorStage() {
       onMouseLeave={stopDrag}
     >
       <div className="creator-stage__bar" onMouseDown={(event) => event.stopPropagation()}>
-        <button className="btn btn--small cut-s" onClick={() => actions.rotate(-45)} aria-label="Tourner à gauche">
+        <button className="btn btn--small cut-s" onClick={() => actions.rotate(-45)} aria-label={t('Tourner à gauche')}>
           ⟲
         </button>
         {CAMERAS.map((camera) => (
@@ -64,14 +66,14 @@ export function CreatorStage() {
             className={camera.id === state.camera ? 'btn btn--small btn--active cut-s' : 'btn btn--small cut-s'}
             onClick={() => actions.setCamera(camera.id)}
           >
-            {camera.label}
+            {t(camera.label)}
           </button>
         ))}
-        <button className="btn btn--small cut-s" onClick={() => actions.rotate(45)} aria-label="Tourner à droite">
+        <button className="btn btn--small cut-s" onClick={() => actions.rotate(45)} aria-label={t('Tourner à droite')}>
           ⟳
         </button>
       </div>
-      <span className="mono creator-stage__hint">[GLISSER] TOURNER LE PERSONNAGE</span>
+      <span className="mono creator-stage__hint">{t('[GLISSER] TOURNER LE PERSONNAGE')}</span>
     </div>
   );
 }

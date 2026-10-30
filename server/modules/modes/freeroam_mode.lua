@@ -16,6 +16,7 @@ local GungameService = PVP.use('GungameService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 FreeroamMode.ID = 'freeroam'
 
@@ -57,12 +58,12 @@ end
 ---@return { ok: boolean, message: string, pvp: boolean }
 function FreeroamMode.setPvp(source, enabled)
     local player = PlayerService.get(source)
-    if not player or player.mode ~= FreeroamMode.ID then return { ok = false, message = 'Disponible en Freeroam.', pvp = false } end
+    if not player or player.mode ~= FreeroamMode.ID then return { ok = false, message = Locale.t('Disponible en Freeroam.'), pvp = false } end
     player.freeroamPvp = enabled == true
     return {
         ok = true,
         pvp = player.freeroamPvp,
-        message = player.freeroamPvp and 'PvP activé : les joueurs qui l\'ont activé peuvent te toucher.' or 'PvP désactivé.',
+        message = player.freeroamPvp and Locale.t('PvP activé : les joueurs qui l\'ont activé peuvent te toucher.') or Locale.t('PvP désactivé.'),
     }
 end
 

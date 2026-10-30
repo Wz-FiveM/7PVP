@@ -7,6 +7,7 @@ local PlayerRepository = PVP.use('PlayerRepository')
 local CombatTagService = PVP.use('CombatTagService')
 local GroupService = PVP.use('GroupService')
 local VehicleService = PVP.use('VehicleService')
+local Locale = PVP.use('Locale')
 
 PvpMode.ID = 'pvp'
 
@@ -24,13 +25,13 @@ end
 ---@return boolean, string|nil
 function PvpMode.canLeave(player)
     if player.dead then
-        return false, 'Attends de réapparaître.'
+        return false, Locale.t('Attends de réapparaître.')
     end
     if not player:isInSafeZone() then
-        return false, 'Rejoins une zone safe pour retourner au lobby.'
+        return false, Locale.t('Rejoins une zone safe pour retourner au lobby.')
     end
     if CombatTagService.isTagged(player) then
-        return false, ('Tu es en combat : attends %d s.'):format(CombatTagService.remaining(player))
+        return false, Locale.t('Tu es en combat : attends %d s.', CombatTagService.remaining(player))
     end
     return true
 end

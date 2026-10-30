@@ -1,3 +1,4 @@
+import { useT } from '../../../i18n';
 import { useCreator } from '../../../store/CreatorProvider';
 import type { Sex } from '../../../types/appearance';
 import { Slider } from '../controls/Slider';
@@ -9,6 +10,7 @@ const SEXES: { id: Sex; label: string }[] = [
 ];
 
 export function HeritageSection() {
+  const t = useT();
   const { state, actions } = useCreator();
   if (!state) return null;
   const { appearance, schema } = state;
@@ -20,7 +22,7 @@ export function HeritageSection() {
   return (
     <>
       <div className="ctl">
-        <span className="ctl__label">Sexe</span>
+        <span className="ctl__label">{t('Sexe')}</span>
         <div className="segmented">
           {SEXES.map((sex) => (
             <button
@@ -28,47 +30,47 @@ export function HeritageSection() {
               className={sex.id === appearance.sex ? 'btn btn--small btn--active cut-s' : 'btn btn--small cut-s'}
               onClick={() => sex.id !== appearance.sex && actions.update((a) => ({ ...a, sex: sex.id }))}
             >
-              {sex.label}
+              {t(sex.label)}
             </button>
           ))}
         </div>
-        <span className="ctl__note muted">Changer de sexe réinitialise l'apparence.</span>
+        <span className="ctl__note muted">{t("Changer de sexe réinitialise l'apparence.")}</span>
       </div>
 
       <Stepper
-        label="Mère"
+        label={t('Mère')}
         value={Math.max(0, schema.mothers.indexOf(heritage.mother))}
         count={schema.mothers.length}
-        format={(i) => `Mère ${String(i + 1).padStart(2, '0')}`}
+        format={(i) => t('Mère {number}', { number: String(i + 1).padStart(2, '0') })}
         onChange={(i) => setHeritage({ mother: schema.mothers[i] })}
       />
       <Stepper
-        label="Père"
+        label={t('Père')}
         value={Math.max(0, schema.fathers.indexOf(heritage.father))}
         count={schema.fathers.length}
-        format={(i) => `Père ${String(i + 1).padStart(2, '0')}`}
+        format={(i) => t('Père {number}', { number: String(i + 1).padStart(2, '0') })}
         onChange={(i) => setHeritage({ father: schema.fathers[i] })}
       />
       <Slider
-        label="Ressemblance"
+        label={t('Ressemblance')}
         value={heritage.shapeMix}
         min={0}
         max={1}
-        ends={['MÈRE', 'PÈRE']}
+        ends={[t('MÈRE'), t('PÈRE')]}
         format={(v) => `${Math.round(v * 100)}%`}
         onChange={(shapeMix) => setHeritage({ shapeMix })}
       />
       <Slider
-        label="Couleur de peau"
+        label={t('Couleur de peau')}
         value={heritage.skinMix}
         min={0}
         max={1}
-        ends={['MÈRE', 'PÈRE']}
+        ends={[t('MÈRE'), t('PÈRE')]}
         format={(v) => `${Math.round(v * 100)}%`}
         onChange={(skinMix) => setHeritage({ skinMix })}
       />
       <Stepper
-        label="Couleur des yeux"
+        label={t('Couleur des yeux')}
         value={appearance.eyeColor}
         count={32}
         onChange={(eyeColor) => actions.update((a) => ({ ...a, eyeColor }))}

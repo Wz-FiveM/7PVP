@@ -19,6 +19,7 @@ local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, MarketListing>
 MarketService.listings = {}
@@ -55,10 +56,10 @@ end
 
 ---Joueur vivant à côté du commissaire-priseur.
 ---@param source integer
----@return PvpPlayer|nil player, string|nil message
+---@return PvpPlayer|nil player, table|nil message (Locale.t)
 function MarketService.getTrader(source)
     local player = PlayerService.get(source)
-    if not player or player.dead then return nil, 'Action impossible.' end
+    if not player or player.dead then return nil, Locale.t('Action impossible.') end
     if not SafeNpcs.isNear(player:getCoords(), 'market', Config.SafeNpcs.useDistance + 2.0) then
         return nil, SafeNpcs.hint('market')
     end
@@ -123,17 +124,17 @@ function MarketService.sell(source, data)
     local count = math.floor(tonumber(data.count) or 0)
     local price = math.floor(tonumber(data.price) or 0)
     if not Items.exists(item) or Config.Market.blocked[item] then
-        return { ok = false, message = 'Cet objet ne peut pas être vendu.' }
+        return { ok = false, message = Locale.t('Cet objet ne peut pas être vendu.') }
     end
-    if container ~= 'bag' and container ~= 'protected' then return { ok = false, message = 'Conteneur invalide.' } end
+    if container ~= 'bag' and container ~= 'protected' then return { ok = false, message = Locale.t('Conteneur invalide.') } end
     if count <= 0 or price <= 0 or price > Config.Market.maxPrice then
-        return { ok = false, message = 'Quantité ou prix invalide.' }
+        return { ok = false, message = Locale.t('Quantité ou prix invalide.') }
     end
     if MarketService.count(player.identifier) >= Config.Market.maxListings then
-        return { ok = false, message = ('%d annonces maximum.'):format(Config.Market.maxListings) }
+        return { ok = false, message = Locale.t('%d annonces maximum.', Config.Market.maxListings) }
     end
     if player.inventory:countIn(container, item) < count then
-        return { ok = false, message = 'Tu n\'as pas cette quantité.' }
+        return { ok = false, message = Locale.t('Tu n\'as pas cette quantité.') }
     end
 
     -- L'objet quitte l'inventaire avant l'écriture en base : pas de double vente possible
@@ -147,13 +148,13 @@ function MarketService.sell(source, data)
     if not id then
         player:giveItem(item, count, container)
         player:sync()
-        return { ok = false, message = 'Erreur de la base de données, objet rendu.' }
+        return { ok = false, message = Locale.t('Erreur de la base de données, objet rendu.') }
     end
     MarketService.listings[id] = {
         id = id, seller = player.identifier, sellerName = player.name, item = item, count = count, price = price,
     }
     Logger.info('[marché] %s met en vente %s pour $%d', player.name, Items.describe({ [item] = count }), price)
-    return { ok = true, message = ('Mis en vente : %s pour $%d'):format(Items.describe({ [item] = count }), price) }
+    return { ok = true, message = Locale.t('Mis en vente : %s pour $%d', Items.describeText({ [item] = count }), price) }
 end
 
 ---@param source integer
@@ -164,11 +165,11 @@ function MarketService.buy(source, id)
     if not player then return { ok = false, message = denied } end
 
     local listing = MarketService.listings[tonumber(id)]
-    if not listing then return { ok = false, message = 'Cette annonce n\'existe plus.' } end
-    if listing.seller == player.identifier then return { ok = false, message = 'C\'est ton annonce : retire-la plutôt.' } end
-    if player:getMoney() < listing.price then return { ok = false, message = 'Pas assez d\'argent sur toi.' } end
+    if not listing then return { ok = false, message = Locale.t('Cette annonce n\'existe plus.') } end
+    if listing.seller == player.identifier then return { ok = false, message = Locale.t('C\'est ton annonce : retire-la plutôt.') } end
+    if player:getMoney() < listing.price then return { ok = false, message = Locale.t('Pas assez d\'argent sur toi.') } end
     if player.inventory:maxFit('bag', listing.item) < listing.count then
-        return { ok = false, message = 'Ton sac est trop lourd.' }
+        return { ok = false, message = Locale.t('Ton sac est trop lourd.') }
     end
 
     MarketService.listings[listing.id] = nil
@@ -181,12 +182,12 @@ function MarketService.buy(source, id)
     MarketRepository.credit(listing.seller, earned)
     local seller = MarketService.findOnline(listing.seller)
     if seller then
-        seller:notify(('Vendu : %s à %s (+$%d à récupérer au marché)'):format(
-            Items.describe({ [listing.item] = listing.count }), player.name, earned), 'success')
+        seller:notify(Locale.t('Vendu : %s à %s (+$%d à récupérer au marché)',
+            Items.describeText({ [listing.item] = listing.count }), player.name, earned), 'success')
     end
     Logger.info('[marché] %s achète %s à %s pour $%d', player.name,
         Items.describe({ [listing.item] = listing.count }), listing.sellerName, listing.price)
-    return { ok = true, message = ('Acheté : %s'):format(Items.describe({ [listing.item] = listing.count })) }
+    return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [listing.item] = listing.count })) }
 end
 
 ---Retire une de ses annonces : les objets reviennent dans le sac.
@@ -198,16 +199,16 @@ function MarketService.cancel(source, id)
     if not player then return { ok = false, message = denied } end
 
     local listing = MarketService.listings[tonumber(id)]
-    if not listing or listing.seller ~= player.identifier then return { ok = false, message = 'Annonce introuvable.' } end
+    if not listing or listing.seller ~= player.identifier then return { ok = false, message = Locale.t('Annonce introuvable.') } end
     if player.inventory:maxFit('bag', listing.item) < listing.count then
-        return { ok = false, message = 'Fais de la place dans ton sac.' }
+        return { ok = false, message = Locale.t('Fais de la place dans ton sac.') }
     end
 
     MarketService.listings[listing.id] = nil
     player:giveItem(listing.item, listing.count)
     player:sync()
     MarketRepository.delete(listing.id)
-    return { ok = true, message = 'Annonce retirée, objets rendus.' }
+    return { ok = true, message = Locale.t('Annonce retirée, objets rendus.') }
 end
 
 ---Récupère l'argent des ventes (versé dans le sac).
@@ -227,6 +228,6 @@ function MarketService.collect(source)
     end
     MarketService.collecting[player.identifier] = nil
 
-    if balance <= 0 then return { ok = false, message = 'Rien à récupérer.' } end
-    return { ok = true, message = ('Ventes récupérées : +$%d'):format(balance) }
+    if balance <= 0 then return { ok = false, message = Locale.t('Rien à récupérer.') } end
+    return { ok = true, message = Locale.t('Ventes récupérées : +$%d', balance) }
 end

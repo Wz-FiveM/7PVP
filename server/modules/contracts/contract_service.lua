@@ -3,6 +3,7 @@
 ---@class ContractServiceModule
 local ContractService = PVP.define('ContractService')
 local Logger = PVP.use('Logger')
+local Locale = PVP.use('Locale')
 
 ContractService.DAY = 86400
 
@@ -84,7 +85,7 @@ function ContractService.complete(player, contract)
     player.contracts.done[contract.id] = true
     player:addMoney(contract.reward.money)
     player:addXp(contract.reward.xp)
-    player:notify(('Contrat terminé : %s (+$%d, +%d XP)'):format(contract.label, contract.reward.money, contract.reward.xp), 'success')
+    player:notify(Locale.t('Contrat terminé : %s (+$%d, +%d XP)', Locale.t(contract.label), contract.reward.money, contract.reward.xp), 'success')
     Logger.info('[contrat] %s : %s', player.name, contract.label)
 end
 

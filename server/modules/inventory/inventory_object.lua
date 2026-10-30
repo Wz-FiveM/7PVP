@@ -9,6 +9,7 @@
 ---@field attachments table<string, table<string, boolean>> arme -> accessoires fixés dessus
 local InventoryObject = PVP.define('InventoryObject')
 local Items = PVP.use('Items')
+local Locale = PVP.use('Locale')
 local Utils = PVP.use('Utils')
 
 InventoryObject.__index = InventoryObject
@@ -239,13 +240,13 @@ end
 function InventoryObject:move(from, to, name, count)
     count = math.floor(tonumber(count) or 0)
     if not Items.isContainer(from) or not Items.isContainer(to) or from == to then
-        return false, 'Déplacement invalide.'
+        return false, Locale.t('Déplacement invalide.')
     end
     if count <= 0 or self:countIn(from, name) < count then
-        return false, 'Quantité invalide.'
+        return false, Locale.t('Quantité invalide.')
     end
     if self:maxFit(to, name) < count then
-        return false, ('Pas assez de place dans : %s.'):format(Config.Containers[to].label)
+        return false, Locale.t('Pas assez de place dans : %s.', Locale.t(Config.Containers[to].label))
     end
 
     self:removeFrom(from, name, count)
@@ -287,10 +288,10 @@ end
 ---@return boolean ok, string|nil message
 function InventoryObject:attach(weapon, attachment)
     local compatible = Config.Attachments[attachment]
-    if not compatible or not compatible[weapon] then return false, 'Accessoire incompatible avec cette arme.' end
-    if self:count(weapon) <= 0 then return false, 'Tu dois porter l\'arme.' end
-    if self.attachments[weapon] and self.attachments[weapon][attachment] then return false, 'Déjà fixé.' end
-    if not self:remove(attachment, 1) then return false, 'Tu n\'as pas cet accessoire.' end
+    if not compatible or not compatible[weapon] then return false, Locale.t('Accessoire incompatible avec cette arme.') end
+    if self:count(weapon) <= 0 then return false, Locale.t('Tu dois porter l\'arme.') end
+    if self.attachments[weapon] and self.attachments[weapon][attachment] then return false, Locale.t('Déjà fixé.') end
+    if not self:remove(attachment, 1) then return false, Locale.t('Tu n\'as pas cet accessoire.') end
 
     self.attachments[weapon] = self.attachments[weapon] or {}
     self.attachments[weapon][attachment] = true
@@ -303,8 +304,8 @@ end
 ---@return boolean ok, string|nil message
 function InventoryObject:detach(weapon, attachment)
     local list = self.attachments[weapon]
-    if not list or not list[attachment] then return false, 'Accessoire absent.' end
-    if self:add('bag', attachment, 1) < 1 then return false, 'Ton sac est plein.' end
+    if not list or not list[attachment] then return false, Locale.t('Accessoire absent.') end
+    if self:add('bag', attachment, 1) < 1 then return false, Locale.t('Ton sac est plein.') end
 
     list[attachment] = nil
     if next(list) == nil then self.attachments[weapon] = nil end

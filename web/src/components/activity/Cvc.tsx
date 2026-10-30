@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
+import { t, useT } from '../../i18n';
 import type { CvcHudData, CvcScores, CvcStateData, EloChange } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
 import { EloDelta } from './EloDelta';
@@ -42,6 +43,7 @@ function useSecondsLeft(total: number, at: number): number {
 
 /** CVC : file d'attente, HUD de manche (équipe, score, survivants), hors zone, résultats. */
 export function Cvc() {
+  useT();
   const [queue, setQueue] = useState<Queue | null>(null);
   const [hud, setHud] = useState<(CvcHudData & { at: number }) | null>(null);
   const [live, setLive] = useState<CvcStateData | null>(null);
@@ -99,16 +101,16 @@ export function Cvc() {
       {hud && <CvcHud hud={hud} live={live} />}
       {hud && outside && (
         <div className="cvc-outside">
-          <span className="disp">Hors zone</span>
-          <span>Reviens dans la zone de combat : tu perds de la vie</span>
+          <span className="disp">{t('Hors zone')}</span>
+          <span>{t('Reviens dans la zone de combat : tu perds de la vie')}</span>
         </div>
       )}
       {banner && (
         <div className={`chase-banner chase-banner--${banner.tone}`} key={banner.id}>
-          <span className="disp chase-banner__title">{banner.title}</span>
+          <span className="disp chase-banner__title">{t(banner.title)}</span>
           {banner.text && <span className="chase-banner__text">{banner.text}</span>}
           <span className="mono chase-banner__score">
-            TON ÉQUIPE {banner.scores.us} — {banner.scores.them} ADVERSAIRES
+            {t('TON ÉQUIPE {us} — {them} ADVERSAIRES', { us: banner.scores.us, them: banner.scores.them })}
           </span>
           {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
@@ -118,20 +120,22 @@ export function Cvc() {
 }
 
 function CvcQueue({ queue }: { queue: Queue }) {
+  useT();
   const startIn = useSecondsLeft(queue.startIn ?? 0, queue.at);
   return (
     <div className="chase-queue">
       <span className="disp chase-queue__title">CVC</span>
       <span className="mono chase-queue__text">
         {queue.startIn !== undefined
-          ? `${queue.count} joueurs · départ dans ${startIn} s`
-          : `En attente de joueurs · ${queue.count}/${queue.needed}`}
+          ? t('{count} joueurs · départ dans {seconds} s', { count: queue.count, seconds: startIn })
+          : t('En attente de joueurs · {count}/{needed}', { count: queue.count, needed: queue.needed })}
       </span>
     </div>
   );
 }
 
 function CvcHud({ hud, live }: { hud: CvcHudData & { at: number }; live: CvcStateData | null }) {
+  useT();
   const countdown = useSecondsLeft(hud.countdown, hud.at);
   const remaining = live?.remaining ?? hud.roundTime;
 
@@ -139,22 +143,22 @@ function CvcHud({ hud, live }: { hud: CvcHudData & { at: number }; live: CvcStat
     <>
       <div className={`cvc-hud cvc-hud--${hud.teamId}`}>
         <div className="cvc-hud__top">
-          <span className="disp cvc-hud__team">Équipe {hud.team}</span>
-          <span className="mono cvc-hud__round">MANCHE {hud.round}</span>
+          <span className="disp cvc-hud__team">{t('Équipe {team}', { team: t(hud.team) })}</span>
+          <span className="mono cvc-hud__round">{t('MANCHE {round}', { round: hud.round })}</span>
           <span className="mono cvc-hud__time">{formatTime(remaining)}</span>
         </div>
         <div className="cvc-hud__score">
           <span className="disp cvc-hud__us">{hud.scores.us}</span>
-          <span className="mono cvc-hud__goal">PREMIÈRE À {hud.roundsToWin}</span>
+          <span className="mono cvc-hud__goal">{t('PREMIÈRE À {rounds}', { rounds: hud.roundsToWin })}</span>
           <span className="disp cvc-hud__them">{hud.scores.them}</span>
         </div>
         {live && (
           <div className="cvc-hud__alive">
-            <span className="mono">EN VIE : {live.alive.us}</span>
-            <span className="mono">ADVERSAIRES : {live.alive.them}</span>
+            <span className="mono">{t('EN VIE : {count}', { count: live.alive.us })}</span>
+            <span className="mono">{t('ADVERSAIRES : {count}', { count: live.alive.them })}</span>
           </div>
         )}
-        <span className="mono cvc-hud__arena">{hud.arena.toUpperCase()}</span>
+        <span className="mono cvc-hud__arena">{t(hud.arena).toUpperCase()}</span>
       </div>
       {countdown > 0 && (
         <div className="chase-countdown" key={countdown}>

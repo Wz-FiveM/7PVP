@@ -1,4 +1,4 @@
-/** Astuces affichées pendant le chargement (une toutes les quelques secondes). */
+/** Astuces affichées pendant le chargement (une toutes les quelques secondes), traduites au rendu. */
 export const TIPS: string[] = [
   'À ta mort, tout le contenu de ton sac tombe au sol. Le conteneur protégé, lui, te suit.',
   'L\'argent est un objet : range-le dans ton conteneur protégé pour ne pas le perdre.',

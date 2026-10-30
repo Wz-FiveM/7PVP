@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { formatNumber, t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { PauseAction, PauseInfo } from '../../types/game';
 import { formatKd } from '../../utils/format';
 import { Icon } from '../icons/Icon';
 import { Avatar } from '../ui/Avatar';
+import { LanguagePicker } from '../ui/LanguagePicker';
 import './pause.css';
 
 const MODE_LABELS: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
@@ -20,6 +22,7 @@ interface Entry {
 
 /** Menu pause (Échap) : actions à gauche, compte et touches à droite, le jeu reste visible derrière. */
 export function PauseMenu() {
+  useT();
   const { state, actions } = useGame();
   const info = state.pause.info;
   const [selected, setSelected] = useState(0);
@@ -49,14 +52,14 @@ export function PauseMenu() {
   const player = state.player;
   const xpPerLevel = state.config.xpPerLevel || 1;
   const xp = player ? player.xp % xpPerLevel : 0;
-  const mode = info.mode ? MODE_LABELS[info.mode] ?? info.mode : 'Lobby';
+  const mode = info.mode ? MODE_LABELS[info.mode] ?? info.mode : t('Lobby');
 
   return (
     <div className="pause">
       <aside className="pause__side">
         <header className="pause__heading">
           <span className="mono pause__eyebrow">7PVP · {mode.toUpperCase()} · ID #{info.serverId}</span>
-          <h1 className="disp pause__title">Pause</h1>
+          <h1 className="disp pause__title">{t('Pause')}</h1>
         </header>
 
         <nav className="pause__nav">
@@ -85,29 +88,29 @@ export function PauseMenu() {
             <Avatar src={info.avatar} fallback={<Icon name="profile" size={56} strokeWidth={1.5} />} />
           </span>
           <div className="pause__operator-text">
-            <span className="mono pause__label">OPÉRATEUR · ID #{info.serverId}</span>
+            <span className="mono pause__label">{t('OPÉRATEUR')} · ID #{info.serverId}</span>
             <span className="disp pause__name">{info.name}</span>
             <div className="pause__level">
-              <span className="disp pause__level-value">NIV. {info.level}</span>
+              <span className="disp pause__level-value">{t('NIV. {level}', { level: info.level })}</span>
               <span className="pause__xp">
                 <span style={{ width: `${(xp / xpPerLevel) * 100}%` }} />
               </span>
               <span className="mono pause__xp-text">
-                {xp.toLocaleString('fr-FR')} / {xpPerLevel.toLocaleString('fr-FR')} XP
+                {formatNumber(xp)} / {formatNumber(xpPerLevel)} XP
               </span>
             </div>
           </div>
         </section>
 
         <div className="pause__stats">
-          <Stat label="ÉLIMINATIONS" value={info.kills.toLocaleString('fr-FR')} tone="signal" />
-          <Stat label="MORTS" value={info.deaths.toLocaleString('fr-FR')} />
-          <Stat label="RATIO" value={formatKd(info.kills, info.deaths)} />
-          <Stat label="ZOMBIES" value={info.npcKills.toLocaleString('fr-FR')} tone="toxine" />
+          <Stat label={t('ÉLIMINATIONS')} value={formatNumber(info.kills)} tone="signal" />
+          <Stat label={t('MORTS')} value={formatNumber(info.deaths)} />
+          <Stat label={t('RATIO')} value={formatKd(info.kills, info.deaths)} />
+          <Stat label={t('ZOMBIES')} value={formatNumber(info.npcKills)} tone="toxine" />
         </div>
 
         <section className="pause__keys">
-          <h2 className="disp pause__keys-title">Touches principales</h2>
+          <h2 className="disp pause__keys-title">{t('Touches principales')}</h2>
           <ul className="pause__key-list">
             {buildKeys(info).map(([key, action]) => (
               <li key={key} className="pause__key-row">
@@ -116,7 +119,12 @@ export function PauseMenu() {
               </li>
             ))}
           </ul>
-          <p className="pause__keys-note">Les touches se changent dans Paramètres › Raccourcis clavier › FiveM.</p>
+          <p className="pause__keys-note">{t('Les touches se changent dans Paramètres › Raccourcis clavier › FiveM.')}</p>
+        </section>
+
+        <section className="pause__keys">
+          <h2 className="disp pause__keys-title">{t('Langue')}</h2>
+          <LanguagePicker />
         </section>
       </main>
     </div>
@@ -130,23 +138,23 @@ function buildEntries(
 ): Entry[] {
   const inPvp = info.mode === 'pvp';
   const entries: Entry[] = [
-    { id: 'resume', label: 'Reprendre', hint: 'ÉCHAP', run: on.close },
-    { id: 'map', label: 'Carte', run: () => on.run('map') },
+    { id: 'resume', label: t('Reprendre'), hint: t('ÉCHAP'), run: on.close },
+    { id: 'map', label: t('Carte'), run: () => on.run('map') },
   ];
   if (info.mode) {
     entries.push({
       id: 'menu',
-      label: inPvp ? 'Équipement' : 'Menu Freeroam',
+      label: inPvp ? t('Équipement') : t('Menu Freeroam'),
       hint: info.keys.menu,
       run: () => on.run('menu'),
     });
   }
-  if (inPvp) entries.push({ id: 'teleport', label: 'Téléportation', hint: info.keys.teleport, run: () => on.run('teleport') });
-  entries.push({ id: 'settings', label: 'Paramètres', run: () => on.run('settings') });
-  if (info.mode) entries.push({ id: 'lobby', label: 'Retour au lobby', gap: true, run: () => on.run('lobby') });
+  if (inPvp) entries.push({ id: 'teleport', label: t('Téléportation'), hint: info.keys.teleport, run: () => on.run('teleport') });
+  entries.push({ id: 'settings', label: t('Paramètres'), run: () => on.run('settings') });
+  if (info.mode) entries.push({ id: 'lobby', label: t('Retour au lobby'), gap: true, run: () => on.run('lobby') });
   entries.push({
     id: 'quit',
-    label: confirmQuit ? 'Confirmer : quitter' : 'Quitter',
+    label: confirmQuit ? t('Confirmer : quitter') : t('Quitter'),
     danger: true,
     gap: !info.mode,
     run: () => (confirmQuit ? on.run('quit') : on.askQuit()),
@@ -156,17 +164,23 @@ function buildEntries(
 
 function buildKeys(info: PauseInfo): [string, string][] {
   const keys: [string, string][] = [
-    [info.keys.menu, 'Équipement, équipe, boutique'],
-    ['1 – 7', 'Raccourcis (la barre s\'affiche)'],
-    ['ALT', 'Menu d\'interaction (maintenir)'],
-    [info.keys.teleport, 'Téléportation entre zones safe'],
-    ['E', 'Fouiller, parler, ramasser'],
-    [info.keys.chat, 'Chat (/commande pour une commande)'],
-    ['K', 'Ranger son véhicule (au volant)'],
-    ['/lobby', 'Retour au lobby (en zone safe)'],
+    [info.keys.menu, t('Équipement, équipe, boutique')],
+    ['1 – 7', t('Raccourcis (la barre s\'affiche)')],
+    ['ALT', t('Menu d\'interaction (maintenir)')],
+    [info.keys.teleport, t('Téléportation entre zones safe')],
+    ['E', t('Fouiller, parler, ramasser')],
+    [info.keys.chat, t('Chat (/commande pour une commande)')],
+    ['K', t('Ranger son véhicule (au volant)')],
+    ['/lobby', t('Retour au lobby (en zone safe)')],
+    ['/langue', t('Changer de langue')],
   ];
   if (info.isAdmin) {
-    keys.push([info.keys.admin, 'Panneau admin'], [info.keys.noclip, 'Noclip'], ['/tpm', 'Téléportation au marqueur'], ['/heure 22', 'Heure du jeu (/heure reset)']);
+    keys.push(
+      [info.keys.admin, t('Panneau admin')],
+      [info.keys.noclip, 'Noclip'],
+      ['/tpm', t('Téléportation au marqueur')],
+      ['/heure 22', t('Heure du jeu (/heure reset)')],
+    );
   }
   return keys;
 }

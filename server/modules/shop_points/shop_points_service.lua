@@ -8,6 +8,7 @@ local PlayerService = PVP.use('PlayerService')
 local AdminService = PVP.use('AdminService')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
+local Locale = PVP.use('Locale')
 
 function ShopPointsService.init()
     -- Commandes console (Tebex) et admins en jeu, via la permission command.<nom>
@@ -79,7 +80,7 @@ function ShopPointsService.credit(identifier, amount, reason, reference)
     Logger.info('[points] %s : +%d (%s%s)', identifier, amount, reason, reference and (', réf. ' .. reference) or '')
     local player = ShopPointsService.refresh(identifier)
     if player then
-        player:notify(('+%d %s'):format(amount, Config.ShopPoints.label:lower()), 'success')
+        player:notify(Locale.t('+%d %s', amount, Locale.t(Config.ShopPoints.label:lower())), 'success')
     end
     return 'ok'
 end
@@ -130,8 +131,9 @@ function ShopPointsService.commandChange(source, args, sign)
     local identifier, name = AdminService.resolveTarget(args[1])
     local amount = ShopPointsService.parseAmount(args[2])
     if not identifier or not amount then
-        local usage = sign > 0 and '<montant> [référence]' or '<montant>'
-        return AdminService.reply(source, ('Usage : %s <id du joueur | license:xxxx> %s'):format(command, usage))
+        local usage = sign > 0 and Locale.t('Usage : %s <id du joueur | license:xxxx> <montant> [référence]', command)
+            or Locale.t('Usage : %s <id du joueur | license:xxxx> <montant>', command)
+        return AdminService.reply(source, usage)
     end
 
     local label = name or identifier
@@ -140,17 +142,17 @@ function ShopPointsService.commandChange(source, args, sign)
         local reference = args[3]
         local status = ShopPointsService.credit(identifier, amount, reason, reference)
         if status == 'duplicate' then
-            return AdminService.reply(source, ('Référence %s déjà créditée : ignorée.'):format(reference))
+            return AdminService.reply(source, Locale.t('Référence %s déjà créditée : ignorée.', reference))
         elseif status ~= 'ok' then
             Logger.error('[points] %s %s %d a échoué (%s)', command, label, amount, status)
-            return AdminService.reply(source, 'Échec du crédit des points (voir la console).')
+            return AdminService.reply(source, Locale.t('Échec du crédit des points (voir la console).'))
         end
         DiscordService.shopPoints(source, label, amount, reference)
-        AdminService.reply(source, ('%s : +%d points boutique.'):format(label, amount))
+        AdminService.reply(source, Locale.t('%s : +%d points boutique.', label, amount))
     else
         local removed = ShopPointsService.deduct(identifier, amount, reason)
         if removed > 0 then DiscordService.shopPoints(source, label, -removed) end
-        AdminService.reply(source, ('%s : -%d points boutique.'):format(label, removed))
+        AdminService.reply(source, Locale.t('%s : -%d points boutique.', label, removed))
     end
 end
 
@@ -160,7 +162,7 @@ end
 function ShopPointsService.commandShow(source, arg)
     local identifier, name = AdminService.resolveTarget(arg)
     if not identifier then
-        return AdminService.reply(source, 'Usage : points <id du joueur | license:xxxx>')
+        return AdminService.reply(source, Locale.t('Usage : %s <id du joueur | license:xxxx>', 'points'))
     end
-    AdminService.reply(source, ('%s : %d points boutique.'):format(name or identifier, ShopPointsRepository.getBalance(identifier)))
+    AdminService.reply(source, Locale.t('%s : %d points boutique.', name or identifier, ShopPointsRepository.getBalance(identifier)))
 end

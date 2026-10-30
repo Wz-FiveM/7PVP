@@ -8,6 +8,7 @@ local PlayerService = PVP.use('PlayerService')
 local SpectateService = PVP.use('SpectateService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ActivityService.MODE = 'freeroam'
 
@@ -30,20 +31,20 @@ end
 function ActivityService.start(source, id)
     local player = PlayerService.get(source)
     if not player or player.dead or player.mode ~= ActivityService.MODE then
-        return { ok = false, message = 'Disponible en Freeroam.' }
+        return { ok = false, message = Locale.t('Disponible en Freeroam.') }
     end
     if SpectateService.isWatching(source) then
-        return { ok = false, message = 'Quitte d\'abord le mode spectateur.' }
+        return { ok = false, message = Locale.t('Quitte d\'abord le mode spectateur.') }
     end
     local activity = type(id) == 'string' and Config.FreeroamActivities[id]
-    if not activity then return { ok = false, message = 'Mode de jeu inconnu.' } end
+    if not activity then return { ok = false, message = Locale.t('Mode de jeu inconnu.') } end
     if not player:isInSafeZone() then
-        return { ok = false, message = 'Va voir l\'organisateur dans la zone safe.' }
+        return { ok = false, message = Locale.t('Va voir l\'organisateur dans la zone safe.') }
     end
 
     local handler = ActivityService.handlers[id]
     if not activity.enabled or not handler then
-        return { ok = false, message = ('%s arrive bientôt.'):format(activity.label) }
+        return { ok = false, message = Locale.t('%s arrive bientôt.', Locale.t(activity.label)) }
     end
     local ok, message = handler(player)
     return { ok = ok == true, message = message }

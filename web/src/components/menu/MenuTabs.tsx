@@ -1,4 +1,5 @@
 import { PAGES, type PageId } from '../../pages';
+import { useT } from '../../i18n';
 import { Icon } from '../icons/Icon';
 
 interface MenuTabsProps {
@@ -8,6 +9,7 @@ interface MenuTabsProps {
 
 /** Onglets du menu (en haut) : l'onglet actif est rempli. Les pages des PNJ n'apparaissent qu'ouvertes. */
 export function MenuTabs({ active, onSelect }: MenuTabsProps) {
+  const t = useT();
   return (
     <nav className="menu-tabs">
       {PAGES.filter((page) => !page.npcOnly || page.id === active).map((page) => (
@@ -17,7 +19,7 @@ export function MenuTabs({ active, onSelect }: MenuTabsProps) {
           onClick={() => onSelect(page.id)}
         >
           <Icon name={page.icon} size={15} strokeWidth={2} />
-          {page.label}
+          {t(page.label)}
         </button>
       ))}
     </nav>

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useT } from '../../i18n';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { NuiMessage } from '../../types/nui';
 import type { SpeedometerData } from '../../types/game';
@@ -10,6 +11,7 @@ const REDLINE = 0.85;
 
 /** Compteur de vitesse, affiché en véhicule en Freeroam (bas droite, au-dessus des munitions). */
 export function Speedometer() {
+  const t = useT();
   const [data, setData] = useState<SpeedometerData | null>(null);
 
   const handleMessage = useCallback((message: NuiMessage) => {
@@ -34,7 +36,7 @@ export function Speedometer() {
           <span className="disp speedometer__gear">{data.gear ?? 'N'}</span>
         </div>
       </div>
-      <div className="speedometer__rpm" aria-label="Régime moteur">
+      <div className="speedometer__rpm" aria-label={t('Régime moteur')}>
         {Array.from({ length: RPM_SEGMENTS }, (_, index) => {
           const red = index >= Math.floor(RPM_SEGMENTS * REDLINE);
           const on = index < lit;
@@ -51,7 +53,7 @@ export function Speedometer() {
         })}
       </div>
       <span className={engine < 35 ? 'mono speedometer__engine speedometer__engine--low' : 'mono speedometer__engine'}>
-        MOTEUR {engine} %
+        {t('MOTEUR {engine} %', { engine })}
       </span>
     </div>
   );

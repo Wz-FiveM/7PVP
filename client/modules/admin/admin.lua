@@ -12,6 +12,7 @@ local PedUtils = PVP.use('PedUtils')
 local Vehicles = PVP.use('Vehicles')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Admin.isAdmin = false
 Admin.open = false
@@ -56,12 +57,12 @@ function Admin.init()
     RegisterCommand('pvp_admin', function()
         Admin.toggle()
     end, false)
-    RegisterKeyMapping('pvp_admin', 'Panneau admin', 'keyboard', Config.Admin.Key)
+    RegisterKeyMapping('pvp_admin', Locale.t('Panneau admin'), 'keyboard', Config.Admin.Key)
 
     RegisterCommand('pvp_noclip', function()
         if Admin.isAdmin and State.mode then Admin.toggleNoclip() end
     end, false)
-    RegisterKeyMapping('pvp_noclip', 'Noclip (admin)', 'keyboard', Config.Admin.NoclipKey)
+    RegisterKeyMapping('pvp_noclip', Locale.t('Noclip (admin)'), 'keyboard', Config.Admin.NoclipKey)
 
     -- /tpm : téléportation au marqueur de la carte
     RegisterCommand('tpm', function()
@@ -99,7 +100,7 @@ function Admin.init()
     end)
     RegisterNUICallback('adminFreeroamSave', function(data, cb)
         local unknown = Admin.MODEL_KINDS[data.kind] and Admin.checkModels(data.value)
-        if unknown then return cb({ ok = false, message = ('Véhicule inconnu : %s'):format(unknown) }) end
+        if unknown then return cb({ ok = false, message = Locale.t('Véhicule inconnu : %s', unknown) }) end
         cb(Callback.await(Events.callbacks.adminFreeroamSave, data.name, data.value) or { ok = false })
     end)
     RegisterNUICallback('adminFreeroamReset', function(data, cb)
@@ -131,7 +132,7 @@ function Admin.checkModels(value)
         local model = type(vehicle) == 'table' and type(vehicle.model) == 'string' and vehicle.model:lower() or ''
         local hash = GetHashKey(model)
         if model == '' or not IsModelInCdimage(hash) or not IsModelAVehicle(hash) then
-            return model ~= '' and model or '(vide)'
+            return model ~= '' and model or Locale.t('(vide)')
         end
     end
     return nil
@@ -176,9 +177,9 @@ end
 ---@param data table { action, ... }
 ---@return { ok: boolean, message?: string, self?: table }
 function Admin.runAction(data)
-    if not Admin.isAdmin or type(data) ~= 'table' then return { ok = false, message = 'Accès refusé.' } end
+    if not Admin.isAdmin or type(data) ~= 'table' then return { ok = false, message = Locale.t('Accès refusé.') } end
     if State.spectating and Admin.SPECTATE_BLOCKED[data.action] then
-        return { ok = false, message = 'Quitte d\'abord le mode spectateur.' }
+        return { ok = false, message = Locale.t('Quitte d\'abord le mode spectateur.') }
     end
 
     local method = Admin.LOCAL_ACTIONS[data.action]
@@ -187,7 +188,7 @@ function Admin.runAction(data)
         result.self = Admin.selfState()
         return result
     end
-    return Callback.await(Events.callbacks.adminAction, data) or { ok = false, message = 'Le serveur ne répond pas.' }
+    return Callback.await(Events.callbacks.adminAction, data) or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
 end
 
 -- ---------------------------------------------------------------------------
@@ -195,27 +196,27 @@ end
 -- ---------------------------------------------------------------------------
 
 function Admin.toggleNoclip()
-    if State.spectating then return { ok = false, message = 'Quitte d\'abord le mode spectateur.' } end -- touche F11
+    if State.spectating then return { ok = false, message = Locale.t('Quitte d\'abord le mode spectateur.') } end -- touche F11
     Noclip.toggle()
-    return { ok = true, message = Noclip.active and 'Noclip activé.' or 'Noclip désactivé.' }
+    return { ok = true, message = Noclip.active and Locale.t('Noclip activé.') or Locale.t('Noclip désactivé.') }
 end
 
 function Admin.toggleGod()
     State.godmode = not State.godmode
     Noclip.applyPedState()
-    return { ok = true, message = State.godmode and 'Invincibilité activée.' or 'Invincibilité désactivée.' }
+    return { ok = true, message = State.godmode and Locale.t('Invincibilité activée.') or Locale.t('Invincibilité désactivée.') }
 end
 
 function Admin.toggleInvisible()
     State.invisible = not State.invisible
     Noclip.applyPedState()
-    return { ok = true, message = State.invisible and 'Tu es invisible.' or 'Tu es visible.' }
+    return { ok = true, message = State.invisible and Locale.t('Tu es invisible.') or Locale.t('Tu es visible.') }
 end
 
 ---/tpm, réservé aux admins en jeu (pas au lobby ni dans le créateur).
 function Admin.commandTeleportToMarker()
     if not Admin.isAdmin then
-        return Nui.notify('Commande réservée aux admins.', 'error')
+        return Nui.notify(Locale.t('Commande réservée aux admins.'), 'error')
     end
     if not State.mode then return end
     local result = Admin.teleportToWaypoint()
@@ -225,7 +226,7 @@ end
 function Admin.teleportToWaypoint()
     local blip = GetFirstBlipInfoId(8)
     if not DoesBlipExist(blip) then
-        return { ok = false, message = 'Place un marqueur sur la carte.' }
+        return { ok = false, message = Locale.t('Place un marqueur sur la carte.') }
     end
     local coords = GetBlipInfoIdCoord(blip)
     CreateThread(function()
@@ -235,19 +236,19 @@ function Admin.teleportToWaypoint()
         Admin.teleport(vector3(coords.x, coords.y, Admin.findGroundZ(coords.x, coords.y)))
         FreezeEntityPosition(ped, Noclip.active)
     end)
-    return { ok = true, message = 'Téléporté au marqueur.' }
+    return { ok = true, message = Locale.t('Téléporté au marqueur.') }
 end
 
 ---Point des positions du Freeroam (onglet « Freeroam », bouton « Y aller »).
 ---@param data { x: number, y: number, z: number, w?: number }
 function Admin.teleportToPoint(data)
     local x, y, z = tonumber(data.x), tonumber(data.y), tonumber(data.z)
-    if not x or not y or not z then return { ok = false, message = 'Position invalide.' } end
+    if not x or not y or not z then return { ok = false, message = Locale.t('Position invalide.') } end
     CreateThread(function()
         Admin.teleport(vector3(x, y, z + 1.0))
         SetEntityHeading(PlayerPedId(), tonumber(data.w) or 0.0)
     end)
-    return { ok = true, message = 'Téléporté.' }
+    return { ok = true, message = Locale.t('Téléporté.') }
 end
 
 ---Altitude du sol à une position dont on ne connaît pas la hauteur (ex : marqueur de carte).
@@ -269,7 +270,7 @@ function Admin.spawnVehicle(data)
     local model = type(data.model) == 'string' and data.model:lower():gsub('[^%w_]', '') or ''
     local hash = GetHashKey(model)
     if model == '' or not IsModelInCdimage(hash) or not IsModelAVehicle(hash) then
-        return { ok = false, message = ('Véhicule inconnu : %s'):format(model) }
+        return { ok = false, message = Locale.t('Véhicule inconnu : %s', model) }
     end
 
     CreateThread(function()
@@ -288,17 +289,17 @@ function Admin.spawnVehicle(data)
         Admin.vehicle = vehicle
         Vehicles.trackMenuVehicle(vehicle)
     end)
-    return { ok = true, message = ('Véhicule %s créé.'):format(model) }
+    return { ok = true, message = Locale.t('Véhicule %s créé.', model) }
 end
 
 function Admin.deleteVehicle()
     local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
     if vehicle == 0 then
-        return { ok = false, message = 'Monte dans le véhicule à supprimer.' }
+        return { ok = false, message = Locale.t('Monte dans le véhicule à supprimer.') }
     end
     SetEntityAsMissionEntity(vehicle, true, true)
     DeleteVehicle(vehicle)
-    return { ok = true, message = 'Véhicule supprimé.' }
+    return { ok = true, message = Locale.t('Véhicule supprimé.') }
 end
 
 -- ---------------------------------------------------------------------------
@@ -316,7 +317,7 @@ function Admin.commandHeal()
     local ped = PlayerPedId()
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
     SetPedArmour(ped, 100)
-    Nui.notify('Un admin t\'a soigné.', 'success')
+    Nui.notify(Locale.t('Un admin t\'a soigné.'), 'success')
 end
 
 function Admin.commandRevive()
@@ -329,7 +330,7 @@ function Admin.commandRevive()
     State.dead = false
     Loadout.apply()
     Nui.send('alive')
-    Nui.notify('Un admin t\'a réanimé.', 'success')
+    Nui.notify(Locale.t('Un admin t\'a réanimé.'), 'success')
 end
 
 function Admin.commandKill()
@@ -339,7 +340,7 @@ end
 ---@param frozen boolean
 function Admin.commandFreeze(frozen)
     FreezeEntityPosition(PlayerPedId(), frozen == true)
-    Nui.notify(frozen and 'Un admin t\'a gelé.' or 'Tu peux bouger.', 'info')
+    Nui.notify(frozen and Locale.t('Un admin t\'a gelé.') or Locale.t('Tu peux bouger.'), 'info')
 end
 
 ---@param coords vector3

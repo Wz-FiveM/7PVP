@@ -7,8 +7,10 @@ local PlayerService = PVP.use('PlayerService')
 local PlayerRepository = PVP.use('PlayerRepository')
 local ChatService = PVP.use('ChatService')
 local Logger = PVP.use('Logger')
+local Locale = PVP.use('Locale')
 
 SeasonService.CHECK_INTERVAL = 60000
+-- Traduits à l'affichage (Locale.t)
 SeasonService.MONTHS = {
     'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
     'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
@@ -36,10 +38,10 @@ function SeasonService.previous(season)
 end
 
 ---@param season string
----@return string ex : « Saison octobre 2026 »
+---@return table ex : « Saison octobre 2026 » (Locale.t)
 function SeasonService.label(season)
     local year, month = season:match('^(%d+)-(%d+)$')
-    return ('Saison %s %s'):format(SeasonService.MONTHS[tonumber(month)] or month, year)
+    return Locale.t('Saison %s %s', Locale.t(SeasonService.MONTHS[tonumber(month)] or month), year)
 end
 
 ---Stats de saison d'un joueur qui se connecte.
@@ -71,7 +73,7 @@ function SeasonService.start(season)
         player.season = { id = season, kills = 0, deaths = 0, npcKills = 0 }
         player:sync()
     end
-    ChatService.announce('pvp', ('%s terminée : place à la %s ! Le classement de saison repart à zéro.')
-        :format(SeasonService.label(previous), SeasonService.label(season)))
+    ChatService.announce('pvp', Locale.t('%s terminée : place à la %s ! Le classement de saison repart à zéro.',
+        SeasonService.label(previous), SeasonService.label(season)))
     Logger.info('[saison] %s -> %s', previous, season)
 end

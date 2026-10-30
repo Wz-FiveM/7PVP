@@ -1,5 +1,6 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
+import type { LanguageInfo } from '../i18n';
 import type {
   CaseReelEntry, ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
@@ -24,6 +25,7 @@ export type NuiMessage =
   | { action: 'creator'; data: CreatorPayload }
   | { action: 'menu'; data: { open: boolean; inSafe: boolean; near?: NearServices; page?: string } }
   | { action: 'notify'; data: { text: string; kind: ToastKind } }
+  | { action: 'locale'; data: LocalePayload }
   | { action: 'killfeed'; data: KillfeedEntry }
   | { action: 'hit'; data: HitEvent }
   /** statut « en combat » : secondes restantes, 0 = terminé */
@@ -90,6 +92,8 @@ export type NuiMessage =
 
 /** Réponse du callback NUI `ready` */
 export interface InitPayload {
+  /** langue du joueur et langues disponibles (Config.Locale) */
+  locale?: LocalePayload;
   config: GameConfig;
   player?: PlayerState;
   zone: ZoneInfo;
@@ -97,6 +101,11 @@ export interface InitPayload {
   mode?: string | false;
   /** lobby déjà ouvert avant que la page soit prête */
   lobby?: { open: boolean; modes: LobbyMode[] };
+}
+
+export interface LocalePayload {
+  lang: string;
+  languages: LanguageInfo[];
 }
 
 /** Réponse des actions (achat, utilisation d'objet) */

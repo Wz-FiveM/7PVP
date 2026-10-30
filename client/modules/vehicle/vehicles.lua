@@ -8,6 +8,7 @@ local Nui = PVP.use('Nui')
 local HelpNotify = PVP.use('HelpNotify')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Vehicles.WEAPON_CHECK_INTERVAL = 250
 Vehicles.MAX_VEHICLE_WEAPONS = 8
@@ -30,14 +31,14 @@ function Vehicles.init()
         if not State.inPvp() or not State.isAlive() or IsNuiFocused() then return end
         local vehicle = Vehicles.storable()
         if not vehicle then
-            return Nui.notify('Monte dans un véhicule sorti d\'un objet pour le ranger.', 'error')
+            return Nui.notify(Locale.t('Monte dans un véhicule sorti d\'un objet pour le ranger.'), 'error')
         end
         if Vehicles.isMoving(vehicle) then
-            return Nui.notify(('Arrête le véhicule pour le ranger (moins de %d km/h).'):format(Config.VehicleOptions.storeMaxSpeed), 'error')
+            return Nui.notify(Locale.t('Arrête le véhicule pour le ranger (moins de %d km/h).', Config.VehicleOptions.storeMaxSpeed), 'error')
         end
         CreateThread(Vehicles.store)
     end, false)
-    RegisterKeyMapping('pvp_ranger_vehicule', 'Ranger un véhicule 7PVP (assis dedans)', 'keyboard', Config.VehicleOptions.storeKey)
+    RegisterKeyMapping('pvp_ranger_vehicule', Locale.t('Ranger un véhicule 7PVP (assis dedans)'), 'keyboard', Config.VehicleOptions.storeKey)
 
     CreateThread(Vehicles.weaponLoop)
     CreateThread(Vehicles.helpLoop)
@@ -67,7 +68,7 @@ function Vehicles.helpLoop()
     while true do
         local vehicle = State.inPvp() and State.isAlive() and not IsNuiFocused() and Vehicles.storable()
         if vehicle and not Vehicles.isMoving(vehicle) then
-            HelpNotify.show(Config.VehicleOptions.storeKey, 'Ranger le véhicule')
+            HelpNotify.show(Config.VehicleOptions.storeKey, Locale.t('Ranger le véhicule'))
             Wait(0)
         else
             Wait(Vehicles.HELP_CHECK_INTERVAL)

@@ -13,6 +13,7 @@ local AppearanceSchema = PVP.use('AppearanceSchema')
 local Callback = PVP.use('Callback')
 local PedUtils = PVP.use('PedUtils')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Position de la caméra par rapport au ped (repère du ped à son orientation de départ)
 Creator.CAMERA_PRESETS = {
@@ -228,7 +229,7 @@ end
 function Creator.save()
     local result = Callback.await(Events.callbacks.saveAppearance, Creator.current)
     if not result or not result.ok then
-        return result or { ok = false, message = 'Le serveur ne répond pas.' }
+        return result or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
     end
 
     State.appearance = Creator.current

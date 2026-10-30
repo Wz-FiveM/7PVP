@@ -7,6 +7,7 @@ local WorldService = PVP.use('WorldService')
 local ChatService = PVP.use('ChatService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Chaque joueur au lobby est seul dans son bucket
 LobbyService.BUCKET_OFFSET = 3000
@@ -32,10 +33,10 @@ function LobbyService.join(source, modeId)
     local player = PlayerService.get(source)
     if not player or player.creating then return { ok = false } end
     if player.mode then
-        return { ok = false, message = 'Tu es déjà dans un mode.' }
+        return { ok = false, message = Locale.t('Tu es déjà dans un mode.') }
     end
     if not ModeRegistry.isAvailable(modeId) then
-        return { ok = false, message = 'Ce mode n\'est pas encore disponible.' }
+        return { ok = false, message = Locale.t('Ce mode n\'est pas encore disponible.') }
     end
 
     local config = ModeRegistry.getConfig(modeId)
@@ -43,7 +44,7 @@ function LobbyService.join(source, modeId)
     SetPlayerRoutingBucket(source, config.bucket)
     ModeRegistry.get(modeId).enter(player)
     if Config.Chat.announceJoins then
-        ChatService.announce(modeId, ('%s a rejoint le %s.'):format(player.name, config.label))
+        ChatService.announce(modeId, Locale.t('%s a rejoint le %s.', player.name, Locale.t(config.label)))
     end
     return { ok = true, mode = modeId }
 end
@@ -64,7 +65,7 @@ function LobbyService.leave(source)
     mode.leave(player)
     LobbyService.open(player)
     if Config.Chat.announceJoins then
-        ChatService.announce(modeId, ('%s est retourné au lobby.'):format(player.name))
+        ChatService.announce(modeId, Locale.t('%s est retourné au lobby.', player.name))
     end
     return { ok = true }
 end

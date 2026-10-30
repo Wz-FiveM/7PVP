@@ -8,6 +8,7 @@ local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
 local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 function InventoryService.init()
     Callback.register(Events.callbacks.useItem, InventoryService.use)
@@ -30,15 +31,15 @@ end
 ---et seulement une fois achetés pour les coffres payants.
 ---@param player PvpPlayer
 ---@param ... string conteneurs touchés par l'action
----@return boolean ok, string|nil message
+---@return boolean ok, table|nil message (Locale.t)
 function InventoryService.canAccess(player, ...)
     for _, id in ipairs({ ... }) do
         local container = Config.Containers[id]
         if container and container.safeOnly and not InventoryService.isAtBanker(player) then
-            return false, ('%s : %s'):format(container.label, SafeNpcs.hint('stash'))
+            return false, Locale.t('%s : %s', Locale.t(container.label), SafeNpcs.hint('stash'))
         end
         if container and not player.inventory:isUnlocked(id) then
-            return false, ('%s : achète-le d\'abord auprès du banquier.'):format(container.label)
+            return false, Locale.t('%s : achète-le d\'abord auprès du banquier.', Locale.t(container.label))
         end
     end
     return true
@@ -59,18 +60,18 @@ function InventoryService.unlockStash(source, id)
     local container = type(id) == 'string' and Config.Containers[id]
     if not player or not container or not container.safeOnly or not container.price then return { ok = false } end
     if player.inventory:isUnlocked(id) then
-        return { ok = false, message = ('%s : déjà acheté.'):format(container.label) }
+        return { ok = false, message = Locale.t('%s : déjà acheté.', Locale.t(container.label)) }
     end
     if not InventoryService.isAtBanker(player) then
-        return { ok = false, message = ('%s : %s'):format(container.label, SafeNpcs.hint('stash')) }
+        return { ok = false, message = Locale.t('%s : %s', Locale.t(container.label), SafeNpcs.hint('stash')) }
     end
     if not player:removeMoney(container.price) then
-        return { ok = false, message = ('Il te faut $%d sur toi pour acheter : %s.'):format(container.price, container.label) }
+        return { ok = false, message = Locale.t('Il te faut $%d sur toi pour acheter : %s.', container.price, Locale.t(container.label)) }
     end
 
     player.inventory:unlock(id)
     player:sync()
-    return { ok = true, message = ('%s acheté'):format(container.label) }
+    return { ok = true, message = Locale.t('%s acheté', Locale.t(container.label)) }
 end
 
 ---@param source integer
@@ -82,19 +83,19 @@ function InventoryService.use(source, name)
         return VehicleService.deploy(player, name)
     end
     if not player or not Items.isType(name, 'consumable') then
-        return { ok = false, message = 'Cet objet ne s\'utilise pas.' }
+        return { ok = false, message = Locale.t('Cet objet ne s\'utilise pas.') }
     end
     if Items.get(name).repair and not InventoryService.vehicleToRepair(source) then
-        return { ok = false, message = 'Monte dans un véhicule ou reste à côté pour le réparer.' }
+        return { ok = false, message = Locale.t('Monte dans un véhicule ou reste à côté pour le réparer.') }
     end
     if not player:removeItem(name, 1) then
-        return { ok = false, message = 'Tu n\'as plus cet objet.' }
+        return { ok = false, message = Locale.t('Tu n\'as plus cet objet.') }
     end
 
     -- La vie et l'armure du ped sont gérées par le client
     TriggerClientEvent(Events.client.applyItem, source, name)
     player:sync()
-    return { ok = true, message = ('%s utilisé'):format(Items.label(name)) }
+    return { ok = true, message = Locale.t('%s utilisé', Locale.t(Items.label(name))) }
 end
 
 InventoryService.REPAIR_DISTANCE = 5.0
@@ -142,7 +143,7 @@ function InventoryService.drop(source, data)
 
     local removed = player.inventory:removeFrom(data.container, data.item, data.count)
     if removed <= 0 then
-        return { ok = false, message = 'Quantité invalide.' }
+        return { ok = false, message = Locale.t('Quantité invalide.') }
     end
 
     local dropped = { [data.item] = removed }
@@ -151,7 +152,7 @@ function InventoryService.drop(source, data)
     end
     LootService.drop(player:getCoords(), dropped, { bucket = GetPlayerRoutingBucket(player.source) })
     player:sync()
-    return { ok = true, message = ('Jeté : %s'):format(Items.describe({ [data.item] = removed })) }
+    return { ok = true, message = Locale.t('Jeté : %s', Items.describeText({ [data.item] = removed })) }
 end
 
 ---Fixe ou retire un accessoire sur une arme.
@@ -172,8 +173,10 @@ function InventoryService.attachment(source, data)
     if not ok then return { ok = false, message = message } end
 
     player:sync()
-    local verb = data.attach == true and 'fixé sur' or 'retiré de'
-    return { ok = true, message = ('%s %s : %s'):format(Items.label(data.attachment), verb, Items.label(data.weapon)) }
+    local attachment, weapon = Locale.t(Items.label(data.attachment)), Locale.t(Items.label(data.weapon))
+    local message = data.attach == true and Locale.t('%s fixé sur : %s', attachment, weapon)
+        or Locale.t('%s retiré de : %s', attachment, weapon)
+    return { ok = true, message = message }
 end
 
 ---@param source integer

@@ -10,6 +10,7 @@ local GroupService = PVP.define('GroupService')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, PvpGroup>
 GroupService.groups = {}
@@ -139,17 +140,17 @@ end
 function GroupService.invite(source, targetId)
     local player = PlayerService.get(source)
     local target = PlayerService.get(tonumber(targetId))
-    if not player or player.mode ~= 'pvp' then return { ok = false, message = 'Disponible seulement en PvP.' } end
-    if not target or target == player then return { ok = false, message = 'Joueur introuvable.' } end
-    if target.mode ~= 'pvp' then return { ok = false, message = ('%s n\'est pas en PvP.'):format(target.name) } end
+    if not player or player.mode ~= 'pvp' then return { ok = false, message = Locale.t('Disponible seulement en PvP.') } end
+    if not target or target == player then return { ok = false, message = Locale.t('Joueur introuvable.') } end
+    if target.mode ~= 'pvp' then return { ok = false, message = Locale.t('%s n\'est pas en PvP.', target.name) } end
     if GroupService.getGroupOf(target.source) then
-        return { ok = false, message = ('%s est déjà dans une équipe.'):format(target.name) }
+        return { ok = false, message = Locale.t('%s est déjà dans une équipe.', target.name) }
     end
 
     local group = GroupService.getGroupOf(source) or GroupService.create(source)
-    if group.leader ~= source then return { ok = false, message = 'Seul le chef peut inviter.' } end
+    if group.leader ~= source then return { ok = false, message = Locale.t('Seul le chef peut inviter.') } end
     if #group.members >= Config.Groups.maxSize then
-        return { ok = false, message = ('Équipe complète (%d max).'):format(Config.Groups.maxSize) }
+        return { ok = false, message = Locale.t('Équipe complète (%d max).', Config.Groups.maxSize) }
     end
 
     GroupService.invites[target.source] = {
@@ -158,7 +159,7 @@ function GroupService.invite(source, targetId)
         expires = os.time() + Config.Groups.inviteTimeout,
     }
     TriggerClientEvent(Events.client.groupInvite, target.source, { from = source, fromName = player.name })
-    return { ok = true, message = ('Invitation envoyée à %s.'):format(target.name) }
+    return { ok = true, message = Locale.t('Invitation envoyée à %s.', target.name) }
 end
 
 ---@param source integer
@@ -169,29 +170,29 @@ function GroupService.respond(source, accept)
     GroupService.invites[source] = nil
     local player = PlayerService.get(source)
     if not player or not invite or invite.expires < os.time() then
-        return { ok = false, message = 'Aucune invitation en attente.' }
+        return { ok = false, message = Locale.t('Aucune invitation en attente.') }
     end
-    if accept ~= true then return { ok = true, message = 'Invitation refusée.' } end
+    if accept ~= true then return { ok = true, message = Locale.t('Invitation refusée.') } end
 
     local group = GroupService.groups[invite.groupId]
-    if not group then return { ok = false, message = 'Cette équipe n\'existe plus.' } end
-    if player.mode ~= 'pvp' then return { ok = false, message = 'Disponible seulement en PvP.' } end
-    if GroupService.getGroupOf(source) then return { ok = false, message = 'Quitte d\'abord ton équipe.' } end
-    if #group.members >= Config.Groups.maxSize then return { ok = false, message = 'L\'équipe est complète.' } end
+    if not group then return { ok = false, message = Locale.t('Cette équipe n\'existe plus.') } end
+    if player.mode ~= 'pvp' then return { ok = false, message = Locale.t('Disponible seulement en PvP.') } end
+    if GroupService.getGroupOf(source) then return { ok = false, message = Locale.t('Quitte d\'abord ton équipe.') } end
+    if #group.members >= Config.Groups.maxSize then return { ok = false, message = Locale.t('L\'équipe est complète.') } end
 
     group.members[#group.members + 1] = source
     GroupService.memberOf[source] = group.id
-    GroupService.notifyMembers(group, ('%s a rejoint l\'équipe.'):format(player.name), source)
+    GroupService.notifyMembers(group, Locale.t('%s a rejoint l\'équipe.', player.name), source)
     GroupService.sync(group)
-    return { ok = true, message = 'Tu as rejoint l\'équipe.' }
+    return { ok = true, message = Locale.t('Tu as rejoint l\'équipe.') }
 end
 
 ---@param source integer
 ---@return { ok: boolean, message?: string }
 function GroupService.leaveCallback(source)
-    if not GroupService.getGroupOf(source) then return { ok = false, message = 'Tu n\'es dans aucune équipe.' } end
+    if not GroupService.getGroupOf(source) then return { ok = false, message = Locale.t('Tu n\'es dans aucune équipe.') } end
     GroupService.leave(source)
-    return { ok = true, message = 'Tu as quitté l\'équipe.' }
+    return { ok = true, message = Locale.t('Tu as quitté l\'équipe.') }
 end
 
 ---@param source integer chef
@@ -200,14 +201,14 @@ end
 function GroupService.kick(source, targetId)
     local group = GroupService.getGroupOf(source)
     targetId = tonumber(targetId)
-    if not group or group.leader ~= source then return { ok = false, message = 'Seul le chef peut exclure.' } end
+    if not group or group.leader ~= source then return { ok = false, message = Locale.t('Seul le chef peut exclure.') } end
     if not targetId or targetId == source or GroupService.memberOf[targetId] ~= group.id then
-        return { ok = false, message = 'Joueur introuvable dans l\'équipe.' }
+        return { ok = false, message = Locale.t('Joueur introuvable dans l\'équipe.') }
     end
 
     local target = PlayerService.get(targetId)
     GroupService.leave(targetId)
-    if target then target:notify('Tu as été exclu de l\'équipe.', 'info') end
+    if target then target:notify(Locale.t('Tu as été exclu de l\'équipe.'), 'info') end
     return { ok = true }
 end
 
@@ -246,7 +247,7 @@ function GroupService.leave(source)
     if group.leader == source then group.leader = group.members[1] end
 
     local player = PlayerService.get(source)
-    GroupService.notifyMembers(group, ('%s a quitté l\'équipe.'):format(player and player.name or GetPlayerName(source)))
+    GroupService.notifyMembers(group, Locale.t('%s a quitté l\'équipe.', player and player.name or GetPlayerName(source)))
     GroupService.sync(group)
 end
 
@@ -256,7 +257,7 @@ function GroupService.disband(group)
         GroupService.memberOf[source] = nil
         TriggerClientEvent(Events.client.groupSync, source, false)
         local player = PlayerService.get(source)
-        if player then player:notify('Équipe dissoute.', 'info') end
+        if player then player:notify(Locale.t('Équipe dissoute.'), 'info') end
     end
     GroupService.groups[group.id] = nil
 end

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { useTypingFocus } from '../../hooks/useTypingFocus';
 import { isMenuCloseKey } from '../../utils/keys';
@@ -15,6 +16,7 @@ const TABS: { id: FreeroamTab; label: string; icon: IconName }[] = [
 
 /** Menu du Freeroam (touche du menu) : armes et véhicules gratuits, outils du joueur, PvP au choix. */
 export function FreeroamMenu() {
+  const t = useT();
   const { state, actions } = useGame();
   const { freeroam } = state;
   const [tab, setTab] = useState<FreeroamTab>('weapons');
@@ -51,9 +53,9 @@ export function FreeroamMenu() {
             <h1 className="disp freeroam__title">
               Free<span className="freeroam__accent">roam</span>
             </h1>
-            <span className="muted freeroam__subtitle">Bac à sable : tout est gratuit, rien n'est perdu</span>
+            <span className="muted freeroam__subtitle">{t("Bac à sable : tout est gratuit, rien n'est perdu")}</span>
           </div>
-          <button className="btn btn--small cut-s freeroam__close" onClick={actions.closeFreeroam} aria-label="Fermer">
+          <button className="btn btn--small cut-s freeroam__close" onClick={actions.closeFreeroam} aria-label={t('Fermer')}>
             ✕
           </button>
         </header>
@@ -67,7 +69,7 @@ export function FreeroamMenu() {
                 onClick={() => setTab(item.id)}
               >
                 <Icon name={item.icon} size={16} strokeWidth={2.2} />
-                {item.label}
+                {t(item.label)}
               </button>
             ))}
             <div className="freeroam__nav-bottom">
@@ -76,7 +78,7 @@ export function FreeroamMenu() {
                 onClick={() => actions.freeroamAction('pvp')}
               >
                 <Icon name="crosshair" size={16} strokeWidth={2.2} />
-                PvP : {freeroam.pvp ? 'activé' : 'désactivé'}
+                {freeroam.pvp ? t('PvP : activé') : t('PvP : désactivé')}
               </button>
             </div>
           </nav>
@@ -91,12 +93,12 @@ export function FreeroamMenu() {
                       className="freeroam__item cut-s"
                       onClick={() => actions.freeroamAction('weapon', { weapon: entry.weapon })}
                     >
-                      {entry.label}
+                      {t(entry.label)}
                     </button>
                   ))}
                 </div>
                 <button className="btn btn--danger btn--small cut-s" onClick={() => actions.freeroamAction('clearWeapons')}>
-                  Retirer toutes les armes
+                  {t('Retirer toutes les armes')}
                 </button>
               </>
             )}
@@ -108,17 +110,17 @@ export function FreeroamMenu() {
                     className="field freeroam__input"
                     value={model}
                     onChange={(event) => setModel(event.target.value)}
-                    placeholder="Modèle GTA (ex : adder, t20, oppressor)"
+                    placeholder={t('Modèle GTA (ex : adder, t20, oppressor)')}
                   />
                   <button className="btn btn--primary btn--small cut-s" type="submit">
-                    Faire apparaître
+                    {t('Faire apparaître')}
                   </button>
                 </form>
                 {categories.map(([category, list]) => (
                   <section key={category} className="freeroam__section">
                     <h2 className="disp freeroam__section-title">
                       <span className="freeroam__dot" />
-                      {category}
+                      {t(category)}
                     </h2>
                     <div className="freeroam__grid">
                       {list.map((vehicle) => (
@@ -127,24 +129,24 @@ export function FreeroamMenu() {
                           className="freeroam__item cut-s"
                           onClick={() => actions.freeroamAction('vehicle', { model: vehicle.model })}
                         >
-                          {vehicle.label}
+                          {t(vehicle.label)}
                         </button>
                       ))}
                     </div>
                   </section>
                 ))}
                 <button className="btn btn--small cut-s" onClick={() => actions.freeroamAction('repair')}>
-                  Réparer mon véhicule
+                  {t('Réparer mon véhicule')}
                 </button>
               </>
             )}
 
             {tab === 'player' && (
               <div className="freeroam__grid">
-                <button className="freeroam__item cut-s" onClick={() => actions.freeroamAction('heal')}>Se soigner</button>
-                <button className="freeroam__item cut-s" onClick={() => actions.freeroamAction('armor')}>Armure max</button>
+                <button className="freeroam__item cut-s" onClick={() => actions.freeroamAction('heal')}>{t('Se soigner')}</button>
+                <button className="freeroam__item cut-s" onClick={() => actions.freeroamAction('armor')}>{t('Armure max')}</button>
                 <button className="freeroam__item cut-s" onClick={() => actions.freeroamAction('waypoint')}>
-                  Aller au marqueur
+                  {t('Aller au marqueur')}
                 </button>
               </div>
             )}

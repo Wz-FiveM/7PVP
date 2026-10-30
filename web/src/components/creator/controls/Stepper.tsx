@@ -1,3 +1,5 @@
+import { useT } from '../../../i18n';
+
 interface StepperProps {
   label: string;
   /** Index courant */
@@ -13,6 +15,7 @@ interface StepperProps {
 
 /** Sélecteur ‹ valeur › qui boucle sur les choix disponibles. */
 export function Stepper({ label, value, count, allowNone, format, onChange }: StepperProps) {
+  const t = useT();
   const min = allowNone ? -1 : 0;
   const max = Math.max(min, count - 1);
   const disabled = max === min && !allowNone;
@@ -24,17 +27,17 @@ export function Stepper({ label, value, count, allowNone, format, onChange }: St
     onChange(next);
   };
 
-  const display = value < 0 ? 'Aucun' : format ? format(value) : `${value + 1} / ${Math.max(count, 1)}`;
+  const display = value < 0 ? t('Aucun') : format ? format(value) : `${value + 1} / ${Math.max(count, 1)}`;
 
   return (
     <div className="ctl">
       <span className="ctl__label">{label}</span>
       <div className="stepper">
-        <button className="stepper__btn" onClick={() => step(-1)} disabled={disabled} aria-label={`${label} précédent`}>
+        <button className="stepper__btn" onClick={() => step(-1)} disabled={disabled} aria-label={t('{label} précédent', { label })}>
           ‹
         </button>
         <span className="mono stepper__value">{display}</span>
-        <button className="stepper__btn" onClick={() => step(1)} disabled={disabled} aria-label={`${label} suivant`}>
+        <button className="stepper__btn" onClick={() => step(1)} disabled={disabled} aria-label={t('{label} suivant', { label })}>
           ›
         </button>
       </div>

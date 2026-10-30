@@ -9,6 +9,7 @@ local AppearanceSchema = PVP.use('AppearanceSchema')
 local Callback = PVP.use('Callback')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Chaque joueur en création a son propre bucket : il ne voit personne et personne ne le voit
 AppearanceService.BUCKET_OFFSET = 1000
@@ -43,7 +44,7 @@ function AppearanceService.save(source, data)
 
     local appearance = AppearanceSchema.sanitize(data)
     if not appearance then
-        return { ok = false, message = 'Apparence invalide.' }
+        return { ok = false, message = Locale.t('Apparence invalide.') }
     end
 
     if player.creating then
@@ -64,5 +65,5 @@ function AppearanceService.save(source, data)
 
     player.appearance = appearance
     PlayerRepository.save(player)
-    return { ok = true, message = 'Apparence enregistrée.' }
+    return { ok = true, message = Locale.t('Apparence enregistrée.') }
 end

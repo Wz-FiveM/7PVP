@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
+import { t, useT } from '../../i18n';
 import type { EloChange, GunfightHudData, GunfightScores } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
 import { EloDelta } from './EloDelta';
@@ -35,6 +36,7 @@ function useSecondsLeft(total: number, at: number): number {
 
 /** 1VS1 (GunFight, Bike) : file d'attente, HUD de manche (score, adversaire, temps), hors zone, résultats. */
 export function Gunfight() {
+  useT();
   /** Nom du mode dont on attend un adversaire, null hors file */
   const [queue, setQueue] = useState<string | null>(null);
   const [hud, setHud] = useState<(GunfightHudData & { at: number }) | null>(null);
@@ -89,23 +91,23 @@ export function Gunfight() {
     <>
       {queue && !hud && (
         <div className="chase-queue">
-          <span className="disp chase-queue__title">{queue}</span>
-          <span className="mono chase-queue__text">En attente d'un adversaire · 1/2</span>
+          <span className="disp chase-queue__title">{t(queue)}</span>
+          <span className="mono chase-queue__text">{t("En attente d'un adversaire · {count}/2", { count: 1 })}</span>
         </div>
       )}
       {hud && <GunfightHud hud={hud} remaining={remaining} />}
       {hud && outside && (
         <div className="cvc-outside">
-          <span className="disp">Hors zone</span>
-          <span>Reviens dans la zone de combat : tu perds de la vie</span>
+          <span className="disp">{t('Hors zone')}</span>
+          <span>{t('Reviens dans la zone de combat : tu perds de la vie')}</span>
         </div>
       )}
       {banner && (
         <div className={`chase-banner chase-banner--${banner.tone}`} key={banner.id}>
-          <span className="disp chase-banner__title">{banner.title}</span>
+          <span className="disp chase-banner__title">{t(banner.title)}</span>
           {banner.text && <span className="chase-banner__text">{banner.text}</span>}
           <span className="mono chase-banner__score">
-            TOI {banner.scores.us} — {banner.scores.them} ADVERSAIRE
+            {t('TOI {me} — {opponent} ADVERSAIRE', { me: banner.scores.us, opponent: banner.scores.them })}
           </span>
           {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
@@ -115,6 +117,7 @@ export function Gunfight() {
 }
 
 function GunfightHud({ hud, remaining }: { hud: GunfightHudData & { at: number }; remaining: number | null }) {
+  useT();
   const countdown = useSecondsLeft(hud.countdown, hud.at);
 
   return (
@@ -122,15 +125,15 @@ function GunfightHud({ hud, remaining }: { hud: GunfightHudData & { at: number }
       <div className="cvc-hud">
         <div className="cvc-hud__top">
           <span className="disp cvc-hud__team">1VS1</span>
-          <span className="mono cvc-hud__round">MANCHE {hud.round}</span>
+          <span className="mono cvc-hud__round">{t('MANCHE {round}', { round: hud.round })}</span>
           <span className="mono cvc-hud__time">{formatTime(remaining ?? hud.roundTime)}</span>
         </div>
         <div className="cvc-hud__score">
           <span className="disp cvc-hud__us">{hud.scores.us}</span>
-          <span className="mono cvc-hud__goal">PREMIER À {hud.roundsToWin}</span>
+          <span className="mono cvc-hud__goal">{t('PREMIER À {rounds}', { rounds: hud.roundsToWin })}</span>
           <span className="disp cvc-hud__them">{hud.scores.them}</span>
         </div>
-        <span className="mono cvc-hud__arena">CONTRE {hud.opponent.toUpperCase()}</span>
+        <span className="mono cvc-hud__arena">{t('CONTRE {name}', { name: hud.opponent.toUpperCase() })}</span>
       </div>
       {countdown > 0 && (
         <div className="chase-countdown" key={countdown}>

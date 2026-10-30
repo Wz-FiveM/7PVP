@@ -1,4 +1,5 @@
 import { useState, type ComponentType } from 'react';
+import { useT } from '../../i18n';
 import { useCreator } from '../../store/CreatorProvider';
 import type { CameraPreset } from '../../types/appearance';
 import { Logo } from '../ui/Logo';
@@ -20,16 +21,17 @@ const TABS: { id: string; label: string; camera: CameraPreset; component: Compon
 ];
 
 export function CharacterCreator() {
+  const t = useT();
   const { state, actions } = useCreator();
   const [tabId, setTabId] = useState(TABS[0].id);
   if (!state) return null;
 
-  const tab = TABS.find((t) => t.id === tabId)!;
+  const tab = TABS.find((entry) => entry.id === tabId)!;
   const Section = tab.component;
   const isEdit = state.mode === 'edit';
 
   const selectTab = (id: string) => {
-    const next = TABS.find((t) => t.id === id)!;
+    const next = TABS.find((entry) => entry.id === id)!;
     setTabId(id);
     if (next.camera !== state.camera) actions.setCamera(next.camera);
   };
@@ -40,19 +42,19 @@ export function CharacterCreator() {
         <header className="creator-panel__header">
           <Logo size={52} />
           <div className="creator-panel__titles">
-            <span className="label">{isEdit ? 'Apparence' : 'Nouvel opérateur'}</span>
-            <h1 className="disp creator-panel__title">{isEdit ? 'Modifier le personnage' : 'Création du personnage'}</h1>
+            <span className="label">{isEdit ? t('Apparence') : t('Nouvel opérateur')}</span>
+            <h1 className="disp creator-panel__title">{isEdit ? t('Modifier le personnage') : t('Création du personnage')}</h1>
           </div>
         </header>
 
         <nav className="creator-tabs">
-          {TABS.map((t) => (
+          {TABS.map((entry) => (
             <button
-              key={t.id}
-              className={t.id === tabId ? 'creator-tabs__tab creator-tabs__tab--active disp' : 'creator-tabs__tab disp'}
-              onClick={() => selectTab(t.id)}
+              key={entry.id}
+              className={entry.id === tabId ? 'creator-tabs__tab creator-tabs__tab--active disp' : 'creator-tabs__tab disp'}
+              onClick={() => selectTab(entry.id)}
             >
-              {t.label}
+              {t(entry.label)}
             </button>
           ))}
         </nav>
@@ -66,11 +68,11 @@ export function CharacterCreator() {
           <div className="creator-panel__actions">
             {isEdit && (
               <button className="btn cut-s" onClick={actions.cancel} disabled={state.saving}>
-                Annuler
+                {t('Annuler')}
               </button>
             )}
             <button className="btn btn--primary cut-s creator-panel__confirm" onClick={actions.save} disabled={state.saving}>
-              {state.saving ? 'Enregistrement…' : isEdit ? 'Enregistrer' : 'Entrer dans la zone'}
+              {state.saving ? t('Enregistrement…') : isEdit ? t('Enregistrer') : t('Entrer dans la zone')}
             </button>
           </div>
         </footer>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import './chat.css';
 
@@ -11,6 +12,7 @@ const MAX_LENGTH = 200;
 
 /** Chat du mode en cours : T pour écrire, Entrée pour envoyer, Échap pour fermer. */
 export function Chat() {
+  const t = useT();
   const { state, actions } = useGame();
   const { open, messages } = state.chat;
   const [recent, setRecent] = useState(false);
@@ -114,7 +116,7 @@ export function Chat() {
             className="chat__input"
             value={text}
             maxLength={MAX_LENGTH}
-            placeholder="Message · /commande"
+            placeholder={t('Message · /commande')}
             onChange={(event) => setText(event.target.value)}
             onKeyDown={onKeyDown}
             onBlur={() => window.setTimeout(() => inputRef.current?.focus(), 0)}

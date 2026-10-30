@@ -7,6 +7,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, integer> dernier message de chaque joueur (GetGameTimer)
 ChatService.lastSent = {}
@@ -27,7 +28,7 @@ end
 function ChatService.onPlayerLeft(source, name, mode)
     ChatService.lastSent[source] = nil
     if mode and Config.Chat.announceJoins then
-        ChatService.announce(mode, ('%s s\'est déconnecté.'):format(name))
+        ChatService.announce(mode, Locale.t('%s s\'est déconnecté.', name))
     end
 end
 
@@ -54,7 +55,7 @@ function ChatService.onMessage(source, text)
 
     local now = GetGameTimer()
     if now - (ChatService.lastSent[source] or 0) < Config.Chat.cooldown then
-        return ChatService.system(source, 'Doucement : un message par seconde.')
+        return ChatService.system(source, Locale.t('Doucement : un message par seconde.'))
     end
 
     local clean = ChatService.sanitize(text)
@@ -68,7 +69,7 @@ end
 
 ---Envoie un message à tous les joueurs d'un mode.
 ---@param mode string
----@param message { kind: 'player'|'system', author?: string, text: string }
+---@param message { kind: 'player'|'system', author?: string, text: string|table }
 function ChatService.broadcast(mode, message)
     message.time = os.time()
     ModeRegistry.broadcast(mode, Events.client.chatMessage, message)
@@ -76,14 +77,14 @@ end
 
 ---Message système à un joueur.
 ---@param source integer
----@param text string
+---@param text string|table texte ou message à traduire (Locale.t)
 function ChatService.system(source, text)
     TriggerClientEvent(Events.client.chatMessage, source, { kind = 'system', text = text, time = os.time() })
 end
 
 ---Message système à tous les joueurs d'un mode.
 ---@param mode string
----@param text string
+---@param text string|table texte ou message à traduire (Locale.t)
 function ChatService.announce(mode, text)
     ChatService.broadcast(mode, { kind = 'system', text = text })
 end

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { AdminToggle } from '../../types/admin';
 import { SpectateBar } from './FreeroamTab';
@@ -11,6 +12,7 @@ const TOGGLES: { key: AdminToggle; label: string; hint: string }[] = [
 
 /** Options personnelles de l'admin. */
 export function SelfTab() {
+  const t = useT();
   const { state, actions } = useGame();
   const { self } = state.admin;
   const [model, setModel] = useState('adder');
@@ -25,32 +27,32 @@ export function SelfTab() {
           onClick={() => actions.adminAction({ action: toggle.key })}
         >
           <span className="admin-toggle__text">
-            <span className="disp admin-toggle__label">{toggle.label}</span>
-            <span className="admin-toggle__hint">{toggle.hint}</span>
+            <span className="disp admin-toggle__label">{t(toggle.label)}</span>
+            <span className="admin-toggle__hint">{t(toggle.hint)}</span>
           </span>
           <span className="mono admin-toggle__state">{self[toggle.key] ? 'ON' : 'OFF'}</span>
         </button>
       ))}
 
-      <span className="label">Déplacement</span>
+      <span className="label">{t('Déplacement')}</span>
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'tpWaypoint' })}>
-        Téléporter au marqueur de la carte
+        {t('Téléporter au marqueur de la carte')}
       </button>
 
-      <span className="label">Véhicule</span>
+      <span className="label">{t('Véhicule')}</span>
       <div className="admin-row">
         <input
           className="admin-input mono"
-          placeholder="Modèle (ex : adder, sultan)"
+          placeholder={t('Modèle (ex : adder, sultan)')}
           value={model}
           onChange={(event) => setModel(event.target.value)}
         />
         <button className="btn btn--small btn--primary cut-s" onClick={() => actions.adminAction({ action: 'spawnVehicle', model })}>
-          Faire apparaître
+          {t('Faire apparaître')}
         </button>
       </div>
       <button className="btn btn--small btn--danger cut-s" onClick={() => actions.adminAction({ action: 'deleteVehicle' })}>
-        Supprimer mon véhicule
+        {t('Supprimer mon véhicule')}
       </button>
     </div>
   );

@@ -2,6 +2,7 @@
 ---@class ItemsModule
 local Items = PVP.define('Items')
 local Logger = PVP.use('Logger')
+local Locale = PVP.use('Locale')
 
 Items.CONTAINERS = { 'bag', 'protected' }
 
@@ -93,4 +94,22 @@ function Items.describe(items)
         end
     end
     return table.concat(parts, ', ')
+end
+
+---Comme Items.describe, mais à montrer au joueur : noms traduits (voir Locale.t).
+---Items.describe reste en français pour les journaux et Discord.
+---@param items table<string, integer>
+---@return string|table
+function Items.describeText(items)
+    local parts = {}
+    for name, count in pairs(items) do
+        if name == 'money' then
+            parts[#parts + 1] = ('$%d'):format(count)
+        elseif count > 1 then
+            parts[#parts + 1] = Locale.t('%dx %s', count, Locale.t(Items.label(name)))
+        else
+            parts[#parts + 1] = Locale.t(Items.label(name))
+        end
+    end
+    return Locale.join(parts)
 end

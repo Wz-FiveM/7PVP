@@ -6,6 +6,7 @@ local Group = PVP.define('Group')
 local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table|false groupe actuel { id, leader, members = { { id, name } } }
 Group.data = false
@@ -93,7 +94,7 @@ end
 ---@param invite { from: integer, fromName: string }
 function Group.onInvite(invite)
     Nui.send('groupInvite', invite)
-    Nui.notify(('%s t\'invite dans son équipe : /accepter ou menu Équipe.'):format(invite.fromName), 'info')
+    Nui.notify(Locale.t('%s t\'invite dans son équipe : /accepter ou menu Équipe.', invite.fromName), 'info')
 end
 
 ---@param source integer

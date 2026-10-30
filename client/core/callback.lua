@@ -4,6 +4,7 @@
 local Callback = PVP.define('Callback')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
+local Locale = PVP.use('Locale')
 
 Callback.TIMEOUT = 10000
 Callback.nextId = 0
@@ -16,6 +17,7 @@ function Callback.init()
     end)
 end
 
+---Les messages à traduire de la réponse (Locale.t côté serveur) arrivent traduits.
 ---@param name string
 ---@return any
 function Callback.await(name, ...)
@@ -32,7 +34,7 @@ function Callback.await(name, ...)
         end
     end)
 
-    return Citizen.Await(p)
+    return Locale.resolve(Citizen.Await(p))
 end
 
 ---@param requestId integer

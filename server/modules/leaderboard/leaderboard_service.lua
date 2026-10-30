@@ -15,6 +15,7 @@ local Progression = PVP.use('Progression')
 local SeasonService = PVP.use('SeasonService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 LeaderboardService.SIZE = 10
 LeaderboardService.CACHE_TIME = 15000
@@ -43,7 +44,7 @@ end
 ---@return { rows: LeaderboardRow[], title: string }
 function LeaderboardService.buildScope(scope)
     if scope == 'all' then
-        return { rows = LeaderboardService.build(), title = 'De tous les temps' }
+        return { rows = LeaderboardService.build(), title = Locale.t('De tous les temps') }
     end
     local season = SeasonService.current()
     if scope == 'previous' then season = SeasonService.previous(season) end

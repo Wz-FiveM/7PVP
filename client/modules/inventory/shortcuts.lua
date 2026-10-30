@@ -5,6 +5,7 @@ local State = PVP.use('State')
 local Inventory = PVP.use('Inventory')
 local Items = PVP.use('Items')
 local Nui = PVP.use('Nui')
+local Locale = PVP.use('Locale')
 
 -- Sélection d'armes de GTA (roue sur TAB, catégories sur 1-9), remplacée par les raccourcis
 Shortcuts.DISABLED_CONTROLS = { 37, 157, 158, 159, 160, 161, 162, 163, 164, 165 }
@@ -36,7 +37,7 @@ function Shortcuts.registerSlot(slot)
     RegisterCommand(command, function()
         Shortcuts.use(slot)
     end, false)
-    RegisterKeyMapping(command, ('Raccourci %d'):format(slot), 'keyboard', tostring(slot))
+    RegisterKeyMapping(command, Locale.t('Raccourci %d', slot), 'keyboard', tostring(slot))
 end
 
 function Shortcuts.controlLoop()

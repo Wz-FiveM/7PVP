@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { ZoneType } from '../../types/game';
 
@@ -17,10 +18,12 @@ const EXPANDED_DURATION = 5000;
  * Bannière complète quelques secondes à l'entrée d'une zone, puis une seule ligne.
  */
 export function ZoneBanner() {
+  const t = useT();
   const { state } = useGame();
   const { zone } = state;
   const [expanded, setExpanded] = useState(true);
-  const name = zone.type === 'pvp' ? 'Territoire libre' : zone.label.replace(/^Zone (safe|PvP|PvE)\s*-\s*/i, '');
+  // Préfixe « Zone safe - » retiré après traduction (« Safe zone - » en anglais...)
+  const name = zone.type === 'pvp' ? t('Territoire libre') : t(zone.label).replace(/^.*?\s-\s+/, '');
 
   useEffect(() => {
     setExpanded(true);
@@ -31,7 +34,7 @@ export function ZoneBanner() {
   if (!expanded) {
     return (
       <div className={`zone-banner zone-banner--compact zone-${zone.type}`}>
-        <span className="chip cut-s">{TAG[zone.type]}</span>
+        <span className="chip cut-s">{t(TAG[zone.type])}</span>
         <span className="disp zone-banner__compact-name">{name}</span>
       </div>
     );
@@ -41,9 +44,9 @@ export function ZoneBanner() {
     <div className={`zone-banner zone-${zone.type}`}>
       <div className="stripes" />
       <div className="zone-banner__body cut">
-        <span className="chip cut-s">{TAG[zone.type]}</span>
+        <span className="chip cut-s">{t(TAG[zone.type])}</span>
         <span className="disp zone-banner__name">{name}</span>
-        <span className="muted zone-banner__detail">{DETAIL[zone.type]}</span>
+        <span className="muted zone-banner__detail">{t(DETAIL[zone.type])}</span>
       </div>
     </div>
   );

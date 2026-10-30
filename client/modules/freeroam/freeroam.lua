@@ -13,6 +13,7 @@ local PedUtils = PVP.use('PedUtils')
 local Vehicles = PVP.use('Vehicles')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Freeroam.menuOpen = false
 Freeroam.pvp = false
@@ -103,7 +104,7 @@ end
 
 ---@param data { weapon: string }
 function Freeroam.giveWeapon(data)
-    if not Freeroam.isAllowedWeapon(data.weapon) then return { ok = false, message = 'Arme indisponible.' } end
+    if not Freeroam.isAllowedWeapon(data.weapon) then return { ok = false, message = Locale.t('Arme indisponible.') } end
     local ped = PlayerPedId()
     local hash = GetHashKey(data.weapon)
     GiveWeaponToPed(ped, hash, 9999, false, true)
@@ -115,7 +116,7 @@ end
 function Freeroam.clearWeapons()
     RemoveAllPedWeapons(PlayerPedId(), true)
     Freeroam.weapons = {}
-    return { ok = true, message = 'Armes retirées.' }
+    return { ok = true, message = Locale.t('Armes retirées.') }
 end
 
 ---Après une mort, on rend les armes données.
@@ -137,14 +138,14 @@ function Freeroam.spawnVehicle(data)
     local model = type(data.model) == 'string' and data.model:lower():gsub('[^%w_]', '') or ''
     local hash = GetHashKey(model)
     if model == '' or not IsModelInCdimage(hash) or not IsModelAVehicle(hash) then
-        return { ok = false, message = ('Véhicule inconnu : %s'):format(model) }
+        return { ok = false, message = Locale.t('Véhicule inconnu : %s', model) }
     end
     if State.isInSafeZone() then
-        return { ok = false, message = 'Impossible de faire apparaître un véhicule en zone safe : sors de la zone.' }
+        return { ok = false, message = Locale.t('Impossible de faire apparaître un véhicule en zone safe : sors de la zone.') }
     end
 
     Freeroam.deleteVehicle()
-    if not PedUtils.loadModel(hash) then return { ok = false, message = 'Modèle introuvable.' } end
+    if not PedUtils.loadModel(hash) then return { ok = false, message = Locale.t('Modèle introuvable.') } end
     local ped = PlayerPedId()
     local coords = GetEntityCoords(ped)
     local vehicle = CreateVehicle(hash, coords.x, coords.y, coords.z, GetEntityHeading(ped), true, false)
@@ -170,10 +171,10 @@ end
 
 function Freeroam.repairVehicle()
     local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-    if vehicle == 0 then return { ok = false, message = 'Monte dans un véhicule.' } end
+    if vehicle == 0 then return { ok = false, message = Locale.t('Monte dans un véhicule.') } end
     SetVehicleFixed(vehicle)
     SetVehicleDirtLevel(vehicle, 0.0)
-    return { ok = true, message = 'Véhicule réparé.' }
+    return { ok = true, message = Locale.t('Véhicule réparé.') }
 end
 
 -- ---------------------------------------------------------------------------
@@ -183,12 +184,12 @@ end
 function Freeroam.heal()
     local ped = PlayerPedId()
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
-    return { ok = true, message = 'Soigné.' }
+    return { ok = true, message = Locale.t('Soigné.') }
 end
 
 function Freeroam.giveArmor()
     SetPedArmour(PlayerPedId(), 100)
-    return { ok = true, message = 'Armure au maximum.' }
+    return { ok = true, message = Locale.t('Armure au maximum.') }
 end
 
 function Freeroam.teleportToWaypoint()

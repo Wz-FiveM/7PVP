@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { marketApi } from '../api/marketApi';
 import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
+import { useLanguage, useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import type { ItemType, MarketListing, MarketState } from '../types/game';
 import type { ActionResult } from '../types/nui';
@@ -54,6 +55,9 @@ const unitPrice = (listing: MarketListing) => listing.price / Math.max(1, listin
 
 /** Place de marché entre joueurs : catalogue par objet, offres triées par prix, auprès du commissaire-priseur. */
 export function MarketPage() {
+  const t = useT();
+  // La recherche et le tri portent sur les noms traduits : recalculés au changement de langue
+  const language = useLanguage();
   const { state, actions } = useGame();
   const { config, player, menu } = state;
   const [market, setMarket] = useState<MarketState>(EMPTY);
@@ -89,7 +93,7 @@ export function MarketPage() {
     for (const listing of market.listings) {
       const item = config.items[listing.item];
       if (!item || listing.mine) continue;
-      if (query && !item.label.toLowerCase().includes(query)) continue;
+      if (query && !t(item.label).toLowerCase().includes(query)) continue;
       const group = byItem.get(listing.item) ?? { item: listing.item, offers: [], lowest: Infinity };
       group.offers.push(listing);
       group.lowest = Math.min(group.lowest, unitPrice(listing));
@@ -97,9 +101,9 @@ export function MarketPage() {
     }
     for (const group of byItem.values()) group.offers.sort((a, b) => unitPrice(a) - unitPrice(b));
     return [...byItem.values()].sort((a, b) =>
-      config.items[a.item].label.localeCompare(config.items[b.item].label, 'fr'),
+      t(config.items[a.item].label).localeCompare(t(config.items[b.item].label), language),
     );
-  }, [market.listings, config.items, search]);
+  }, [market.listings, config.items, search, language]);
 
   const opened = groups.find((group) => group.item === openItem) ?? null;
   const mine = market.listings.filter((listing) => listing.mine);
@@ -134,12 +138,12 @@ export function MarketPage() {
   return (
     <div className="market">
       {!atMarket && (
-        <p className="hint cut-s">Les échanges se font auprès du commissaire-priseur, en zone safe (repère sur la carte).</p>
+        <p className="hint cut-s">{t('Les échanges se font auprès du commissaire-priseur, en zone safe (repère sur la carte).')}</p>
       )}
 
       <div className="market-bar">
         <label className="market-bar__search">
-          <span className="disp market-bar__search-label">Rechercher</span>
+          <span className="disp market-bar__search-label">{t('Rechercher')}</span>
           <input
             className="market-bar__input"
             value={search}
@@ -147,32 +151,32 @@ export function MarketPage() {
               setSearch(event.target.value);
               setView('catalog');
             }}
-            placeholder="Nom d'un objet…"
+            placeholder={t('Nom d\'un objet…')}
           />
         </label>
         <button
           className={view === 'sell' ? 'btn btn--active market-bar__button' : 'btn btn--primary market-bar__button'}
           onClick={() => setView(view === 'sell' ? 'catalog' : 'sell')}
         >
-          Nouvelle offre
+          {t('Nouvelle offre')}
         </button>
         <button
           className={view === 'mine' ? 'btn btn--active market-bar__button' : 'btn market-bar__button'}
           onClick={() => setView(view === 'mine' ? 'catalog' : 'mine')}
         >
-          Mes offres ({mine.length}/{market.maxListings})
+          {t('Mes offres ({count}/{max})', { count: mine.length, max: market.maxListings })}
         </button>
       </div>
 
       <div className="market-balance">
-        <span className="label">Ventes à récupérer</span>
+        <span className="label">{t('Ventes à récupérer')}</span>
         <span className="mono market-balance__value">{formatMoney(market.balance)}</span>
         <button
           className="btn btn--small"
           disabled={!atMarket || market.balance <= 0}
           onClick={() => run(marketApi.collect())}
         >
-          Récupérer
+          {t('Récupérer')}
         </button>
       </div>
 
@@ -180,14 +184,14 @@ export function MarketPage() {
         <div className={opened ? 'market-catalog market-catalog--open' : 'market-catalog'}>
           <div className="market-catalog__sections">
             {groups.length === 0 && (
-              <p className="muted market__empty">{search ? 'Aucune offre pour cette recherche.' : 'Aucune offre pour le moment.'}</p>
+              <p className="muted market__empty">{search ? t('Aucune offre pour cette recherche.') : t('Aucune offre pour le moment.')}</p>
             )}
             {SECTIONS.map((section) => {
               const list = groups.filter((group) => config.items[group.item].type === section.type);
               if (list.length === 0) return null;
               return (
                 <section key={section.type} className="market-section">
-                  <h2 className="disp market-section__title">{section.label}</h2>
+                  <h2 className="disp market-section__title">{t(section.label)}</h2>
                   <div className="market-grid">
                     {list.map((group) => {
                       const item = config.items[group.item];
@@ -203,12 +207,14 @@ export function MarketPage() {
                           <span className="market-card__image">
                             <ItemIcon name={group.item} type={item.type} />
                           </span>
-                          <span className="disp market-card__name">{item.label}</span>
+                          <span className="disp market-card__name">{t(item.label)}</span>
                           <span className="market-card__type">
-                            {TYPE_LABELS[item.type] ?? item.type} · dès {formatMoney(Math.round(group.lowest))}
+                            {t(TYPE_LABELS[item.type] ?? item.type)} · {t('dès {price}', { price: formatMoney(Math.round(group.lowest)) })}
                           </span>
                           <span className="mono market-card__offers">
-                            Voir {group.offers.length} offre{group.offers.length > 1 ? 's' : ''}
+                            {group.offers.length > 1
+                              ? t('Voir {count} offres', { count: group.offers.length })
+                              : t('Voir {count} offre', { count: group.offers.length })}
                           </span>
                         </button>
                       );
@@ -222,7 +228,7 @@ export function MarketPage() {
           {opened && (
             <aside className="market-offers">
               <header className="market-offers__header">
-                <span className="disp">Offres</span>
+                <span className="disp">{t('Offres')}</span>
                 <span className="muted">{itemLabel(config, opened.item)}</span>
               </header>
               <ul className="market-offers__list">
@@ -242,14 +248,14 @@ export function MarketPage() {
                       {selected && (
                         <div className="market-offer__buy">
                           {listing.count > 1 && (
-                            <span className="mono muted">{formatMoney(Math.round(unitPrice(listing)))} / unité</span>
+                            <span className="mono muted">{t('{price} / unité', { price: formatMoney(Math.round(unitPrice(listing))) })}</span>
                           )}
                           <button
                             className="btn btn--primary btn--small"
                             disabled={!atMarket || !affordable}
                             onClick={() => buy(listing)}
                           >
-                            {affordable ? `Acheter · ${formatMoney(listing.price)}` : 'Pas assez d\'argent'}
+                            {affordable ? t('Acheter · {price}', { price: formatMoney(listing.price) }) : t('Pas assez d\'argent')}
                           </button>
                         </div>
                       )}
@@ -265,7 +271,7 @@ export function MarketPage() {
       {view === 'sell' && (
         <div className="market__sell">
           <div className="market__sellable">
-            {sellable.length === 0 && <p className="muted market__empty">Tu ne portes rien à vendre.</p>}
+            {sellable.length === 0 && <p className="muted market__empty">{t('Tu ne portes rien à vendre.')}</p>}
             {sellable.map((entry) => {
               const item = config.items[entry.item];
               const selected = choice?.item === entry.item && choice.container === entry.container;
@@ -279,10 +285,10 @@ export function MarketPage() {
                   }}
                 >
                   <ItemIcon name={entry.item} type={item.type} />
-                  <span className="market-pick__label">{item.label}</span>
+                  <span className="market-pick__label">{t(item.label)}</span>
                   <span className="mono market-pick__count">
                     x{entry.max}
-                    {entry.container === 'protected' && ' · protégé'}
+                    {entry.container === 'protected' && ` · ${t('protégé')}`}
                   </span>
                 </button>
               );
@@ -294,7 +300,7 @@ export function MarketPage() {
               <>
                 <span className="disp market-form__title">{itemLabel(config, choice.item)}</span>
                 <label className="market-form__field">
-                  <span className="label">Quantité (max {choice.max})</span>
+                  <span className="label">{t('Quantité (max {max})', { max: choice.max })}</span>
                   <input
                     className="field"
                     type="number"
@@ -305,28 +311,28 @@ export function MarketPage() {
                   />
                 </label>
                 <label className="market-form__field">
-                  <span className="label">Prix total du lot ($)</span>
+                  <span className="label">{t('Prix total du lot ($)')}</span>
                   <input
                     className="field"
                     inputMode="numeric"
                     value={price}
                     onChange={(event) => setPrice(event.target.value.replace(/\D/g, ''))}
-                    placeholder="ex : 1500"
+                    placeholder={t('ex : 1500')}
                   />
                 </label>
                 <span className="mono muted market-form__earned">
-                  TU RECEVRAS {formatMoney(earned)} (TAXE {Math.round(market.fee * 100)} %)
+                  {t('TU RECEVRAS {money} (TAXE {fee} %)', { money: formatMoney(earned), fee: Math.round(market.fee * 100) })}
                 </span>
                 <button
                   className="btn btn--primary btn--small"
                   disabled={!atMarket || totalPrice <= 0 || mine.length >= market.maxListings}
                   onClick={submitSale}
                 >
-                  Mettre en vente
+                  {t('Mettre en vente')}
                 </button>
               </>
             ) : (
-              <p className="muted">Choisis un objet porté (sac ou conteneur protégé) à mettre en vente.</p>
+              <p className="muted">{t('Choisis un objet porté (sac ou conteneur protégé) à mettre en vente.')}</p>
             )}
           </Panel>
         </div>
@@ -334,7 +340,7 @@ export function MarketPage() {
 
       {view === 'mine' && (
         <>
-          {mine.length === 0 && <p className="muted market__empty">Tu n'as aucune offre en cours.</p>}
+          {mine.length === 0 && <p className="muted market__empty">{t('Tu n\'as aucune offre en cours.')}</p>}
           {mine.map((listing) => {
             const item = config.items[listing.item];
             if (!item) return null;
@@ -345,9 +351,9 @@ export function MarketPage() {
                 </span>
                 <span className="market-row__info">
                   <span className="disp market-row__name">
-                    {item.label} <span className="mono muted">x{listing.count}</span>
+                    {t(item.label)} <span className="mono muted">x{listing.count}</span>
                   </span>
-                  <span className="muted market-row__seller">En vente</span>
+                  <span className="muted market-row__seller">{t('En vente')}</span>
                 </span>
                 <span className="mono market-row__price">{formatMoney(listing.price)}</span>
                 <button
@@ -355,7 +361,7 @@ export function MarketPage() {
                   disabled={!atMarket}
                   onClick={() => run(marketApi.cancel(listing.id))}
                 >
-                  Retirer
+                  {t('Retirer')}
                 </button>
               </Panel>
             );

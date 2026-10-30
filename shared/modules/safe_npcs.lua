@@ -2,6 +2,7 @@
 ---Utilisé par le client (interaction, menu) et par le serveur (vérification des actions).
 ---@class SafeNpcsModule
 local SafeNpcs = PVP.define('SafeNpcs')
+local Locale = PVP.use('Locale')
 
 ---@param coords vector3
 ---@param role string stash, shop, clothing, crafting, contracts
@@ -26,8 +27,8 @@ function SafeNpcs.nearRoles(coords)
 end
 
 ---@param role string
----@return string message « va voir le … »
+---@return string|table message « va voir le … » (Locale.t : chaîne côté client, message côté serveur)
 function SafeNpcs.hint(role)
     local definition = Config.SafeNpcs.roles[role]
-    return ('Va voir le %s en zone safe (repère sur la carte).'):format(definition and definition.label:lower() or role)
+    return Locale.t('Va voir le %s en zone safe (repère sur la carte).', definition and Locale.t(definition.label:lower()) or role)
 end

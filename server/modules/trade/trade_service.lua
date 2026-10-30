@@ -20,6 +20,7 @@ local Items = PVP.use('Items')
 local Utils = PVP.use('Utils')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, PvpTrade>
 TradeService.trades = {}
@@ -40,7 +41,7 @@ function TradeService.init()
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         local trade = TradeService.getTradeOf(playerSource)
-        if trade then TradeService.close(trade, 'Ton partenaire s\'est déconnecté : échange annulé.') end
+        if trade then TradeService.close(trade, Locale.t('Ton partenaire s\'est déconnecté : échange annulé.')) end
         TradeService.requests[playerSource] = nil
     end)
 
@@ -77,29 +78,29 @@ end
 
 ---@param player PvpPlayer
 ---@param you boolean message adressé à ce joueur (sinon à son partenaire)
----@return string|nil raison pour laquelle ce joueur ne peut pas échanger
+---@return table|nil raison pour laquelle ce joueur ne peut pas échanger (Locale.t)
 function TradeService.unavailable(player, you)
     if player.mode ~= 'pvp' then
-        return you and 'Échanges disponibles seulement en PvP.' or ('%s n\'est pas en PvP.'):format(player.name)
+        return you and Locale.t('Échanges disponibles seulement en PvP.') or Locale.t('%s n\'est pas en PvP.', player.name)
     end
     if player.dead then
-        return you and 'Impossible en étant mort.' or ('%s est mort.'):format(player.name)
+        return you and Locale.t('Impossible en étant mort.') or Locale.t('%s est mort.', player.name)
     end
     if CombatTagService.isTagged(player) then
-        return you and ('Impossible en combat (%d s).'):format(CombatTagService.remaining(player))
-            or ('%s est en combat.'):format(player.name)
+        return you and Locale.t('Impossible en combat (%d s).', CombatTagService.remaining(player))
+            or Locale.t('%s est en combat.', player.name)
     end
     return nil
 end
 
 ---@param player PvpPlayer
 ---@param partner PvpPlayer
----@return string|nil raison (vue par `player`) pour laquelle ils ne peuvent pas échanger
+---@return table|nil raison (vue par `player`) pour laquelle ils ne peuvent pas échanger
 function TradeService.denied(player, partner)
     local reason = TradeService.unavailable(player, true) or TradeService.unavailable(partner, false)
     if reason then return reason end
     if #(player:getCoords() - partner:getCoords()) > Config.Trade.maxDistance then
-        return ('Rapproche-toi de %s.'):format(partner.name)
+        return Locale.t('Rapproche-toi de %s.', partner.name)
     end
     return nil
 end
@@ -110,15 +111,15 @@ end
 function TradeService.validate(trade)
     local a, b = PlayerService.get(trade.players[1]), PlayerService.get(trade.players[2])
     if not a or not b then
-        TradeService.close(trade, 'Ton partenaire est parti : échange annulé.')
+        TradeService.close(trade, Locale.t('Ton partenaire est parti : échange annulé.'))
         return nil, nil
     end
     local reasonA = TradeService.denied(a, b)
     if not reasonA then return a, b end
 
     TradeService.close(trade)
-    a:notify(('Échange annulé. %s'):format(reasonA), 'error')
-    b:notify(('Échange annulé. %s'):format(TradeService.denied(b, a) or ''), 'error')
+    a:notify(Locale.t('Échange annulé. %s', reasonA), 'error')
+    b:notify(Locale.t('Échange annulé. %s', TradeService.denied(b, a) or ''), 'error')
     return nil, nil
 end
 
@@ -178,7 +179,7 @@ function TradeService.request(source, targetId)
     local player = PlayerService.get(source)
     local target = PlayerService.get(tonumber(targetId))
     if not player then return { ok = false } end
-    if not target or target == player then return { ok = false, message = 'Joueur introuvable.' } end
+    if not target or target == player then return { ok = false, message = Locale.t('Joueur introuvable.') } end
 
     local denied = TradeService.checkStart(player, target)
     if denied then return { ok = false, message = denied } end
@@ -192,12 +193,12 @@ function TradeService.request(source, targetId)
 
     local sent = TradeService.requests[target.source]
     if sent and sent.from == source and sent.expires >= os.time() then
-        return { ok = false, message = ('Demande déjà envoyée à %s.'):format(target.name) }
+        return { ok = false, message = Locale.t('Demande déjà envoyée à %s.', target.name) }
     end
 
     TradeService.requests[target.source] = { from = source, expires = os.time() + Config.Trade.requestTimeout }
     TriggerClientEvent(Events.client.tradeRequest, target.source, { from = source, fromName = player.name })
-    return { ok = true, message = ('Demande d\'échange envoyée à %s.'):format(target.name) }
+    return { ok = true, message = Locale.t('Demande d\'échange envoyée à %s.', target.name) }
 end
 
 ---@param source integer
@@ -208,15 +209,15 @@ function TradeService.respond(source, accept)
     TradeService.requests[source] = nil
     local player = PlayerService.get(source)
     if not player or not request or request.expires < os.time() then
-        return { ok = false, message = 'Aucune demande d\'échange en attente.' }
+        return { ok = false, message = Locale.t('Aucune demande d\'échange en attente.') }
     end
 
     local from = PlayerService.get(request.from)
     if accept ~= true then
-        if from then from:notify(('%s a refusé l\'échange.'):format(player.name), 'info') end
-        return { ok = true, message = 'Demande d\'échange refusée.' }
+        if from then from:notify(Locale.t('%s a refusé l\'échange.', player.name), 'info') end
+        return { ok = true, message = Locale.t('Demande d\'échange refusée.') }
     end
-    if not from then return { ok = false, message = 'Ce joueur n\'est plus là.' } end
+    if not from then return { ok = false, message = Locale.t('Ce joueur n\'est plus là.') } end
 
     local denied = TradeService.checkStart(player, from)
     if denied then return { ok = false, message = denied } end
@@ -226,11 +227,11 @@ end
 
 ---@param player PvpPlayer
 ---@param partner PvpPlayer
----@return string|nil raison pour laquelle l'échange ne peut pas commencer
+---@return table|nil raison pour laquelle l'échange ne peut pas commencer (Locale.t)
 function TradeService.checkStart(player, partner)
-    if TradeService.tradeOf[player.source] then return 'Tu es déjà en train d\'échanger.' end
+    if TradeService.tradeOf[player.source] then return Locale.t('Tu es déjà en train d\'échanger.') end
     if TradeService.tradeOf[partner.source] then
-        return ('%s est déjà en train d\'échanger.'):format(partner.name)
+        return Locale.t('%s est déjà en train d\'échanger.', partner.name)
     end
     return TradeService.denied(player, partner)
 end
@@ -242,20 +243,20 @@ end
 function TradeService.offer(source, data)
     local trade = TradeService.getTradeOf(source)
     local player = PlayerService.get(source)
-    if not trade or not player then return { ok = false, message = 'Aucun échange en cours.' } end
+    if not trade or not player then return { ok = false, message = Locale.t('Aucun échange en cours.') } end
     if type(data) ~= 'table' then return { ok = false } end
 
     local item = data.item
     local count = math.floor(tonumber(data.count) or -1)
     if not Items.exists(item) or Config.Trade.blocked[item] then
-        return { ok = false, message = 'Cet objet ne peut pas être échangé.' }
+        return { ok = false, message = Locale.t('Cet objet ne peut pas être échangé.') }
     end
     if count < 0 then return { ok = false } end
-    if count > player:getItemCount(item) then return { ok = false, message = 'Tu n\'as pas cette quantité sur toi.' } end
+    if count > player:getItemCount(item) then return { ok = false, message = Locale.t('Tu n\'as pas cette quantité sur toi.') } end
 
     local offer = trade.offers[source]
     if count > 0 and not offer[item] and TradeService.countKinds(offer) >= Config.Trade.maxItems then
-        return { ok = false, message = ('%d objets différents maximum.'):format(Config.Trade.maxItems) }
+        return { ok = false, message = Locale.t('%d objets différents maximum.', Config.Trade.maxItems) }
     end
     if (offer[item] or 0) == count then return { ok = true } end
 
@@ -272,11 +273,11 @@ end
 ---@return { ok: boolean, message?: string }
 function TradeService.setReady(source, ready)
     local trade = TradeService.getTradeOf(source)
-    if not trade then return { ok = false, message = 'Aucun échange en cours.' } end
+    if not trade then return { ok = false, message = Locale.t('Aucun échange en cours.') } end
 
     ready = ready == true
     if ready and next(trade.offers[trade.players[1]]) == nil and next(trade.offers[trade.players[2]]) == nil then
-        return { ok = false, message = 'Propose au moins un objet.' }
+        return { ok = false, message = Locale.t('Propose au moins un objet.') }
     end
     trade.ready[source] = ready or nil
     trade.confirmed = {}
@@ -288,9 +289,9 @@ end
 ---@return { ok: boolean, message?: string }
 function TradeService.confirm(source)
     local trade = TradeService.getTradeOf(source)
-    if not trade then return { ok = false, message = 'Aucun échange en cours.' } end
+    if not trade then return { ok = false, message = Locale.t('Aucun échange en cours.') } end
     if not trade.ready[trade.players[1]] or not trade.ready[trade.players[2]] then
-        return { ok = false, message = 'Les deux joueurs doivent être prêts.' }
+        return { ok = false, message = Locale.t('Les deux joueurs doivent être prêts.') }
     end
 
     trade.confirmed[source] = true
@@ -306,9 +307,9 @@ end
 function TradeService.cancelCallback(source)
     local trade = TradeService.getTradeOf(source)
     local player = PlayerService.get(source)
-    if not trade or not player then return { ok = false, message = 'Aucun échange en cours.' } end
-    TradeService.close(trade, ('%s a annulé l\'échange.'):format(player.name), source)
-    return { ok = true, message = 'Échange annulé.' }
+    if not trade or not player then return { ok = false, message = Locale.t('Aucun échange en cours.') } end
+    TradeService.close(trade, Locale.t('%s a annulé l\'échange.', player.name), source)
+    return { ok = true, message = Locale.t('Échange annulé.') }
 end
 
 -- ---------------------------------------------------------------------------
@@ -334,7 +335,7 @@ end
 
 ---Termine l'échange (réussi ou annulé) et ferme la fenêtre des deux joueurs.
 ---@param trade PvpTrade
----@param reason? string notification envoyée (en erreur) aux joueurs
+---@param reason? table notification (Locale.t) envoyée (en erreur) aux joueurs
 ---@param except? integer joueur qui ne reçoit pas la notification
 function TradeService.close(trade, reason, except)
     TradeService.trades[trade.id] = nil
@@ -371,8 +372,8 @@ function TradeService.complete(trade)
     -- Sauvegardés tout de suite : un arrêt du serveur ne peut pas faire perdre l'échange à un seul des deux
     PlayerRepository.save(a)
     PlayerRepository.save(b)
-    a:notify(('Échange terminé avec %s.'):format(b.name), 'success')
-    b:notify(('Échange terminé avec %s.'):format(a.name), 'success')
+    a:notify(Locale.t('Échange terminé avec %s.', b.name), 'success')
+    b:notify(Locale.t('Échange terminé avec %s.', a.name), 'success')
     Logger.info('[échange] %s donne [%s] à %s contre [%s]', a.name, Items.describe(offerA), b.name, Items.describe(offerB))
     return { ok = true }
 end
@@ -383,12 +384,12 @@ end
 ---@param b PvpPlayer
 ---@param offerA table<string, integer>
 ---@param offerB table<string, integer>
----@return boolean ok, string|nil raison de l'échec
+---@return boolean ok, table|nil raison de l'échec (Locale.t)
 function TradeService.transfer(a, b, offerA, offerB)
     for _, side in ipairs({ { a, offerA }, { b, offerB } }) do
         for name, count in pairs(side[2]) do
             if side[1]:getItemCount(name) < count then
-                return false, ('%s n\'a plus tout ce qu\'il propose.'):format(side[1].name)
+                return false, Locale.t('%s n\'a plus tout ce qu\'il propose.', side[1].name)
             end
         end
     end
@@ -404,7 +405,7 @@ function TradeService.transfer(a, b, offerA, offerB)
 
     TradeService.restore(a.inventory, backupA)
     TradeService.restore(b.inventory, backupB)
-    return false, ('Pas assez de place dans le sac de %s.'):format(full.name)
+    return false, Locale.t('Pas assez de place dans le sac de %s.', full.name)
 end
 
 ---Retire l'offre de l'inventaire. Les accessoires d'une arme donnée restent à son ancien

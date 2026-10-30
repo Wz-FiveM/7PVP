@@ -34,6 +34,7 @@ local ContractService = PVP.use('ContractService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, LootBag>
 LootService.bags = {}
@@ -258,16 +259,17 @@ function LootService.pickup(source, id)
     end
 
     if next(taken) == nil then
-        return player:notify('Ton sac est plein.', 'error')
+        return player:notify(Locale.t('Ton sac est plein.'), 'error')
     end
     LootService.trackLooting(player, bag)
 
     if next(bag.items) == nil then
         LootService.remove(id)
-        player:notify('Butin : ' .. Items.describe(taken), 'success')
+        player:notify(Locale.t('Butin : %s', Items.describeText(taken)), 'success')
     else
-        local where = bag.netId and 'sur le corps' or 'au sol'
-        player:notify(('Butin : %s (sac plein, il reste des objets %s)'):format(Items.describe(taken), where), 'info')
+        local message = bag.netId and Locale.t('Butin : %s (sac plein, il reste des objets sur le corps)', Items.describeText(taken))
+            or Locale.t('Butin : %s (sac plein, il reste des objets au sol)', Items.describeText(taken))
+        player:notify(message, 'info')
     end
     player:sync()
 end
@@ -285,15 +287,15 @@ function LootService.open(source, id)
     local player = PlayerService.get(source)
     local bag = id and LootService.bags[id]
     if not player or player.dead or not bag or not bag.browse then
-        return { ok = false, message = 'Ce butin n\'existe plus.' }
+        return { ok = false, message = Locale.t('Ce butin n\'existe plus.') }
     end
     if not LootService.canReach(player, bag) then
-        return { ok = false, message = 'Approche-toi pour fouiller.' }
+        return { ok = false, message = Locale.t('Approche-toi pour fouiller.') }
     end
 
     LootService.viewers[id] = LootService.viewers[id] or {}
     LootService.viewers[id][source] = true
-    return { ok = true, id = id, label = bag.title or 'Butin', items = bag.items }
+    return { ok = true, id = id, label = bag.title or Locale.t('Butin'), items = bag.items }
 end
 
 ---Prend `count` objets du butin et les range dans le sac ou le conteneur protégé (selon la place).
@@ -308,18 +310,18 @@ function LootService.take(source, id, name, count, to)
     local player = PlayerService.get(source)
     local bag = id and LootService.bags[id]
     if not player or player.dead or not bag or not bag.browse then
-        return { ok = false, message = 'Ce butin n\'existe plus.' }
+        return { ok = false, message = Locale.t('Ce butin n\'existe plus.') }
     end
     if not LootService.TAKE_CONTAINERS[to] or type(name) ~= 'string' or count <= 0 then return { ok = false } end
     if not LootService.canReach(player, bag) then
-        return { ok = false, message = 'Tu es trop loin du butin.' }
+        return { ok = false, message = Locale.t('Tu es trop loin du butin.') }
     end
     local available = bag.items[name]
-    if not available then return { ok = false, message = 'Quelqu\'un l\'a déjà pris.' } end
+    if not available then return { ok = false, message = Locale.t('Quelqu\'un l\'a déjà pris.') } end
 
     local added = player:giveItem(name, math.min(count, available), to)
     if added <= 0 then
-        return { ok = false, message = ('Pas assez de place : %s'):format(Config.Containers[to].label) }
+        return { ok = false, message = Locale.t('Pas assez de place : %s', Locale.t(Config.Containers[to].label)) }
     end
     bag.items[name] = available > added and available - added or nil
     LootService.trackLooting(player, bag)

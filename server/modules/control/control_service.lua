@@ -15,6 +15,7 @@ local PlayerService = PVP.use('PlayerService')
 local GroupService = PVP.use('GroupService')
 local ChatService = PVP.use('ChatService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ControlService.TICK = 1000
 
@@ -53,12 +54,12 @@ end
 
 ---@param team string
 ---@param player PvpPlayer un joueur du camp
----@return string
+---@return string|table nom du joueur, ou message à traduire (Locale.t) pour un groupe
 function ControlService.teamLabel(team, player)
     local group = GroupService.getGroupOf(player.source)
     if team:sub(1, 2) == 'g:' and group then
         local leader = PlayerService.get(group.leader)
-        return ('Groupe de %s'):format(leader and leader.name or player.name)
+        return Locale.t('Groupe de %s', leader and leader.name or player.name)
     end
     return player.name
 end
@@ -124,7 +125,7 @@ function ControlService.advance(zone, team, member)
         zone.capturer = nil
         zone.progress = 0
         zone.paidAt = GetGameTimer()
-        ChatService.announce('pvp', ('%s a pris le contrôle de : %s'):format(zone.ownerLabel, zone.def.label))
+        ChatService.announce('pvp', Locale.t('%s a pris le contrôle de : %s', zone.ownerLabel, Locale.t(zone.def.label)))
     end
 end
 
@@ -136,7 +137,7 @@ function ControlService.payIncome(zone)
     for _, player in pairs(PlayerService.all()) do
         if player.mode == 'pvp' and ControlService.teamOf(player) == zone.owner then
             player:addMoney(zone.def.income)
-            player:notify(('%s : +$%d'):format(zone.def.label, zone.def.income), 'success')
+            player:notify(Locale.t('%s : +$%d', Locale.t(zone.def.label), zone.def.income), 'success')
             player:sync()
         end
     end

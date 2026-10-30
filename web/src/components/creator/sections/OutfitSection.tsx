@@ -1,8 +1,10 @@
+import { useT } from '../../../i18n';
 import { useCreator } from '../../../store/CreatorProvider';
 import type { DrawableValue } from '../../../types/appearance';
 import { DrawableControl } from '../controls/DrawableControl';
 
 export function OutfitSection() {
+  const t = useT();
   const { state, actions } = useCreator();
   if (!state) return null;
   const { appearance, schema, limits } = state;
@@ -17,17 +19,17 @@ export function OutfitSection() {
       {schema.components.map((entry) => (
         <DrawableControl
           key={entry.key}
-          label={entry.label}
+          label={t(entry.label)}
           value={appearance.components[entry.key]}
           limit={limits.components[entry.key] ?? { drawables: 0, textures: 0 }}
           onChange={(value) => setComponent(entry.key, value)}
         />
       ))}
-      <span className="ctl__note muted">Ajuste « Bras » si le haut laisse voir les bras ou les coupe.</span>
+      <span className="ctl__note muted">{t('Ajuste « Bras » si le haut laisse voir les bras ou les coupe.')}</span>
       {schema.props.map((entry) => (
         <DrawableControl
           key={entry.key}
-          label={entry.label}
+          label={t(entry.label)}
           value={appearance.props[entry.key]}
           limit={limits.props[entry.key] ?? { drawables: 0, textures: 0 }}
           allowNone

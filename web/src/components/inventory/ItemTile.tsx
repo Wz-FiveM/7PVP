@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react';
+import { useT } from '../../i18n';
 import type { ItemDefinition } from '../../types/game';
 import { Brackets } from '../ui/Brackets';
 import { ItemIcon } from './ItemIcon';
@@ -25,6 +26,7 @@ export function ItemTile({
   name, item, corner, selected, protectedItem, dragging, disabled,
   onClick, onDoubleClick, onContextMenu, onDragBegin,
 }: ItemTileProps) {
+  const t = useT();
   const handleContextMenu = (event: MouseEvent) => {
     event.preventDefault();
     onContextMenu?.(event);
@@ -46,11 +48,11 @@ export function ItemTile({
       onClick={disabled ? undefined : onClick}
       onDoubleClick={disabled ? undefined : onDoubleClick}
       onContextMenu={handleContextMenu}
-      title={item.label}
+      title={t(item.label)}
     >
       <div className={classes}>
         <ItemIcon name={name} type={item.type} />
-        <span className="tile__label">{item.label}</span>
+        <span className="tile__label">{t(item.label)}</span>
         {corner && <span className="tile__corner mono">{corner}</span>}
       </div>
       {selected && !dragging && <Brackets />}

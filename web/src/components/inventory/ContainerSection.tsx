@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react';
+import { formatNumber, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { ContainerId, ItemStack, ItemStacks } from '../../types/game';
 import { entriesOf, fittedAttachments, isStash, stacksOf, weightOf } from '../../utils/inventory';
@@ -36,13 +37,14 @@ const STYLES: Record<'bag' | 'protected' | 'stash', { note: string; outline: boo
 
 /** Quantité (ou montant) et nombre d'accessoires fixés sur une arme. */
 function cornerText(stack: ItemStack, attachments: number): string {
-  if (stack.item.type === 'money') return `${stack.count.toLocaleString('fr-FR')}`;
+  if (stack.item.type === 'money') return formatNumber(stack.count);
   return attachments > 0 ? `x${stack.count} +${attachments}` : `x${stack.count}`;
 }
 
 export function ContainerSection({
   id, stacks, selection, locked, onSelect, onItemContextMenu, onItemDoubleClick, onItemQuickMove,
 }: ContainerSectionProps) {
+  const t = useT();
   const { state } = useGame();
   const { drag, begin } = useDrag();
   const { config } = state;
@@ -58,12 +60,12 @@ export function ContainerSection({
   return (
     <section className={`container container--${kind}${locked ? ' container--locked' : ''}`}>
       <SectionTitle
-        title={definition.label}
+        title={t(definition.label)}
         icon={keepsItems ? <Icon name="lock" size={15} strokeWidth={2.4} className={`${kind}-icon`} /> : undefined}
         badge={
           style.outline
-            ? <span className="chip chip--outline">{style.note}</span>
-            : <span className="muted container__note">{style.note}</span>
+            ? <span className="chip chip--outline">{t(style.note)}</span>
+            : <span className="muted container__note">{t(style.note)}</span>
         }
         aside={`${weight.toFixed(1)}KG / ${definition.capacity.toFixed(0)}KG`}
       />
@@ -77,7 +79,7 @@ export function ContainerSection({
       />
       {locked ? (
         <p className="mono container__locked">
-          {entriesOf(stacks).length} OBJET(S) EN SÉCURITÉ · VA VOIR LE BANQUIER EN ZONE SAFE POUR OUVRIR LE COFFRE
+          {t('{count} OBJET(S) EN SÉCURITÉ · VA VOIR LE BANQUIER EN ZONE SAFE POUR OUVRIR LE COFFRE', { count: entriesOf(stacks).length })}
         </p>
       ) : (
         <DropZone target={{ kind: 'container', container: id }} className="tile-grid container__grid">

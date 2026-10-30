@@ -18,6 +18,7 @@ local CvcService = PVP.use('CvcService')
 local GunfightService = PVP.use('GunfightService')
 local GungameService = PVP.use('GungameService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Position du joueur regardé renvoyée à l'admin à ce rythme (ms) : tant que son personnage
 -- n'est pas chargé chez l'admin, c'est elle qui rapproche l'admin de lui
@@ -60,11 +61,11 @@ function SpectateService.inActivity(source)
 end
 
 ---@param source integer
----@return string|nil situation du joueur (course, CVC), nil en jeu libre
+---@return string|table|nil situation du joueur (course, CVC), message à traduire (Locale.t), nil en jeu libre
 function SpectateService.describe(source)
     local chase = ChaseService.describePlayer(source)
     if chase then return chase end
-    if CvcService.playerMatch[source] then return 'Partie de CVC' end
+    if CvcService.playerMatch[source] then return Locale.t('Partie de CVC') end
     local duel = GunfightService.describePlayer(source)
     if duel then return duel end
     return GungameService.describePlayer(source)
@@ -75,22 +76,22 @@ end
 ---@param target PvpPlayer
 ---@return boolean, string
 function SpectateService.start(source, target)
-    if target.source == source then return false, 'Tu ne peux pas te regarder toi-même.' end
+    if target.source == source then return false, Locale.t('Tu ne peux pas te regarder toi-même.') end
     local admin = PlayerService.get(source)
     if not admin or not admin.mode or admin.mode ~= target.mode then
-        return false, 'Ce joueur est dans un autre mode.'
+        return false, Locale.t('Ce joueur est dans un autre mode.')
     end
 
     local watch = SpectateService.watching[source]
     if not watch then
-        if admin.dead then return false, 'Tu es mort.' end
-        if SpectateService.inActivity(source) then return false, 'Quitte d\'abord ta partie ou ta file d\'attente.' end
+        if admin.dead then return false, Locale.t('Tu es mort.') end
+        if SpectateService.inActivity(source) then return false, Locale.t('Quitte d\'abord ta partie ou ta file d\'attente.') end
         watch = { mode = admin.mode }
         SpectateService.watching[source] = watch
     end
     watch.target = target.source
     SpectateService.follow(source, watch)
-    return true, ('Tu regardes %s.'):format(target.name)
+    return true, Locale.t('Tu regardes %s.', target.name)
 end
 
 ---Place l'admin dans le bucket du joueur regardé et lui envoie où il en est.
@@ -116,14 +117,14 @@ end
 ---@return boolean, string
 function SpectateService.stop(source)
     local watch = SpectateService.watching[source]
-    if not watch then return false, 'Tu ne regardes personne.' end
+    if not watch then return false, Locale.t('Tu ne regardes personne.') end
     SpectateService.watching[source] = nil
 
     local admin = PlayerService.get(source)
     local config = admin and admin.mode == watch.mode and ModeRegistry.getConfig(watch.mode)
     if config then SetPlayerRoutingBucket(source, config.bucket) end
     TriggerClientEvent(Events.client.spectate, source, false)
-    return true, 'Mode spectateur arrêté.'
+    return true, Locale.t('Mode spectateur arrêté.')
 end
 
 ---Flèches du spectateur : joueur suivant ou précédent au même endroit (même bucket et même mode),
@@ -142,7 +143,7 @@ function SpectateService.next(source, direction)
     end
     table.sort(candidates)
     if #candidates < 2 then
-        return TriggerClientEvent(Events.client.notify, source, 'Personne d\'autre à regarder ici.', 'info')
+        return TriggerClientEvent(Events.client.notify, source, Locale.t('Personne d\'autre à regarder ici.'), 'info')
     end
 
     local index = 1
@@ -167,7 +168,7 @@ function SpectateService.watchLoop()
                 TriggerClientEvent(Events.client.spectate, source, false)
             elseif not target or target.mode ~= watch.mode then
                 SpectateService.stop(source)
-                admin:notify('Le joueur que tu regardais a quitté le mode.', 'info')
+                admin:notify(Locale.t('Le joueur que tu regardais a quitté le mode.'), 'info')
             else
                 SpectateService.follow(source, watch)
             end

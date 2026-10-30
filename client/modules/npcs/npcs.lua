@@ -15,6 +15,7 @@ local Activities = PVP.use('Activities')
 local FreeroamPositions = PVP.use('FreeroamPositions')
 local ActivityBoards = PVP.use('ActivityBoards')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Npcs.CONTROL_TALK = 38 -- E
 Npcs.LABEL_DISTANCE = 12.0
@@ -34,6 +35,10 @@ function Npcs.init()
     RegisterNetEvent(Events.client.freeroamSettings, function(name, places)
         if name == 'places' and type(places) == 'table' then Npcs.applyPlaces(places) end
     end)
+    -- Repères refaits dans la nouvelle langue au prochain passage de Npcs.loop
+    AddEventHandler(Events.internal.languageChanged, function()
+        Npcs.blipMode = false
+    end)
     CreateThread(Npcs.loop)
 end
 
@@ -49,16 +54,18 @@ function Npcs.applyPlaces(places)
     ActivityBoards.relocate()
 end
 
----Nom, action, icône et repère d'un PNJ (ceux d'un organisateur viennent de son mode de jeu).
+---Nom, action, icône et repère d'un PNJ, textes traduits (ceux d'un organisateur viennent de son mode de jeu).
 ---@param npc table
 ---@return { label: string, action: string, icon: string, blip: table }
 function Npcs.describe(npc)
     local role = Config.SafeNpcs.roles[npc.role]
     local activity = npc.activity and Config.FreeroamActivities[npc.activity]
-    if not activity then return role end
+    if not activity then
+        return { label = Locale.t(role.label), action = Locale.t(role.action), icon = role.icon, blip = role.blip }
+    end
     return {
-        label = activity.label,
-        action = activity.enabled and 'Lancer le mode' or 'Bientôt disponible',
+        label = Locale.t(activity.label),
+        action = activity.enabled and Locale.t('Lancer le mode') or Locale.t('Bientôt disponible'),
         icon = activity.icon or role.icon,
         blip = activity.blip or role.blip,
     }

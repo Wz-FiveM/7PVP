@@ -6,6 +6,7 @@ local State = PVP.use('State')
 local Group = PVP.use('Group')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Control.DRAW_DISTANCE = 150.0
 
@@ -54,8 +55,9 @@ function Control.refreshBlips()
         local color = Control.colorOf(zone)
         SetBlipColour(blips.area, color)
         SetBlipColour(blips.icon, color)
+        local label = Locale.t(zone.label)
         BeginTextCommandSetBlipName('STRING')
-        AddTextComponentSubstringPlayerName(zone.ownerLabel and ('%s (%s)'):format(zone.label, zone.ownerLabel) or zone.label)
+        AddTextComponentSubstringPlayerName(zone.ownerLabel and ('%s (%s)'):format(label, Locale.resolve(zone.ownerLabel)) or label)
         EndTextCommandSetBlipName(blips.icon)
     end
 end

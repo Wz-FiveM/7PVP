@@ -8,6 +8,7 @@ import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
 import { StashPurchase, StashTabs } from '../components/inventory/StashTabs';
 import { TradeSection } from '../components/inventory/TradeSection';
+import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack, StashId } from '../types/game';
 import {
@@ -42,6 +43,7 @@ interface OpenContextMenu {
 const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = { move: 'Déplacer', drop: 'Jeter', take: 'Prendre', offer: 'Proposer' };
 
 export function InventoryPage() {
+  const t = useT();
   const { state, actions } = useGame();
   const { player, config } = state;
   const [selection, setSelection] = useState<Selection | null>(null);
@@ -83,7 +85,7 @@ export function InventoryPage() {
     const free = bag.capacity - weightOf(player.inventory.bag ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
     const count = Math.min(stack.count, fit);
-    if (count <= 0) return actions.notify(`Pas assez de place : ${bag.label}`, 'error');
+    if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t(bag.label) }), 'error');
     actions.lootTake(stack.name, count, 'bag');
   };
 
@@ -107,7 +109,7 @@ export function InventoryPage() {
   const requestOffer = (item: string) => {
     const offered = offeredOf(item);
     const available = carriedOf(item) - offered;
-    if (available <= 0) return actions.notify('Tu proposes déjà tout ce que tu portes.', 'error');
+    if (available <= 0) return actions.notify(t('Tu proposes déjà tout ce que tu portes.'), 'error');
     if (available === 1) actions.tradeOffer(item, offered + 1);
     else setQuantity({ mode: 'offer', item, container: 'bag', max: available, base: offered });
   };
@@ -179,39 +181,39 @@ export function InventoryPage() {
     if (container === 'trade') {
       return [
         {
-          label: 'Changer la quantité',
+          label: t('Changer la quantité'),
           onSelect: () => setQuantity({ mode: 'offer', item: stack.name, container: 'bag', max: carriedOf(stack.name), base: 0 }),
         },
-        { label: 'Retirer de l\'échange', danger: true, onSelect: () => actions.tradeOffer(stack.name, 0) },
+        { label: t('Retirer de l\'échange'), danger: true, onSelect: () => actions.tradeOffer(stack.name, 0) },
       ];
     }
     if (container === 'loot') {
       return [
-        { label: 'Prendre : vers le sac', onSelect: () => requestTake(stack.name, stack.count, 'bag') },
-        { label: 'Prendre : vers le conteneur protégé', onSelect: () => requestTake(stack.name, stack.count, 'protected') },
+        { label: t('Prendre : vers le sac'), onSelect: () => requestTake(stack.name, stack.count, 'bag') },
+        { label: t('Prendre : vers le conteneur protégé'), onSelect: () => requestTake(stack.name, stack.count, 'protected') },
       ];
     }
     const list: ContextMenuAction[] = [];
     // Le contenu du coffre n'est pas porté : on le sort d'abord
     const carried = !isStash(container);
-    if (trade && carried) list.push({ label: 'Proposer à l\'échange', onSelect: () => requestOffer(stack.name) });
+    if (trade && carried) list.push({ label: t('Proposer à l\'échange'), onSelect: () => requestOffer(stack.name) });
     if (carried && stack.item.type === 'weapon') {
-      list.push({ label: 'Équiper', onSelect: () => actions.equip(stack.name) });
+      list.push({ label: t('Équiper'), onSelect: () => actions.equip(stack.name) });
       list.push(...attachmentActions(stack.name));
     }
     if (carried && stack.item.type === 'consumable') {
-      list.push({ label: 'Utiliser', onSelect: () => actions.consumeItem(stack.name) });
+      list.push({ label: t('Utiliser'), onSelect: () => actions.consumeItem(stack.name) });
     }
     if (carried && stack.item.type === 'vehicle') {
-      list.push({ label: 'Sortir le véhicule', onSelect: () => actions.consumeItem(stack.name) });
+      list.push({ label: t('Sortir le véhicule'), onSelect: () => actions.consumeItem(stack.name) });
     }
     if (carried && stack.item.type === 'case') {
-      list.push({ label: 'Ouvrir la caisse', onSelect: () => actions.openCase(stack.name) });
+      list.push({ label: t('Ouvrir la caisse'), onSelect: () => actions.openCase(stack.name) });
     }
     for (const to of moveTargets(container, openStash)) {
       list.push({ label: moveLabel(to, config), onSelect: () => requestMove(stack.name, container, to, stack.count) });
     }
-    list.push({ label: 'Jeter', danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
+    list.push({ label: t('Jeter'), danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
     return list;
   };
 
@@ -224,10 +226,10 @@ export function InventoryPage() {
     return compatibleAttachments(config, weapon).flatMap((attachment): ContextMenuAction[] => {
       const label = itemLabel(config, attachment);
       if (fitted.includes(attachment)) {
-        return [{ label: `Retirer : ${label}`, onSelect: () => actions.attachment(weapon, attachment, false) }];
+        return [{ label: t('Retirer : {item}', { item: label }), onSelect: () => actions.attachment(weapon, attachment, false) }];
       }
       if (carried.has(attachment)) {
-        return [{ label: `Fixer : ${label}`, onSelect: () => actions.attachment(weapon, attachment, true) }];
+        return [{ label: t('Fixer : {item}', { item: label }), onSelect: () => actions.attachment(weapon, attachment, true) }];
       }
       return [];
     });
@@ -242,12 +244,12 @@ export function InventoryPage() {
     // Échange en cours : toute la pile part dans son offre
     if (trade && !isStash(from)) return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
     const to: ContainerId | null = isStash(from) ? 'bag' : atBanker ? openStash : from === 'bag' ? 'protected' : 'bag';
-    if (!to) return actions.notify(`${config.containers[activeStash]?.label ?? 'Coffre'} : achète-le d'abord.`, 'error');
+    if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t(config.containers[activeStash]?.label ?? 'Coffre') }), 'error');
     const target = config.containers[to];
     const free = target.capacity - weightOf(player.inventory[to] ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
     const count = Math.min(stack.count, fit);
-    if (count <= 0) return actions.notify(`Pas assez de place : ${target.label}`, 'error');
+    if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t(target.label) }), 'error');
     actions.moveItem(stack.name, from, to, count);
   };
 
@@ -329,8 +331,11 @@ export function InventoryPage() {
         <ShortcutBar />
 
         <p className="mono inventory__help">
-          [GLISSER] {trade ? 'PROPOSER / DÉPLACER' : 'DÉPLACER'} · [ALT + CLIC] VERS {trade ? 'L\'ÉCHANGE' : loot ? 'TON SAC' : atBanker ? 'LE COFFRE / LE SAC' : 'L\'AUTRE CONTENEUR'} · [DOUBLE-CLIC]
-          UTILISER / ÉQUIPER · [CLIC DROIT] ACTIONS · RACCOURCI LÂCHÉ HORS DE LA BARRE = RETIRÉ
+          {t('[GLISSER] {action}', { action: trade ? t('PROPOSER / DÉPLACER') : t('DÉPLACER') })} ·{' '}
+          {t('[ALT + CLIC] VERS {target}', {
+            target: trade ? t('L\'ÉCHANGE') : loot ? t('TON SAC') : atBanker ? t('LE COFFRE / LE SAC') : t('L\'AUTRE CONTENEUR'),
+          })}{' '}
+          · {t('[DOUBLE-CLIC] UTILISER / ÉQUIPER')} · {t('[CLIC DROIT] ACTIONS')} · {t('RACCOURCI LÂCHÉ HORS DE LA BARRE = RETIRÉ')}
         </p>
 
         {contextMenu && (
@@ -344,9 +349,9 @@ export function InventoryPage() {
 
         {quantity && (
           <QuantityModal
-            title={`${QUANTITY_LABELS[quantity.mode]} : ${itemLabel(config, quantity.item)}`}
+            title={`${t(QUANTITY_LABELS[quantity.mode])} : ${itemLabel(config, quantity.item)}`}
             max={quantity.max}
-            confirmLabel={QUANTITY_LABELS[quantity.mode]}
+            confirmLabel={t(QUANTITY_LABELS[quantity.mode])}
             onConfirm={handleQuantityConfirm}
             onCancel={closeQuantity}
           />

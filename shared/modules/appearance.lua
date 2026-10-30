@@ -14,6 +14,7 @@
 ---}
 ---@class AppearanceSchemaModule
 local AppearanceSchema = PVP.define('AppearanceSchema')
+local Locale = PVP.use('Locale')
 
 AppearanceSchema.MODELS = { male = 'mp_m_freemode_01', female = 'mp_f_freemode_01' }
 
@@ -190,18 +191,22 @@ end
 function AppearanceSchema.describeList(list)
     local out = {}
     for i, entry in ipairs(list) do
-        out[i] = { key = entry.key, label = entry.label, color = entry.color }
+        out[i] = { key = entry.key, label = Locale.t(entry.label), color = entry.color }
     end
     return out
 end
 
----Libellés et listes envoyés à l'interface du créateur.
+---Libellés (traduits) et listes envoyés à l'interface du créateur.
 ---@return table
 function AppearanceSchema.describe()
+    local features = {}
+    for i, label in ipairs(AppearanceSchema.FEATURES) do
+        features[i] = Locale.t(label)
+    end
     return {
         mothers = AppearanceSchema.MOTHERS,
         fathers = AppearanceSchema.FATHERS,
-        features = AppearanceSchema.FEATURES,
+        features = features,
         overlays = AppearanceSchema.describeList(AppearanceSchema.OVERLAYS),
         components = AppearanceSchema.describeList(AppearanceSchema.COMPONENTS),
         props = AppearanceSchema.describeList(AppearanceSchema.PROPS),

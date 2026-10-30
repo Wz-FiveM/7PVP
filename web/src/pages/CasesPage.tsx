@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { Icon } from '../components/icons/Icon';
 import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
+import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import { formatChance, rarityOf, rewardCountLabel, sortedRewards, totalWeight } from '../utils/cases';
 import { entriesOf, itemLabel, stashIds } from '../utils/inventory';
@@ -12,6 +13,7 @@ import './pages.css';
 
 /** Caisses : achat chez l'armurier, ouverture n'importe où hors combat, contenu et chances affichés. */
 export function CasesPage() {
+  const t = useT();
   const { state, actions } = useGame();
   const { config, player, menu } = state;
   if (!player) return null;
@@ -26,22 +28,24 @@ export function CasesPage() {
 
   const points = config.shopPoints;
   const balance = player.shopPoints ?? 0;
+  const pointsName = t(points?.label ?? 'points boutique').toLowerCase();
+  const pointsShort = points?.short ? t(points.short) : undefined;
 
   return (
     <>
       <div className="cases__bar">
         <p className="hint cut-s">
           {menu.near.shop
-            ? 'Les caisses achetées vont dans le sac : perdues à la mort tant qu\'elles ne sont pas ouvertes ou protégées.'
-            : 'Achat auprès de l\'armurier, en zone safe. Les caisses s\'ouvrent partout, hors combat.'}
-          {' '}Payée en {(points?.label ?? 'points boutique').toLowerCase()}, une caisse s'ouvre aussitôt, partout.
+            ? t('Les caisses achetées vont dans le sac : perdues à la mort tant qu\'elles ne sont pas ouvertes ou protégées.')
+            : t('Achat auprès de l\'armurier, en zone safe. Les caisses s\'ouvrent partout, hors combat.')}
+          {' '}{t('Payée en {points}, une caisse s\'ouvre aussitôt, partout.', { points: pointsName })}
         </p>
         <span className="cases__points">
           <Icon name="gem" size={18} strokeWidth={2} />
-          <span className="mono">{formatPoints(balance, points?.short)}</span>
+          <span className="mono">{formatPoints(balance, pointsShort)}</span>
           {points?.storeUrl && (
             <button className="btn btn--small cut-s" onClick={actions.openStore}>
-              Boutique
+              {t('Boutique')}
             </button>
           )}
         </span>
@@ -60,8 +64,8 @@ export function CasesPage() {
                   <ItemIcon name={definition.id} type={item?.type ?? 'case'} />
                 </span>
                 <span className="case-card__title">
-                  <span className="disp case-card__name">{definition.label}</span>
-                  {definition.description && <span className="muted case-card__description">{definition.description}</span>}
+                  <span className="disp case-card__name">{t(definition.label)}</span>
+                  {definition.description && <span className="muted case-card__description">{t(definition.description)}</span>}
                 </span>
               </div>
 
@@ -70,9 +74,9 @@ export function CasesPage() {
                   const rarity = rarityOf(config, reward.rarity);
                   return (
                     <li key={i} className="case-card__reward" style={{ '--rarity': rarity.color } as CSSProperties}>
-                      <span className="case-card__rarity" title={rarity.label} />
+                      <span className="case-card__rarity" title={t(rarity.label)} />
                       <span className="case-card__reward-name">
-                        {reward.item === 'money' ? 'Argent' : itemLabel(config, reward.item)}
+                        {reward.item === 'money' ? t('Argent') : itemLabel(config, reward.item)}
                         <span className="mono muted"> {rewardCountLabel(reward)}</span>
                       </span>
                       <span className="mono case-card__chance">{formatChance((reward.weight / total) * 100)}</span>
@@ -83,7 +87,7 @@ export function CasesPage() {
 
               <div className="case-card__footer">
                 <span className="mono muted case-card__owned">
-                  PORTÉES {owned}{inStash > 0 ? ` · COFFRE ${inStash}` : ''}
+                  {t('PORTÉES {count}', { count: owned })}{inStash > 0 ? ` · ${t('COFFRE {count}', { count: inStash })}` : ''}
                 </span>
                 {definition.price !== undefined ? (
                   <button
@@ -91,20 +95,20 @@ export function CasesPage() {
                     disabled={locked || !menu.near.shop || player.money < definition.price}
                     onClick={() => actions.buyCase(definition.id)}
                   >
-                    {locked ? `Niv. ${definition.level}` : formatMoney(definition.price)}
+                    {locked ? t('Niv. {level}', { level: definition.level ?? 1 }) : formatMoney(definition.price)}
                   </button>
                 ) : (
-                  <span className="chip chip--outline">Butin uniquement</span>
+                  <span className="chip chip--outline">{t('Butin uniquement')}</span>
                 )}
                 {definition.points !== undefined && (
                   <button
                     className="btn btn--small cut-s case-card__points"
-                    title={`Acheter et ouvrir avec des ${(points?.label ?? 'points boutique').toLowerCase()}`}
+                    title={t('Acheter et ouvrir avec des {points}', { points: pointsName })}
                     disabled={locked || balance < definition.points || state.caseSpin !== null}
                     onClick={() => actions.openCase(definition.id, true)}
                   >
                     <Icon name="gem" size={14} strokeWidth={2} />
-                    {formatPoints(definition.points, points?.short)}
+                    {formatPoints(definition.points, pointsShort)}
                   </button>
                 )}
                 <button
@@ -112,7 +116,7 @@ export function CasesPage() {
                   disabled={owned <= 0 || state.caseSpin !== null}
                   onClick={() => actions.openCase(definition.id)}
                 >
-                  Ouvrir
+                  {t('Ouvrir')}
                 </button>
               </div>
             </Panel>

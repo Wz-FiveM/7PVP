@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react';
+import { formatNumber, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { ItemStack, LootContainer } from '../../types/game';
 import { stacksOf } from '../../utils/inventory';
@@ -19,6 +20,7 @@ interface LootSectionProps {
 
 /** Contenu d'un butin ouvert (largage, butin d'un joueur) : on glisse les objets vers son sac ou son conteneur protégé. */
 export function LootSection({ loot, selected, onSelect, onQuickTake, onTakeAll, onItemContextMenu }: LootSectionProps) {
+  const t = useT();
   const { state } = useGame();
   const { drag, begin } = useDrag();
   const stacks = stacksOf(loot.items, state.config);
@@ -28,10 +30,10 @@ export function LootSection({ loot, selected, onSelect, onQuickTake, onTakeAll, 
       <SectionTitle
         title={loot.label}
         icon={<Icon name="crate" size={15} strokeWidth={2.4} className="loot-icon" />}
-        badge={<span className="muted container__note">À fouiller</span>}
+        badge={<span className="muted container__note">{t('À fouiller')}</span>}
         aside={
           <button className="btn btn--small btn--primary" onClick={onTakeAll} disabled={stacks.length === 0}>
-            Tout prendre
+            {t('Tout prendre')}
           </button>
         }
       />
@@ -41,7 +43,7 @@ export function LootSection({ loot, selected, onSelect, onQuickTake, onTakeAll, 
             key={stack.name}
             name={stack.name}
             item={stack.item}
-            corner={stack.item.type === 'money' ? stack.count.toLocaleString('fr-FR') : `x${stack.count}`}
+            corner={stack.item.type === 'money' ? formatNumber(stack.count) : `x${stack.count}`}
             selected={selected === stack.name}
             dragging={drag?.source.kind === 'loot' && drag.source.item === stack.name}
             onClick={(event) => (event.altKey ? onQuickTake(stack) : onSelect(stack.name))}

@@ -1,10 +1,12 @@
 import { Panel } from '../components/ui/Panel';
 import { SegmentBar } from '../components/ui/SegmentBar';
+import { formatNumber, useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import { formatKd, formatMoney, formatPoints } from '../utils/format';
 import './pages.css';
 
 export function ProfilePage() {
+  const t = useT();
   const { state } = useGame();
   const { player, config } = state;
   if (!player) return null;
@@ -12,31 +14,34 @@ export function ProfilePage() {
   const levelXp = player.xp % config.xpPerLevel;
   const season = player.season;
   const stats: [string, string | number][] = [
-    ['Kills', player.kills],
-    ['Morts', player.deaths],
+    [t('Kills'), player.kills],
+    [t('Morts'), player.deaths],
     ['K/D', formatKd(player.kills, player.deaths)],
-    ['Zombies tués', player.npcKills],
-    ['Argent total', formatMoney(player.money)],
-    [config.shopPoints?.label ?? 'Points boutique', formatPoints(player.shopPoints ?? 0, config.shopPoints?.short)],
-    ['XP totale', player.xp.toLocaleString('fr-FR')],
+    [t('Zombies tués'), player.npcKills],
+    [t('Argent total'), formatMoney(player.money)],
+    [
+      t(config.shopPoints?.label ?? 'Points boutique'),
+      formatPoints(player.shopPoints ?? 0, config.shopPoints?.short ? t(config.shopPoints.short) : undefined),
+    ],
+    [t('XP totale'), formatNumber(player.xp)],
   ];
   if (season) {
     stats.push(
-      [`${season.label} · kills`, season.kills],
+      [`${season.label} · ${t('kills')}`, season.kills],
       [`${season.label} · K/D`, formatKd(season.kills, season.deaths)],
-      [`${season.label} · zombies`, season.npcKills],
+      [`${season.label} · ${t('zombies')}`, season.npcKills],
     );
   }
 
   return (
     <div className="profile">
       <Panel className="profile__card">
-        <span className="label">Opérateur</span>
+        <span className="label">{t('Opérateur')}</span>
         <span className="disp profile__name">{player.name}</span>
-        <span className="disp profile__level">Niveau {player.level}</span>
+        <span className="disp profile__level">{t('Niveau {level}', { level: player.level })}</span>
         <SegmentBar value={levelXp} max={config.xpPerLevel} segments={20} color="var(--signal)" height={8} />
         <span className="mono muted profile__xp">
-          {levelXp} / {config.xpPerLevel} XP avant le niveau {player.level + 1}
+          {t('{xp} / {max} XP avant le niveau {level}', { xp: levelXp, max: config.xpPerLevel, level: player.level + 1 })}
         </span>
       </Panel>
 

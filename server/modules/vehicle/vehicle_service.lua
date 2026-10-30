@@ -10,6 +10,7 @@ local AntiCheatService = PVP.use('AntiCheatService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<integer, { item: string, netId: integer|nil, checking: boolean|nil }> véhicule sorti (ou en cours de création) par joueur
 VehicleService.active = {}
@@ -77,17 +78,17 @@ function VehicleService.deploy(player, name)
     local item = Items.get(name)
     local ped = player:getPed()
     if player.mode ~= 'pvp' then
-        return { ok = false, message = 'Véhicules disponibles en mode PvP.' }
+        return { ok = false, message = Locale.t('Véhicules disponibles en mode PvP.') }
     end
     if GetVehiclePedIsIn(ped, false) ~= 0 then
-        return { ok = false, message = 'Descends d\'abord du véhicule.' }
+        return { ok = false, message = Locale.t('Descends d\'abord du véhicule.') }
     end
     local current = VehicleService.active[player.source]
     if current and not current.netId then
-        return { ok = false, message = 'Un véhicule est déjà en train d\'apparaître.' }
+        return { ok = false, message = Locale.t('Un véhicule est déjà en train d\'apparaître.') }
     end
     if not player:removeItem(name, 1) then
-        return { ok = false, message = 'Tu n\'as plus cet objet.' }
+        return { ok = false, message = Locale.t('Tu n\'as plus cet objet.') }
     end
 
     -- Un seul véhicule sorti : le précédent est rangé s'il est intact
@@ -99,7 +100,7 @@ function VehicleService.deploy(player, name)
     AntiCheatService.allowVehicle(player.source, item.model)
     TriggerClientEvent(Events.client.vehicleSpawn, player.source, name, item.model)
     player:sync()
-    return { ok = true, message = ('%s sorti'):format(item.label) }
+    return { ok = true, message = Locale.t('%s sorti', Locale.t(item.label)) }
 end
 
 ---Le client a créé le véhicule (net id), ou n'a pas pu (false) : l'objet est alors rendu.
@@ -127,7 +128,7 @@ function VehicleService.onSpawned(source, name, netId)
         player.inventory:unreserve(name)
         VehicleService.refund(player, name)
         TriggerClientEvent(Events.client.vehicleReleased, source)
-        player:notify('Le véhicule n\'a pas pu apparaître : objet rendu.', 'error')
+        player:notify(Locale.t('Le véhicule n\'a pas pu apparaître : objet rendu.'), 'error')
         return player:sync()
     end
     pending.netId = tonumber(netId)
@@ -156,40 +157,40 @@ function VehicleService.storeCallback(source)
     local player = PlayerService.get(source)
     if not player or player.dead then return { ok = false } end
     if player.mode ~= 'pvp' then
-        return { ok = false, message = 'Véhicules disponibles en mode PvP.' }
+        return { ok = false, message = Locale.t('Véhicules disponibles en mode PvP.') }
     end
     local ped = player:getPed()
     local entity = GetVehiclePedIsIn(ped, false)
     if entity == 0 then
-        return { ok = false, message = 'Monte dans le véhicule pour le ranger.' }
+        return { ok = false, message = Locale.t('Monte dans le véhicule pour le ranger.') }
     end
     local ownerSource = VehicleService.ownerOf(entity)
     local owner = ownerSource and PlayerService.get(ownerSource)
     if not owner then
         -- Marque restée sur un véhicule que le serveur ne suit plus : l'aide K disparaît
         Entity(entity).state:set(VehicleService.ITEM_STATE, nil, true)
-        return { ok = false, message = 'Ce véhicule ne vient pas d\'un objet : il ne se range pas.' }
+        return { ok = false, message = Locale.t('Ce véhicule ne vient pas d\'un objet : il ne se range pas.') }
     end
     if VehicleService.isDestroyed(entity) then
-        return { ok = false, message = 'Ce véhicule est détruit.' }
+        return { ok = false, message = Locale.t('Ce véhicule est détruit.') }
     end
     if #GetEntityVelocity(entity) * 3.6 >= Config.VehicleOptions.storeMaxSpeed then
-        return { ok = false, message = ('Arrête le véhicule pour le ranger (moins de %d km/h).'):format(Config.VehicleOptions.storeMaxSpeed) }
+        return { ok = false, message = Locale.t('Arrête le véhicule pour le ranger (moins de %d km/h).', Config.VehicleOptions.storeMaxSpeed) }
     end
     if VehicleService.hasOtherOccupant(entity, ped) then
-        return { ok = false, message = 'Quelqu\'un est encore à bord.' }
+        return { ok = false, message = Locale.t('Quelqu\'un est encore à bord.') }
     end
 
-    local label = Items.label(VehicleService.active[ownerSource].item)
+    local label = Locale.t(Items.label(VehicleService.active[ownerSource].item))
     VehicleService.release(owner, player)
     player:sync()
     if ownerSource == source then
-        return { ok = true, message = ('%s rangé'):format(label) }
+        return { ok = true, message = Locale.t('%s rangé', label) }
     end
     owner:sync()
-    owner:notify(('%s a rangé ton véhicule (%s) : il l\'a récupéré.'):format(player.name, label), 'error')
+    owner:notify(Locale.t('%s a rangé ton véhicule (%s) : il l\'a récupéré.', player.name, label), 'error')
     TriggerClientEvent(Events.client.vehicleReleased, ownerSource)
-    return { ok = true, message = ('%s récupéré'):format(label) }
+    return { ok = true, message = Locale.t('%s récupéré', label) }
 end
 
 ---Range le véhicule sorti du joueur : supprimé du monde, objet rendu s'il est intact.

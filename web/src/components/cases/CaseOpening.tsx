@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CaseReelEntry, CaseSpin } from '../../types/game';
 import { playCaseReveal, playCaseTick } from '../../utils/caseSound';
@@ -22,6 +23,7 @@ function countLabel(entry: CaseReelEntry): string {
  * récompense : on anime seulement jusqu'à la case `winner`. Échap passe l'animation, puis ferme.
  */
 export function CaseOpening({ spin }: { spin: CaseSpin }) {
+  const t = useT();
   const { state, actions } = useGame();
   const { config, player } = state;
   const [done, setDone] = useState(false);
@@ -125,8 +127,8 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
   return (
     <div className="case-opening">
       <div className="case-opening__head">
-        <span className="mono case-opening__eyebrow">OUVERTURE DE CAISSE</span>
-        <h2 className="disp case-opening__title">{definition?.label ?? itemLabel(config, spin.caseId)}</h2>
+        <span className="mono case-opening__eyebrow">{t('OUVERTURE DE CAISSE')}</span>
+        <h2 className="disp case-opening__title">{definition?.label ? t(definition.label) : itemLabel(config, spin.caseId)}</h2>
       </div>
 
       <div className="case-reel" ref={viewportRef}>
@@ -157,7 +159,7 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
               <ItemIcon name={winner.item} type={winnerItem?.type ?? 'material'} />
             </span>
             <span className="case-result__text">
-              <span className="disp case-result__rarity">{winnerRarity.label}</span>
+              <span className="disp case-result__rarity">{t(winnerRarity.label)}</span>
               <span className="disp case-result__name">
                 {itemLabel(config, winner.item)} <span className="mono case-result__count">{countLabel(winner)}</span>
               </span>
@@ -168,13 +170,13 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
                 disabled={owned <= 0}
                 onClick={() => actions.openCase(spin.caseId)}
               >
-                Ouvrir une autre{owned > 0 ? ` (${owned})` : ''}
+                {t('Ouvrir une autre')}{owned > 0 ? ` (${owned})` : ''}
               </button>
-              <button className="btn btn--small cut-s" onClick={actions.closeCase}>Fermer</button>
+              <button className="btn btn--small cut-s" onClick={actions.closeCase}>{t('Fermer')}</button>
             </div>
           </div>
         ) : (
-          <button className="btn btn--small cut-s" onClick={skip}>Passer</button>
+          <button className="btn btn--small cut-s" onClick={skip}>{t('Passer')}</button>
         )}
       </div>
     </div>

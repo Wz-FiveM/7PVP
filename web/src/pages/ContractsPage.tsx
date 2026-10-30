@@ -1,5 +1,6 @@
 import { Panel } from '../components/ui/Panel';
 import { SegmentBar } from '../components/ui/SegmentBar';
+import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import { formatMoney } from '../utils/format';
 import './pages.css';
@@ -13,6 +14,7 @@ function formatDuration(seconds: number): string {
 
 /** Contrats du jour : progression et récompenses (versées automatiquement). */
 export function ContractsPage() {
+  const t = useT();
   const { state } = useGame();
   const contracts = state.player?.contracts;
   if (!contracts) return null;
@@ -20,12 +22,12 @@ export function ContractsPage() {
   return (
     <div className="contracts">
       <p className="mono muted contracts__reset">
-        NOUVEAUX CONTRATS DANS {formatDuration(contracts.resetIn).toUpperCase()} · RÉCOMPENSE VERSÉE DÈS L'OBJECTIF ATTEINT
+        {t('NOUVEAUX CONTRATS DANS {time} · RÉCOMPENSE VERSÉE DÈS L\'OBJECTIF ATTEINT', { time: formatDuration(contracts.resetIn).toUpperCase() })}
       </p>
       {contracts.list.map((contract) => (
         <Panel key={contract.id} className={contract.done ? 'contract contract--done' : 'contract'}>
           <div className="contract__head">
-            <span className="disp contract__label">{contract.label}</span>
+            <span className="disp contract__label">{t(contract.label)}</span>
             <span className="mono contract__reward">
               {formatMoney(contract.reward.money)} · {contract.reward.xp} XP
             </span>
@@ -38,7 +40,7 @@ export function ContractsPage() {
             height={6}
           />
           <span className="mono contract__progress">
-            {contract.done ? 'TERMINÉ' : `${contract.progress} / ${contract.goal}`}
+            {contract.done ? t('TERMINÉ') : `${contract.progress} / ${contract.goal}`}
           </span>
         </Panel>
       ))}

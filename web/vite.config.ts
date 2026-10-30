@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   // Chemins relatifs obligatoires : FiveM sert les fichiers depuis nui://7PVP/web/build/
   base: './',
+  // Les traductions sont à la racine de la resource (locales/), partagées avec Lua
+  server: { fs: { allow: ['..'] } },
   build: {
     outDir: 'build',
     emptyOutDir: true,

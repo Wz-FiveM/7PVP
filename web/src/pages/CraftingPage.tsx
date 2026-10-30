@@ -1,11 +1,13 @@
 import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
+import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import { entriesOf, itemLabel } from '../utils/inventory';
 import './pages.css';
 
 /** Fabrication : matériaux récupérés sur les zombies -> munitions, soins, accessoires. */
 export function CraftingPage() {
+  const t = useT();
   const { state, actions } = useGame();
   const { config, player, menu } = state;
   if (!player) return null;
@@ -19,7 +21,7 @@ export function CraftingPage() {
   return (
     <>
       {!menu.near.crafting && (
-        <p className="hint cut-s">La fabrication se fait auprès de l'artisan, en zone safe (repère jaune sur la carte).</p>
+        <p className="hint cut-s">{t('La fabrication se fait auprès de l\'artisan, en zone safe (repère jaune sur la carte).')}</p>
       )}
       <div className="crafting">
         {(config.recipes ?? []).map((recipe) => {
@@ -35,10 +37,10 @@ export function CraftingPage() {
                   <ItemIcon name={recipe.result.item} type={result.type} />
                 </span>
                 <span className="recipe__title">
-                  <span className="disp recipe__name">{result.label}</span>
+                  <span className="disp recipe__name">{t(result.label)}</span>
                   <span className="mono muted recipe__count">x{recipe.result.count}</span>
                 </span>
-                {locked && <span className="chip chip--outline">Niv. {recipe.level}</span>}
+                {locked && <span className="chip chip--outline">{t('Niv. {level}', { level: recipe.level ?? 1 })}</span>}
               </div>
               <ul className="recipe__ingredients">
                 {ingredients.map(([name, count]) => {
@@ -56,7 +58,7 @@ export function CraftingPage() {
                 disabled={locked || !ready || !menu.near.crafting}
                 onClick={() => actions.craft(recipe.id)}
               >
-                Fabriquer
+                {t('Fabriquer')}
               </button>
             </Panel>
           );

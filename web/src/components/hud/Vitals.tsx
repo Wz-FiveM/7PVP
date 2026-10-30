@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { MinimapAnchor } from '../../types/game';
 import { weightOf } from '../../utils/inventory';
@@ -18,6 +19,7 @@ function besideMinimap(minimap: MinimapAnchor | null): CSSProperties | undefined
 
 /** Santé, armure et poids du sac. */
 export function Vitals() {
+  const t = useT();
   const { state } = useGame();
   const { vitals, player, config, minimap } = state;
   const bagWeight = player ? weightOf(player.inventory.bag, config) : 0;
@@ -26,20 +28,20 @@ export function Vitals() {
     <div className="vitals" style={besideMinimap(minimap)}>
       <div className="vital">
         <div className="vital__row">
-          <span className="disp vital__label">Santé</span>
+          <span className="disp vital__label">{t('Santé')}</span>
           <span className="mono">{vitals.health}</span>
         </div>
         <SegmentBar value={vitals.health} max={vitals.maxHealth} segments={10} height={6} />
       </div>
       <div className="vital">
         <div className="vital__row">
-          <span className="disp vital__label">Armure</span>
+          <span className="disp vital__label">{t('Armure')}</span>
           <span className="mono">{vitals.armor}</span>
         </div>
         <SegmentBar value={vitals.armor} max={100} segments={10} color="var(--armure)" height={6} />
       </div>
       <span className="mono muted vitals__weight">
-        SAC {bagWeight.toFixed(1)} / {config.containers.bag.capacity.toFixed(1)} KG
+        {t('SAC {weight} / {capacity} KG', { weight: bagWeight.toFixed(1), capacity: config.containers.bag.capacity.toFixed(1) })}
       </span>
     </div>
   );

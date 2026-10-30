@@ -1,3 +1,4 @@
+import { useT } from '../../../i18n';
 import { useCreator } from '../../../store/CreatorProvider';
 import { Slider } from '../controls/Slider';
 
@@ -14,6 +15,7 @@ const GROUPS: { title: string; features: number[] }[] = [
 const formatSigned = (value: number) => `${value > 0 ? '+' : ''}${Math.round(value * 100)}`;
 
 export function FaceSection() {
+  const t = useT();
   const { state, actions } = useCreator();
   if (!state) return null;
   const { appearance, schema } = state;
@@ -25,11 +27,11 @@ export function FaceSection() {
     <>
       {GROUPS.map((group) => (
         <div key={group.title} className="ctl-section">
-          <span className="label">{group.title}</span>
+          <span className="label">{t(group.title)}</span>
           {group.features.map((index) => (
             <Slider
               key={index}
-              label={schema.features[index]}
+              label={t(schema.features[index])}
               value={appearance.features[index] ?? 0}
               min={-1}
               max={1}
@@ -44,7 +46,7 @@ export function FaceSection() {
         className="btn btn--small cut-s"
         onClick={() => actions.update((a) => ({ ...a, features: a.features.map(() => 0) }))}
       >
-        Réinitialiser le visage
+        {t('Réinitialiser le visage')}
       </button>
     </>
   );

@@ -5,6 +5,8 @@ local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Zones = PVP.use('Zones')
 local Effects = PVP.use('Effects')
+local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Zone.CHECK_INTERVAL = 500
 
@@ -25,6 +27,10 @@ Zone.blips = {}
 Zone.blipMode = false
 
 function Zone.init()
+    -- Noms des repères dans la nouvelle langue (un changement de mode en cours les refera de lui-même)
+    AddEventHandler(Events.internal.languageChanged, function()
+        if Zone.blipMode == State.mode then Zone.refreshBlips() end
+    end)
     CreateThread(Zone.watchLoop)
     CreateThread(Zone.safeLoop)
 end
@@ -55,7 +61,7 @@ function Zone.createBlip(zone)
     SetBlipColour(blip, zone.blip.color)
     SetBlipAsShortRange(blip, true)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName(zone.label)
+    AddTextComponentSubstringPlayerName(Locale.t(zone.label))
     EndTextCommandSetBlipName(blip)
     Zone.blips[#Zone.blips + 1] = blip
 end

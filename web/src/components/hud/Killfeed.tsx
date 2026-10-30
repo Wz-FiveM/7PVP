@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { KillfeedItem } from '../../types/game';
 import { Icon } from '../icons/Icon';
@@ -35,6 +36,7 @@ function WeaponSilhouette({ weapon }: { weapon?: string }) {
 
 /** Killfeed (haut droite) : tueur, silhouette de l'arme, tir à la tête, victime. */
 export function Killfeed() {
+  const t = useT();
   const { state } = useGame();
   const me = state.player?.source;
   const mates = new Set(state.group?.members.map((member) => member.id) ?? []);
@@ -58,7 +60,7 @@ export function Killfeed() {
         <div key={item.id} className={rowClass(item)}>
           {item.killer && <span className={nameClass(item.killerId, 'killfeed__killer')}>{item.killer}</span>}
           {item.reason === 'disconnect' ? (
-            <span className="mono killfeed__reason">DÉCO</span>
+            <span className="mono killfeed__reason">{t('DÉCO')}</span>
           ) : (
             <WeaponSilhouette weapon={item.weapon} />
           )}

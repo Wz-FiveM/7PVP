@@ -1,4 +1,5 @@
 import { Panel, PanelHeader } from '../components/ui/Panel';
+import { useT } from '../i18n';
 import './pages.css';
 
 const CONTROLS: [string, string][] = [
@@ -29,39 +30,40 @@ const RULES: string[] = [
 ];
 
 export function HelpPage() {
+  const t = useT();
   return (
     <div className="help">
       <Panel>
-        <PanelHeader title="Contrôles" />
+        <PanelHeader title={t('Contrôles')} />
         <ul className="help__list">
           {CONTROLS.map(([key, action]) => (
             <li key={key}>
-              <kbd className="keycap help__key">[{key}]</kbd>
-              {action}
+              <kbd className="keycap help__key">[{t(key)}]</kbd>
+              {t(action)}
             </li>
           ))}
         </ul>
       </Panel>
 
       <Panel>
-        <PanelHeader title="Zones" />
+        <PanelHeader title={t('Zones')} />
         <ul className="help__list">
           {ZONES.map((zone) => (
             <li key={zone.type}>
-              <span className={`chip cut-s zone-${zone.type} help__chip`}>{zone.title}</span>
-              {zone.text}
+              <span className={`chip cut-s zone-${zone.type} help__chip`}>{t(zone.title)}</span>
+              {t(zone.text)}
             </li>
           ))}
         </ul>
       </Panel>
 
       <Panel className="help__rules">
-        <PanelHeader title="Règles" />
+        <PanelHeader title={t('Règles')} />
         <ul className="help__list">
           {RULES.map((rule, i) => (
             <li key={rule}>
               <span className="mono help__index">{String(i + 1).padStart(2, '0')}</span>
-              {rule}
+              {t(rule)}
             </li>
           ))}
         </ul>

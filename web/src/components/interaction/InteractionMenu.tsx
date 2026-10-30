@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
 import { interactionApi } from '../../api/interactionApi';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { InteractionItem } from '../../types/game';
 import { Icon } from '../icons/Icon';
@@ -30,6 +31,7 @@ interface OpenSubmenu {
  * un clic dans le monde vise une cible, son menu s'ouvre à l'endroit du clic.
  */
 export function InteractionMenu() {
+  const t = useT();
   const { state, actions } = useGame();
   const items = state.interaction.items;
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -56,7 +58,7 @@ export function InteractionMenu() {
       ) : (
         <span className="interaction__hint">
           <span className="mono keycap--solid">ALT</span>
-          Clique sur toi, un joueur, un butin, un PNJ ou un véhicule
+          {t('Clique sur toi, un joueur, un butin, un PNJ ou un véhicule')}
         </span>
       )}
     </div>
@@ -141,7 +143,8 @@ function ContextPanels({ items, x, y, onSelect }: ContextPanelsProps) {
 }
 
 function Header({ item }: { item: InteractionItem }) {
-  const tag = TARGET_TAGS[item.id.split(':')[0]] ?? 'Cible';
+  const t = useT();
+  const tag = t(TARGET_TAGS[item.id.split(':')[0]] ?? 'Cible');
   return (
     <header className="interaction__header">
       {item.icon && <Icon name={item.icon} size={22} strokeWidth={1.8} className="interaction__header-icon" />}

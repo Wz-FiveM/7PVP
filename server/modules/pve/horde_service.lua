@@ -11,6 +11,7 @@ local Utils = PVP.use('Utils')
 local Logger = PVP.use('Logger')
 local ContractService = PVP.use('ContractService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Le compteur de kills n'est renvoyé aux joueurs qu'une fois par seconde au plus
 HordeService.SYNC_INTERVAL = 1000
@@ -47,8 +48,8 @@ function HordeService.start(zone)
     zone.horde = { endsAt = GetGameTimer() + Config.Hordes.duration * 1000, kills = 0 }
     HordeService.active = zone
     HordeService.lastKills = -1
-    ChatService.announce('pvp', ('Une horde envahit : %s ! Tenez %d minutes.'):format(zone.zone.label, math.floor(Config.Hordes.duration / 60)))
-    ModeRegistry.broadcast('pvp', Events.client.notify, ('Horde en cours : %s'):format(zone.zone.label), 'error')
+    ChatService.announce('pvp', Locale.t('Une horde envahit : %s ! Tenez %d minutes.', Locale.t(zone.zone.label), math.floor(Config.Hordes.duration / 60)))
+    ModeRegistry.broadcast('pvp', Events.client.notify, Locale.t('Horde en cours : %s', Locale.t(zone.zone.label)), 'error')
     Logger.info('[horde] %s', zone.zone.label)
     HordeService.sync(true)
     CreateThread(HordeService.watch)
@@ -87,16 +88,16 @@ function HordeService.finish()
             player:addMoney(Config.Hordes.reward.money)
             player:addXp(Config.Hordes.reward.xp)
             ContractService.track(player, 'hordeSurvive', 1)
-            player:notify(('Horde repoussée : +$%d, +%d XP'):format(Config.Hordes.reward.money, Config.Hordes.reward.xp), 'success')
+            player:notify(Locale.t('Horde repoussée : +$%d, +%d XP', Config.Hordes.reward.money, Config.Hordes.reward.xp), 'success')
             player:sync()
             survivors[#survivors + 1] = player.name
         end
     end
 
     if #survivors > 0 then
-        ChatService.announce('pvp', ('Horde repoussée à %s (%d zombies tués) par %s.'):format(zone.zone.label, kills, table.concat(survivors, ', ')))
+        ChatService.announce('pvp', Locale.t('Horde repoussée à %s (%d zombies tués) par %s.', Locale.t(zone.zone.label), kills, table.concat(survivors, ', ')))
     else
-        ChatService.announce('pvp', ('La horde a submergé %s.'):format(zone.zone.label))
+        ChatService.announce('pvp', Locale.t('La horde a submergé %s.', Locale.t(zone.zone.label)))
     end
     TriggerClientEvent(Events.client.hordeState, -1, false)
 end

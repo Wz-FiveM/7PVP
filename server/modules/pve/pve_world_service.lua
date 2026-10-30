@@ -12,6 +12,7 @@ local SpectateService = PVP.use('SpectateService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 PveWorldService.CHECK_INTERVAL = 500
 PveWorldService.STATE = 'pveWorld'
@@ -102,8 +103,8 @@ function PveWorldService.move(source, inside)
             SetPlayerRoutingBucket(rider, bucket)
             PveWorldService.setInside(rider, inside)
             TriggerClientEvent(Events.client.notify, rider, inside
-                and 'Monde zombies : pas de PvP, tu ne croises que les joueurs qui farment.'
-                or 'Retour dans le monde PvP.', 'info')
+                and Locale.t('Monde zombies : pas de PvP, tu ne croises que les joueurs qui farment.')
+                or Locale.t('Retour dans le monde PvP.'), 'info')
         end
     end
     if vehicle ~= 0 then SetEntityRoutingBucket(vehicle, bucket) end

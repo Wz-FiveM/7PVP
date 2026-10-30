@@ -1,4 +1,5 @@
 import { useEffect, useState, type ComponentType } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { FreeroamTab } from './FreeroamTab';
 import { LootTab } from './LootTab';
@@ -18,9 +19,10 @@ const TABS: { id: string; label: string; component: ComponentType; wide?: boolea
 
 /** Panneau admin (F10), à droite pour garder le jeu visible. */
 export function AdminPanel() {
+  const t = useT();
   const { actions } = useGame();
   const [tabId, setTabId] = useState(TABS[0].id);
-  const tab = TABS.find((t) => t.id === tabId)!;
+  const tab = TABS.find((entry) => entry.id === tabId)!;
   const Tab = tab.component;
 
   useEffect(() => {
@@ -36,8 +38,8 @@ export function AdminPanel() {
     <aside className={tab.wide ? 'admin admin--wide cut' : 'admin cut'}>
       <header className="admin__header">
         <span className="admin__badge mono">ADMIN</span>
-        <h1 className="disp admin__title">Administration</h1>
-        <button className="btn btn--small cut-s admin__close" onClick={actions.closeAdmin} aria-label="Fermer">
+        <h1 className="disp admin__title">{t('Administration')}</h1>
+        <button className="btn btn--small cut-s admin__close" onClick={actions.closeAdmin} aria-label={t('Fermer')}>
           ✕
         </button>
       </header>
@@ -48,7 +50,7 @@ export function AdminPanel() {
             className={tab.id === tabId ? 'admin__tab admin__tab--active disp' : 'admin__tab disp'}
             onClick={() => setTabId(tab.id)}
           >
-            {tab.label}
+            {t(tab.label)}
           </button>
         ))}
       </nav>

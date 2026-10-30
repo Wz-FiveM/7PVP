@@ -1,3 +1,4 @@
+import { useT } from '../../../i18n';
 import type { OverlayValue, Rgb, SchemaEntry } from '../../../types/appearance';
 import { Slider } from './Slider';
 import { Stepper } from './Stepper';
@@ -14,12 +15,13 @@ interface OverlayControlProps {
 
 /** Calque de la tête : style (ou aucun), intensité, couleur. */
 export function OverlayControl({ entry, value, count, colors, onChange }: OverlayControlProps) {
+  const t = useT();
   const active = value.style >= 0;
 
   return (
     <div className="ctl-group">
       <Stepper
-        label={entry.label}
+        label={t(entry.label)}
         value={value.style}
         count={count}
         allowNone
@@ -27,7 +29,7 @@ export function OverlayControl({ entry, value, count, colors, onChange }: Overla
       />
       {active && (
         <Slider
-          label="Intensité"
+          label={t('Intensité')}
           value={value.opacity}
           min={0}
           max={1}
@@ -36,7 +38,7 @@ export function OverlayControl({ entry, value, count, colors, onChange }: Overla
         />
       )}
       {active && colors && (
-        <Swatches label="Couleur" colors={colors} value={value.color} onChange={(color) => onChange({ ...value, color })} />
+        <Swatches label={t('Couleur')} colors={colors} value={value.color} onChange={(color) => onChange({ ...value, color })} />
       )}
     </div>
   );

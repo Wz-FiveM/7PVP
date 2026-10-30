@@ -16,6 +16,7 @@ local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 FreeroamConfigService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_freeroam_settings (
     name VARCHAR(32) NOT NULL,
@@ -35,7 +36,7 @@ FreeroamConfigService.KINDS = {
     places = { get = 'getPlaces', set = 'setPlaces', validate = 'validatePlaces' }, -- { key, label, coords }[]
 }
 
--- Réglages modifiables, dans l'ordre du panneau.
+-- Réglages modifiables, dans l'ordre du panneau (label et hint traduits à l'envoi au panneau).
 --  group    : section du panneau ('vehicles' ou 'positions')
 --  path     : emplacement dans Config (Config[path[1]][path[2]]), pour les sortes qui en ont besoin
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
@@ -438,7 +439,7 @@ end
 ---Tout ce que l'onglet affiche : réglages et courses poursuite en cours.
 ---@param source integer
 function FreeroamConfigService.getCallback(source)
-    if not FreeroamConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not FreeroamConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
 
     local settings = {}
     for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
@@ -446,8 +447,8 @@ function FreeroamConfigService.getCallback(source)
             name = setting.name,
             group = setting.group,
             kind = setting.kind,
-            label = setting.label,
-            hint = setting.hint,
+            label = Locale.t(setting.label),
+            hint = Locale.t(setting.hint),
             category = setting.category == true,
             value = FreeroamConfigService.get(setting),
             modified = FreeroamConfigService.modified[setting.name] == true,
@@ -460,12 +461,12 @@ end
 ---@param name any
 ---@param data any
 function FreeroamConfigService.saveCallback(source, name, data)
-    if not FreeroamConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not FreeroamConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
     local setting = FreeroamConfigService.find(name)
-    if not setting then return { ok = false, message = 'Réglage inconnu.' } end
+    if not setting then return { ok = false, message = Locale.t('Réglage inconnu.') } end
     local clean = FreeroamConfigService.validate(setting, data)
     if not clean then
-        return { ok = false, message = setting.kind == 'model' and 'Modèle invalide.' or 'Données invalides (liste vide ou valeur incorrecte).' }
+        return { ok = false, message = setting.kind == 'model' and Locale.t('Modèle invalide.') or Locale.t('Données invalides (liste vide ou valeur incorrecte).') }
     end
 
     FreeroamConfigService.modified[setting.name] = true
@@ -476,22 +477,22 @@ function FreeroamConfigService.saveCallback(source, name, data)
     )
     local detail = type(clean) == 'table' and ('%d élément(s)'):format(#clean) or clean
     FreeroamConfigService.log(source, ('« %s » : %s'):format(setting.label, detail))
-    return { ok = true, message = ('« %s » enregistré.'):format(setting.label) }
+    return { ok = true, message = Locale.t('« %s » enregistré.', Locale.t(setting.label)) }
 end
 
 ---@param source integer
 ---@param name any
 function FreeroamConfigService.resetCallback(source, name)
-    if not FreeroamConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not FreeroamConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
     local setting = FreeroamConfigService.find(name)
-    if not setting then return { ok = false, message = 'Réglage inconnu.' } end
+    if not setting then return { ok = false, message = Locale.t('Réglage inconnu.') } end
 
     -- Encore « modifié » pendant l'envoi : les clients reçoivent la valeur par défaut
     FreeroamConfigService.set(setting, FreeroamConfigService.copy(FreeroamConfigService.defaults[setting.name]))
     FreeroamConfigService.modified[setting.name] = nil
     MySQL.update('DELETE FROM pvp_freeroam_settings WHERE name = ?', { setting.name })
     FreeroamConfigService.log(source, ('« %s » remis par défaut'):format(setting.label))
-    return { ok = true, message = ('« %s » remis par défaut.'):format(setting.label) }
+    return { ok = true, message = Locale.t('« %s » remis par défaut.', Locale.t(setting.label)) }
 end
 
 ---@param source integer

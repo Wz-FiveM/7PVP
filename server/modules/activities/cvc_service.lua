@@ -27,6 +27,7 @@ local Utils = PVP.use('Utils')
 local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 CvcService.ID = 'cvc'
 CvcService.CHECK_INTERVAL = 500
@@ -62,21 +63,21 @@ end
 ---@return boolean, string
 function CvcService.toggleQueue(player)
     local source = player.source
-    if CvcService.playerMatch[source] then return false, 'Tu es déjà dans une partie de CVC.' end
-    if GungameService.isBusy(source) then return false, 'Quitte d\'abord le Gungame (file ou partie).' end
+    if CvcService.playerMatch[source] then return false, Locale.t('Tu es déjà dans une partie de CVC.') end
+    if GungameService.isBusy(source) then return false, Locale.t('Quitte d\'abord le Gungame (file ou partie).') end
 
     for index, queued in ipairs(CvcService.queue) do
         if queued == source then
             table.remove(CvcService.queue, index)
             TriggerClientEvent(Events.client.cvcQueue, source, false)
             CvcService.updateQueue()
-            return true, 'Tu as quitté la file du CVC.'
+            return true, Locale.t('Tu as quitté la file du CVC.')
         end
     end
 
     CvcService.queue[#CvcService.queue + 1] = source
     CvcService.updateQueue()
-    return true, 'Tu rejoins la file du CVC. Reparle à l\'organisateur pour la quitter.'
+    return true, Locale.t('Tu rejoins la file du CVC. Reparle à l\'organisateur pour la quitter.')
 end
 
 ---Compte à rebours dès qu'il y a assez de joueurs ; partie lancée tout de suite si c'est plein.
@@ -135,7 +136,7 @@ function CvcService.leave(source)
         if member == source then table.remove(match.teams[team], index) break end
     end
     if #match.teams[team] == 0 then
-        CvcService.endMatch(match, 3 - team, ('L\'équipe %s a abandonné : victoire par forfait.'):format(Config.Cvc.teams[team].label))
+        CvcService.endMatch(match, 3 - team, Locale.t('L\'équipe %s a abandonné : victoire par forfait.', Locale.t(Config.Cvc.teams[team].label)))
     end
 end
 
@@ -293,16 +294,16 @@ function CvcService.check(match)
 
     local alive = { CvcService.aliveCount(match, 1), CvcService.aliveCount(match, 2) }
     if alive[1] == 0 or alive[2] == 0 then
-        if alive[1] == alive[2] then return CvcService.endRound(match, nil, 'Les deux équipes sont tombées.') end
+        if alive[1] == alive[2] then return CvcService.endRound(match, nil, Locale.t('Les deux équipes sont tombées.')) end
         local winner = alive[1] > 0 and 1 or 2
-        return CvcService.endRound(match, winner, ('L\'équipe %s a éliminé tous ses adversaires.'):format(Config.Cvc.teams[winner].label))
+        return CvcService.endRound(match, winner, Locale.t('L\'équipe %s a éliminé tous ses adversaires.', Locale.t(Config.Cvc.teams[winner].label)))
     end
 
     local now = GetGameTimer()
     if now >= match.endAt then
-        if alive[1] == alive[2] then return CvcService.endRound(match, nil, 'Temps écoulé : autant de survivants des deux côtés.') end
+        if alive[1] == alive[2] then return CvcService.endRound(match, nil, Locale.t('Temps écoulé : autant de survivants des deux côtés.')) end
         local winner = alive[1] > alive[2] and 1 or 2
-        return CvcService.endRound(match, winner, ('Temps écoulé : l\'équipe %s a plus de survivants.'):format(Config.Cvc.teams[winner].label))
+        return CvcService.endRound(match, winner, Locale.t('Temps écoulé : l\'équipe %s a plus de survivants.', Locale.t(Config.Cvc.teams[winner].label)))
     end
 
     local remaining = math.max(0, math.ceil((match.endAt - now) / 1000))

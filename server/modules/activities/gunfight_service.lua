@@ -26,6 +26,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 -- Modes de duel : clé de Config.FreeroamActivities -> table de Config (relue à chaque manche :
 -- les spawns et la moto modifiés dans le panneau admin s'appliquent tout de suite)
@@ -89,27 +90,27 @@ end
 function GunfightService.toggleQueue(player, mode)
     local source = player.source
     local label = GunfightService.label(mode)
-    if GunfightService.playerMatch[source] then return false, 'Tu es déjà dans un 1VS1.' end
+    if GunfightService.playerMatch[source] then return false, Locale.t('Tu es déjà dans un 1VS1.') end
     if ChaseService.playerMatch[source] or CvcService.playerMatch[source] or GungameService.isBusy(source) then
-        return false, 'Termine d\'abord ta partie en cours.'
+        return false, Locale.t('Termine d\'abord ta partie en cours.')
     end
 
     local queuedMode, index = GunfightService.queuedIn(source)
     if queuedMode and queuedMode ~= mode then
-        return false, ('Tu es déjà dans la file du %s.'):format(GunfightService.label(queuedMode))
+        return false, Locale.t('Tu es déjà dans la file du %s.', Locale.t(GunfightService.label(queuedMode)))
     end
     if queuedMode then
         table.remove(GunfightService.queues[mode], index)
         TriggerClientEvent(Events.client.gunfightQueue, source, false)
         GunfightService.updateQueue(mode)
-        return true, ('Tu as quitté la file du %s.'):format(label)
+        return true, Locale.t('Tu as quitté la file du %s.', Locale.t(label))
     end
 
     local queue = GunfightService.queues[mode]
     queue[#queue + 1] = source
     GunfightService.updateQueue(mode)
-    if GunfightService.playerMatch[source] then return true, 'Adversaire trouvé : le duel commence !' end
-    return true, ('Tu rejoins la file du %s. Reparle à l\'organisateur pour la quitter.'):format(label)
+    if GunfightService.playerMatch[source] then return true, Locale.t('Adversaire trouvé : le duel commence !') end
+    return true, Locale.t('Tu rejoins la file du %s. Reparle à l\'organisateur pour la quitter.', Locale.t(label))
 end
 
 ---Deux joueurs dans la file : la partie se lance tout de suite.
@@ -142,7 +143,7 @@ function GunfightService.leave(source)
     if not match or match.phase == 'ended' then return end
     GunfightService.playerMatch[source] = nil
     local opponent = GunfightService.opponentOf(match, source)
-    GunfightService.endMatch(match, opponent, ('%s a abandonné : victoire par forfait.'):format(GetPlayerName(source) or 'Ton adversaire'))
+    GunfightService.endMatch(match, opponent, Locale.t('%s a abandonné : victoire par forfait.', GetPlayerName(source) or Locale.t('Ton adversaire')))
 end
 
 -- ---------------------------------------------------------------------------
@@ -253,13 +254,13 @@ function GunfightService.check(match)
 
     local first, second = match.players[1], match.players[2]
     if match.dead[first] or match.dead[second] then
-        if match.dead[first] and match.dead[second] then return GunfightService.endRound(match, nil, 'Les deux joueurs sont tombés.') end
+        if match.dead[first] and match.dead[second] then return GunfightService.endRound(match, nil, Locale.t('Les deux joueurs sont tombés.')) end
         local winner = match.dead[first] and second or first
-        return GunfightService.endRound(match, winner, ('%s a remporté le duel.'):format(GetPlayerName(winner) or '?'))
+        return GunfightService.endRound(match, winner, Locale.t('%s a remporté le duel.', GetPlayerName(winner) or '?'))
     end
 
     local now = GetGameTimer()
-    if now >= match.endAt then return GunfightService.endRound(match, nil, 'Temps écoulé : la manche est rejouée.') end
+    if now >= match.endAt then return GunfightService.endRound(match, nil, Locale.t('Temps écoulé : la manche est rejouée.')) end
 
     local state = { remaining = math.max(0, math.ceil((match.endAt - now) / 1000)) }
     for _, source in ipairs(match.players) do
@@ -360,5 +361,5 @@ end
 function GunfightService.describePlayer(source)
     local match = GunfightService.matches[GunfightService.playerMatch[source]]
     if not match then return nil end
-    return 'Partie de ' .. GunfightService.label(match.mode)
+    return Locale.t('Partie de %s', Locale.t(GunfightService.label(match.mode)))
 end

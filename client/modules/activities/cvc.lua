@@ -9,6 +9,7 @@ local PedUtils = PVP.use('PedUtils')
 local Death = PVP.use('Death')
 local Freeroam = PVP.use('Freeroam')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Cvc.ACTIVITY = 'cvc'
 Cvc.FADE = 400
@@ -242,7 +243,7 @@ end
 ---Appelé à la mort (Freeroam.onDeath) : pas de réapparition avant la manche suivante.
 function Cvc.onDeath()
     State.dead = true
-    Nui.notify('Éliminé : tu suis ton équipe jusqu\'à la fin de la manche.', 'error')
+    Nui.notify(Locale.t('Éliminé : tu suis ton équipe jusqu\'à la fin de la manche.'), 'error')
     Cvc.spectateMate()
 end
 

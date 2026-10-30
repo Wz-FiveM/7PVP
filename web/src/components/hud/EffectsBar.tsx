@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { useT } from '../../i18n';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { EffectHud } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
@@ -15,6 +16,7 @@ interface ActiveEffect extends EffectHud {
 
 /** Effets des stimulants en cours (bas droite, au-dessus des munitions) : icône et temps restant. */
 export function EffectsBar({ hidden }: { hidden: boolean }) {
+  const t = useT();
   const [effects, setEffects] = useState<ActiveEffect[]>([]);
   const [now, setNow] = useState(Date.now);
 
@@ -47,7 +49,7 @@ export function EffectsBar({ hidden }: { hidden: boolean }) {
           <div
             key={effect.id}
             className={ending ? 'effect effect--ending' : 'effect'}
-            title={effect.label}
+            title={t(effect.label)}
             style={{ '--effect-progress': `${ratio * 100}%` } as CSSProperties}
           >
             <div className="effect__tile">
@@ -55,7 +57,7 @@ export function EffectsBar({ hidden }: { hidden: boolean }) {
               <span className="mono effect__time">{formatSeconds(seconds)}</span>
               <span className="effect__bar" />
             </div>
-            <span className="disp effect__name">{effect.short}</span>
+            <span className="disp effect__name">{t(effect.short)}</span>
           </div>
         );
       })}

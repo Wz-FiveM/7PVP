@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
+import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { LootAdminData, LootDrop, LootTableData } from '../../types/admin';
 
@@ -24,6 +25,7 @@ const toNumber = (value: string) => (value === '' ? 0 : Number(value));
 
 /** Butin des zombies et des largages : objets, quantités, chances et argent, enregistrés en base. */
 export function LootTab() {
+  useT();
   const { actions } = useGame();
   const [data, setData] = useState<LootAdminData | null>(null);
   const [name, setName] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function LootTab() {
 
   const load = useCallback(async (keep?: string | null) => {
     const result = await adminApi.loot();
-    if (!result?.ok) return actions.notify(result?.message ?? 'Butin indisponible.', 'error');
+    if (!result?.ok) return actions.notify(result?.message ?? t('Butin indisponible.'), 'error');
     setData(result);
     setZones(Object.fromEntries(result.zones.map((zone) => [zone.id, zone.loot])));
     const selected = result.tables.find((table) => table.name === keep) ?? result.tables[0];
@@ -56,7 +58,7 @@ export function LootTab() {
     return Object.entries(groups);
   }, [data]);
 
-  if (!data || !table || !draft) return <p className="muted">Chargement du butin…</p>;
+  if (!data || !table || !draft) return <p className="muted">{t('Chargement du butin…')}</p>;
 
   const select = (next: LootTableData) => {
     setName(next.name);
@@ -103,12 +105,14 @@ export function LootTab() {
             onClick={() => select(entry)}
           >
             <span className="disp">{entry.label}</span>
-            {entry.modified && <span className="mono admin-loot__modified">MODIFIÉE</span>}
+            {entry.modified && <span className="mono admin-loot__modified">{t('MODIFIÉE')}</span>}
           </button>
         ))}
       </nav>
       <p className="muted admin-loot__used">
-        Utilisée par : {table.usedBy.length > 0 ? table.usedBy.join(', ') : 'aucune zone'}
+        {t('Utilisée par : {zones}', {
+          zones: table.usedBy.length > 0 ? table.usedBy.map((zone) => t(zone)).join(', ') : t('aucune zone'),
+        })}
       </p>
 
       <div className="admin-loot__money">
@@ -118,7 +122,7 @@ export function LootTab() {
             checked={draft.money !== false}
             onChange={(event) => setDraft({ ...draft, money: event.target.checked ? [0, 100] : false })}
           />
-          <span className="label">Argent</span>
+          <span className="label">{t('Argent')}</span>
         </label>
         {draft.money && (
           <>
@@ -127,32 +131,32 @@ export function LootTab() {
               type="number"
               min={0}
               value={draft.money[0]}
-              aria-label="Argent minimum"
+              aria-label={t('Argent minimum')}
               onChange={(event) => draft.money && setDraft({ ...draft, money: [toNumber(event.target.value), draft.money[1]] })}
             />
-            <span className="muted">à</span>
+            <span className="muted">{t('à')}</span>
             <input
               className="admin-input admin-input--small"
               type="number"
               min={0}
               value={draft.money[1]}
-              aria-label="Argent maximum"
+              aria-label={t('Argent maximum')}
               onChange={(event) => draft.money && setDraft({ ...draft, money: [draft.money[0], toNumber(event.target.value)] })}
             />
             <span className="muted">$</span>
           </>
         )}
         <span className="admin-loot__scale">
-          <button className="btn btn--small" onClick={() => scaleChances(0.5)}>Chances ×0,5</button>
+          <button className="btn btn--small" onClick={() => scaleChances(0.5)}>{t('Chances ×0,5')}</button>
           <button className="btn btn--small" onClick={() => scaleChances(2)}>×2</button>
         </span>
       </div>
 
       <div className="admin-loot__head mono">
-        <span>OBJET</span>
-        <span>QTÉ MIN</span>
-        <span>QTÉ MAX</span>
-        <span>CHANCE %</span>
+        <span>{t('OBJET')}</span>
+        <span>{t('QTÉ MIN')}</span>
+        <span>{t('QTÉ MAX')}</span>
+        <span>{t('CHANCE %')}</span>
         <span />
       </div>
       <ul className="admin-loot__rows">
@@ -161,13 +165,13 @@ export function LootTab() {
             <select
               className="admin-input"
               value={drop.item}
-              aria-label="Objet"
+              aria-label={t('Objet')}
               onChange={(event) => updateDrop(index, { item: event.target.value })}
             >
               {itemGroups.map(([type, items]) => (
-                <optgroup key={type} label={TYPE_LABELS[type] ?? type}>
+                <optgroup key={type} label={t(TYPE_LABELS[type] ?? type)}>
                   {items.map((item) => (
-                    <option key={item.name} value={item.name}>{item.label}</option>
+                    <option key={item.name} value={item.name}>{t(item.label)}</option>
                   ))}
                 </optgroup>
               ))}
@@ -177,7 +181,7 @@ export function LootTab() {
               type="number"
               min={1}
               value={drop.count[0]}
-              aria-label="Quantité minimum"
+              aria-label={t('Quantité minimum')}
               onChange={(event) => updateDrop(index, { count: [toNumber(event.target.value), drop.count[1]] })}
             />
             <input
@@ -185,7 +189,7 @@ export function LootTab() {
               type="number"
               min={1}
               value={drop.count[1]}
-              aria-label="Quantité maximum"
+              aria-label={t('Quantité maximum')}
               onChange={(event) => updateDrop(index, { count: [drop.count[0], toNumber(event.target.value)] })}
             />
             <input
@@ -195,12 +199,12 @@ export function LootTab() {
               max={100}
               step={0.1}
               value={drop.chance}
-              aria-label="Chance en pour cent"
+              aria-label={t('Chance en pour cent')}
               onChange={(event) => updateDrop(index, { chance: toNumber(event.target.value) })}
             />
             <button
               className="btn btn--small btn--danger"
-              aria-label="Retirer la ligne"
+              aria-label={t('Retirer la ligne')}
               onClick={() => setDraft({ ...draft, drops: draft.drops.filter((_, i) => i !== index) })}
             >
               ✕
@@ -214,30 +218,30 @@ export function LootTab() {
           setDraft({ ...draft, drops: [...draft.drops, { item: data.items[0]?.name ?? '', count: [1, 1], chance: 10 }] })
         }
       >
-        + Ajouter un objet
+        {t('+ Ajouter un objet')}
       </button>
 
       <div className="admin-loot__actions">
         <button className="btn btn--small btn--primary" disabled={!dirty || busy} onClick={save}>
-          Enregistrer
+          {t('Enregistrer')}
         </button>
         <button className="btn btn--small" disabled={!dirty || busy} onClick={() => setDraft(copy(table))}>
-          Annuler
+          {t('Annuler')}
         </button>
         <button className="btn btn--small btn--danger" disabled={busy} onClick={reset}>
-          {confirmReset ? 'Confirmer : valeurs par défaut' : 'Valeurs par défaut'}
+          {confirmReset ? t('Confirmer : valeurs par défaut') : t('Valeurs par défaut')}
         </button>
       </div>
 
-      <span className="label admin-loot__section">Butin des zones PvE</span>
+      <span className="label admin-loot__section">{t('Butin des zones PvE')}</span>
       <ul className="admin-loot__zones">
         {data.zones.map((zone) => (
           <li key={zone.id} className="admin-loot__zone">
-            <span className="admin-loot__zone-name">{zone.label}</span>
+            <span className="admin-loot__zone-name">{t(zone.label)}</span>
             <select
               className="admin-input"
               value={zones[zone.id]}
-              aria-label={`Butin de ${zone.label}`}
+              aria-label={t('Butin de {zone}', { zone: t(zone.label) })}
               onChange={(event) => setZones({ ...zones, [zone.id]: event.target.value })}
             >
               {data.tables.map((entry) => (
@@ -248,7 +252,7 @@ export function LootTab() {
         ))}
       </ul>
       <button className="btn btn--small btn--primary" disabled={!zonesDirty || busy} onClick={saveZones}>
-        Enregistrer les zones
+        {t('Enregistrer les zones')}
       </button>
     </div>
   );

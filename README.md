@@ -93,6 +93,7 @@ Directement sur le VPS : `bash /opt/7pvp/server-data/resources/7PVP/tools/update
 | `/trade ID` | Proposer un échange (sans ID : le joueur le plus proche) ; `/trade accepter`, `/trade refuser`, `/trade annuler` |
 | `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |
 | `/lobby` | Retour au lobby (depuis une zone safe en PvP) |
+| `/langue en` | Change la langue (`/language` marche aussi ; sans code : liste des langues). Aussi dans le menu pause et le lobby |
 | `F10` / `F11` | Admins : panneau d'administration / noclip |
 | `/tpm` | Admins : téléportation au marqueur de la carte |
 | `/pvp_coords` | Affiche ta position en `vector4(...)` pour configurer les zones |
@@ -157,11 +158,15 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   ├── items.lua               Objets, conteneurs, raccourcis, kits
 │   ├── shop.lua                Boutique
 │   ├── loot.lua                Tables de butin des PNJ
+│   ├── locale.lua              Langues disponibles
 │   └── zones.lua               Zones safe / PvE
+├── locales/                    Traductions (en.json, es.json... : texte français -> traduction)
+├── tools/locales.js            Vérifie et fusionne les traductions
 ├── shared/
 │   ├── core/
 │   │   ├── module.lua          Système de modules (PVP.define / PVP.use / PVP.boot)
 │   │   ├── logger.lua
+│   │   ├── locale.lua          Traductions (Locale.t)
 │   │   └── events.lua          Noms de tous les événements et callbacks
 │   └── modules/                Utils, Progression, Zones, Items
 ├── server/
@@ -191,6 +196,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │       ├── api/                fetchNui + gameApi (toutes les requêtes vers Lua)
 │       ├── store/              État global (reducer + context)
 │       ├── hooks/              useNuiMessage, useCountdown
+│       ├── i18n/               Traductions de l'interface (useT, t, formatNumber)
 │       ├── styles/             Jetons de la D.A Frontline (global.css) + classes communes (ui.css)
 │       ├── components/ui/      Panneau, jauge à segments, puce de zone, crochets de sélection, logo
 │       ├── components/hud/     HUD en jeu : zone, statut, killfeed, santé/armure, raccourcis, munitions, mort
@@ -307,6 +313,16 @@ En haut de l'écran, uniquement dans le navigateur (jamais en jeu) :
 - **Couleurs** (variables dans `src/styles/global.css`) : neutres Nuit `#0B0D0E`, Carbone `#14181A`, Acier `#1E2427`, Trait `#2E363A`, Brume `#8C969B`, Os `#E9ECE6`. Les couleurs de zone ne servent qu'à ça : **Abri** `#4CC9E0` (safe, conteneur protégé), **Toxine** `#B5F23D` (PvE), **Hazard** `#FF6B1A` (PvP, marque, actions).
 - **Polices** : Chakra Petch (titres, majuscules), Barlow (texte), JetBrains Mono (chiffres, poids, touches). Elles sont embarquées dans le build : aucune connexion internet n'est nécessaire en jeu.
 - **Formes** : panneaux pleins aux coins coupés à 45° (`.cut`, `.cut-s`), crochets de visée pour la sélection (`<Brackets />`), bandes d'alerte dans la couleur de la zone (`.stripes` + `.zone-safe|pve|pvp`), jauges à segments (`<SegmentBar />`).
+
+## Langues
+
+Le jeu est traduit en français (langue d'origine), anglais, espagnol, allemand, italien et portugais. Chaque joueur choisit sa langue dans le menu pause, en haut du lobby ou avec `/langue <code>` ; le choix est gardé sur son PC (KVP). À la première connexion, la langue de GTA V est reprise si elle est disponible (`Config.Locale`, `config/locale.lua`).
+
+- **Le texte français sert de clé** : `locales/<langue>.json` associe chaque texte français à sa traduction. Un texte absent d'un fichier reste en français, rien ne casse.
+- Lua : `Locale.t('Niveau %d atteint !', niveau)` (`shared/core/locale.lua`). Côté client, il renvoie le texte traduit. Côté serveur, il renvoie un message que le client traduit à la réception (`Nui.send`, `Callback.await`) : ne pas le concaténer, et garder le français brut pour les journaux et Discord.
+- React : `const t = useT()` puis `t('Déployer')`, `t('Niveau {level}', { level })` (`web/src/i18n`). Les textes de la config (noms d'objets, zones...) se traduisent au rendu : `t(item.label)`.
+- Ajouter une langue : une entrée dans `Config.Locale.languages`, un fichier `locales/<code>.json` (et son format de nombres dans `web/src/i18n/index.ts`).
+- `node tools/locales.js check` liste les textes du code sans traduction (et les traductions dont les `%s` / `{x}` ne correspondent pas) ; `node tools/locales.js merge fichier.json` ajoute un lot de traductions `{ "texte fr": { "en": "...", "es": "..." } }`.
 
 ## Discord
 

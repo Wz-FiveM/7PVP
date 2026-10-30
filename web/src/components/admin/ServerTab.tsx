@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 
 /** Actions sur tout le serveur. */
 export function ServerTab() {
+  const t = useT();
   const { actions } = useGame();
   const [mode, setMode] = useState('all');
   const [text, setText] = useState('');
@@ -14,29 +16,29 @@ export function ServerTab() {
 
   return (
     <div className="admin-server">
-      <span className="label">Annonce dans le chat</span>
+      <span className="label">{t('Annonce dans le chat')}</span>
       <select className="admin-input" value={mode} onChange={(event) => setMode(event.target.value)}>
-        <option value="all">Tous les modes</option>
+        <option value="all">{t('Tous les modes')}</option>
         <option value="pvp">PvP</option>
         <option value="freeroam">Freeroam</option>
       </select>
       <textarea
         className="admin-input admin-textarea"
-        placeholder="Message (affiché en [ADMIN])"
+        placeholder={t('Message (affiché en [ADMIN])')}
         maxLength={200}
         value={text}
         onChange={(event) => setText(event.target.value)}
       />
       <button className="btn btn--small btn--primary cut-s" onClick={announce} disabled={!text.trim()}>
-        Envoyer l'annonce
+        {t("Envoyer l'annonce")}
       </button>
 
-      <span className="label">Monde PvP</span>
+      <span className="label">{t('Monde PvP')}</span>
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'airdrop' })}>
-        Lancer un largage sur moi
+        {t('Lancer un largage sur moi')}
       </button>
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'horde' })}>
-        Lancer une horde (zone PvE la plus proche)
+        {t('Lancer une horde (zone PvE la plus proche)')}
       </button>
       <button
         className="btn btn--small btn--danger cut-s"
@@ -46,7 +48,7 @@ export function ServerTab() {
           actions.adminAction({ action: 'clearLoot' });
         }}
       >
-        {confirmClear ? 'Confirmer : supprimer tous les sacs' : 'Supprimer tous les sacs de butin'}
+        {confirmClear ? t('Confirmer : supprimer tous les sacs') : t('Supprimer tous les sacs de butin')}
       </button>
     </div>
   );

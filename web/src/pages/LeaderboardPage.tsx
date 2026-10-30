@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { LeaderboardScope } from '../types/game';
 import { Panel, PanelHeader } from '../components/ui/Panel';
+import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import { formatKd } from '../utils/format';
 import './pages.css';
@@ -12,6 +13,7 @@ const SCOPES: { id: LeaderboardScope; label: string }[] = [
 ];
 
 export function LeaderboardPage() {
+  const t = useT();
   const { state, actions } = useGame();
   const [scope, setScope] = useState<LeaderboardScope>('season');
 
@@ -28,21 +30,21 @@ export function LeaderboardPage() {
             className={item.id === scope ? 'btn btn--small btn--active cut-s' : 'btn btn--small cut-s'}
             onClick={() => setScope(item.id)}
           >
-            {item.label}
+            {t(item.label)}
           </button>
         ))}
       </div>
-      <PanelHeader title={`Top 10 · ${state.leaderboardTitle}`} aside="TRIÉ PAR KILLS" />
+      <PanelHeader title={t('Top 10 · {title}', { title: state.leaderboardTitle })} aside={t('TRIÉ PAR KILLS')} />
       <table className="leaderboard">
         <thead>
           <tr>
             <th className="label">#</th>
-            <th className="label">Joueur</th>
-            <th className="label">Niveau</th>
-            <th className="label">Kills</th>
-            <th className="label">Morts</th>
+            <th className="label">{t('Joueur')}</th>
+            <th className="label">{t('Niveau')}</th>
+            <th className="label">{t('Kills')}</th>
+            <th className="label">{t('Morts')}</th>
             <th className="label">K/D</th>
-            <th className="label">PNJ</th>
+            <th className="label">{t('PNJ')}</th>
           </tr>
         </thead>
         <tbody>
@@ -51,7 +53,7 @@ export function LeaderboardPage() {
               <td className="mono leaderboard__rank">{String(i + 1).padStart(2, '0')}</td>
               <td className="leaderboard__name">
                 {row.name}
-                {row.online && <span className="leaderboard__online">En ligne</span>}
+                {row.online && <span className="leaderboard__online">{t('En ligne')}</span>}
               </td>
               <td className="mono">{row.level}</td>
               <td className="mono">{row.kills}</td>
@@ -62,7 +64,7 @@ export function LeaderboardPage() {
           ))}
         </tbody>
       </table>
-      {state.leaderboard.length === 0 && <p className="muted leaderboard__empty">Aucun joueur classé pour l'instant.</p>}
+      {state.leaderboard.length === 0 && <p className="muted leaderboard__empty">{t('Aucun joueur classé pour l\'instant.')}</p>}
     </Panel>
   );
 }

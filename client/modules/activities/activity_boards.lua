@@ -13,6 +13,7 @@
 ---@class ActivityBoardsModule
 local ActivityBoards = PVP.define('ActivityBoards')
 local State = PVP.use('State')
+local Locale = PVP.use('Locale')
 
 ActivityBoards.STATE_PREFIX = '7pvp:board:'
 ActivityBoards.WIDTH = 1024 -- taille de la texture (voir web/src/board/board.css)
@@ -20,7 +21,8 @@ ActivityBoards.HEIGHT = 768
 ActivityBoards.TXD_PREFIX = '7pvp_board_'
 ActivityBoards.TEXTURE = 'board'
 ActivityBoards.CHECK_INTERVAL = 1000 -- ms entre deux vérifications de distance (loin des écrans)
--- Le contenu est renvoyé régulièrement : la page peut ne pas être prête au premier envoi
+-- Le contenu est renvoyé régulièrement : la page peut ne pas être prête au premier envoi (et un
+-- changement de langue y passe sans autre envoi)
 ActivityBoards.RESEND_INTERVAL = 2000
 
 ---@type table<string, ActivityBoard> par mode
@@ -113,8 +115,9 @@ function ActivityBoards.send(board, rows)
     SendDuiMessage(board.dui, json.encode({
         rows = rows or GlobalState[ActivityBoards.STATE_PREFIX .. board.activity] or {},
         size = Config.FreeroamBoards.size,
-        title = activity.label or board.activity,
+        title = activity.label and Locale.t(activity.label) or board.activity,
         icon = activity.icon,
+        lang = Locale.lang,
     }))
     board.sentAt = GetGameTimer()
 end

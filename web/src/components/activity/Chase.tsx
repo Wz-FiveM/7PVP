@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { chaseApi } from '../../api/chaseApi';
 import { isEnvBrowser } from '../../api/nui';
+import { formatNumber, t, useT } from '../../i18n';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { ChaseHudData, ChaseScores, ChaseStateData, EloChange } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
@@ -42,6 +43,7 @@ function useSecondsLeft(total: number, at: number): number {
 
 /** Course poursuite : file d'attente, vote du véhicule, HUD de manche, résultats. */
 export function Chase() {
+  useT();
   const [queue, setQueue] = useState(0);
   const [vote, setVote] = useState<Vote | null>(null);
   const [hud, setHud] = useState<(ChaseHudData & { at: number }) | null>(null);
@@ -96,18 +98,18 @@ export function Chase() {
     <>
       {queue > 0 && !hud && !vote && (
         <div className="chase-queue">
-          <span className="disp chase-queue__title">Course poursuite</span>
-          <span className="mono chase-queue__text">En attente d'un adversaire · {queue}/2</span>
+          <span className="disp chase-queue__title">{t('Course poursuite')}</span>
+          <span className="mono chase-queue__text">{t("En attente d'un adversaire · {count}/2", { count: queue })}</span>
         </div>
       )}
       {vote && <ChaseVote vote={vote} onDone={() => isEnvBrowser() && setVote(null)} />}
       {hud && <ChaseHud hud={hud} live={live} />}
       {banner && (
         <div className={`chase-banner chase-banner--${banner.tone}`} key={banner.id}>
-          <span className="disp chase-banner__title">{banner.title}</span>
+          <span className="disp chase-banner__title">{t(banner.title)}</span>
           {banner.text && <span className="chase-banner__text">{banner.text}</span>}
           <span className="mono chase-banner__score">
-            TOI {banner.scores.me} — {banner.scores.opponent} ADVERSAIRE
+            {t('TOI {me} — {opponent} ADVERSAIRE', { me: banner.scores.me, opponent: banner.scores.opponent })}
           </span>
           {banner.elo && <EloDelta elo={banner.elo} />}
         </div>
@@ -117,6 +119,7 @@ export function Chase() {
 }
 
 function ChaseVote({ vote, onDone }: { vote: Vote; onDone: () => void }) {
+  useT();
   const left = useSecondsLeft(vote.seconds, vote.at);
   const [chosen, setChosen] = useState<string | null>(null);
 
@@ -132,13 +135,13 @@ function ChaseVote({ vote, onDone }: { vote: Vote; onDone: () => void }) {
         <div className="stripes chase-vote__line" />
         <header className="chase-vote__header">
           <div>
-            <span className="mono chase-vote__tag">Course poursuite · contre {vote.opponent}</span>
-            <h1 className="disp chase-vote__title">Choisis ton véhicule</h1>
+            <span className="mono chase-vote__tag">{t('Course poursuite · contre {opponent}', { opponent: vote.opponent })}</span>
+            <h1 className="disp chase-vote__title">{t('Choisis ton véhicule')}</h1>
           </div>
           <span className="mono chase-vote__timer">{left} s</span>
         </header>
         <p className="muted chase-vote__hint">
-          Ton véhicule servira pour la manche où tu es le voleur. Sans vote, il est tiré au sort.
+          {t('Ton véhicule servira pour la manche où tu es le voleur. Sans vote, il est tiré au sort.')}
         </p>
         <div className="chase-vote__grid">
           {vote.vehicles.map((vehicle) => (
@@ -148,7 +151,7 @@ function ChaseVote({ vote, onDone }: { vote: Vote; onDone: () => void }) {
               onClick={() => choose(vehicle.model)}
             >
               <VehicleImage model={vehicle.model} />
-              <span className="disp">{vehicle.label}</span>
+              <span className="disp">{t(vehicle.label)}</span>
             </button>
           ))}
         </div>
@@ -164,6 +167,7 @@ function VehicleImage({ model }: { model: string }) {
 }
 
 function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: ChaseStateData | null }) {
+  useT();
   const countdown = useSecondsLeft(hud.countdown, hud.at);
   const thief = hud.role === 'thief';
   const remaining = live?.remaining ?? hud.roundTime;
@@ -172,8 +176,8 @@ function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: Cha
     <>
       <div className={`chase-hud chase-hud--${hud.role}`}>
         <div className="chase-hud__top">
-          <span className="disp chase-hud__role">{ROLE_LABELS[hud.role]}</span>
-          <span className="mono chase-hud__round">MANCHE {hud.round}/2</span>
+          <span className="disp chase-hud__role">{t(ROLE_LABELS[hud.role])}</span>
+          <span className="mono chase-hud__round">{t('MANCHE {round}/2', { round: hud.round })}</span>
           <span className="mono chase-hud__score">
             {hud.scores.me} — {hud.scores.opponent}
           </span>
@@ -181,15 +185,15 @@ function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: Cha
         </div>
         <p className="chase-hud__goal">
           {thief
-            ? `Fuis : mets ${hud.escapeDistance.toLocaleString('fr-FR')} m entre toi et le policier`
-            : `Immobilise le voleur ${hud.arrestTime} s, ou empêche-le de fuir`}
+            ? t('Fuis : mets {distance} m entre toi et le policier', { distance: formatNumber(hud.escapeDistance) })
+            : t('Immobilise le voleur {seconds} s, ou empêche-le de fuir', { seconds: hud.arrestTime })}
         </p>
         {/* Pas de distance affichée : le voleur ne sait pas s'il a semé le policier, et inversement */}
         {live && (
           <div className="chase-hud__status">
             {live.health !== undefined && (
               <div className="chase-hud__health">
-                <span className="mono">VÉHICULE {live.health} %</span>
+                <span className="mono">{t('VÉHICULE {health} %', { health: live.health })}</span>
                 <div className="chase-hud__bar">
                   <div
                     className={live.health < 30 ? 'chase-hud__fill chase-hud__fill--danger' : 'chase-hud__fill'}
@@ -200,14 +204,14 @@ function ChaseHud({ hud, live }: { hud: ChaseHudData & { at: number }; live: Cha
             )}
             {live.maxWarns !== undefined && (
               <span className={live.warns ? 'mono chase-hud__warns chase-hud__warns--on' : 'mono chase-hud__warns'}>
-                AVERTISSEMENTS {live.warns ?? 0}/{live.maxWarns}
+                {t('AVERTISSEMENTS {warns}/{max}', { warns: live.warns ?? 0, max: live.maxWarns })}
               </span>
             )}
           </div>
         )}
         {live && live.arrest > 0 && (
           <div className="chase-hud__arrest">
-            <span className="disp">Immobilisation</span>
+            <span className="disp">{t('Immobilisation')}</span>
             <div className="chase-hud__bar chase-hud__bar--arrest">
               <div className="chase-hud__fill" style={{ width: `${Math.min(100, live.arrest * 100)}%` }} />
             </div>

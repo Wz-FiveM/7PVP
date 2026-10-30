@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PAGES, type PageId } from '../../pages';
 import { useTypingFocus } from '../../hooks/useTypingFocus';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { isMenuCloseKey } from '../../utils/keys';
 import { CaseOpening } from '../cases/CaseOpening';
@@ -9,6 +10,7 @@ import { MenuTabs } from './MenuTabs';
 import './menu.css';
 
 export function Menu() {
+  const t = useT();
   const { state, actions } = useGame();
   const [pageId, setPageId] = useState<PageId>('inventory');
   useTypingFocus();
@@ -35,9 +37,9 @@ export function Menu() {
       <header className="menu__bar">
         <div className="menu__heading">
           <span className="mono menu__eyebrow">
-            OPÉRATEUR{player ? ` · ${player.name} · NIV. ${player.level}` : ''}
+            {t('OPÉRATEUR')}{player ? ` · ${player.name} · ${t('NIV. {level}', { level: player.level })}` : ''}
           </span>
-          <h1 className="disp menu__title">{page.label}</h1>
+          <h1 className="disp menu__title">{t(page.label)}</h1>
         </div>
         <MenuTabs active={pageId} onSelect={setPageId} />
         <MenuStatus />

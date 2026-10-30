@@ -9,6 +9,7 @@ local Zones = PVP.use('Zones')
 local PedUtils = PVP.use('PedUtils')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Teleport.FADE = 400
 Teleport.open = false
@@ -17,7 +18,7 @@ function Teleport.init()
     RegisterCommand('pvp_teleport', function()
         Teleport.toggle()
     end, false)
-    RegisterKeyMapping('pvp_teleport', 'Téléportation entre zones safe 7PVP', 'keyboard', Config.Teleport.key)
+    RegisterKeyMapping('pvp_teleport', Locale.t('Téléportation entre zones safe 7PVP'), 'keyboard', Config.Teleport.key)
 
     RegisterNUICallback('teleportClose', function(_, cb)
         Teleport.close()
@@ -119,6 +120,6 @@ function Teleport.arrive(spawn, label)
 
         Zone.update()
         DoScreenFadeIn(Teleport.FADE)
-        Nui.notify(('Téléporté : %s.'):format(label), 'success')
+        Nui.notify(Locale.t('Téléporté : %s.', Locale.t(label)), 'success')
     end)
 end

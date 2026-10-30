@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { activityApi } from '../../api/activityApi';
 import { isEnvBrowser } from '../../api/nui';
+import { useT } from '../../i18n';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import type { ActivityInfo } from '../../types/game';
 import type { NuiMessage } from '../../types/nui';
@@ -9,6 +10,7 @@ import './activity.css';
 
 /** Fenêtre d'un mode de jeu du Freeroam, ouverte en parlant à son organisateur. */
 export function ActivityPanel() {
+  const t = useT();
   const [activity, setActivity] = useState<ActivityInfo | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -47,20 +49,20 @@ export function ActivityPanel() {
         <header className="activity__header">
           <Icon name={(activity.icon as IconName) ?? 'flag'} size={30} strokeWidth={1.8} className="activity__icon" />
           <div className="activity__heading">
-            {activity.tagline && <span className="mono activity__tag">{activity.tagline}</span>}
-            <h1 className="disp activity__title">{activity.label}</h1>
+            {activity.tagline && <span className="mono activity__tag">{t(activity.tagline)}</span>}
+            <h1 className="disp activity__title">{t(activity.label)}</h1>
           </div>
-          <button className="btn btn--small activity__close" onClick={close} aria-label="Fermer">
+          <button className="btn btn--small activity__close" onClick={close} aria-label={t('Fermer')}>
             ✕
           </button>
         </header>
-        {activity.description && <p className="activity__description">{activity.description}</p>}
+        {activity.description && <p className="activity__description">{t(activity.description)}</p>}
         <footer className="activity__footer">
           <span className="label activity__hint">
-            <span className="mono keycap--solid">ÉCHAP</span> Fermer
+            <span className="mono keycap--solid">{t('ÉCHAP')}</span> {t('Fermer')}
           </span>
           <button className="btn btn--primary activity__start" disabled={!activity.enabled || busy} onClick={start}>
-            {!activity.enabled ? 'Bientôt disponible' : busy ? 'Lancement…' : 'Lancer'}
+            {!activity.enabled ? t('Bientôt disponible') : busy ? t('Lancement…') : t('Lancer')}
           </button>
         </footer>
       </section>

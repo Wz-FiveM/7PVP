@@ -12,6 +12,7 @@ local Items = PVP.use('Items')
 local ContractService = PVP.use('ContractService')
 local DiscordService = PVP.use('DiscordService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 function CombatService.init()
     RegisterNetEvent(Events.server.died, function(killerId, cause)
@@ -136,8 +137,8 @@ function CombatService.dropVictimLoot(victim, coords)
         bucket = GetPlayerRoutingBucket(victim.source),
         -- Ouvert comme un coffre : on glisse dans son sac ce qu'on veut garder
         browse = true,
-        label = 'Fouiller le butin',
-        title = ('Butin de %s'):format(victim.name),
+        label = Locale.t('Fouiller le butin'),
+        title = Locale.t('Butin de %s', victim.name),
     })
 end
 
@@ -164,13 +165,13 @@ end
 
 ---@param killer PvpPlayer
 ---@param victim PvpPlayer
----@param message? string texte de la notification (défaut : « Tu as tué X »)
+---@param message? string|table texte de la notification, message à traduire (défaut : « Tu as tué X »)
 function CombatService.rewardPlayerKill(killer, victim, message)
     local reward = Config.Rewards.playerKill
     killer:incrementStat('kills')
     killer:addMoney(reward.money)
     killer:addXp(reward.xp)
-    killer:notify(('%s (+$%d)'):format(message or ('Tu as tué ' .. victim.name), reward.money), 'success')
+    killer:notify(Locale.t('%s (+$%d)', message or Locale.t('Tu as tué %s', victim.name), reward.money), 'success')
     BountyService.onPlayerKill(killer, victim)
     ContractService.track(killer, 'playerKill', 1)
     killer:sync()

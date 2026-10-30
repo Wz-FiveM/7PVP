@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
+import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { AdminAction, AdminPlayer } from '../../types/admin';
 import type { ContainerId } from '../../types/game';
@@ -10,6 +11,7 @@ const MODE_LABEL: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
 
 /** Liste des joueurs connectés + actions sur le joueur sélectionné. */
 export function PlayersTab() {
+  const t = useT();
   const { state, actions } = useGame();
   const [players, setPlayers] = useState<AdminPlayer[]>([]);
   const [search, setSearch] = useState('');
@@ -47,12 +49,12 @@ export function PlayersTab() {
       <div className="admin-row">
         <input
           className="admin-input"
-          placeholder="Rechercher (nom ou ID)"
+          placeholder={t('Rechercher (nom ou ID)')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
         <button className="btn btn--small cut-s" onClick={refresh}>
-          Actualiser
+          {t('Actualiser')}
         </button>
       </div>
 
@@ -65,12 +67,12 @@ export function PlayersTab() {
             >
               <span className="mono admin-player__id">{player.id}</span>
               <span className="admin-player__name">{player.name}</span>
-              {player.dead && <span className="admin-player__dead mono">MORT</span>}
-              <span className="mono admin-player__mode">{player.mode ? MODE_LABEL[player.mode] ?? player.mode : 'Lobby'}</span>
+              {player.dead && <span className="admin-player__dead mono">{t('MORT')}</span>}
+              <span className="mono admin-player__mode">{player.mode ? MODE_LABEL[player.mode] ?? player.mode : t('Lobby')}</span>
             </button>
           </li>
         ))}
-        {filtered.length === 0 && <li className="muted admin-empty">Aucun joueur.</li>}
+        {filtered.length === 0 && <li className="muted admin-empty">{t('Aucun joueur.')}</li>}
       </ul>
 
       {selected && <PlayerActions player={selected} items={state.config.items} onRun={run} />}
@@ -85,6 +87,7 @@ interface PlayerActionsProps {
 }
 
 function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
+  const t = useT();
   const itemNames = useMemo(() => Object.keys(items).sort((a, b) => items[a].label.localeCompare(items[b].label, 'fr')), [items]);
   const [item, setItem] = useState(itemNames[0] ?? '');
   const [count, setCount] = useState(1);
@@ -100,33 +103,33 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
       <header className="admin-target__header">
         <span className="disp admin-target__name">{player.name}</span>
         <span className="mono muted">
-          ID {player.id} · NIV. {player.level} · {formatMoney(player.money)}
+          ID {player.id} · {t('NIV. {level}', { level: player.level })} · {formatMoney(player.money)}
         </span>
       </header>
 
-      <span className="label">État</span>
+      <span className="label">{t('État')}</span>
       <div className="admin-grid">
-        <button className="btn btn--small cut-s" onClick={() => onRun('heal')}>Soigner</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('revive')}>Réanimer</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: true })}>Geler</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: false })}>Dégeler</button>
-        <button className="btn btn--small btn--danger cut-s" onClick={() => onRun('kill')}>Tuer</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('heal')}>{t('Soigner')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('revive')}>{t('Réanimer')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: true })}>{t('Geler')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: false })}>{t('Dégeler')}</button>
+        <button className="btn btn--small btn--danger cut-s" onClick={() => onRun('kill')}>{t('Tuer')}</button>
       </div>
 
-      <span className="label">Position</span>
+      <span className="label">{t('Position')}</span>
       <div className="admin-grid">
-        <button className="btn btn--small cut-s" onClick={() => onRun('gotoPlayer')}>Aller à lui</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('bringPlayer')}>Ramener</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('sendToLobby')}>Envoyer au lobby</button>
-        <button className="btn btn--small cut-s" onClick={() => onRun('spectate')}>Regarder</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('gotoPlayer')}>{t('Aller à lui')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('bringPlayer')}>{t('Ramener')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('sendToLobby')}>{t('Envoyer au lobby')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('spectate')}>{t('Regarder')}</button>
       </div>
 
-      <span className="label">Donner un objet</span>
+      <span className="label">{t('Donner un objet')}</span>
       <div className="admin-row">
         <select className="admin-input" value={item} onChange={(event) => setItem(event.target.value)}>
           {itemNames.map((name) => (
             <option key={name} value={name}>
-              {items[name].label}
+              {t(items[name].label)}
             </option>
           ))}
         </select>
@@ -140,15 +143,15 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
       </div>
       <div className="admin-row">
         <select className="admin-input" value={container} onChange={(event) => setContainer(event.target.value as ContainerId)}>
-          <option value="bag">Dans le sac</option>
-          <option value="protected">Dans le conteneur protégé</option>
+          <option value="bag">{t('Dans le sac')}</option>
+          <option value="protected">{t('Dans le conteneur protégé')}</option>
         </select>
         <button className="btn btn--small btn--primary cut-s" onClick={() => onRun('giveItem', { item, count, container })}>
-          Donner
+          {t('Donner')}
         </button>
       </div>
 
-      <span className="label">Donner de l'argent</span>
+      <span className="label">{t("Donner de l'argent")}</span>
       <div className="admin-row">
         <input
           className="admin-input mono"
@@ -158,15 +161,15 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
           onChange={(event) => setAmount(Math.max(1, Number(event.target.value) || 1))}
         />
         <button className="btn btn--small btn--primary cut-s" onClick={() => onRun('giveMoney', { amount })}>
-          Donner
+          {t('Donner')}
         </button>
       </div>
 
-      <span className="label">Expulser</span>
+      <span className="label">{t('Expulser')}</span>
       <div className="admin-row">
         <input
           className="admin-input"
-          placeholder="Raison"
+          placeholder={t('Raison')}
           maxLength={120}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
@@ -175,7 +178,7 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
           className="btn btn--small btn--danger cut-s"
           onClick={() => (confirmKick ? onRun('kick', { reason }) : setConfirmKick(true))}
         >
-          {confirmKick ? 'Confirmer' : 'Expulser'}
+          {confirmKick ? t('Confirmer') : t('Expulser')}
         </button>
       </div>
     </section>

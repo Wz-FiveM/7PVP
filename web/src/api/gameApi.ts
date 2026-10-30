@@ -11,6 +11,9 @@ export const gameApi = {
 
   close: () => fetchNui<void>('close'),
 
+  /** Langue de l'interface et des messages (gardée côté Lua, qui renvoie « locale ») */
+  setLanguage: (lang: string) => fetchNui<ActionResult>('setLanguage', { lang }, { ok: true }),
+
   /** `index` est 1-based, comme Config.Shop côté Lua */
   buy: (index: number) => fetchNui<ActionResult>('buy', { index }, MOCK_OK),
 

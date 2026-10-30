@@ -14,6 +14,7 @@ local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ---@type table<string, table> id -> définition de la caisse
 CaseService.byId = {}
@@ -53,25 +54,25 @@ function CaseService.buy(source, id)
     local player = CaseService.getActivePlayer(source)
     local case = CaseService.byId[id]
     if not player or not case or not case.price then
-        return { ok = false, message = 'Achat impossible.' }
+        return { ok = false, message = Locale.t('Achat impossible.') }
     end
     if not SafeNpcs.isNear(player:getCoords(), 'shop', Config.SafeNpcs.useDistance + 2.0) then
         return { ok = false, message = SafeNpcs.hint('shop') }
     end
     if player:getLevel() < (case.level or 1) then
-        return { ok = false, message = ('Niveau %d requis.'):format(case.level) }
+        return { ok = false, message = Locale.t('Niveau %d requis.', case.level) }
     end
     if player:getMoney() < case.price then
-        return { ok = false, message = 'Pas assez d\'argent.' }
+        return { ok = false, message = Locale.t('Pas assez d\'argent.') }
     end
     if player.inventory:maxFit('bag', case.id) < 1 then
-        return { ok = false, message = 'Ton sac est trop lourd.' }
+        return { ok = false, message = Locale.t('Ton sac est trop lourd.') }
     end
 
     player:removeMoney(case.price)
     player:giveItem(case.id, 1)
     player:sync()
-    return { ok = true, message = ('Acheté : %s'):format(case.label) }
+    return { ok = true, message = Locale.t('Acheté : %s', Locale.t(case.label)) }
 end
 
 ---@param source integer
@@ -81,16 +82,16 @@ function CaseService.open(source, id)
     local player = CaseService.getActivePlayer(source)
     local case = CaseService.byId[id]
     if not player or not case then
-        return { ok = false, message = 'Ouverture impossible.' }
+        return { ok = false, message = Locale.t('Ouverture impossible.') }
     end
     if (player.caseBusyUntil or 0) > GetGameTimer() then
-        return { ok = false, message = 'Une caisse est déjà en cours d\'ouverture.' }
+        return { ok = false, message = Locale.t('Une caisse est déjà en cours d\'ouverture.') }
     end
     if CombatTagService.isTagged(player) then
-        return { ok = false, message = ('En combat : attends %d s.'):format(CombatTagService.remaining(player)) }
+        return { ok = false, message = Locale.t('En combat : attends %d s.', CombatTagService.remaining(player)) }
     end
     if not player:removeItem(case.id, 1) then
-        return { ok = false, message = 'Tu n\'as pas cette caisse.' }
+        return { ok = false, message = Locale.t('Tu n\'as pas cette caisse.') }
     end
     return CaseService.spin(player, case)
 end
@@ -103,16 +104,16 @@ function CaseService.openWithPoints(source, id)
     local player = CaseService.getActivePlayer(source)
     local case = CaseService.byId[id]
     if not player or not case or not case.points then
-        return { ok = false, message = 'Ouverture impossible.' }
+        return { ok = false, message = Locale.t('Ouverture impossible.') }
     end
     if (player.caseBusyUntil or 0) > GetGameTimer() then
-        return { ok = false, message = 'Une caisse est déjà en cours d\'ouverture.' }
+        return { ok = false, message = Locale.t('Une caisse est déjà en cours d\'ouverture.') }
     end
     if player:getLevel() < (case.level or 1) then
-        return { ok = false, message = ('Niveau %d requis.'):format(case.level) }
+        return { ok = false, message = Locale.t('Niveau %d requis.', case.level) }
     end
     if CombatTagService.isTagged(player) then
-        return { ok = false, message = ('En combat : attends %d s.'):format(CombatTagService.remaining(player)) }
+        return { ok = false, message = Locale.t('En combat : attends %d s.', CombatTagService.remaining(player)) }
     end
 
     -- Réservé pendant l'attente de la base : une 2e demande ne peut pas payer en même temps
@@ -120,7 +121,7 @@ function CaseService.openWithPoints(source, id)
     if not ShopPointsService.spend(player, case.points, 'case:' .. case.id) then
         player.caseBusyUntil = 0
         player:sync() -- solde relu en base : l'affichage était peut-être en retard
-        return { ok = false, message = ('Pas assez de %s.'):format(Config.ShopPoints.label:lower()) }
+        return { ok = false, message = Locale.t('Pas assez de %s.', Locale.t(Config.ShopPoints.label:lower())) }
     end
     -- Déconnecté pendant le paiement : profil déjà sauvegardé, la récompense serait perdue
     if PlayerService.get(source) ~= player then
@@ -152,8 +153,9 @@ function CaseService.spin(player, case)
         player:sync()
         player:notify(CaseService.describeDelivery(reward.item, count, placed), 'success')
         if options.announceRarities[reward.rarity] then
-            ChatService.announce('pvp', ('%s a obtenu %s (%s) dans une %s !'):format(
-                player.name, Items.describe({ [reward.item] = count }), Config.CaseRarities[reward.rarity].label, case.label
+            ChatService.announce('pvp', Locale.t('%s a obtenu %s (%s) dans une %s !',
+                player.name, Items.describeText({ [reward.item] = count }),
+                Locale.t(Config.CaseRarities[reward.rarity].label), Locale.t(case.label)
             ))
         end
     end)
@@ -222,10 +224,10 @@ end
 ---@param name string
 ---@param count integer
 ---@param placed { bag: integer, stash: integer, ground: integer }
----@return string
+---@return string|table message à traduire (Locale.t)
 function CaseService.describeDelivery(name, count, placed)
-    local message = ('Caisse : %s'):format(Items.describe({ [name] = count }))
-    if placed.stash > 0 then message = message .. ' (sac plein : envoyé au coffre)' end
-    if placed.ground > 0 then message = message .. ' (sac et coffre pleins : posé au sol)' end
-    return message
+    local parts = { Locale.t('Caisse : %s', Items.describeText({ [name] = count })) }
+    if placed.stash > 0 then parts[#parts + 1] = Locale.t('(sac plein : envoyé au coffre)') end
+    if placed.ground > 0 then parts[#parts + 1] = Locale.t('(sac et coffre pleins : posé au sol)') end
+    return Locale.join(parts, ' ')
 end

@@ -1,3 +1,4 @@
+import { useT } from '../../i18n';
 import type { ZoneInfo } from '../../types/game';
 
 const SHORT_LABEL: Record<ZoneInfo['type'], string> = { safe: 'Safe', pve: 'PvE', pvp: 'PvP' };
@@ -9,10 +10,12 @@ interface ZoneChipProps {
 }
 
 export function ZoneChip({ zone, detailed }: ZoneChipProps) {
-  const name = zone.label.replace(/^Zone (safe|PvP|PvE)\s*-\s*/i, '');
+  const t = useT();
+  // Préfixe « Zone safe - » retiré après traduction (« Safe zone - » en anglais...)
+  const name = t(zone.label).replace(/^.*?\s-\s+/, '');
   return (
     <span className={`chip cut-s zone-${zone.type}`}>
-      {SHORT_LABEL[zone.type]}
+      {t(SHORT_LABEL[zone.type])}
       {detailed && zone.type !== 'pvp' && ` · ${name}`}
     </span>
   );

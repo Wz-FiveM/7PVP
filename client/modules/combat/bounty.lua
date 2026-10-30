@@ -5,6 +5,7 @@ local Bounty = PVP.define('Bounty')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Bounty.REFRESH_INTERVAL = 1000
 
@@ -54,7 +55,7 @@ function Bounty.refresh()
             SetBlipScale(blip, 1.0)
             SetBlipAsShortRange(blip, false)
             BeginTextCommandSetBlipName('STRING')
-            AddTextComponentSubstringPlayerName(('Prime : %s ($%d)'):format(entry.name, entry.amount))
+            AddTextComponentSubstringPlayerName(Locale.t('Prime : %s ($%d)', entry.name, entry.amount))
             EndTextCommandSetBlipName(blip)
             Bounty.blips[id] = blip
         end

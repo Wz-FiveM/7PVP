@@ -10,6 +10,7 @@ local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 LootConfigService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_loot_tables (
     name VARCHAR(32) NOT NULL,
@@ -145,20 +146,20 @@ function LootConfigService.allowed(source)
 end
 
 ---@param name string
----@return string[] zones (ou largages) qui utilisent la table
+---@return table[] zones (ou largages) qui utilisent la table (Locale.t)
 function LootConfigService.usedBy(name)
     local list = {}
     for _, zone in ipairs(Config.Zones) do
-        if zone.npc and zone.npc.loot == name then list[#list + 1] = zone.label end
+        if zone.npc and zone.npc.loot == name then list[#list + 1] = Locale.t(zone.label) end
     end
-    if Config.Airdrops.loot == name then list[#list + 1] = 'Largages aériens' end
+    if Config.Airdrops.loot == name then list[#list + 1] = Locale.t('Largages aériens') end
     return list
 end
 
 ---Tout ce que le panneau affiche : tables, zones PvE et liste des objets.
 ---@param source integer
 function LootConfigService.getCallback(source)
-    if not LootConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not LootConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
 
     local tables = {}
     for name, lootTable in pairs(Config.LootTables) do
@@ -172,6 +173,7 @@ function LootConfigService.getCallback(source)
         }
     end
     table.sort(tables, function(a, b) return a.label < b.label end)
+    for _, entry in ipairs(tables) do entry.label = Locale.t(entry.label) end
 
     local zones = {}
     for _, zone in ipairs(Config.Zones) do
@@ -191,27 +193,27 @@ end
 ---@param name any
 ---@param data any
 function LootConfigService.saveCallback(source, name, data)
-    if not LootConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not LootConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
     if type(name) ~= 'string' or not Config.LootTables[name] then
-        return { ok = false, message = 'Table inconnue.' }
+        return { ok = false, message = Locale.t('Table inconnue.') }
     end
     local clean = LootConfigService.validate(data)
-    if not clean then return { ok = false, message = 'Données invalides.' } end
+    if not clean then return { ok = false, message = Locale.t('Données invalides.') } end
 
     Config.LootTables[name] = clean
     LootConfigService.modified[name] = true
     LootConfigService.store(source, name, clean)
     local label = LootConfigService.LABELS[name] or name
     LootConfigService.log(source, ('table « %s » : %d objet(s)'):format(label, #clean.drops))
-    return { ok = true, message = ('Butin « %s » enregistré.'):format(label) }
+    return { ok = true, message = Locale.t('Butin « %s » enregistré.', Locale.t(label)) }
 end
 
 ---@param source integer
 ---@param name any
 function LootConfigService.resetCallback(source, name)
-    if not LootConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not LootConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
     if type(name) ~= 'string' or not LootConfigService.defaults[name] then
-        return { ok = false, message = 'Table inconnue.' }
+        return { ok = false, message = Locale.t('Table inconnue.') }
     end
 
     Config.LootTables[name] = json.decode(json.encode(LootConfigService.defaults[name]))
@@ -219,13 +221,13 @@ function LootConfigService.resetCallback(source, name)
     MySQL.update('DELETE FROM pvp_loot_tables WHERE name = ?', { name })
     local label = LootConfigService.LABELS[name] or name
     LootConfigService.log(source, ('table « %s » remise par défaut'):format(label))
-    return { ok = true, message = ('Butin « %s » remis par défaut.'):format(label) }
+    return { ok = true, message = Locale.t('Butin « %s » remis par défaut.', Locale.t(label)) }
 end
 
 ---@param source integer
 ---@param data any zone -> table
 function LootConfigService.zonesCallback(source, data)
-    if not LootConfigService.allowed(source) then return { ok = false, message = 'Accès refusé.' } end
+    if not LootConfigService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
     if type(data) ~= 'table' then return { ok = false } end
 
     LootConfigService.applyZones(data)
@@ -235,7 +237,7 @@ function LootConfigService.zonesCallback(source, data)
     end
     LootConfigService.store(source, LootConfigService.ZONES_ROW, saved)
     LootConfigService.log(source, 'butin des zones PvE modifié')
-    return { ok = true, message = 'Butin des zones enregistré.' }
+    return { ok = true, message = Locale.t('Butin des zones enregistré.') }
 end
 
 ---@param source integer

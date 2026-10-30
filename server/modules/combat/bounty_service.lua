@@ -6,6 +6,7 @@ local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local ChatService = PVP.use('ChatService')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 function BountyService.init()
     -- Les joueurs qui arrivent voient les primes en cours
@@ -49,8 +50,8 @@ end
 function BountyService.onPlayerKill(killer, victim)
     if victim.bounty > 0 then
         killer:addMoney(victim.bounty)
-        killer:notify(('Prime encaissée : $%d pour %s'):format(victim.bounty, victim.name), 'success')
-        ChatService.announce('pvp', ('%s a abattu %s et encaisse sa prime de $%d !'):format(killer.name, victim.name, victim.bounty))
+        killer:notify(Locale.t('Prime encaissée : $%d pour %s', victim.bounty, victim.name), 'success')
+        ChatService.announce('pvp', Locale.t('%s a abattu %s et encaisse sa prime de $%d !', killer.name, victim.name, victim.bounty))
     end
 
     killer.streak = killer.streak + 1
@@ -58,10 +59,10 @@ function BountyService.onPlayerKill(killer, victim)
     if bounty > 0 then
         killer.bounty = bounty
         if killer.streak == Config.Bounty.threshold then
-            ChatService.announce('pvp', ('%s enchaîne %d kills : sa tête est mise à prix ($%d) !'):format(killer.name, killer.streak, bounty))
-            ModeRegistry.broadcast('pvp', Events.client.notify, ('Prime sur %s : $%d (repère rouge)'):format(killer.name, bounty), 'info')
+            ChatService.announce('pvp', Locale.t('%s enchaîne %d kills : sa tête est mise à prix ($%d) !', killer.name, killer.streak, bounty))
+            ModeRegistry.broadcast('pvp', Events.client.notify, Locale.t('Prime sur %s : $%d (repère rouge)', killer.name, bounty), 'info')
         elseif killer.streak % Config.Bounty.announceEvery == 0 then
-            ChatService.announce('pvp', ('%s : série de %d kills, prime de $%d.'):format(killer.name, killer.streak, bounty))
+            ChatService.announce('pvp', Locale.t('%s : série de %d kills, prime de $%d.', killer.name, killer.streak, bounty))
         end
         BountyService.broadcast()
     end

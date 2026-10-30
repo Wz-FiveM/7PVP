@@ -37,11 +37,14 @@
   color: var(--brume-hi);
 }
 
+.lobby__language {
+  margin-left: auto;
+}
 .lobby__operator {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  margin-left: auto;
+  margin-left: 1.5rem;
 }
 .lobby__operator-text {
   display: flex;

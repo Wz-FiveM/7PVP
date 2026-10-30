@@ -31,6 +31,7 @@ local Utils = PVP.use('Utils')
 local Zones = PVP.use('Zones')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 ChaseService.ID = 'chase'
 ChaseService.CHECK_INTERVAL = 250
@@ -67,14 +68,14 @@ end
 ---@return boolean, string
 function ChaseService.toggleQueue(player)
     local source = player.source
-    if ChaseService.playerMatch[source] then return false, 'Tu es déjà dans une course.' end
-    if GungameService.isBusy(source) then return false, 'Quitte d\'abord le Gungame (file ou partie).' end
+    if ChaseService.playerMatch[source] then return false, Locale.t('Tu es déjà dans une course.') end
+    if GungameService.isBusy(source) then return false, Locale.t('Quitte d\'abord le Gungame (file ou partie).') end
 
     for index, queued in ipairs(ChaseService.queue) do
         if queued == source then
             table.remove(ChaseService.queue, index)
             TriggerClientEvent(Events.client.chaseQueue, source, false)
-            return true, 'Tu as quitté la file de la course poursuite.'
+            return true, Locale.t('Tu as quitté la file de la course poursuite.')
         end
     end
 
@@ -83,9 +84,9 @@ function ChaseService.toggleQueue(player)
     if #ChaseService.queue >= 2 then
         ChaseService.startMatch(table.remove(ChaseService.queue, 1), table.remove(ChaseService.queue, 1))
         ChaseService.broadcastQueue()
-        return true, 'Adversaire trouvé : la course commence !'
+        return true, Locale.t('Adversaire trouvé : la course commence !')
     end
-    return true, 'Tu attends un adversaire. Reparle à l\'organisateur pour quitter la file.'
+    return true, Locale.t('Tu attends un adversaire. Reparle à l\'organisateur pour quitter la file.')
 end
 
 function ChaseService.broadcastQueue()
@@ -107,7 +108,7 @@ function ChaseService.leave(source)
     local match = ChaseService.matches[ChaseService.playerMatch[source]]
     if match and match.phase ~= 'ended' then
         local other = ChaseService.opponent(match, source)
-        ChaseService.endMatch(match, other, 'Ton adversaire a quitté la course : victoire par forfait.', source)
+        ChaseService.endMatch(match, other, Locale.t('Ton adversaire a quitté la course : victoire par forfait.'), source)
     end
 end
 
@@ -151,9 +152,9 @@ end
 function ChaseService.describePlayer(source)
     local match = ChaseService.matches[ChaseService.playerMatch[source]]
     if not match then return nil end
-    if match.phase == 'vote' then return ('Course n°%d · vote des véhicules'):format(match.id) end
-    local role = ChaseService.roleOf(match, source) == 'thief' and 'voleur' or 'policier'
-    return ('Course n°%d · manche %d · %s · %d - %d'):format(match.id, match.round, role,
+    if match.phase == 'vote' then return Locale.t('Course n°%d · vote des véhicules', match.id) end
+    local role = ChaseService.roleOf(match, source) == 'thief' and Locale.t('voleur') or Locale.t('policier')
+    return Locale.t('Course n°%d · manche %d · %s · %d - %d', match.id, match.round, role,
         match.scores[source], match.scores[ChaseService.opponent(match, source)])
 end
 
@@ -201,7 +202,7 @@ function ChaseService.startMatch(a, b)
         TriggerClientEvent(Events.client.chaseVote, source, {
             vehicles = vehicles,
             seconds = Config.Chase.voteTime,
-            opponent = GetPlayerName(ChaseService.opponent(match, source)) or 'Adversaire',
+            opponent = GetPlayerName(ChaseService.opponent(match, source)) or Locale.t('Adversaire'),
         })
     end
     Logger.info('[course] partie n°%d : %s contre %s', match.id, GetPlayerName(a) or a, GetPlayerName(b) or b)
@@ -220,10 +221,10 @@ function ChaseService.vote(source, model)
         if vehicle.model == model then
             match.votes[source] = model
             if match.votes[match.players[1]] and match.votes[match.players[2]] then ChaseService.startRound(match) end
-            return { ok = true, message = ('Vote : %s'):format(vehicle.label) }
+            return { ok = true, message = Locale.t('Vote : %s', vehicle.label) }
         end
     end
-    return { ok = false, message = 'Véhicule inconnu.' }
+    return { ok = false, message = Locale.t('Véhicule inconnu.') }
 end
 
 ---@param match ChaseMatch
@@ -269,7 +270,7 @@ function ChaseService.startRound(match)
             escapeDistance = Config.Chase.escapeDistance,
             arrestTime = Config.Chase.arrestTime,
             scores = { me = match.scores[source], opponent = match.scores[ChaseService.opponent(match, source)] },
-            opponent = GetPlayerName(ChaseService.opponent(match, source)) or 'Adversaire',
+            opponent = GetPlayerName(ChaseService.opponent(match, source)) or Locale.t('Adversaire'),
             opponentId = ChaseService.opponent(match, source),
             warns = match.warns[source],
             rules = { pit = Config.Chase.pit, stunt = Config.Chase.stunt, damage = Config.Chase.damageRealism },
@@ -311,27 +312,27 @@ function ChaseService.check(match, sendState)
     if thiefPed == 0 or copPed == 0 then return end
     local now = GetGameTimer()
 
-    if GetEntityHealth(thiefPed) <= 0 then return ChaseService.endRound(match, match.cop, 'Le voleur est hors d\'état de nuire.') end
-    if GetEntityHealth(copPed) <= 0 then return ChaseService.endRound(match, match.thief, 'Le policier est hors course.') end
+    if GetEntityHealth(thiefPed) <= 0 then return ChaseService.endRound(match, match.cop, Locale.t('Le voleur est hors d\'état de nuire.')) end
+    if GetEntityHealth(copPed) <= 0 then return ChaseService.endRound(match, match.thief, Locale.t('Le policier est hors course.')) end
 
     local thiefPos, copPos = GetEntityCoords(thiefPed), GetEntityCoords(copPed)
     local distance = #(thiefPos.xy - copPos.xy)
     if distance >= Config.Chase.escapeDistance then
-        return ChaseService.endRound(match, match.thief, 'Le voleur a semé le policier.')
+        return ChaseService.endRound(match, match.thief, Locale.t('Le voleur a semé le policier.'))
     end
 
     -- Immobilisé : à l'arrêt, avec le policier collé à lui
     if ChaseService.speedOf(thiefPed) < Config.Chase.arrestSpeed and distance <= Config.Chase.arrestDistance then
         match.immobileSince = match.immobileSince or now
         if now - match.immobileSince >= Config.Chase.arrestTime * 1000 then
-            return ChaseService.endRound(match, match.cop, 'Le policier a immobilisé le voleur.')
+            return ChaseService.endRound(match, match.cop, Locale.t('Le policier a immobilisé le voleur.'))
         end
     else
         match.immobileSince = nil
     end
 
     if now >= match.endAt then
-        return ChaseService.endRound(match, match.cop, 'Temps écoulé : le voleur n\'a pas réussi à fuir.')
+        return ChaseService.endRound(match, match.cop, Locale.t('Temps écoulé : le voleur n\'a pas réussi à fuir.'))
     end
 
     -- Véhicules : dégâts, sur le toit, et caps récents (pour vérifier les PIT signalés)
@@ -376,12 +377,12 @@ function ChaseService.checkVehicle(match, source, now)
     local vehicle = GetVehiclePedIsIn(GetPlayerPed(source), false)
     if vehicle == 0 then return nil end
     local other = ChaseService.opponent(match, source)
-    local name = GetPlayerName(source) or 'Un joueur'
+    local name = GetPlayerName(source) or Locale.t('Un joueur')
 
     local engine, body = GetVehicleEngineHealth(vehicle), GetVehicleBodyHealth(vehicle)
     local damage = Config.Chase.damage
     if engine < damage.minEngine or body < damage.minBody then
-        ChaseService.endRound(match, other, ('Véhicule de %s trop endommagé.'):format(name))
+        ChaseService.endRound(match, other, Locale.t('Véhicule de %s trop endommagé.', name))
         return false
     end
 
@@ -389,7 +390,7 @@ function ChaseService.checkVehicle(match, source, now)
     if math.abs(GetEntityRotation(vehicle).y) >= roof.angle then
         match.upsideSince[source] = match.upsideSince[source] or now
         if now - match.upsideSince[source] >= roof.time * 1000 then
-            ChaseService.endRound(match, other, ('Véhicule de %s sur le toit.'):format(name))
+            ChaseService.endRound(match, other, Locale.t('Véhicule de %s sur le toit.', name))
             return false
         end
     else
@@ -413,7 +414,7 @@ function ChaseService.onReport(source, kind)
     local other = ChaseService.opponent(match, source)
 
     if kind == 'stunt' then
-        return ChaseService.endRound(match, other, ('Saut trop important de %s.'):format(GetPlayerName(source) or 'un joueur'))
+        return ChaseService.endRound(match, other, Locale.t('Saut trop important de %s.', GetPlayerName(source) or Locale.t('un joueur')))
     end
     if kind == 'pit' then ChaseService.onPit(match, source, other) end
 end
@@ -445,12 +446,12 @@ function ChaseService.onPit(match, victim, attacker)
     TriggerClientEvent(Events.client.chaseRepair, victim)
     local warns = match.warns[attacker]
     TriggerClientEvent(Events.client.notify, attacker,
-        ('PIT interdit : avertissement %d/%d.'):format(warns, pit.maxWarns), 'error')
+        Locale.t('PIT interdit : avertissement %d/%d.', warns, pit.maxWarns), 'error')
     TriggerClientEvent(Events.client.notify, victim,
-        'Ton adversaire t\'a fait un PIT : il prend un avertissement, ton véhicule retrouve son état d\'avant le choc.', 'info')
+        Locale.t('Ton adversaire t\'a fait un PIT : il prend un avertissement, ton véhicule retrouve son état d\'avant le choc.'), 'info')
 
     if warns >= pit.maxWarns then
-        ChaseService.endRound(match, victim, ('%s a fait trop de PIT.'):format(GetPlayerName(attacker) or 'Ton adversaire'))
+        ChaseService.endRound(match, victim, Locale.t('%s a fait trop de PIT.', GetPlayerName(attacker) or Locale.t('Ton adversaire')))
     end
 end
 

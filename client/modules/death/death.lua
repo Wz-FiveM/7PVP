@@ -7,6 +7,7 @@ local Loadout = PVP.use('Loadout')
 local Freeroam = PVP.use('Freeroam')
 local PedUtils = PVP.use('PedUtils')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Death.CHECK_INTERVAL = 250
 
@@ -60,7 +61,7 @@ function Death.markPosition(coords)
     SetBlipScale(blip, 0.9)
     SetBlipAsShortRange(blip, false)
     BeginTextCommandSetBlipName('STRING')
-    AddTextComponentSubstringPlayerName('Dernière mort')
+    AddTextComponentSubstringPlayerName(Locale.t('Dernière mort'))
     EndTextCommandSetBlipName(blip)
     Death.blip = blip
 

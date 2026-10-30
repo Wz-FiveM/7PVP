@@ -7,6 +7,7 @@ local Nui = PVP.use('Nui')
 local Appearance = PVP.use('Appearance')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 Lobby.active = false
 Lobby.modes = nil
@@ -109,7 +110,7 @@ function Lobby.join(modeId)
 
     local result = Callback.await(Events.callbacks.joinMode, modeId)
     if not result or not result.ok then
-        return result or { ok = false, message = 'Le serveur ne répond pas.' }
+        return result or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
     end
 
     State.mode = result.mode
@@ -122,5 +123,5 @@ end
 ---@return { ok: boolean, message?: string }
 function Lobby.requestLeave()
     if Lobby.active then return { ok = false } end
-    return Callback.await(Events.callbacks.leaveMode) or { ok = false, message = 'Le serveur ne répond pas.' }
+    return Callback.await(Events.callbacks.leaveMode) or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
 end

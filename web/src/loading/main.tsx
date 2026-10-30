@@ -9,14 +9,18 @@ import '@fontsource/jetbrains-mono/latin-700.css';
 import '../styles/global.css';
 import '../styles/ui.css';
 import './loading.css';
+import { browserLanguage, setLanguage } from '../i18n';
 import { watchUiScale } from '../utils/scale';
 import { LoadingScreen } from './LoadingScreen';
 
 // Écran de chargement : page séparée de l'interface du jeu (loadscreen du fxmanifest)
 watchUiScale();
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <LoadingScreen />
-  </StrictMode>,
-);
+// Le choix du joueur (KVP) n'est pas lisible ici : langue du navigateur, en général celle du PC
+setLanguage(browserLanguage()).finally(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <LoadingScreen />
+    </StrictMode>,
+  );
+});
