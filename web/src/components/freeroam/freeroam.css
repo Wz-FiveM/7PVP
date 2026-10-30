@@ -196,14 +196,12 @@
   font-weight: 700;
   color: var(--abri);
 }
+.freeroam-hud__info {
+  font-size: 0.625rem;
+  color: var(--brume-hi);
+}
 .freeroam-hud__pvp {
   font-size: 0.6875rem;
   font-weight: 700;
-}
-.freeroam-hud__pvp--on {
   color: var(--hazard);
-}
-.freeroam-hud__hint {
-  font-size: 0.625rem;
-  color: var(--brume-hi);
 }

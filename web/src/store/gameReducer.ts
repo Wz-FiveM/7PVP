@@ -163,7 +163,7 @@ export const initialState: GameState = {
   leaderboard: [],
   leaderboardTitle: '',
   controlZone: null,
-  freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [] },
+  freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [], activity: null },
   helpNotify: null,
   interaction: { open: false, items: null },
   loot: null,

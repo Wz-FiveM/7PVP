@@ -101,6 +101,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'trade', trade: message.data.trade || null });
         case 'freeroamPvp':
           return dispatch({ type: 'freeroam', patch: { pvp: message.data.pvp } });
+        case 'freeroamActivity':
+          return dispatch({ type: 'freeroam', patch: { activity: message.data.activity || null } });
         case 'controlZone':
           return dispatch({ type: 'controlZone', zone: message.data.zone || null });
         case 'clock':

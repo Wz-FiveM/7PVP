@@ -595,6 +595,8 @@ export interface FreeroamState {
   pvp: boolean;
   weapons: FreeroamWeapon[];
   vehicles: FreeroamVehicle[];
+  /** Mode de jeu en cours (Config.FreeroamActivities), null en Freeroam libre */
+  activity: { label: string; tagline: string } | null;
 }
 
 /** Services des PNJ de la zone safe à portée (config/npcs.lua) */

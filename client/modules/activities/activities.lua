@@ -10,8 +10,11 @@ local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
 Activities.isOpen = false
+Activities.SYNC_INTERVAL = 500
+Activities.shown = nil -- mode de jeu affiché sur le badge du Freeroam
 
 function Activities.init()
+    CreateThread(Activities.syncLoop)
     RegisterNUICallback('activityClose', function(_, cb)
         Activities.close()
         cb({})
@@ -25,6 +28,20 @@ function Activities.init()
         if result.message then Nui.notify(result.message, result.ok and 'success' or 'error') end
         cb(result)
     end)
+end
+
+---Badge du Freeroam : suit State.activity, chaque mode de jeu n'a pas besoin de le prévenir.
+function Activities.syncLoop()
+    while true do
+        if State.activity ~= Activities.shown then
+            Activities.shown = State.activity
+            local activity = State.activity and Config.FreeroamActivities[State.activity]
+            Nui.send('freeroamActivity', {
+                activity = activity and { label = activity.label, tagline = activity.tagline } or false,
+            })
+        end
+        Wait(Activities.SYNC_INTERVAL)
+    end
 end
 
 ---@param id string clé de Config.FreeroamActivities

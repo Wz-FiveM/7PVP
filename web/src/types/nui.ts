@@ -46,6 +46,7 @@ export type NuiMessage =
   | { action: 'controlZone'; data: { zone: ControlZoneHud | false } }
   | { action: 'freeroamMenu'; data: { open: boolean; pvp: boolean; weapons: FreeroamWeapon[]; vehicles: FreeroamVehicle[] } }
   | { action: 'freeroamPvp'; data: { pvp: boolean } }
+  | { action: 'freeroamActivity'; data: { activity: { label: string; tagline: string } | false } }
   | { action: 'helpNotify'; data: { help: HelpNotification | false } }
   /** `items: false` : ciblage en cours (curseur affiché, pas encore de menu) */
   | { action: 'interaction'; data: { open: boolean; items?: InteractionItem[] | false } }
