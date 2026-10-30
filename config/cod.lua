@@ -23,6 +23,8 @@ Config.Cod = {
     -- Carte en haut à gauche pendant les parties : décalage depuis sa position par défaut (y négatif = vers le haut),
     -- retiré en quittant le mode
     minimapShift = { x = 0.01, y = -0.77 },
+    -- Heure et météo imposées dans tout le mode (menu et parties), à la place de l'heure commune du jeu
+    sky = { hour = 13, minute = 0, weather = 'EXTRASUNNY' },
 
     queueDelay = 25, -- secondes de vote de carte une fois `minPlayers` atteint
     voteChoices = 3, -- cartes proposées au vote
