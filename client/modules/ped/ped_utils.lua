@@ -19,9 +19,12 @@ end
 ---@param timeout? integer ms
 ---@return boolean
 function PedUtils.loadModel(model, timeout)
-    RequestModel(model)
     local limit = GetGameTimer() + (timeout or 5000)
-    while not HasModelLoaded(model) and GetGameTimer() < limit do Wait(0) end
+    repeat
+        RequestModel(model)
+        if HasModelLoaded(model) then return true end
+        Wait(0)
+    until GetGameTimer() >= limit
     return HasModelLoaded(model)
 end
 

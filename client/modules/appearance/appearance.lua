@@ -3,8 +3,11 @@
 local Appearance = PVP.define('Appearance')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local PedUtils = PVP.use('PedUtils')
+local Logger = PVP.use('Logger')
 
 Appearance.palettes = nil
+-- À l'arrivée en jeu, le chargement peut prendre bien plus que les 5 s par défaut
+Appearance.MODEL_TIMEOUT = 30000
 
 ---Change le modèle du joueur si le sexe ne correspond pas. Le ped change alors :
 ---les armes et l'apparence doivent être réappliquées.
@@ -14,7 +17,12 @@ function Appearance.ensureModel(sex)
     local model = GetHashKey(AppearanceSchema.MODELS[sex] or AppearanceSchema.MODELS.male)
     if GetEntityModel(PlayerPedId()) == model then return false end
 
-    PedUtils.loadModel(model)
+    -- SetPlayerModel sur un modèle non chargé laisse un ped à moitié créé, et le jeu plante
+    if not PedUtils.loadModel(model, Appearance.MODEL_TIMEOUT) then
+        Logger.warn('Modèle du joueur non chargé après %d ms', Appearance.MODEL_TIMEOUT)
+        return false
+    end
+
     SetPlayerModel(PlayerId(), model)
     SetModelAsNoLongerNeeded(model)
     SetPedDefaultComponentVariation(PlayerPedId())
