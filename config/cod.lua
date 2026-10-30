@@ -46,6 +46,18 @@ Config.Cod = {
     endScreen = 12, -- secondes de résultats avant le retour au menu
 
     respawnDelay = 3, -- secondes avant de réapparaître après une mort
+    -- Kill cam : la victime d'un kill par balle ou au couteau le revoit par les yeux du tueur, puis réapparaît
+    killcam = {
+        before = 3500, -- ms rejouées avant le kill
+        after = 800, -- ms rejouées après le kill
+        sampleInterval = 80, -- ms entre deux relevés de chaque joueur
+        slowBefore = 350, -- ms de ralenti avant le kill
+        slowAfter = 150, -- ms de ralenti après le kill
+        slowRate = 0.35, -- vitesse du ralenti
+        clipTimeout = 2500, -- ms d'attente de l'enregistrement du tueur : au-delà, pas de kill cam
+        maxDelay = 10, -- secondes après la mort : réapparition forcée si la kill cam n'est pas terminée
+        skipKey = 'F',
+    },
     spawnProtection = 2, -- secondes sans prendre de dégâts après chaque apparition
     outsideDamage = 10, -- dégâts par seconde hors de la zone de combat
     killRange = 400.0, -- m : au-delà, le kill signalé par la victime est refusé

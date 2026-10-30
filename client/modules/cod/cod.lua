@@ -20,6 +20,7 @@ local CodPredator = PVP.use('CodPredator')
 local CodStrikeMap = PVP.use('CodStrikeMap')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
+local CodKillcam = PVP.use('CodKillcam')
 local CodSquad = PVP.use('CodSquad')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -354,6 +355,7 @@ end
 function Cod.respawn(data)
     if not Cod.match then return end
     CodLoadout.close()
+    CodKillcam.stop(true)
     Cod.placeAt(data.spawn, data.class, nil, data.protection)
 end
 
@@ -365,6 +367,7 @@ function Cod.placeAt(spawn, class, appearance, protection)
     CodTablet.stop()
     Spawn.spawnAt(spawn, appearance)
     if not Cod.match then return end
+    CodKillcam.resetRecording()
     Cod.applyClass(class)
     Cod.applyTeam(Cod.match.team)
     Cod.protectedUntil = GetGameTimer() + protection * 1000
@@ -577,7 +580,8 @@ function Cod.loop()
                 for _, control in ipairs(Cod.LOCKED_CONTROLS) do DisableControlAction(0, control, true) end
             end
             Cod.updateScoreboard()
-            Cod.drawMates()
+            CodKillcam.record(now)
+            if not CodKillcam.isPlaying() then Cod.drawMates() end
             if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
             CodUnits.frame(now)
             CodPredator.frame(now)
@@ -657,10 +661,14 @@ function Cod.onDeath()
     TriggerServerEvent(Events.server.codDied, PedUtils.getKillerServerId(ped), GetPedCauseOfDeath(ped), Death.getCause(ped).headshot)
 end
 
----@param data { killer: string|nil, weapon: string|nil, respawn: integer|false, card: table|nil, spectate: integer|nil, revenge: vector3|nil }
+---@param data { killer: string|nil, weapon: string|nil, respawn: integer|false, card: table|nil, spectate: integer|nil, revenge: vector3|nil, killcam: integer|nil }
 function Cod.onDead(data)
-    Nui.send('codDead', { killer = data.killer, weapon = data.weapon, respawn = data.respawn, card = data.card })
-    if data.spectate then Death.spectate(data.spectate) end
+    Nui.send('codDead', { killer = data.killer, weapon = data.weapon, respawn = data.respawn, card = data.card, killcam = data.killcam ~= nil })
+    if data.killcam then
+        CodKillcam.await(data)
+    elseif data.spectate then
+        Death.spectate(data.spectate)
+    end
     if data.revenge then CodEffects.markRevenge(data.revenge) end
 end
 
@@ -694,6 +702,7 @@ end
 function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
+    CodKillcam.stop()
     if CodLoadout.isActive() then DoScreenFadeIn(Cod.FADE) end
     CodLoadout.close()
     CodLoading.stop()
@@ -707,6 +716,8 @@ end
 
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
+    CodKillcam.stop()
+    CodKillcam.resetRecording()
     CodLoadout.close()
     CodLoading.stop()
     CodTablet.stop()

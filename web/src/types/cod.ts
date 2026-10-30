@@ -194,6 +194,17 @@ export interface CodDeadData {
   respawn: number | false;
   /** Carte du tueur */
   card?: CodPlayerCardData;
+  /** une kill cam va commencer : la réapparition attendra sa fin */
+  killcam?: boolean;
+}
+export interface CodKillcamData {
+  open: boolean;
+  killer?: string;
+  weapon?: string;
+  /** Carte du tueur */
+  card?: CodPlayerCardData;
+  /** touche pour passer */
+  key?: string;
 }
 export interface CodRoundEndData {
   result: 'won' | 'lost';

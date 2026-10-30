@@ -52,6 +52,7 @@ CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après une série revient �
 CodMatch.JOIN_SYNC_DELAY = 2000 -- ms après l'arrivée d'un joueur avant de lui envoyer les unités et colis en jeu
 CodMatch.RESYNC_HOP = 500 -- ms hors du bucket de la partie pour recréer les copies des autres joueurs
 CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'un joueur
+CodMatch.KILLCAM_MAX_ENTRIES = 300 -- relevés ou tirs acceptés dans un enregistrement de kill cam
 -- Médaille selon le nombre de kills enchaînés (au-delà du dernier : la dernière)
 CodMatch.MULTI_KILLS = {
     false,
@@ -282,6 +283,9 @@ function CodMatch:respawn(source, ownSide, delay)
     stats.holding = false
     stats.actionProgress = 0
     stats.predatorUntil = nil
+    stats.killcamFrom = nil
+    stats.watchingKillcam = false
+    stats.respawnReady = false
     stats.class = CodProfileService.selectedClass(source)
     stats.protectedUntil = GetGameTimer() + protection * 1000
     TriggerClientEvent(Events.client.codSpawn, source, {
@@ -543,6 +547,8 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
 
     local canRespawn = self.rules.canRespawn(self)
     local revenge = killer and self:hasPerk(source, 'revenge') and GetEntityCoords(GetPlayerPed(killer)) or nil
+    local killcam = killer ~= nil and not byStreak
+    if killcam then self:requestKillcam(killer, source) end
     TriggerClientEvent(Events.client.codDead, source, {
         killer = killer and self.stats[killer].name or nil,
         weapon = weaponLabel,
@@ -550,12 +556,64 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
         card = killer and CodProfileService.playerCard(killer) or nil,
         spectate = killer or self:livingMate(source),
         revenge = revenge,
+        killcam = killcam and killer or nil,
     })
-    if canRespawn then
-        SetTimeout(Config.Cod.respawnDelay * 1000, function()
-            self:respawn(source)
+    if canRespawn then self:scheduleRespawn(source, killcam) end
+end
+
+---Réapparition après le délai normal, mais pas avant la fin de la kill cam (CodMatch:killcamDone),
+---dans la limite de Config.Cod.killcam.maxDelay si le client ne la signale jamais.
+---@param source integer
+---@param killcam boolean
+function CodMatch:scheduleRespawn(source, killcam)
+    local stats = self.stats[source]
+    local death = stats.deaths
+    local function stillDead()
+        return self.stats[source] == stats and not stats.alive and stats.deaths == death
+    end
+    SetTimeout(Config.Cod.respawnDelay * 1000, function()
+        if not stillDead() then return end
+        stats.respawnReady = true
+        if not stats.watchingKillcam then self:respawn(source) end
+    end)
+    if killcam then
+        SetTimeout(Config.Cod.killcam.maxDelay * 1000, function()
+            if stillDead() then self:respawn(source) end
         end)
     end
+end
+
+---Le tueur envoie ses dernières secondes (voir client/modules/cod/cod_killcam.lua).
+---@param killer integer
+---@param source integer victime
+function CodMatch:requestKillcam(killer, source)
+    local stats = self.stats[source]
+    stats.killcamFrom = killer
+    stats.watchingKillcam = true
+    TriggerClientEvent(Events.client.codKillcamRequest, killer, source)
+end
+
+---Enregistrement du tueur, transmis à sa victime si c'est bien lui qui l'a tuée.
+---@param killer integer
+---@param victim any
+---@param clip any
+function CodMatch:killcamClip(killer, victim, clip)
+    victim = tonumber(victim)
+    local stats = victim and self.stats[victim]
+    if not stats or stats.killcamFrom ~= killer or type(clip) ~= 'table' then return end
+    if type(clip.samples) ~= 'table' or #clip.samples > CodMatch.KILLCAM_MAX_ENTRIES then return end
+    if type(clip.shots) ~= 'table' or #clip.shots > CodMatch.KILLCAM_MAX_ENTRIES then return end
+    stats.killcamFrom = nil
+    TriggerClientEvent(Events.client.codKillcamClip, victim, clip)
+end
+
+---Le joueur a fini de regarder la kill cam (ou l'a passée, ou n'en a pas eu).
+---@param source integer
+function CodMatch:killcamDone(source)
+    local stats = self.stats[source]
+    if not stats or stats.alive then return end
+    stats.watchingKillcam = false
+    if stats.respawnReady then self:respawn(source) end
 end
 
 ---@param source integer

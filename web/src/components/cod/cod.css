@@ -1399,6 +1399,26 @@
   font-size: 0.8125rem;
   color: var(--cod-muted);
 }
+.cod-killcam {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 12rem rgba(8, 9, 10, 0.75);
+}
+.cod-killcam__title {
+  position: absolute;
+  top: 4vh;
+  left: 50%;
+  padding: 0.25rem 2.5rem;
+  font-family: var(--cod-font);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--cod-danger);
+  background: linear-gradient(90deg, transparent, rgba(8, 9, 10, 0.82) 15%, rgba(8, 9, 10, 0.82) 85%, transparent);
+  transform: translateX(-50%);
+  text-shadow: var(--ombre-texte);
+}
 .cod-action-bar {
   position: absolute;
   top: 62%;

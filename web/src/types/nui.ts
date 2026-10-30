@@ -6,7 +6,7 @@ import type {
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
-  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
+  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
 } from './cod';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -109,6 +109,7 @@ export type NuiMessage =
   | { action: 'codStreakEarned'; data: { label: string } }
   | { action: 'codNotice'; data: { text: string; friendly?: boolean } }
   | { action: 'codDead'; data: CodDeadData }
+  | { action: 'codKillcam'; data: CodKillcamData }
   | { action: 'codSpawn'; data: { protection: number } }
   | { action: 'codOutside'; data: { outside: boolean } }
   | { action: 'codScoreboard'; data: { open: boolean } }

@@ -3,7 +3,7 @@ import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
-  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
+  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillcamData, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { playGunfire } from '../../utils/codGunSound';
@@ -50,6 +50,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const [streak, setStreak] = useState<CodStreakState | null>(null);
   const [notice, setNotice] = useState<({ text: string; friendly?: boolean } & Timed) | null>(null);
   const [dead, setDead] = useState<(CodDeadData & { at: number }) | null>(null);
+  const [killcam, setKillcam] = useState<CodKillcamData | null>(null);
   const [killCard, setKillCard] = useState<(CodPlayerCardData & Timed) | null>(null);
   const self = hud?.self;
   const [protection, setProtection] = useState<{ seconds: number; at: number } | null>(null);
@@ -78,6 +79,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         setMedals([]);
         setCards([]);
         setDead(null);
+        setKillcam(null);
         setKillCard(null);
         setOutside(false);
         setScoreboard(false);
@@ -127,8 +129,11 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return showNotice(message.data.text, message.data.friendly);
       case 'codDead':
         return setDead({ ...message.data, at: Date.now() });
+      case 'codKillcam':
+        return setKillcam(message.data.open ? message.data : null);
       case 'codSpawn':
         setDead(null);
+        setKillcam(null);
         return setProtection(message.data.protection > 0 ? { seconds: message.data.protection, at: Date.now() } : null);
       case 'codOutside':
         return setOutside(message.data.outside);
@@ -170,7 +175,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const flying = tablet?.state === 'flying' || tablet?.state === 'lost';
   return (
     <>
-      {!flying && (
+      {!flying && !killcam && (
         <>
           {!jammed && <RadarFilter sweep={radar} />}
           <Vitals name={name} />
@@ -222,7 +227,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
           <CodPlayerCard card={killCard} label={t('Éliminé')} />
         </div>
       )}
-      {dead && <DeadBar dead={dead} />}
+      {dead && !killcam && <DeadBar dead={dead} />}
+      {killcam && <KillcamOverlay killcam={killcam} />}
       {action && <ActionBar action={action} />}
       {nuke && <NukeCounter nuke={nuke} />}
       {jammed && <div className="cod-jam">{t('CARTE BROUILLÉE')}</div>}
@@ -488,9 +494,32 @@ function DeadBar({ dead }: { dead: CodDeadData & { at: number } }) {
         ? <CodPlayerCard card={dead.card} label={t('Tué par')} />
         : <span className="cod-dead__title">{dead.killer ? t('Tué par {name}', { name: dead.killer }) : t('Tu es mort')}</span>}
       {dead.weapon && <span className="cod-label">{t(dead.weapon)}</span>}
-      <span className="cod-dead__next">
-        {dead.respawn === false ? t('Prochaine manche bientôt') : t('Réapparition dans {seconds} s', { seconds })}
-      </span>
+      {!dead.killcam && (
+        <span className="cod-dead__next">
+          {dead.respawn === false ? t('Prochaine manche bientôt') : t('Réapparition dans {seconds} s', { seconds })}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Pendant le replay : titre en haut, carte du tueur et touche pour passer en bas. */
+function KillcamOverlay({ killcam }: { killcam: CodKillcamData }) {
+  useT();
+  return (
+    <div className="cod-killcam">
+      <span className="cod-killcam__title">{t('KILL CAM')}</span>
+      <div className="cod-dead">
+        {killcam.card
+          ? <CodPlayerCard card={killcam.card} label={t('Tué par')} />
+          : killcam.killer && <span className="cod-dead__title">{t('Tué par {name}', { name: killcam.killer })}</span>}
+        {killcam.weapon && <span className="cod-label">{t(killcam.weapon)}</span>}
+        {killcam.key && (
+          <span className="cod-dead__next">
+            <span className="cod-key">{killcam.key}</span> {t('Passer')}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

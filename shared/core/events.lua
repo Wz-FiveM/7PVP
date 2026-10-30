@@ -34,6 +34,8 @@ Events.server = {
     codPilotFire = '7pvp:server:codPilotFire',
     codUnitHit = '7pvp:server:codUnitHit',
     codCrateTake = '7pvp:server:codCrateTake',
+    codKillcamClip = '7pvp:server:codKillcamClip',
+    codKillcamDone = '7pvp:server:codKillcamDone',
     spectateNext = '7pvp:server:spectateNext',
     spectateStop = '7pvp:server:spectateStop',
 }
@@ -106,6 +108,8 @@ Events.client = {
     codState = '7pvp:client:codState',
     codKill = '7pvp:client:codKill',
     codDead = '7pvp:client:codDead',
+    codKillcamRequest = '7pvp:client:codKillcamRequest',
+    codKillcamClip = '7pvp:client:codKillcamClip',
     codScore = '7pvp:client:codScore',
     codMedal = '7pvp:client:codMedal',
     codCard = '7pvp:client:codCard',

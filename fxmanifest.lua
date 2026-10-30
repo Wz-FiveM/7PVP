@@ -176,6 +176,7 @@ client_scripts {
     'client/modules/cod/cod_units.lua',
     'client/modules/cod/cod_gunner.lua',
     'client/modules/cod/cod_crates.lua',
+    'client/modules/cod/cod_killcam.lua',
     'client/modules/npcs/npcs.lua',
     'client/modules/pause/pause.lua',
     'client/modules/teleport/teleport.lua',

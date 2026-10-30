@@ -761,6 +761,8 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : fin de la tablette', run: () => sendNui({ action: 'codTablet', data: { state: false } }) },
   { label: 'CoD : ouverture du colis', run: () => sendNui({ action: 'codAction', data: { kind: 'crate', seconds: 6 } }) },
   { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3, card: mockCodCards.rook } }) },
+  { label: 'CoD : kill cam', run: () => sendNui({ action: 'codKillcam', data: { open: true, killer: 'Rook', weapon: 'SMG', card: mockCodCards.rook, key: 'F' } }) },
+  { label: 'CoD : fin de kill cam', run: () => sendNui({ action: 'codKillcam', data: { open: false } }) },
   { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
   {
     label: 'CoD : fin',
