@@ -3,7 +3,7 @@ import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
-  CodBoardEntry, CodCatalog, CodDeadData, CodHudData, CodKillData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
+  CodBoardEntry, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
@@ -19,11 +19,17 @@ interface Timed {
   id: number;
 }
 
+interface CodHudProps {
+  hud: CodHudState | null;
+  live: CodStateData | null;
+  catalog: CodCatalog | null;
+  rank: number;
+  name: string;
+}
+
 /** HUD de partie, épuré : vie sous la carte, emblème et score en bas à gauche, munitions en bas à droite. */
-export function CodHud({ catalog, rank, name }: { catalog: CodCatalog | null; rank: number; name: string }) {
+export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   useT();
-  const [hud, setHud] = useState<(CodHudData & { at: number }) | null>(null);
-  const [live, setLive] = useState<CodStateData | null>(null);
   const [feed, setFeed] = useState<(CodKillData & Timed)[]>([]);
   const [scores, setScores] = useState<({ xp: number; label: string } & Timed)[]>([]);
   const [streak, setStreak] = useState<CodStreakState | null>(null);
@@ -46,9 +52,7 @@ export function CodHud({ catalog, rank, name }: { catalog: CodCatalog | null; ra
 
   const handleMessage = useCallback((message: NuiMessage) => {
     switch (message.action) {
-      case 'codHud': {
-        const { open, ...data } = message.data;
-        setLive(null);
+      case 'codHud':
         setFeed([]);
         setScores([]);
         setDead(null);
@@ -60,14 +64,8 @@ export function CodHud({ catalog, rank, name }: { catalog: CodCatalog | null; ra
         setJammed(false);
         setProtection(null);
         setRoundCountdown(null);
-        if (!open || !data.playlist) {
-          setStreak(null);
-          return setHud(null);
-        }
-        return setHud({ ...(data as CodHudData), at: Date.now() });
-      }
-      case 'codState':
-        return setLive(message.data);
+        if (!message.data.open || !message.data.playlist) setStreak(null);
+        return;
       case 'codKill': {
         const id = Date.now() + Math.random();
         setFeed((current) => [{ ...message.data, id }, ...current].slice(0, FEED_SIZE));

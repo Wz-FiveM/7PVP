@@ -60,6 +60,7 @@ function Pause.show()
     if Pause.open then return end
     Pause.open = true
     SetNuiFocus(true, true)
+    Cod.onPause(true)
     Nui.send('pause', { open = true, info = Pause.buildInfo() })
 end
 
@@ -68,6 +69,7 @@ function Pause.close()
     Pause.open = false
     Pause.lastFocus = GetGameTimer()
     SetNuiFocus(false, false)
+    Cod.onPause(false)
     Nui.send('pause', { open = false })
 end
 
@@ -175,7 +177,6 @@ end
 function Pause.openGameMenu()
     if State.mode == 'pvp' then Nui.setMenu(true) end
     if State.mode == 'freeroam' then Freeroam.setMenu(true) end
-    if State.mode == 'cod' then Cod.setPicker(true) end
 end
 
 ---Call of Duty : quitte la partie, retour au menu du mode.

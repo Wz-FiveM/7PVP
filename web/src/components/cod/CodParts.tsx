@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { t } from '../../i18n';
+import type { CodProfile } from '../../types/cod';
 
 export const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
@@ -24,6 +25,23 @@ export function RankBadge({ rank, size = 56 }: { rank: number; size?: number }) 
       ))}
       <text x="32" y="23" className="cod-badge__rank">{rank}</text>
     </svg>
+  );
+}
+
+/** Pseudo, progression et emblème (en haut à droite des menus). */
+export function CodOperator({ profile }: { profile: CodProfile }) {
+  const progress = profile.xpNeeded > 0 ? (profile.xpInto / profile.xpNeeded) * 100 : 100;
+  return (
+    <div className="cod-menu__operator">
+      <div className="cod-menu__operator-text">
+        <span className="cod-menu__operator-name">{profile.name}</span>
+        <span className="cod-xpbar"><span style={{ width: `${progress}%` }} /></span>
+        <span className="cod-menu__operator-xp">
+          {profile.xpNeeded > 0 ? `${profile.xpInto} / ${profile.xpNeeded} XP` : t('RANG MAXIMUM')}
+        </span>
+      </div>
+      <RankBadge rank={profile.rank} size={52} />
+    </div>
   );
 }
 

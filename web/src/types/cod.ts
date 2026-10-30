@@ -112,6 +112,8 @@ export interface CodHudData {
   countdown: number;
   remaining: number;
 }
+/** at : Date.now() à la réception, pour décompter `remaining` */
+export type CodHudState = CodHudData & { at: number };
 export interface CodFlag {
   id: string;
   owner: CodTeamId | false;

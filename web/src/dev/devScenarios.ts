@@ -232,6 +232,24 @@ export const DEV_SCREENS: DevScreen[] = [
     },
   },
   {
+    id: 'cod-pause',
+    label: 'CoD : menu pause',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'cod-hud')?.open();
+      sendNui({
+        action: 'pause',
+        data: {
+          open: true,
+          info: {
+            avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
+            name: 'Dev', serverId: 1, mode: 'cod', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G' },
+          },
+        },
+      });
+    },
+  },
+  {
     id: 'freeroam',
     label: 'Freeroam (menu)',
     open: () => {

@@ -83,7 +83,10 @@ export function App() {
         <UiGuard name="interaction" onCrash={actions.closeInteraction}><InteractionMenu /></UiGuard>
       )}
       {inPvp && !state.death.active && <UiGuard name="teleport" onCrash={teleportApi.close}><Teleport /></UiGuard>}
-      {!creating && !inLobby && state.pause.open && <UiGuard name="pause" onCrash={actions.closePause}><PauseMenu /></UiGuard>}
+      {/* En Call of Duty, le mode a son propre menu pause (voir Cod) */}
+      {!creating && !inLobby && state.pause.open && state.pause.info?.mode !== 'cod' && (
+        <UiGuard name="pause" onCrash={actions.closePause}><PauseMenu /></UiGuard>
+      )}
       {!creating && !inLobby && !state.menu.open && !state.pause.open && <UiGuard name="help"><HelpNotification /></UiGuard>}
       <UiGuard name="toasts"><Toasts /></UiGuard>
       {isEnvBrowser() && <DevPanel />}

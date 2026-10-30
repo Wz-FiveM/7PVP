@@ -5,7 +5,7 @@ import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CodCatalog, CodLeaderboardRow, CodProfile, CodQueueData } from '../../types/cod';
 import { CodClassEditor } from './CodClassEditor';
-import { BracketButton, RankBadge, useSecondsLeft } from './CodParts';
+import { BracketButton, CodOperator, RankBadge, useSecondsLeft } from './CodParts';
 
 type Tab = 'play' | 'classes' | 'streaks' | 'profile' | 'board';
 
@@ -29,7 +29,6 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
   useT();
   const [tab, setTab] = useState<Tab>('play');
   const current = TABS.find((entry) => entry.id === tab) ?? TABS[0];
-  const progress = profile.xpNeeded > 0 ? (profile.xpInto / profile.xpNeeded) * 100 : 100;
 
   return (
     <div className="cod-menu">
@@ -38,16 +37,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
           <h1 className="cod-title">{t(current.title)}</h1>
           <span className="cod-subtitle">{t(current.subtitle)}</span>
         </div>
-        <div className="cod-menu__operator">
-          <div className="cod-menu__operator-text">
-            <span className="cod-menu__operator-name">{profile.name}</span>
-            <span className="cod-xpbar"><span style={{ width: `${progress}%` }} /></span>
-            <span className="cod-menu__operator-xp">
-              {profile.xpNeeded > 0 ? `${profile.xpInto} / ${profile.xpNeeded} XP` : t('RANG MAXIMUM')}
-            </span>
-          </div>
-          <RankBadge rank={profile.rank} size={52} />
-        </div>
+        <CodOperator profile={profile} />
       </header>
 
       <nav className="cod-tabs">
@@ -191,7 +181,7 @@ function PlayerSlots({ queue, max }: { queue: CodQueueData | null; max: number }
 // Séries
 // ---------------------------------------------------------------------------
 
-function StreaksTab({ profile, catalog, onProfile }: { profile: CodProfile; catalog: CodCatalog; onProfile: (profile: CodProfile) => void }) {
+export function StreaksTab({ profile, catalog, onProfile }: { profile: CodProfile; catalog: CodCatalog; onProfile: (profile: CodProfile) => void }) {
   useT();
   const { actions } = useGame();
   const [chosen, setChosen] = useState(profile.streaks);

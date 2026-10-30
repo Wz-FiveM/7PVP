@@ -8,7 +8,7 @@ import { Avatar } from '../ui/Avatar';
 import { LanguagePicker } from '../ui/LanguagePicker';
 import './pause.css';
 
-const MODE_LABELS: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam', cod: 'Call of Duty' };
+const MODE_LABELS: Record<string, string> = { pvp: 'PvP', freeroam: 'Freeroam' };
 
 interface Entry {
   id: string;
@@ -20,7 +20,7 @@ interface Entry {
   run: () => void;
 }
 
-/** Menu pause (Échap) : actions à gauche, compte et touches à droite, le jeu reste visible derrière. */
+/** Menu pause (Échap) : actions à gauche, compte et touches à droite, le jeu reste visible derrière. Call of Duty a le sien (CodPauseMenu). */
 export function PauseMenu() {
   useT();
   const { state, actions } = useGame();
@@ -137,7 +137,6 @@ function buildEntries(
   on: { close: () => void; run: (action: PauseAction) => void; askQuit: () => void },
 ): Entry[] {
   const inPvp = info.mode === 'pvp';
-  const inCod = info.mode === 'cod';
   const entries: Entry[] = [
     { id: 'resume', label: t('Reprendre'), hint: t('ÉCHAP'), run: on.close },
     { id: 'map', label: t('Carte'), run: () => on.run('map') },
@@ -145,15 +144,14 @@ function buildEntries(
   if (info.mode) {
     entries.push({
       id: 'menu',
-      label: inCod ? t('Changer de classe') : inPvp ? t('Équipement') : t('Menu Freeroam'),
-      hint: inCod ? info.keys.codClass : info.keys.menu,
+      label: inPvp ? t('Équipement') : t('Menu Freeroam'),
+      hint: info.keys.menu,
       run: () => on.run('menu'),
     });
   }
   if (inPvp) entries.push({ id: 'teleport', label: t('Téléportation'), hint: info.keys.teleport, run: () => on.run('teleport') });
   entries.push({ id: 'settings', label: t('Paramètres'), run: () => on.run('settings') });
-  if (inCod) entries.push({ id: 'codLeave', label: t('Quitter la partie'), gap: true, run: () => on.run('codLeave') });
-  if (info.mode) entries.push({ id: 'lobby', label: t('Retour au lobby'), gap: !inCod, run: () => on.run('lobby') });
+  if (info.mode) entries.push({ id: 'lobby', label: t('Retour au lobby'), gap: true, run: () => on.run('lobby') });
   entries.push({
     id: 'quit',
     label: confirmQuit ? t('Confirmer : quitter') : t('Quitter'),
@@ -165,17 +163,6 @@ function buildEntries(
 }
 
 function buildKeys(info: PauseInfo): [string, string][] {
-  if (info.mode === 'cod') {
-    return [
-      [info.keys.menu, t('Tableau des scores (maintenir)')],
-      [info.keys.codStreak, t('Utiliser une série')],
-      [info.keys.codClass, t('Changer de classe')],
-      ['E', t('Poser ou désamorcer la bombe (maintenir)')],
-      [info.keys.chat, t('Chat (/commande pour une commande)')],
-      ['/lobby', t('Retour au lobby')],
-      ['/langue', t('Changer de langue')],
-    ];
-  }
   const keys: [string, string][] = [
     [info.keys.menu, t('Équipement, équipe, boutique')],
     ['1 – 7', t('Raccourcis (la barre s\'affiche)')],

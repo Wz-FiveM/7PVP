@@ -16,6 +16,7 @@ local CodEffects = PVP.use('CodEffects')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local Pause = PVP.use('Pause')
 
 Cod.FADE = 300
 Cod.MODE = 'cod'
@@ -267,6 +268,13 @@ function Cod.setPicker(open)
     SetNuiFocus(open, open)
     Nui.setGameInput(open)
     Nui.send('codPicker', { open = open, profile = Cod.profile })
+end
+
+---Menu pause : la carte, en haut à gauche pendant les parties, resterait visible derrière son titre.
+---@param open boolean
+function Cod.onPause(open)
+    if not Cod.isActive() then return end
+    DisplayRadar(not open and not CodEffects.jammed)
 end
 
 -- ---------------------------------------------------------------------------
@@ -616,6 +624,7 @@ function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
     Cod.setPicker(false)
+    Pause.close()
     CodObjectives.stopHolding()
     Nui.send('codHud', { open = false })
     Nui.send('codEnd', data)
@@ -624,6 +633,7 @@ end
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
     Cod.setPicker(false)
+    Pause.close()
     Cod.match = nil
     Cod.ended = false
     Cod.class = nil

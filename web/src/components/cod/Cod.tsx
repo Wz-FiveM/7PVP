@@ -4,23 +4,30 @@ import { useCallback, useEffect, useState } from 'react';
 import { codApi } from '../../api/codApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { useT } from '../../i18n';
-import type { CodCatalog, CodEndData, CodProfile, CodQueueData } from '../../types/cod';
+import { useGame } from '../../store/GameContext';
+import type { CodCatalog, CodEndData, CodHudData, CodHudState, CodProfile, CodQueueData, CodStateData } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
+import { UiGuard } from '../ui/UiGuard';
 import { CodClassPicker } from './CodClassPicker';
 import { CodEndScreen } from './CodEndScreen';
 import { CodHud } from './CodHud';
 import { CodMenu } from './CodMenu';
+import { CodPauseMenu } from './CodPauseMenu';
 import './cod.css';
 
-/** Mode Call of Duty : menu du mode, HUD de partie, sélecteur de classe, résultats. */
+/** Mode Call of Duty : menu du mode, HUD de partie, menu pause, sélecteur de classe, résultats. */
 export function Cod({ visible }: { visible: boolean }) {
   useT();
+  const { state, actions } = useGame();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profile, setProfile] = useState<CodProfile | null>(null);
   const [catalog, setCatalog] = useState<CodCatalog | null>(null);
   const [queue, setQueue] = useState<CodQueueData | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [end, setEnd] = useState<CodEndData | null>(null);
+  const [hud, setHud] = useState<CodHudState | null>(null);
+  const [live, setLive] = useState<CodStateData | null>(null);
+  const paused = visible && state.pause.open && state.pause.info?.mode === 'cod';
 
   const handleMessage = useCallback((message: NuiMessage) => {
     switch (message.action) {
@@ -38,9 +45,14 @@ export function Cod({ visible }: { visible: boolean }) {
         return;
       case 'codEnd':
         return setEnd(message.data);
-      case 'codHud':
-        if (message.data.open) setEnd(null);
-        return;
+      case 'codHud': {
+        const { open, ...data } = message.data;
+        if (open) setEnd(null);
+        setLive(null);
+        return setHud(open && data.playlist ? { ...(data as CodHudData), at: Date.now() } : null);
+      }
+      case 'codState':
+        return setLive(message.data);
     }
   }, []);
   useNuiMessage(handleMessage);
@@ -56,10 +68,18 @@ export function Cod({ visible }: { visible: boolean }) {
 
   return (
     <div className="cod" hidden={!visible}>
-      <CodHud catalog={catalog} rank={profile?.rank ?? 1} name={profile?.name ?? ''} />
+      {/* Masqué sans être démonté : le fil des kills et les compteurs continuent pendant la pause */}
+      <div className="cod-hud" hidden={paused}>
+        <CodHud hud={hud} live={live} catalog={catalog} rank={profile?.rank ?? 1} name={profile?.name ?? ''} />
+      </div>
       {end && <CodEndScreen end={end} />}
       {pickerOpen && profile && catalog && <CodClassPicker profile={profile} catalog={catalog} onProfile={setProfile} />}
       {menuOpen && profile && catalog && <CodMenu profile={profile} catalog={catalog} queue={queue} onProfile={setProfile} />}
+      {paused && (
+        <UiGuard name="cod-pause" onCrash={actions.closePause}>
+          <CodPauseMenu hud={hud} live={live} profile={profile} catalog={catalog} onProfile={setProfile} />
+        </UiGuard>
+      )}
     </div>
   );
 }
