@@ -1,4 +1,4 @@
----Chutes sans dégâts ni animation de GTA (voir Config.Fall) :
+---Chutes sans dégâts ni animation de GTA, en PvP uniquement (voir Config.Fall) :
 ---  - pendant une vraie chute, le ped est protégé des chocs (les dégâts de chute en sont)
 ---    et ne peut pas passer en ragdoll ;
 ---  - une pose neutre remplace l'animation « bras en l'air » ;
@@ -25,7 +25,7 @@ end
 function Fall.loop()
     while true do
         local ped = PlayerPedId()
-        if State.spawned and not State.dead and Fall.isFalling(ped) then
+        if State.spawned and not State.dead and State.inPvp() and Fall.isFalling(ped) then
             if not Fall.active then Fall.start(ped) end
             Wait(0)
         else

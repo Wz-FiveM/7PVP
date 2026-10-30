@@ -132,7 +132,7 @@ Config.HotbarShowTime = 2500 -- millisecondes
 -- Chute
 -- ---------------------------------------------------------------------------
 
--- Pas de dégâts de chute, ni de chute « bras en l'air », ni de roulade ou de ragdoll à l'atterrissage
+-- En PvP uniquement : pas de dégâts de chute, ni de chute « bras en l'air », ni de roulade ou de ragdoll à l'atterrissage
 Config.Fall = {
     enabled = true,
     minSpeed = 5.0, -- vitesse de descente (m/s) d'une vraie chute : les petits sauts ne sont pas concernés
