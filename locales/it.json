@@ -23,7 +23,6 @@
   "{hits} TOUCHE(S) · {headshots} À LA TÊTE": "{hits} COLPO/I · {headshots} ALLA TESTA",
   "{kills} KILLS": "{kills} UCCISIONI",
   "{kills} TUÉS": "{kills} UCCISI",
-  "{label} : {count}/{kills}": "{label}: {count}/{kills}",
   "{label} précédent": "{label} precedente",
   "{label} suivant": "{label} successivo",
   "{name} t'invite dans son équipe": "{name} ti invita nella sua squadra",

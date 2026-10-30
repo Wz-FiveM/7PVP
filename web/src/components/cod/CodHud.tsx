@@ -7,6 +7,7 @@ import type {
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
+import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
 
 const FEED_TIME = 5000;
@@ -268,27 +269,52 @@ function BottomRight({ streak, keys }: { streak: CodStreakState | null; keys?: C
   const { state } = useGame();
   const vitals = state.vitals;
   const hasAmmo = vitals.weapon && vitals.clip + vitals.reserve > 0;
-  const last = streak?.items[streak.items.length - 1];
   return (
     <div className="cod-ammo">
-      <div className="cod-ammo__streak">
-        {last ? (
-          <span className="cod-ammo__ready">
-            <span className="cod-key">{keys?.streak ?? 'G'}</span>
-            {t(last.label)}{streak && streak.items.length > 1 ? ` ×${streak.items.length}` : ''}
-          </span>
-        ) : streak?.next ? (
-          <span className="cod-ammo__next">
-            {t('{label} : {count}/{kills}', { label: t(streak.next.label), count: streak.streak, kills: streak.next.kills })}
-          </span>
-        ) : null}
-      </div>
+      {streak && <StreakSlots streak={streak} keyLabel={keys?.streak ?? 'G'} />}
       {hasAmmo && (
         <div className="cod-ammo__count">
           <span className="cod-ammo__clip">{vitals.clip}</span>
           <span className="cod-ammo__reserve">{vitals.reserve}</span>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Une case par série choisie, de la plus chère en haut à la moins chère en bas : allumée quand elle est disponible. */
+function StreakSlots({ streak, keyLabel }: { streak: CodStreakState; keyLabel: string }) {
+  useT();
+  const { items, slots } = streak;
+  const last = items[items.length - 1];
+  // Une série sortie d'un colis n'est pas forcément parmi les séries choisies : elle prend une case de plus
+  const extras = items.filter((item, index) =>
+    !slots.some((slot) => slot.id === item.id) && items.findIndex((other) => other.id === item.id) === index);
+  const list = [...extras.map((item) => ({ ...item, kills: 0 })), ...[...slots].reverse()];
+  return (
+    <div className="cod-streaks">
+      {list.map((slot) => {
+        const count = items.filter((item) => item.id === slot.id).length;
+        const counting = count === 0 && streak.streak < slot.kills;
+        return (
+          <div className="cod-streaks__row" key={slot.id}>
+            {slot.id === last?.id && (
+              <span className="cod-ammo__ready">
+                <span className="cod-key">{keyLabel}</span>
+                {t(slot.label)}
+              </span>
+            )}
+            <span className={count > 0 ? 'cod-streak cod-streak--ready' : 'cod-streak'}>
+              <CodStreakIcon id={slot.id} />
+              {count > 1 && <span className="cod-streak__count">×{count}</span>}
+              {count === 0 && (
+                <span className="cod-streak__kills">{counting && streak.streak > 0 ? `${streak.streak}/${slot.kills}` : slot.kills}</span>
+              )}
+              {counting && <span className="cod-streak__bar" style={{ width: `${(streak.streak / slot.kills) * 100}%` }} />}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

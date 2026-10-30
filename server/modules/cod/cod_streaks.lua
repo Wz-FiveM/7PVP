@@ -42,7 +42,7 @@ function CodStreaks.killsNeeded(match, source, streak)
     return streak.kills - (match:hasPerk(source, 'hardline') and 1 or 0)
 end
 
----Compteur, séries disponibles et prochaine série, pour le HUD.
+---Compteur, séries disponibles et séries choisies (les cases du HUD).
 ---@param match table
 ---@param source integer
 function CodStreaks.sendState(match, source)
@@ -52,14 +52,12 @@ function CodStreaks.sendState(match, source)
     for index, id in ipairs(stats.streakItems) do
         items[index] = { id = id, label = CodProfileService.streaks[id].label }
     end
-    local nextStreak = false
-    for _, streak in ipairs(CodStreaks.chosen(source)) do
-        local needed = CodStreaks.killsNeeded(match, source, streak)
-        if needed > stats.streak and (not nextStreak or needed < nextStreak.kills) then
-            nextStreak = { label = streak.label, kills = needed }
-        end
+    local slots = {}
+    for index, streak in ipairs(CodStreaks.chosen(source)) do
+        slots[index] = { id = streak.id, label = streak.label, kills = CodStreaks.killsNeeded(match, source, streak) }
     end
-    TriggerClientEvent(Events.client.codStreak, source, { streak = stats.streak, items = items, next = nextStreak })
+    table.sort(slots, function(a, b) return a.kills < b.kills end)
+    TriggerClientEvent(Events.client.codStreak, source, { streak = stats.streak, items = items, slots = slots })
 end
 
 ---Un kill de plus dans la série : la série atteinte s'ajoute aux disponibles.

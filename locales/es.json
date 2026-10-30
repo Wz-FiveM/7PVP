@@ -23,7 +23,6 @@
   "{hits} TOUCHE(S) · {headshots} À LA TÊTE": "{hits} IMPACTO(S) · {headshots} EN LA CABEZA",
   "{kills} KILLS": "{kills} BAJAS",
   "{kills} TUÉS": "{kills} ABATIDOS",
-  "{label} : {count}/{kills}": "{label}: {count}/{kills}",
   "{label} précédent": "{label} anterior",
   "{label} suivant": "{label} siguiente",
   "{name} t'invite dans son équipe": "{name} te invita a su escuadra",

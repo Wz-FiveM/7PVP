@@ -36,7 +36,13 @@ function CodService.init()
     Callback.register(Events.callbacks.codQueue, CodService.toggleQueue)
     Callback.register(Events.callbacks.codVote, CodService.vote)
     Callback.register(Events.callbacks.codSaveClass, CodProfileService.saveClass)
-    Callback.register(Events.callbacks.codSaveStreaks, CodProfileService.saveStreaks)
+    Callback.register(Events.callbacks.codSaveStreaks, function(source, data)
+        local result = CodProfileService.saveStreaks(source, data)
+        -- Depuis le menu pause : les cases du HUD suivent le nouveau choix
+        local match = CodService.matchOf(source)
+        if result.ok and match then CodStreaks.sendState(match, source) end
+        return result
+    end)
     Callback.register(Events.callbacks.codSelectClass, CodProfileService.selectClass)
     Callback.register(Events.callbacks.codLeaderboard, CodProfileService.leaderboard)
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)

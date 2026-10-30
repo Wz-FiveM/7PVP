@@ -143,7 +143,8 @@ export interface CodKillData {
 export interface CodStreakState {
   streak: number;
   items: { id: string; label: string }[];
-  next: { label: string; kills: number } | false;
+  /** séries choisies, de la moins chère à la plus chère ; kills : ce que demande le joueur (avec Détermination) */
+  slots: { id: string; label: string; kills: number }[];
 }
 export interface CodDeadData {
   killer?: string;

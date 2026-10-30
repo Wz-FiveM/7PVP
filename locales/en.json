@@ -23,7 +23,6 @@
   "{hits} TOUCHE(S) · {headshots} À LA TÊTE": "{hits} HIT(S) · {headshots} HEADSHOT(S)",
   "{kills} KILLS": "{kills} KILLS",
   "{kills} TUÉS": "{kills} KILLED",
-  "{label} : {count}/{kills}": "{label}: {count}/{kills}",
   "{label} précédent": "Previous {label}",
   "{label} suivant": "Next {label}",
   "{name} t'invite dans son équipe": "{name} invites you to their squad",

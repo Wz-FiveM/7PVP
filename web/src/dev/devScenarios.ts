@@ -229,7 +229,14 @@ export const DEV_SCREENS: DevScreen[] = [
           },
         },
       });
-      sendNui({ action: 'codStreak', data: { streak: 2, items: [{ id: 'uav', label: 'Drone' }], next: { label: 'Missile Predator', kills: 5 } } });
+      sendNui({
+        action: 'codStreak',
+        data: {
+          streak: 3,
+          items: [{ id: 'uav', label: 'Drone' }],
+          slots: [{ id: 'uav', label: 'Drone', kills: 3 }, { id: 'counter_uav', label: 'Contre-drone', kills: 4 }, { id: 'predator', label: 'Missile Predator', kills: 5 }],
+        },
+      });
       sendNui({ action: 'vitals', data: { ...mockVitals, weapon: 'weapon_carbinerifle', clip: 30, reserve: 220 } });
       sendNui({ action: 'minimap', data: { visible: true, left: 0.03, right: 0.1706, top: 0.034, bottom: 0.21 } });
     },
