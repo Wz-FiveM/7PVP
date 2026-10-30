@@ -266,6 +266,9 @@ end
 ---@param data table hitGlobalId ou hitGlobalIds
 function GroupService.onWeaponDamage(sender, data)
     if not GroupService.memberOf[sender] or type(data) ~= 'table' then return end
+    -- Un groupe survit au changement de mode : en Call of Duty, seules les équipes de la partie comptent
+    local attacker = PlayerService.get(sender)
+    if attacker and attacker.mode == 'cod' then return end
     local ids = data.hitGlobalIds or { data.hitGlobalId }
     for _, netId in ipairs(ids) do
         local ped = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)

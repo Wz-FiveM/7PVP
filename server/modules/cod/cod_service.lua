@@ -44,6 +44,10 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then match:onDied(source, killerId, weapon, headshot) end
     end)
+    RegisterNetEvent(Events.server.codResync, function(target)
+        local match = CodService.matchOf(source)
+        if match then match:resync(source, target) end
+    end)
     RegisterNetEvent(Events.server.codObjective, function(holding)
         local match = CodService.matchOf(source)
         if match then match:setHolding(source, holding) end

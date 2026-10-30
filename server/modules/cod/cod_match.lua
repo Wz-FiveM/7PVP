@@ -22,6 +22,7 @@
 ---@field strikeAt integer
 ---@field holding boolean touche d'objectif maintenue (bombe)
 ---@field actionProgress number secondes de pose ou de désamorçage
+---@field nextResync integer|nil GetGameTimer() à partir duquel une resynchronisation est permise
 
 ---@class CodMatchModule
 local CodMatch = PVP.define('CodMatch')
@@ -40,6 +41,8 @@ CodMatch.BROADCAST = 1000 -- ms entre deux envois de l'état aux joueurs
 CodMatch.SPAWN_CHOICES = 3 -- tirage parmi les points les plus éloignés des ennemis
 CodMatch.RECENT_SPAWN = 5000 -- ms : un point qui vient de servir compte comme occupé
 CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après une bombe revient à celui qui l'a appelée
+CodMatch.RESYNC_HOP = 500 -- ms hors du bucket de la partie pour recréer les copies des autres joueurs
+CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'un joueur
 
 ---@param id integer
 ---@param playlist table entrée de Config.Cod.playlists
@@ -345,7 +348,9 @@ end
 -- Tirs et morts
 -- ---------------------------------------------------------------------------
 
----Seulement pendant la partie, entre ennemis, pas sur un joueur qui vient d'apparaître.
+---Seulement pendant la partie et entre ennemis. Une touche annulée désynchronise les deux joueurs
+---(le tireur voit sa cible morte, elle reste en vie chez elle) : un joueur qui vient d'apparaître
+---n'est donc pas protégé ici mais par son client, qui le rend invincible (Cod.protectedUntil).
 ---Toucher quelqu'un met fin à sa propre protection d'apparition.
 ---@param attacker integer
 ---@param victim integer
@@ -353,10 +358,27 @@ end
 function CodMatch:damageAllowed(attacker, victim)
     if self.phase ~= 'running' or not self:areEnemies(attacker, victim) then return false end
     local target = self.stats[victim]
-    if not target.alive or GetGameTimer() < target.protectedUntil then return false end
+    local now = GetGameTimer()
     self.stats[attacker].protectedUntil = 0
-    target.damagedBy[attacker] = GetGameTimer()
+    if target.alive and now >= target.protectedUntil then target.damagedBy[attacker] = now end
     return true
+end
+
+---Le client voit mort un joueur vivant : sa copie locale ne reviendra pas seule. En sortant un instant
+---du bucket, le client perd les copies des autres joueurs et le jeu les recrée à leur état réel.
+---@param source integer
+---@param target any server id du joueur vu mort
+function CodMatch:resync(source, target)
+    local stats = self.stats[source]
+    local other = self.stats[tonumber(target)]
+    local now = GetGameTimer()
+    if not stats or not other or not other.alive or now < (stats.nextResync or 0) then return end
+    stats.nextResync = now + CodMatch.RESYNC_INTERVAL
+    Logger.warn('[cod] partie n°%d : %s voit %s mort alors qu\'il est en vie, resynchronisation', self.id, stats.name, other.name)
+    SetPlayerRoutingBucket(source, Config.Cod.menuBucketBase + source)
+    SetTimeout(CodMatch.RESYNC_HOP, function()
+        if CodService.playerMatch[source] == self.id then SetPlayerRoutingBucket(source, self.bucket) end
+    end)
 end
 
 ---@param source integer victime

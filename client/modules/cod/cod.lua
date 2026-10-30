@@ -1,7 +1,7 @@
 ---Mode Call of Duty côté client (server/modules/cod/) : menu du mode, placement aux apparitions, classe
 ---(armes et atouts), santé qui remonte, limite de la zone de combat, signalement de sa mort, HUD.
----Le serveur décide des kills, des scores et de la fin de partie ; il bloque aussi les tirs alliés
----et sur un joueur qui vient d'apparaître.
+---Le serveur décide des kills, des scores et de la fin de partie. Les touches qu'il annule désynchronisent
+---les joueurs : la protection d'apparition et le tir allié sont donc d'abord bloqués ici, côté jeu.
 ---@class CodModule
 local Cod = PVP.define('Cod')
 local State = PVP.use('State')
@@ -9,6 +9,7 @@ local Nui = PVP.use('Nui')
 local Lobby = PVP.use('Lobby')
 local Spawn = PVP.use('Spawn')
 local Death = PVP.use('Death')
+local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local CodObjectives = PVP.use('CodObjectives')
 local CodEffects = PVP.use('CodEffects')
@@ -30,6 +31,7 @@ Cod.MINIMAP_PARTS = {
     { name = 'minimap_blur', x = -0.03, y = 0.022, width = 0.266, height = 0.237 },
 }
 Cod.MATE_COLOR = { 95, 209, 232 }
+Cod.GHOST_DELAY = 4000 -- ms à voir mort un joueur vivant pour le serveur (une vraie mort est connue bien avant)
 
 ---@type table|nil partie en cours (données envoyées par le serveur : arena, team, ...)
 Cod.match = nil
@@ -46,6 +48,9 @@ Cod.perks = {} -- atouts de la vie en cours : [id] = true
 Cod.streakItems = {} -- séries disponibles (la dernière est utilisée en premier)
 Cod.mates = {} -- server ids des coéquipiers
 Cod.mateBlips = {} -- server id -> repère
+Cod.teamGroups = {} -- équipe -> groupe de relations du personnage
+Cod.protectedUntil = 0 -- GetGameTimer() de fin de la protection d'apparition, 0 sans protection
+Cod.ghosts = {} -- server id -> GetGameTimer() depuis lequel ce joueur vivant apparaît mort ici
 Cod.lastHealth = 0
 Cod.lastArmor = 0
 Cod.lastDamageAt = 0
@@ -59,6 +64,11 @@ Cod.weapons = {}
 function Cod.init()
     for _, list in pairs(Config.Cod.weapons) do
         for _, entry in ipairs(list) do Cod.weapons[entry.id] = entry end
+    end
+    for _, team in ipairs({ 'alpha', 'bravo' }) do
+        local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
+        SetRelationshipBetweenGroups(0, group, group)
+        Cod.teamGroups[team] = group
     end
 
     RegisterNetEvent(Events.client.codOpen, function(data)
@@ -297,10 +307,39 @@ end
 ---@param protection integer secondes de protection affichées
 function Cod.placeAt(spawn, class, appearance, protection)
     Spawn.spawnAt(spawn, appearance)
+    if not Cod.match then return end
     Cod.applyClass(class)
+    Cod.applyTeam(Cod.match.team)
+    Cod.protectedUntil = GetGameTimer() + protection * 1000
+    SetEntityInvincible(PlayerPedId(), true)
     Cod.outside = false
     Nui.send('codOutside', { outside = false })
     Nui.send('codSpawn', { protection = protection })
+end
+
+---Alliés dans le même groupe de relations, sans tir ami : le jeu ne compte plus de touche entre eux.
+---@param team string|false 'alpha', 'bravo', false en chacun pour soi ou hors partie
+function Cod.applyTeam(team)
+    local ped = PlayerPedId()
+    SetPedRelationshipGroupHash(ped, Cod.teamGroups[team] or GetHashKey('PLAYER'))
+    SetCanAttackFriendly(ped, not team, false)
+end
+
+---Fin de la protection d'apparition : au bout du temps, ou au premier tir du joueur.
+---@param now integer
+function Cod.updateProtection(now)
+    local ped = PlayerPedId()
+    if now < Cod.protectedUntil and not IsPedShooting(ped) then
+        -- Redemandé à chaque image : Zone.update retire l'invincibilité juste après une apparition
+        SetEntityInvincible(ped, true)
+    else
+        Cod.endProtection()
+    end
+end
+
+function Cod.endProtection()
+    Cod.protectedUntil = 0
+    Zone.applyProtection()
 end
 
 ---Armes et atouts de la classe, munitions et vie au maximum.
@@ -379,6 +418,28 @@ function Cod.onState(data)
     Nui.send('codState', data)
     CodObjectives.onState(data.objective)
     Cod.updateMates(data.board)
+    if not Cod.ended then Cod.checkGhosts(data.board) end
+end
+
+---Un joueur vivant pour le serveur mais mort sur cet écran (touche perdue en route) : sa copie locale
+---ne reviendra pas seule, le serveur la fait recréer (CodMatch:resync).
+---@param board table[]
+function Cod.checkGhosts(board)
+    local now = GetGameTimer()
+    local ghosts = {}
+    for _, entry in ipairs(board) do
+        local player = entry.alive and entry.id ~= Cod.match.self and GetPlayerFromServerId(entry.id) or -1
+        if player ~= -1 and IsPedDeadOrDying(GetPlayerPed(player), true) then
+            ghosts[entry.id] = Cod.ghosts[entry.id] or now
+            if now - ghosts[entry.id] >= Cod.GHOST_DELAY then
+                TriggerServerEvent(Events.server.codResync, entry.id)
+                Cod.clearMateBlips()
+                ghosts = {}
+                break
+            end
+        end
+    end
+    Cod.ghosts = ghosts
 end
 
 ---Coéquipiers vivants : repère sur la carte et marque au-dessus de la tête (voir Cod.drawMates).
@@ -412,6 +473,13 @@ function Cod.updateMates(board)
     end
 end
 
+function Cod.clearMateBlips()
+    for id, blip in pairs(Cod.mateBlips) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+        Cod.mateBlips[id] = nil
+    end
+end
+
 function Cod.drawMates()
     local color = Cod.MATE_COLOR
     for _, id in ipairs(Cod.mates) do
@@ -437,6 +505,7 @@ function Cod.loop()
             end
             Cod.updateScoreboard()
             Cod.drawMates()
+            if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
             if not Cod.ended then
                 CodObjectives.frame()
                 CodEffects.frame(now)
@@ -562,10 +631,10 @@ function Cod.clearMatch()
     Cod.scoreboard = false
     if Cod.arenaBlip and DoesBlipExist(Cod.arenaBlip) then RemoveBlip(Cod.arenaBlip) end
     Cod.arenaBlip = nil
-    for id, blip in pairs(Cod.mateBlips) do
-        if DoesBlipExist(blip) then RemoveBlip(blip) end
-        Cod.mateBlips[id] = nil
-    end
+    Cod.clearMateBlips()
+    Cod.ghosts = {}
+    if Cod.protectedUntil ~= 0 then Cod.endProtection() end
+    Cod.applyTeam(false)
     Death.stopSpectate()
     CodObjectives.clear()
     CodEffects.clear()

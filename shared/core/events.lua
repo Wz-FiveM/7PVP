@@ -24,6 +24,7 @@ Events.server = {
     chaseReport = '7pvp:server:chaseReport',
     gungameDied = '7pvp:server:gungameDied',
     codDied = '7pvp:server:codDied',
+    codResync = '7pvp:server:codResync',
     codObjective = '7pvp:server:codObjective',
     codUseStreak = '7pvp:server:codUseStreak',
     spectateNext = '7pvp:server:spectateNext',

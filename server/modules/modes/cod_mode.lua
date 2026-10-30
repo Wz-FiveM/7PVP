@@ -30,7 +30,7 @@ function CodMode.leave(player)
     TriggerClientEvent(Events.client.codCleanup, player.source)
 end
 
----Annule la touche hors partie, entre alliés ou sur un joueur qui vient d'apparaître.
+---Annule la touche hors partie ou entre alliés. Voir CodMatch:damageAllowed.
 ---@param sender integer
 ---@param data table hitGlobalId ou hitGlobalIds
 function CodMode.onWeaponDamage(sender, data)
