@@ -22,6 +22,7 @@ Cod.CONTROL_SCOREBOARD = 37 -- INPUT_SELECT_WEAPON (TAB, comme la touche du menu
 -- Pendant le compte à rebours : pas de déplacement ni de tir
 Cod.LOCKED_CONTROLS = { 21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 44, 140, 141, 142, 257 }
 Cod.REGEN_INTERVAL = 250
+Cod.PED_HEIGHT = 1.0 -- m entre les pieds et le centre du personnage
 Cod.MATE_COLOR = { 95, 209, 232 }
 
 ---@type table|nil partie en cours (données envoyées par le serveur : arena, team, ...)
@@ -187,6 +188,9 @@ function Cod.openMenu(data)
     -- Ni la mort, ni le HUD, ni les zones ne concernent le personnage du menu
     State.spawned = false
     local ped = PlayerPedId()
+    -- Spawn.spawnAt le pose à la hauteur du sol et compte sur la physique pour le remonter : figé, il y resterait
+    local coords = GetEntityCoords(ped)
+    SetEntityCoordsNoOffset(ped, coords.x, coords.y, coords.z + Cod.PED_HEIGHT, false, false, false)
     FreezeEntityPosition(ped, true)
     SetEntityInvincible(ped, true)
     Cod.previewClass()

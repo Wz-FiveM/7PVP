@@ -33,10 +33,6 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
 
   return (
     <div className="cod-menu">
-      <div className="cod-menu__shards" aria-hidden>
-        <span /><span /><span />
-      </div>
-
       <header className="cod-menu__head">
         <div className="cod-menu__titles">
           <h1 className="cod-title">{t(current.title)}</h1>
