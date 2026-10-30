@@ -157,6 +157,7 @@ client_scripts {
     'client/modules/death/death.lua',
     'client/modules/combat/hits.lua',
     'client/modules/combat/bounty.lua',
+    'client/modules/combat/melee.lua',
     'client/modules/group/group.lua',
     'client/modules/trade/trade.lua',
     'client/modules/airdrop/airdrop.lua',
