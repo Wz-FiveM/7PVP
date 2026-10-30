@@ -40,6 +40,7 @@ function Presence.status()
         if activity then return config.freeroam .. ' · ' .. activity.label end
         return config.freeroam
     end
+    if State.mode == 'cod' then return config.cod end
     return config.lobby
 end
 

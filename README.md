@@ -159,6 +159,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   ├── shop.lua                Boutique
 │   ├── loot.lua                Tables de butin des PNJ
 │   ├── locale.lua              Langues disponibles
+│   ├── cod.lua                 Mode Call of Duty : listes de jeu, armes, atouts, séries, rangs, cartes
 │   └── zones.lua               Zones safe / PvE
 ├── locales/                    Traductions (en.json, es.json... : texte français -> traduction)
 ├── tools/locales.js            Vérifie et fusionne les traductions

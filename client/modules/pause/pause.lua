@@ -7,7 +7,9 @@ local Nui = PVP.use('Nui')
 local Admin = PVP.use('Admin')
 local Lobby = PVP.use('Lobby')
 local Freeroam = PVP.use('Freeroam')
+local Cod = PVP.use('Cod')
 local Teleport = PVP.use('Teleport')
+local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Hud = PVP.use('Hud')
 
@@ -88,6 +90,8 @@ function Pause.buildInfo()
             admin = Config.Admin.Key,
             noclip = Config.Admin.NoclipKey,
             teleport = Config.Teleport.key,
+            codClass = Config.Cod.classKey,
+            codStreak = Config.Cod.streakKey,
         },
     }
 end
@@ -99,6 +103,7 @@ Pause.ACTIONS = {
     menu = 'openGameMenu',
     teleport = 'openTeleport',
     lobby = 'backToLobby',
+    codLeave = 'leaveCodMatch',
     quit = 'quit',
 }
 
@@ -170,6 +175,14 @@ end
 function Pause.openGameMenu()
     if State.mode == 'pvp' then Nui.setMenu(true) end
     if State.mode == 'freeroam' then Freeroam.setMenu(true) end
+    if State.mode == 'cod' then Cod.setPicker(true) end
+end
+
+---Call of Duty : quitte la partie, retour au menu du mode.
+function Pause.leaveCodMatch()
+    CreateThread(function()
+        Callback.await(Events.callbacks.codLeaveMatch)
+    end)
 end
 
 ---Comme /lobby : refusé (avec message) hors zone safe ou en combat.

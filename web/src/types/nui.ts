@@ -5,6 +5,9 @@ import type {
   CaseReelEntry, ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
+import type {
+  CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
+} from './cod';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
 export type NuiMessage =
@@ -87,6 +90,27 @@ export type NuiMessage =
   | { action: 'gungameKill'; data: GungameKillData }
   | { action: 'gungameOutside'; data: { outside: boolean } }
   | { action: 'gungameEnd'; data: GungameEndData }
+  /** Call of Duty : menu du mode, file et vote, HUD de partie, résultats */
+  | { action: 'codMenu'; data: { open: boolean; profile?: CodProfile; catalog?: CodCatalog } }
+  | { action: 'codQueue'; data: CodQueueData }
+  | { action: 'codPicker'; data: { open: boolean; profile?: CodProfile } }
+  | { action: 'codHud'; data: { open: boolean } & Partial<CodHudData> }
+  | { action: 'codState'; data: CodStateData }
+  | { action: 'codKill'; data: CodKillData }
+  | { action: 'codScore'; data: { xp: number; label: string } }
+  | { action: 'codStreak'; data: CodStreakState }
+  | { action: 'codStreakEarned'; data: { label: string } }
+  | { action: 'codNotice'; data: { text: string; friendly?: boolean } }
+  | { action: 'codDead'; data: CodDeadData }
+  | { action: 'codSpawn'; data: { protection: number } }
+  | { action: 'codOutside'; data: { outside: boolean } }
+  | { action: 'codScoreboard'; data: { open: boolean } }
+  | { action: 'codAction'; data: { kind: string | false; seconds?: number } }
+  | { action: 'codRoundEnd'; data: CodRoundEndData }
+  | { action: 'codRoundStart'; data: { countdown: number } }
+  | { action: 'codNuke'; data: { seconds: number } }
+  | { action: 'codJam'; data: { active: boolean } }
+  | { action: 'codEnd'; data: CodEndData }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
 

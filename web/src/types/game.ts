@@ -349,7 +349,7 @@ export interface PauseInfo {
   deaths: number;
   npcKills: number;
   isAdmin: boolean;
-  keys: { menu: string; chat: string; admin: string; noclip: string; teleport: string };
+  keys: { menu: string; chat: string; admin: string; noclip: string; teleport: string; codClass: string; codStreak: string };
 }
 
 /** Compteur de vitesse (client/modules/hud/speedometer.lua) */
@@ -507,7 +507,7 @@ export interface TeleportMenuData {
   key: string;
 }
 
-export type PauseAction = 'map' | 'settings' | 'menu' | 'teleport' | 'lobby' | 'quit';
+export type PauseAction = 'map' | 'settings' | 'menu' | 'teleport' | 'lobby' | 'codLeave' | 'quit';
 
 /** Dégâts échangés avec un joueur pendant une vie */
 export interface DamageSummary {

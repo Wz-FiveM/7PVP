@@ -1,5 +1,6 @@
 import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
+import { mockCodBoard, mockCodCatalog, mockCodProfile } from './codMocks';
 import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 
 /**
@@ -24,6 +25,9 @@ function resetScreens(): void {
   sendNui({ action: 'gunfightHud', data: { open: false } });
   sendNui({ action: 'gunfightOutside', data: { outside: false } });
   sendNui({ action: 'gungameHud', data: { open: false } });
+  sendNui({ action: 'codMenu', data: { open: false } });
+  sendNui({ action: 'codHud', data: { open: false } });
+  sendNui({ action: 'codPicker', data: { open: false } });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -177,10 +181,54 @@ export const DEV_SCREENS: DevScreen[] = [
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G' },
           },
         },
       });
+    },
+  },
+  {
+    id: 'cod-menu',
+    label: 'CoD : menu',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'cod' } });
+      sendNui({ action: 'codMenu', data: { open: true, profile: mockCodProfile, catalog: mockCodCatalog } });
+      sendNui({ action: 'codQueue', data: { count: 0 } });
+    },
+  },
+  {
+    id: 'cod-hud',
+    label: 'CoD : partie',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'cod' } });
+      sendNui({ action: 'codMenu', data: { open: false, catalog: mockCodCatalog, profile: mockCodProfile } });
+      sendNui({
+        action: 'codHud',
+        data: {
+          open: true, self: 1, countdown: 0, remaining: 573, team: 'alpha',
+          playlist: { id: 'dom', label: 'Domination', short: 'DOM', scoreLimit: 200 },
+          map: { label: 'Terminal', place: 'Port de Los Santos' },
+          teams: [{ id: 'alpha', label: 'Rangers' }, { id: 'bravo', label: 'Spetsnaz' }],
+        },
+      });
+      sendNui({
+        action: 'codState',
+        data: {
+          phase: 'running', remaining: 573, scores: { alpha: 84, bravo: 61 }, board: mockCodBoard,
+          objective: {
+            kind: 'flags',
+            flags: [
+              { id: 'A', owner: 'alpha', capturing: false, progress: 0 },
+              { id: 'B', owner: false, capturing: 'bravo', progress: 0.45 },
+              { id: 'C', owner: 'bravo', capturing: false, progress: 0 },
+            ],
+          },
+        },
+      });
+      sendNui({ action: 'codStreak', data: { streak: 2, items: [{ id: 'uav', label: 'Drone' }], next: { label: 'Frappe aérienne', kills: 5 } } });
+      sendNui({ action: 'vitals', data: { ...mockVitals, weapon: 'weapon_carbinerifle', clip: 30, reserve: 220 } });
     },
   },
   {
@@ -574,6 +622,47 @@ export const DEV_ACTIONS: DevAction[] = [
             { name: 'Rook', level: 6, kills: 5 },
             { name: 'Vandal_LS', level: 4, kills: 3 },
           ],
+        },
+      }),
+  },
+  { label: 'CoD : file', run: () => sendNui({ action: 'codQueue', data: { count: 1, playlist: 'tdm', names: ['Wezor'], needed: 2, max: 12, startIn: false, maps: false, vote: false } }) },
+  {
+    label: 'CoD : vote de carte',
+    run: () =>
+      sendNui({
+        action: 'codQueue',
+        data: {
+          count: 3, playlist: 'tdm', names: ['Wezor', 'Kaze', 'Nyx'], needed: 2, max: 12, startIn: 22, vote: 'port',
+          maps: [
+            { id: 'port', label: 'Terminal', place: 'Port de Los Santos', votes: 2 },
+            { id: 'scrapyard', label: 'La Casse', place: 'Rogers Salvage, La Puerta', votes: 1 },
+            { id: 'sawmill', label: 'La Scierie', place: 'Paleto Bay', votes: 0 },
+          ],
+        },
+      }),
+  },
+  {
+    label: 'CoD : kill',
+    run: () => {
+      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', victim: 'Rook', victimTeam: 'bravo', weapon: 'Carabine', headshot: true } });
+      sendNui({ action: 'codKill', data: { killer: 'Rook', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'SMG', headshot: false } });
+      sendNui({ action: 'codScore', data: { xp: 100, label: 'Ennemi éliminé' } });
+      sendNui({ action: 'codScore', data: { xp: 50, label: 'Tir à la tête' } });
+    },
+  },
+  { label: 'CoD : tableau des scores', run: () => sendNui({ action: 'codScoreboard', data: { open: true } }) },
+  { label: 'CoD : fermer le tableau', run: () => sendNui({ action: 'codScoreboard', data: { open: false } }) },
+  { label: 'CoD : série', run: () => sendNui({ action: 'codStreakEarned', data: { label: 'Drone' } }) },
+  { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3 } }) },
+  { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
+  {
+    label: 'CoD : fin',
+    run: () =>
+      sendNui({
+        action: 'codEnd',
+        data: {
+          result: 'won', reason: 'Score atteint.', team: 'alpha', scores: { alpha: 200, bravo: 143 }, board: mockCodBoard, seconds: 12,
+          summary: { earned: 2450, bonus: 800, rankBefore: 7, rankAfter: 8, unlocks: ['Mitrailleuse'] },
         },
       }),
   },

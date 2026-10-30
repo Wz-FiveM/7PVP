@@ -117,7 +117,7 @@ export interface FreeroamPlace {
 /** Réglage de l'onglet « Freeroam » (server/modules/freeroam/freeroam_config_service.lua) */
 export type FreeroamSetting = {
   name: string;
-  group: 'vehicles' | 'positions';
+  group: 'vehicles' | 'positions' | 'cod';
   label: string;
   hint: string;
   /** différent du fichier de config */

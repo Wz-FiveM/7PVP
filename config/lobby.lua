@@ -26,4 +26,12 @@ Config.Lobby.Modes = {
         bucket = 2,
         enabled = true,
     },
+    {
+        id = 'cod',
+        label = 'Call of Duty',
+        tagline = 'Multijoueur',
+        description = 'Parties rapides en équipes sur des cartes fermées : classes à composer, rangs à monter, séries d\'éliminations.',
+        bucket = Config.Cod.bucket,
+        enabled = true,
+    },
 }

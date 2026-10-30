@@ -3,6 +3,7 @@ import { Chase } from './components/activity/Chase';
 import { Cvc } from './components/activity/Cvc';
 import { Gunfight } from './components/activity/Gunfight';
 import { Gungame } from './components/activity/Gungame';
+import { Cod } from './components/cod/Cod';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { NoclipHelp } from './components/admin/NoclipHelp';
 import { Chat } from './components/chat/Chat';
@@ -38,6 +39,7 @@ export function App() {
   // Le HUD, le menu et l'écran de mort appartiennent au mode PvP
   const inPvp = !creating && !inLobby && state.mode === 'pvp';
   const inFreeroam = !creating && !inLobby && state.mode === 'freeroam';
+  const inCod = !creating && !inLobby && state.mode === 'cod';
 
   return (
     <div className={isEnvBrowser() ? 'app app--browser' : 'app'}>
@@ -68,7 +70,9 @@ export function App() {
       {inFreeroam && <UiGuard name="cvc"><Cvc /></UiGuard>}
       {inFreeroam && <UiGuard name="gunfight"><Gunfight /></UiGuard>}
       {inFreeroam && <UiGuard name="gungame"><Gungame /></UiGuard>}
-      {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && (
+      {/* Toujours monté : le serveur peut ouvrir le menu juste après le changement de mode */}
+      <UiGuard name="cod"><Cod visible={inCod} /></UiGuard>
+      {(inPvp || inFreeroam || inCod) && !state.menu.open && !state.freeroam.menuOpen && (
         <UiGuard name="chat" onCrash={actions.closeChat}><Chat /></UiGuard>
       )}
       {!creating && !inLobby && state.admin.open && <UiGuard name="admin" onCrash={actions.closeAdmin}><AdminPanel /></UiGuard>}

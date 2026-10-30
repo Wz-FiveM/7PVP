@@ -20,6 +20,7 @@ Config.Presence = {
     pvp = 'PvP',
     pvpFree = 'Zone libre',
     freeroam = 'Freeroam',
+    cod = 'Call of Duty',
     dead = 'Mort',
     players = '%d/%d joueurs',
 }

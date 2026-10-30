@@ -11,12 +11,14 @@ import './lobby.css';
 const MODE_ACCENT: Record<string, string> = {
   pvp: 'zone-pvp',
   freeroam: 'zone-safe',
+  cod: 'zone-pve',
 };
 
 /** Points forts affichés dans le détail du mode */
 const MODE_FEATURES: Record<string, string[]> = {
   pvp: ['Équipes de 4', 'Zombies et largages', 'Sac perdu à la mort', 'Classement de saison'],
   freeroam: ['Armes et véhicules gratuits', 'PvP au choix', 'Aucune perte'],
+  cod: ['4 modes de jeu', 'Classes et atouts', 'Séries d\'éliminations', 'Rangs à monter'],
 };
 
 const playersLabel = (count: number) =>

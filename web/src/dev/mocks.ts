@@ -137,6 +137,14 @@ export const mockLobbyModes: LobbyMode[] = [
     enabled: false,
     players: 0,
   },
+  {
+    id: 'cod',
+    label: 'Call of Duty',
+    tagline: 'Multijoueur',
+    description: 'Parties rapides en équipes sur des cartes fermées : classes à composer, rangs à monter, séries d\'éliminations.',
+    enabled: true,
+    players: 8,
+  },
 ];
 import type { InitPayload } from '../types/nui';
 

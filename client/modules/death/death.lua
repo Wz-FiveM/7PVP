@@ -5,6 +5,7 @@ local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Loadout = PVP.use('Loadout')
 local Freeroam = PVP.use('Freeroam')
+local Cod = PVP.use('Cod')
 local PedUtils = PVP.use('PedUtils')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -36,6 +37,7 @@ function Death.check()
 
     -- Freeroam : pas de perte ni d'écran de mort
     if State.mode == 'freeroam' then return Freeroam.onDeath() end
+    if State.mode == 'cod' then return Cod.onDeath() end
 
     State.dead = true
     -- Les munitions tirées sont envoyées avant la mort (les événements arrivent dans l'ordre)

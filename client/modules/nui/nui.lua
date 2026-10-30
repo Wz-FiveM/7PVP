@@ -218,6 +218,8 @@ function Nui.toggleMenu()
     if GetGameTimer() - Nui.gameInputChangedAt < Nui.TOGGLE_DEBOUNCE then return end
     -- En Freeroam, la touche du menu ouvre le menu des armes et véhicules
     if State.mode == 'freeroam' then return Freeroam.toggleMenu() end
+    -- En Call of Duty, elle affiche le tableau des scores tant qu'elle est maintenue (voir Cod.updateScoreboard)
+    if State.mode == 'cod' then return end
     Nui.setMenu(not State.menuOpen)
 end
 

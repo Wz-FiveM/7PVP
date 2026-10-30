@@ -125,6 +125,27 @@ FreeroamConfigService.SETTINGS = {
     },
 }
 
+-- Call of Duty : les points de chaque carte (config/cod.lua), dans leur propre section du panneau
+FreeroamConfigService.COD_LISTS = {
+    { key = 'alpha', label = 'Départs 1', hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'bravo', label = 'Départs 2', hint = 'Apparitions du second camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'flags', label = 'Drapeaux', hint = 'Drapeaux de la Domination : A, B, C dans l\'ordre de la liste. Évite de les placer à côté des départs.' },
+    { key = 'sites', label = 'Sites de bombe', hint = 'Sites de Recherche & Destruction : A, B dans l\'ordre de la liste.' },
+}
+for _, map in ipairs(Config.Cod.maps) do
+    for _, list in ipairs(FreeroamConfigService.COD_LISTS) do
+        local key = map.id .. '_' .. list.key
+        FreeroamConfigService.SETTINGS[#FreeroamConfigService.SETTINGS + 1] = {
+            name = 'cod_' .. key,
+            group = 'cod',
+            kind = 'points',
+            label = ('%s · %s'):format(map.label, list.label),
+            hint = list.hint,
+            path = { 'CodSpawns', key },
+        }
+    end
+end
+
 FreeroamConfigService.MAX_VEHICLES = 40
 FreeroamConfigService.MAX_POINTS = 30
 FreeroamConfigService.MAX_MODEL = 32

@@ -99,6 +99,7 @@ export function FreeroamTab() {
 
       <SettingsSection title={t('Véhicules des modes de jeu')} settings={settings.filter((s) => s.group === 'vehicles')} onSaved={load} />
       <SettingsSection title={t('Positions')} settings={settings.filter((s) => s.group === 'positions')} onSaved={load} />
+      <SettingsSection title={t('Cartes Call of Duty')} settings={settings.filter((s) => s.group === 'cod')} onSaved={load} />
     </div>
   );
 }
