@@ -27,6 +27,7 @@ Events.server = {
     codResync = '7pvp:server:codResync',
     codObjective = '7pvp:server:codObjective',
     codUseStreak = '7pvp:server:codUseStreak',
+    codPredatorImpact = '7pvp:server:codPredatorImpact',
     spectateNext = '7pvp:server:spectateNext',
     spectateStop = '7pvp:server:spectateStop',
 }

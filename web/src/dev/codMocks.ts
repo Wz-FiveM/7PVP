@@ -38,7 +38,7 @@ export const mockCodCatalog: CodCatalog = {
   streaks: [
     { id: 'uav', kills: 3, rank: 1, label: 'Drone', description: 'Les ennemis apparaissent sur la carte pendant 30 s.' },
     { id: 'counter_uav', kills: 4, rank: 1, label: 'Contre-drone', description: 'Coupe la carte des ennemis pendant 30 s.' },
-    { id: 'airstrike', kills: 5, rank: 1, label: 'Frappe aérienne', description: 'Bombarde l\'endroit que tu vises.' },
+    { id: 'predator', kills: 5, rank: 1, label: 'Missile Predator', description: 'Guide un missile depuis ta tablette jusqu\'au sol.' },
     { id: 'juggernaut', kills: 7, rank: 12, label: 'Juggernaut', description: 'Armure pleine et minigun jusqu\'à ta mort.' },
     { id: 'nuke', kills: 15, rank: 30, label: 'Frappe nucléaire', description: 'Après 10 s, ton camp remporte la partie.' },
   ],
@@ -70,7 +70,7 @@ export const mockCodProfile: CodProfile = {
     { name: 'Précision', primary: 'WEAPON_SNIPERRIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks },
     { name: 'Polyvalent', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: false, perks: defaultPerks },
   ],
-  streaks: ['uav', 'airstrike'],
+  streaks: ['uav', 'predator'],
 };
 
 export const mockCodBoard: CodBoardEntry[] = [

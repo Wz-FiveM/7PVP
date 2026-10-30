@@ -1,17 +1,17 @@
----Effets du mode Call of Duty : atouts, drone, carte coupée, frappe aérienne, frappe nucléaire, bombe.
----Les dégâts des frappes sont calculés par le serveur (voir server/modules/cod/cod_streaks.lua) :
+---Effets du mode Call of Duty : atouts, drone, carte coupée, missile Predator, frappe nucléaire, bombe.
+---Les dégâts du missile sont calculés par le serveur (voir server/modules/cod/cod_streaks.lua) :
 ---le client ne fait que les appliquer à son personnage et afficher l'effet.
 ---@class CodEffectsModule
 local CodEffects = PVP.define('CodEffects')
 local Cod = PVP.use('Cod')
+local CodPredator = PVP.use('CodPredator')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
 
-CodEffects.AIM_DISTANCE = 300.0
 CodEffects.REVENGE_TIME = 6000
 CodEffects.SHAKE_DISTANCE = 60.0
 
----@type { blip: integer, untilAt: integer }[] repères temporaires (drone, frappe, tueur)
+---@type { blip: integer, untilAt: integer }[] repères temporaires (drone, tueur)
 CodEffects.blips = {}
 CodEffects.jamUntil = 0
 CodEffects.jammed = false
@@ -20,8 +20,8 @@ CodEffects.jammed = false
 CodEffects.HANDLERS = {
     uav = 'onUav',
     jam = 'onJam',
-    airstrikeCall = 'onAirstrikeCall',
-    airstrikeBomb = 'onAirstrikeBomb',
+    predatorCall = 'onPredatorCall',
+    predatorBlast = 'onPredatorBlast',
     hurt = 'onHurt',
     juggernaut = 'onJuggernaut',
     streakEarned = 'onStreakEarned',
@@ -125,46 +125,31 @@ function CodEffects.markRevenge(coords)
 end
 
 -- ---------------------------------------------------------------------------
--- Frappe aérienne
+-- Missile Predator
 -- ---------------------------------------------------------------------------
 
----@return { x: number, y: number, z: number } point visé par la caméra
-function CodEffects.aimPoint()
-    local from = GetGameplayCamCoord()
-    local rotation = GetGameplayCamRot(2)
-    local pitch, yaw = math.rad(rotation.x), math.rad(rotation.z)
-    local direction = vector3(-math.sin(yaw) * math.cos(pitch), math.cos(yaw) * math.cos(pitch), math.sin(pitch))
-    local to = from + direction * CodEffects.AIM_DISTANCE
-    local ray = StartExpensiveSynchronousShapeTestLosProbe(from.x, from.y, from.z, to.x, to.y, to.z, 1 + 16, PlayerPedId(), 7)
-    local _, hit, coords = GetShapeTestResult(ray)
-    local point = hit == 1 and coords or to
-    return { x = point.x, y = point.y, z = point.z }
-end
-
----@param data { x: number, y: number, z: number, delay: integer }
-function CodEffects.onAirstrikeCall(data)
-    local blip = AddBlipForRadius(data.x, data.y, data.z, Config.Cod.airstrike.spread + Config.Cod.airstrike.radius)
-    SetBlipColour(blip, 1)
-    SetBlipAlpha(blip, 110)
-    local total = data.delay * 1000 + Config.Cod.airstrike.bombs * Config.Cod.airstrike.interval
-    CodEffects.keepBlip(blip, total)
+---@param data { pilot: integer }
+function CodEffects.onPredatorCall(data)
     PlaySoundFrontend(-1, '5_SEC_WARNING', 'HUD_MINI_GAME_SOUNDSET', true)
+    if data.pilot == Cod.match.self then CodPredator.launch() end
 end
 
+---Là où le missile a touché, qui peut être un toit : pas de recalage sur le sol.
 ---@param data { x: number, y: number, z: number, owner: boolean, explosion: integer }
-function CodEffects.onAirstrikeBomb(data)
-    CodEffects.blast(data, data.explosion, 1.5)
+function CodEffects.onPredatorBlast(data)
+    CodEffects.explode(data.x, data.y, data.z, data.owner, data.explosion, 2.0)
 end
 
 ---Explosion sans dégâts créée par un seul client (l'explosion est synchronisée pour les autres).
----@param data { x: number, y: number, z: number, owner: boolean }
+---@param x number
+---@param y number
+---@param z number
+---@param owner boolean
 ---@param explosion integer type d'explosion de GTA
 ---@param shake number
-function CodEffects.blast(data, explosion, shake)
-    local found, ground = GetGroundZFor_3dCoord(data.x, data.y, data.z + 30.0, false)
-    local z = found and ground or data.z
-    if data.owner then AddExplosion(data.x, data.y, z, explosion, 0.0, true, false, 2.0) end
-    local distance = #(GetEntityCoords(PlayerPedId()) - vector3(data.x, data.y, z))
+function CodEffects.explode(x, y, z, owner, explosion, shake)
+    if owner then AddExplosion(x, y, z, explosion, 0.0, true, false, 2.0) end
+    local distance = #(GetEntityCoords(PlayerPedId()) - vector3(x, y, z))
     if distance <= CodEffects.SHAKE_DISTANCE then
         ShakeGameplayCam('LARGE_EXPLOSION_SHAKE', shake * (1 - distance / CodEffects.SHAKE_DISTANCE))
     end
@@ -216,7 +201,8 @@ end
 
 ---@param data { x: number, y: number, z: number, owner: boolean }
 function CodEffects.onBombBlast(data)
-    CodEffects.blast(data, Config.Cod.airstrike.explosionType, 2.0)
+    local found, ground = GetGroundZFor_3dCoord(data.x, data.y, data.z + 30.0, false)
+    CodEffects.explode(data.x, data.y, found and ground or data.z, data.owner, Config.Cod.bombExplosion, 2.0)
 end
 
 ---Nouvelle manche : bloqué au départ pendant le compte à rebours.

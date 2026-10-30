@@ -54,6 +54,8 @@ CodProfileService.secondary = {}
 CodProfileService.equipment = {}
 CodProfileService.perks = {}
 CodProfileService.streaks = {}
+-- Séries retirées du jeu, encore enregistrées dans les profils : ancienne -> remplaçante
+CodProfileService.REPLACED_STREAKS = { airstrike = 'predator' }
 
 function CodProfileService.init()
     for _, entry in ipairs(Config.Cod.weapons.primary) do CodProfileService.primary[entry.id] = entry end
@@ -142,7 +144,11 @@ function CodProfileService.load(player)
     for index, default in ipairs(Config.Cod.defaultClasses) do
         profile.classes[index] = CodProfileService.cleanClass(savedClasses[index], rank) or CodProfileService.copyClass(default)
     end
-    profile.streaks = CodProfileService.cleanStreaks(CodProfileService.decode(row.streaks), rank) or { table.unpack(Config.Cod.defaultStreaks) }
+    local savedStreaks = CodProfileService.decode(row.streaks)
+    for index, id in ipairs(savedStreaks) do
+        savedStreaks[index] = CodProfileService.REPLACED_STREAKS[id] or id
+    end
+    profile.streaks = CodProfileService.cleanStreaks(savedStreaks, rank) or { table.unpack(Config.Cod.defaultStreaks) }
     if not profile.classes[profile.selected] then profile.selected = 1 end
     CodProfileService.profiles[player.source] = profile
     return profile

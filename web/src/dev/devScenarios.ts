@@ -227,7 +227,7 @@ export const DEV_SCREENS: DevScreen[] = [
           },
         },
       });
-      sendNui({ action: 'codStreak', data: { streak: 2, items: [{ id: 'uav', label: 'Drone' }], next: { label: 'Frappe aérienne', kills: 5 } } });
+      sendNui({ action: 'codStreak', data: { streak: 2, items: [{ id: 'uav', label: 'Drone' }], next: { label: 'Missile Predator', kills: 5 } } });
       sendNui({ action: 'vitals', data: { ...mockVitals, weapon: 'weapon_carbinerifle', clip: 30, reserve: 220 } });
     },
   },
@@ -671,6 +671,16 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : tableau des scores', run: () => sendNui({ action: 'codScoreboard', data: { open: true } }) },
   { label: 'CoD : fermer le tableau', run: () => sendNui({ action: 'codScoreboard', data: { open: false } }) },
   { label: 'CoD : série', run: () => sendNui({ action: 'codStreakEarned', data: { label: 'Drone' } }) },
+  { label: 'CoD : tablette du missile', run: () => sendNui({ action: 'codPredator', data: { state: 'opening', seconds: 1.4 } }) },
+  {
+    label: 'CoD : vol du missile',
+    run: () => {
+      sendNui({ action: 'codPredator', data: { state: 'flying' } });
+      window.setTimeout(() => sendNui({ action: 'codPredatorStatus', data: { altitude: 184, boost: true } }), 100);
+    },
+  },
+  { label: 'CoD : signal du missile perdu', run: () => sendNui({ action: 'codPredator', data: { state: 'lost' } }) },
+  { label: 'CoD : fin du missile', run: () => sendNui({ action: 'codPredator', data: { state: false } }) },
   { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3 } }) },
   { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
   {

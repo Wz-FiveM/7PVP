@@ -52,9 +52,13 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then match:setHolding(source, holding) end
     end)
-    RegisterNetEvent(Events.server.codUseStreak, function(target)
+    RegisterNetEvent(Events.server.codUseStreak, function()
         local match = CodService.matchOf(source)
-        if match then CodStreaks.use(match, source, target) end
+        if match then CodStreaks.use(match, source) end
+    end)
+    RegisterNetEvent(Events.server.codPredatorImpact, function(target)
+        local match = CodService.matchOf(source)
+        if match then CodStreaks.predatorImpact(match, source, target) end
     end)
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         CodService.leave(playerSource)

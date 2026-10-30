@@ -163,6 +163,7 @@ client_scripts {
     'client/modules/cod/cod.lua',
     'client/modules/cod/cod_objectives.lua',
     'client/modules/cod/cod_effects.lua',
+    'client/modules/cod/cod_predator.lua',
     'client/modules/npcs/npcs.lua',
     'client/modules/pause/pause.lua',
     'client/modules/teleport/teleport.lua',

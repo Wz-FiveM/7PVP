@@ -176,25 +176,31 @@ Config.Cod = {
     -- Séries d'éliminations : `kills` sans mourir pour en gagner une, utilisée avec streakKey.
     -- Chaque joueur en équipe jusqu'à maxStreaks.
     maxStreaks = 3,
-    defaultStreaks = { 'uav', 'counter_uav', 'airstrike' },
+    defaultStreaks = { 'uav', 'counter_uav', 'predator' },
     streaks = {
         { id = 'uav', kills = 3, rank = 1, duration = 30, label = 'Drone', description = 'Les ennemis apparaissent sur la carte pendant 30 s.' },
         { id = 'counter_uav', kills = 4, rank = 1, duration = 30, label = 'Contre-drone', description = 'Coupe la carte des ennemis pendant 30 s.' },
-        { id = 'airstrike', kills = 5, rank = 1, label = 'Frappe aérienne', description = 'Bombarde l\'endroit que tu vises.' },
+        { id = 'predator', kills = 5, rank = 1, label = 'Missile Predator', description = 'Guide un missile depuis ta tablette jusqu\'au sol.' },
         { id = 'juggernaut', kills = 7, rank = 12, label = 'Juggernaut', description = 'Armure pleine et minigun jusqu\'à ta mort.' },
         { id = 'nuke', kills = 15, rank = 30, duration = 10, label = 'Frappe nucléaire', description = 'Après 10 s, ton camp remporte la partie.' },
     },
     uavSweep = 3, -- secondes entre deux relevés du drone
-    airstrike = {
-        delay = 3, -- secondes entre l'appel et les premières bombes
-        bombs = 6,
-        interval = 350, -- ms entre deux bombes
-        spread = 12.0, -- m autour du point visé
-        radius = 9.0, -- m : rayon de chaque bombe
-        damage = 140, -- dégâts au centre, décroissant jusqu'au bord
+    predator = {
+        tablet = 1.4, -- secondes pour sortir la tablette avant de prendre le missile en main
+        height = 250.0, -- m au-dessus du milieu de la carte au départ
+        floor = 20.0, -- m sous le milieu de la carte : explose là si le sol n'est pas chargé
+        speed = 35.0, -- m/s
+        boostSpeed = 90.0, -- m/s, clic gauche maintenu
+        steer = 0.14, -- déplacement à la souris, en proportion de l'altitude (l'image défile à la même vitesse)
+        steerKeys = 30.0, -- m/s avec les touches de déplacement
+        minSteerHeight = 15.0, -- m : altitude minimale prise en compte pour la souris
+        fov = 60.0,
+        radius = 12.0, -- m
+        damage = 300, -- dégâts au centre, décroissant jusqu'au bord
         explosionType = 5,
     },
     juggernaut = { weapon = 'WEAPON_MINIGUN', ammo = 1000, armor = 100 },
+    bombExplosion = 5, -- type d'explosion de la bombe (Recherche & Destruction)
 
     -- Classes de départ (toutes jouables au rang 1), remplacées dès qu'un joueur les modifie
     defaultClasses = {

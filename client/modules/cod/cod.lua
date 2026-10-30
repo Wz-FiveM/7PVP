@@ -13,6 +13,7 @@ local Zone = PVP.use('Zone')
 local PedUtils = PVP.use('PedUtils')
 local CodObjectives = PVP.use('CodObjectives')
 local CodEffects = PVP.use('CodEffects')
+local CodPredator = PVP.use('CodPredator')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -262,7 +263,7 @@ end
 ---Sélecteur de classe en partie : s'applique à la prochaine apparition.
 ---@param open boolean
 function Cod.setPicker(open)
-    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused()) then return end
+    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodPredator.isActive()) then return end
     if open == Cod.pickerOpen then return end
     Cod.pickerOpen = open
     SetNuiFocus(open, open)
@@ -318,6 +319,7 @@ end
 ---@param appearance table|nil
 ---@param protection integer secondes de protection affichées
 function Cod.placeAt(spawn, class, appearance, protection)
+    CodPredator.stop()
     Spawn.spawnAt(spawn, appearance)
     if not Cod.match then return end
     Cod.applyClass(class)
@@ -585,6 +587,7 @@ end
 ---Appelé à la mort (Death.check) : le serveur compte le kill et renvoie un point de réapparition.
 function Cod.onDeath()
     State.dead = true
+    CodPredator.stop()
     if Cod.outside then
         Cod.outside = false
         Nui.send('codOutside', { outside = false })
@@ -605,13 +608,11 @@ end
 -- Séries
 -- ---------------------------------------------------------------------------
 
----Touche des séries : la dernière gagnée. La frappe aérienne tombe là où le joueur vise.
+---Touche des séries : la dernière gagnée.
 function Cod.useStreak()
     if not Cod.isActive() or Cod.ended or not State.isAlive() or IsNuiFocused() then return end
-    local last = Cod.streakItems[#Cod.streakItems]
-    if not last then return end
-    local target = last.id == 'airstrike' and CodEffects.aimPoint() or nil
-    TriggerServerEvent(Events.server.codUseStreak, target)
+    if CodPredator.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
+    TriggerServerEvent(Events.server.codUseStreak)
 end
 
 -- ---------------------------------------------------------------------------
@@ -623,6 +624,7 @@ end
 function Cod.finish(data)
     if not Cod.isActive() then return end
     Cod.ended = true
+    CodPredator.stop()
     Cod.setPicker(false)
     Pause.close()
     CodObjectives.stopHolding()
@@ -632,6 +634,7 @@ end
 
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
+    CodPredator.stop()
     Cod.setPicker(false)
     Pause.close()
     Cod.match = nil

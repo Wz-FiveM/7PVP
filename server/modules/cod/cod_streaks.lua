@@ -1,11 +1,14 @@
 ---Séries d'éliminations du mode Call of Duty (Config.Cod.streaks) : gagnées en enchaînant les kills,
 ---utilisées avec une touche. Le serveur garde la main : il calcule les relevés du drone et applique
----lui-même les dégâts de la frappe aérienne (les clients n'en font que l'effet visuel).
+---lui-même les dégâts du missile Predator (les clients n'en font que l'effet visuel).
 ---@class CodStreaksModule
 local CodStreaks = PVP.define('CodStreaks')
 local CodProfileService = PVP.use('CodProfileService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+
+CodStreaks.PREDATOR_SLACK = 10 -- secondes de marge sur la durée du vol (saccades, latence)
+CodStreaks.PREDATOR_FALLOFF = 0.8 -- part des dégâts perdue au bord de l'explosion
 
 ---Séries actives de la partie.
 ---@param match table
@@ -73,10 +76,10 @@ end
 ---Touche des séries : utilise la dernière gagnée.
 ---@param match table
 ---@param source integer
----@param target any point visé { x, y, z }, pour la frappe aérienne
-function CodStreaks.use(match, source, target)
+function CodStreaks.use(match, source)
     local stats = match.stats[source]
     if match.phase ~= 'running' or not stats or not stats.alive or #stats.streakItems == 0 then return end
+    if stats.predatorUntil and GetGameTimer() < stats.predatorUntil then return end
     local id = table.remove(stats.streakItems)
     local streak = CodProfileService.streaks[id]
 
@@ -84,8 +87,8 @@ function CodStreaks.use(match, source, target)
         CodStreaks.startUav(match, source, streak)
     elseif id == 'counter_uav' then
         CodStreaks.startJam(match, source, streak)
-    elseif id == 'airstrike' then
-        CodStreaks.startAirstrike(match, source, target)
+    elseif id == 'predator' then
+        CodStreaks.startPredator(match, source)
     elseif id == 'juggernaut' then
         TriggerClientEvent(Events.client.codEffect, source, { type = 'juggernaut' })
     elseif id == 'nuke' then
@@ -160,19 +163,25 @@ function CodStreaks.sweep(match, now)
 end
 
 -- ---------------------------------------------------------------------------
--- Frappe aérienne
+-- Missile Predator
 -- ---------------------------------------------------------------------------
 
+---Le pilote a la main sur le missile (client/modules/cod/cod_predator.lua) : il revient avec le point d'impact.
 ---@param match table
 ---@param source integer
+function CodStreaks.startPredator(match, source)
+    local settings = Config.Cod.predator
+    local flight = settings.tablet + settings.height / settings.speed + CodStreaks.PREDATOR_SLACK
+    match.stats[source].predatorUntil = GetGameTimer() + flight * 1000
+    match:broadcast(Events.client.codEffect, { type = 'predatorCall', pilot = source })
+end
+
+---@param match table
 ---@param target any
----@return vector3 point visé, ramené dans la zone de combat
-function CodStreaks.strikePoint(match, source, target)
-    local ped = GetPlayerPed(source)
-    local point = ped ~= 0 and GetEntityCoords(ped) or match.arena.center
-    if type(target) == 'table' and tonumber(target.x) and tonumber(target.y) and tonumber(target.z) then
-        point = vector3(tonumber(target.x), tonumber(target.y), tonumber(target.z))
-    end
+---@return vector3|nil point d'impact, ramené dans la zone de combat
+function CodStreaks.impactPoint(match, target)
+    if type(target) ~= 'table' or not tonumber(target.x) or not tonumber(target.y) or not tonumber(target.z) then return nil end
+    local point = vector3(tonumber(target.x), tonumber(target.y), tonumber(target.z))
     local offset = point.xy - match.arena.center.xy
     local distance = #offset
     if distance > match.arena.radius then
@@ -182,57 +191,44 @@ function CodStreaks.strikePoint(match, source, target)
     return point
 end
 
+---Impact annoncé par le pilote : valable une fois, pendant le vol, s'il est toujours en vie.
 ---@param match table
 ---@param source integer
 ---@param target any
-function CodStreaks.startAirstrike(match, source, target)
-    local settings = Config.Cod.airstrike
-    local point = CodStreaks.strikePoint(match, source, target)
-    match:broadcast(Events.client.codEffect, {
-        type = 'airstrikeCall',
-        x = point.x, y = point.y, z = point.z,
-        delay = settings.delay,
-        friendly = source,
-    })
-    CreateThread(function()
-        Wait(settings.delay * 1000)
-        for _ = 1, settings.bombs do
-            if match.phase ~= 'running' then return end
-            CodStreaks.dropBomb(match, source, point)
-            Wait(settings.interval)
-        end
-    end)
+function CodStreaks.predatorImpact(match, source, target)
+    local stats = match.stats[source]
+    if match.phase ~= 'running' or not stats or not stats.alive or not stats.predatorUntil then return end
+    local inFlight = GetGameTimer() < stats.predatorUntil
+    stats.predatorUntil = nil
+    local point = inFlight and CodStreaks.impactPoint(match, target)
+    if point then CodStreaks.predatorBlast(match, source, point) end
 end
 
----Une bombe : effet chez tout le monde (explosion créée par l'auteur seul, sans dégâts, pour qu'elle
----ne soit pas multipliée), dégâts appliqués aux ennemis à portée.
+---Effet chez tout le monde (explosion créée par le pilote seul, sans dégâts, pour qu'elle ne soit pas
+---multipliée), dégâts appliqués aux ennemis à portée.
 ---@param match table
 ---@param source integer
 ---@param point vector3
-function CodStreaks.dropBomb(match, source, point)
-    local settings = Config.Cod.airstrike
-    local angle = math.random() * 2 * math.pi
-    local distance = math.random() * settings.spread
-    local x, y = point.x + math.cos(angle) * distance, point.y + math.sin(angle) * distance
+function CodStreaks.predatorBlast(match, source, point)
+    local settings = Config.Cod.predator
     local now = GetGameTimer()
-
     for _, other in ipairs(match.players) do
         TriggerClientEvent(Events.client.codEffect, other, {
-            type = 'airstrikeBomb',
-            x = x, y = y, z = point.z,
+            type = 'predatorBlast',
+            x = point.x, y = point.y, z = point.z,
             owner = other == source,
             explosion = settings.explosionType,
         })
         local stats = match.stats[other]
         local ped = GetPlayerPed(other)
         if match:areEnemies(source, other) and stats.alive and ped ~= 0 and now >= stats.protectedUntil then
-            local hit = #(GetEntityCoords(ped).xy - vector2(x, y))
+            local hit = #(GetEntityCoords(ped) - point)
             if hit <= settings.radius then
                 stats.strikeBy = source
                 stats.strikeAt = now
                 TriggerClientEvent(Events.client.codEffect, other, {
                     type = 'hurt',
-                    damage = math.floor(settings.damage * (1 - hit / settings.radius * 0.6)),
+                    damage = math.floor(settings.damage * (1 - hit / settings.radius * CodStreaks.PREDATOR_FALLOFF)),
                 })
             end
         end

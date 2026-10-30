@@ -18,8 +18,9 @@
 ---@field multiKill integer
 ---@field lastKiller integer|nil
 ---@field damagedBy table<integer, integer> tireur -> GetGameTimer() de sa dernière touche
----@field strikeBy integer|nil dernier joueur dont la frappe aérienne a touché ce joueur
+---@field strikeBy integer|nil dernier joueur dont le missile Predator a touché ce joueur
 ---@field strikeAt integer
+---@field predatorUntil integer|nil GetGameTimer() de fin du vol de son missile, nil sans missile en vol
 ---@field holding boolean touche d'objectif maintenue (bombe)
 ---@field actionProgress number secondes de pose ou de désamorçage
 ---@field nextResync integer|nil GetGameTimer() à partir duquel une resynchronisation est permise
@@ -40,7 +41,7 @@ CodMatch.TICK = 250 -- ms entre deux passages des règles (drapeaux, bombe, dron
 CodMatch.BROADCAST = 1000 -- ms entre deux envois de l'état aux joueurs
 CodMatch.SPAWN_CHOICES = 3 -- tirage parmi les points les plus éloignés des ennemis
 CodMatch.RECENT_SPAWN = 5000 -- ms : un point qui vient de servir compte comme occupé
-CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après une bombe revient à celui qui l'a appelée
+CodMatch.STRIKE_WINDOW = 3000 -- ms : une mort juste après un missile revient à son pilote
 CodMatch.RESYNC_HOP = 500 -- ms hors du bucket de la partie pour recréer les copies des autres joueurs
 CodMatch.RESYNC_INTERVAL = 10000 -- ms minimum entre deux resynchronisations d'un joueur
 
@@ -253,6 +254,7 @@ function CodMatch:respawn(source, ownSide)
     stats.damagedBy = {}
     stats.holding = false
     stats.actionProgress = 0
+    stats.predatorUntil = nil
     stats.class = CodProfileService.selectedClass(source)
     stats.protectedUntil = GetGameTimer() + Config.Cod.spawnProtection * 1000
     TriggerClientEvent(Events.client.codSpawn, source, {
@@ -383,7 +385,8 @@ end
 
 ---@param source integer victime
 ---@param killerId any server id du tueur, calculé par le client de la victime
----@return integer|nil tueur, s'il est ennemi et assez proche (ou l'auteur d'une frappe aérienne)
+---@return integer|nil tueur, s'il est ennemi et assez proche (ou le pilote d'un missile Predator)
+---@return boolean tué par le missile
 function CodMatch:resolveKiller(source, killerId)
     local victim = self.stats[source]
     killerId = tonumber(killerId)
@@ -391,13 +394,13 @@ function CodMatch:resolveKiller(source, killerId)
         local killerPed, victimPed = GetPlayerPed(killerId), GetPlayerPed(source)
         if killerPed ~= 0 and victimPed ~= 0
             and #(GetEntityCoords(killerPed) - GetEntityCoords(victimPed)) <= Config.Cod.killRange then
-            return killerId
+            return killerId, false
         end
     end
     if victim.strikeBy and self.stats[victim.strikeBy] and GetGameTimer() - victim.strikeAt <= CodMatch.STRIKE_WINDOW then
-        return victim.strikeBy
+        return victim.strikeBy, true
     end
-    return nil
+    return nil, false
 end
 
 ---@param source integer
@@ -439,11 +442,13 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     victim.holding = false
     victim.actionProgress = 0
     victim.streak = 0
+    victim.predatorUntil = nil
     CodStreaks.sendState(self, source)
 
     local running = self.phase == 'running'
-    local killer = running and self:resolveKiller(source, killerId) or nil
-    local weaponLabel = killer and CodMatch.weaponLabel(weapon) or nil
+    local killer, byMissile = nil, false
+    if running then killer, byMissile = self:resolveKiller(source, killerId) end
+    local weaponLabel = byMissile and 'Missile Predator' or (killer and CodMatch.weaponLabel(weapon)) or nil
     if killer then
         self:rewardKill(killer, source, headshot == true)
     end

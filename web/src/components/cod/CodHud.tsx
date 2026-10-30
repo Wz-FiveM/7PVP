@@ -7,6 +7,7 @@ import type {
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
+import { CodPredatorScreen, type CodPredatorView } from './CodPredatorScreen';
 
 const FEED_TIME = 5000;
 const FEED_SIZE = 5;
@@ -43,6 +44,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
   const [roundCountdown, setRoundCountdown] = useState<{ seconds: number; at: number } | null>(null);
   const [nuke, setNuke] = useState<{ seconds: number; at: number } | null>(null);
   const [jammed, setJammed] = useState(false);
+  const [predator, setPredator] = useState<CodPredatorView | null>(null);
 
   const showNotice = useCallback((text: string, friendly?: boolean) => {
     const id = Date.now() + Math.random();
@@ -64,6 +66,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         setJammed(false);
         setProtection(null);
         setRoundCountdown(null);
+        setPredator(null);
         if (!message.data.open || !message.data.playlist) setStreak(null);
         return;
       case 'codKill': {
@@ -107,17 +110,25 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return setNuke({ seconds: message.data.seconds, at: Date.now() });
       case 'codJam':
         return setJammed(message.data.active);
+      case 'codPredator':
+        return setPredator(message.data.state ? { state: message.data.state, seconds: message.data.seconds ?? 0 } : null);
     }
   }, [showNotice]);
   useNuiMessage(handleMessage);
 
   if (!hud) return null;
+  const flying = predator?.state === 'flying' || predator?.state === 'lost';
   return (
     <>
-      <Vitals name={name} />
-      <BottomLeft hud={hud} live={live} rank={rank} />
-      <BottomRight streak={streak} keys={catalog?.keys} />
-      <TopCenter hud={hud} live={live} />
+      {!flying && (
+        <>
+          <Vitals name={name} />
+          <BottomLeft hud={hud} live={live} rank={rank} />
+          <BottomRight streak={streak} keys={catalog?.keys} />
+          <TopCenter hud={hud} live={live} />
+        </>
+      )}
+      {predator && <CodPredatorScreen view={predator} />}
 
       {feed.length > 0 && (
         <div className="cod-feed">

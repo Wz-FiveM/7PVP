@@ -111,6 +111,8 @@ export type NuiMessage =
   | { action: 'codRoundStart'; data: { countdown: number } }
   | { action: 'codNuke'; data: { seconds: number } }
   | { action: 'codJam'; data: { active: boolean } }
+  | { action: 'codPredator'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number } }
+  | { action: 'codPredatorStatus'; data: { altitude: number; boost: boolean } }
   | { action: 'codEnd'; data: CodEndData }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
