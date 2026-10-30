@@ -14,8 +14,23 @@ export function useSecondsLeft(total: number, at: number): number {
   return Math.max(0, Math.ceil(total - (now - at) / 1000));
 }
 
-/** Emblème de rang : écusson à chevrons, qui se remplit tous les 10 rangs. */
-export function RankBadge({ rank, size = 56 }: { rank: number; size?: number }) {
+/** Insigne d'un niveau de Prestige : le même dessin que l'emblème de la carte de joueur. */
+export const prestigeUrl = (level: number) => `./cod/emblems/prestige${level}.svg`;
+
+/** Débloqué au rang actuel, ou gardé pour toujours avec un jeton de Prestige. */
+export const isUnlocked = (id: string | false, rank: number, profile: CodProfile) =>
+  rank <= profile.rank || (id !== false && profile.permanent.includes(id));
+
+/** Emblème de rang : écusson à chevrons qui se remplit tous les 10 rangs, ou insigne de Prestige avec le rang en dessous. */
+export function RankBadge({ rank, prestige = 0, size = 56 }: { rank: number; prestige?: number; size?: number }) {
+  if (prestige > 0) {
+    return (
+      <span className="cod-badge cod-badge--prestige" style={{ width: size, height: size }} aria-label={t('Prestige {level}, rang {rank}', { level: prestige, rank })}>
+        <img src={prestigeUrl(prestige)} alt="" draggable={false} />
+        <span className="cod-badge__level" style={{ fontSize: Math.max(10, size * 0.24) }}>{rank}</span>
+      </span>
+    );
+  }
   const chevrons = Math.min(4, Math.floor(rank / 11) + 1);
   return (
     <svg className="cod-badge" width={size} height={size} viewBox="0 0 64 64" aria-label={t('Rang {rank}', { rank })}>
@@ -28,6 +43,16 @@ export function RankBadge({ rank, size = 56 }: { rank: number; size?: number }) 
   );
 }
 
+/** Rang en petit dans les tableaux, précédé de l'insigne de Prestige s'il y en a un. */
+export function RankCell({ rank, prestige }: { rank: number; prestige: number }) {
+  return (
+    <span className="cod-rankcell">
+      {prestige > 0 && <img src={prestigeUrl(prestige)} alt={t('Prestige {level}', { level: prestige })} draggable={false} />}
+      {rank}
+    </span>
+  );
+}
+
 /** Pseudo, progression et emblème (en haut à droite des menus). */
 export function CodOperator({ profile }: { profile: CodProfile }) {
   const progress = profile.xpNeeded > 0 ? (profile.xpInto / profile.xpNeeded) * 100 : 100;
@@ -37,10 +62,12 @@ export function CodOperator({ profile }: { profile: CodProfile }) {
         <span className="cod-menu__operator-name">{profile.name}</span>
         <span className="cod-xpbar"><span style={{ width: `${progress}%` }} /></span>
         <span className="cod-menu__operator-xp">
-          {profile.xpNeeded > 0 ? `${profile.xpInto} / ${profile.xpNeeded} XP` : t('RANG MAXIMUM')}
+          {profile.canPrestige
+            ? t('PRESTIGE DISPONIBLE')
+            : profile.xpNeeded > 0 ? `${profile.xpInto} / ${profile.xpNeeded} XP` : t('RANG MAXIMUM')}
         </span>
       </div>
-      <RankBadge rank={profile.rank} size={52} />
+      <RankBadge rank={profile.rank} prestige={profile.prestige} size={52} />
     </div>
   );
 }

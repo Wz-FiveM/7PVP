@@ -55,6 +55,8 @@ function CodService.init()
     end)
     Callback.register(Events.callbacks.codLeaderboard, CodProfileService.leaderboard)
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)
+    Callback.register(Events.callbacks.codPrestige, CodService.enterPrestige)
+    Callback.register(Events.callbacks.codPrestigeUnlock, CodProfileService.unlockPermanent)
 
     RegisterNetEvent(Events.server.codDeploy, function()
         local match = CodService.matchOf(source)
@@ -137,6 +139,16 @@ function CodService.findMap(id)
         if map.id == id then return map end
     end
     return nil
+end
+
+---Le rang repart de 1 : seulement depuis le menu, ni en partie ni en recherche.
+---@param source integer
+---@return { ok: boolean, message?: string, profile?: table }
+function CodService.enterPrestige(source)
+    if CodService.playerMatch[source] or CodService.playerQueue[source] then
+        return { ok = false, message = Locale.t('Annule ta recherche de partie avant de passer en Prestige.') }
+    end
+    return CodProfileService.enterPrestige(source)
 end
 
 ---Menu du mode : le joueur est seul dans son bucket, avec son personnage (voir client/modules/cod/cod.lua).

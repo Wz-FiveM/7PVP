@@ -44,11 +44,14 @@ export function CodLoadoutSelect({ data, profile, catalog, hud, onProfile }: Cod
         <div className="cod-deploy__portrait">
           {data.portrait
             ? <img src={`https://nui-img/${data.portrait}/${data.portrait}`} alt="" draggable={false} />
-            : <RankBadge rank={profile.rank} size={72} />}
+            : <RankBadge rank={profile.rank} prestige={profile.prestige} size={72} />}
         </div>
         <div className="cod-deploy__operator">
           <span>{profile.name}</span>
-          <span className="cod-deploy__rank">{t('Rang {rank}', { rank: profile.rank })}</span>
+          <span className="cod-deploy__rank">
+            {profile.prestige > 0 && `${t('Prestige {level}', { level: profile.prestige })} · `}
+            {t('Rang {rank}', { rank: profile.rank })}
+          </span>
         </div>
 
         <ul className="cod-deploy__classes">

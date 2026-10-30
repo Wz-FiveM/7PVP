@@ -33,7 +33,7 @@ export function CodPlayerCardTab({ profile, catalog, onProfile }: PlayerCardTabP
     <>
       <section className="cod-column cod-column--wide">
         <span className="cod-label">{t('Aperçu')}</span>
-        <CodPlayerCard card={{ ...draft, name: profile.name, rank: profile.rank }} />
+        <CodPlayerCard card={{ ...draft, name: profile.name, rank: profile.rank, prestige: profile.prestige }} />
         <span className="cod-pcard-tab__names">{t(bannerLabel)} · {t(emblemLabel)}</span>
 
         <span className="cod-label">{t('Bannière')}</span>
@@ -41,7 +41,7 @@ export function CodPlayerCardTab({ profile, catalog, onProfile }: PlayerCardTabP
           kind="banner"
           assets={catalog.banners}
           selected={draft.banner}
-          rank={profile.rank}
+          profile={profile}
           onSelect={(banner) => setDraft({ ...draft, banner })}
         />
         <div className="cod-column__foot">
@@ -64,7 +64,7 @@ export function CodPlayerCardTab({ profile, catalog, onProfile }: PlayerCardTabP
           kind="emblem"
           assets={catalog.emblems}
           selected={draft.emblem}
-          rank={profile.rank}
+          profile={profile}
           onSelect={(emblem) => setDraft({ ...draft, emblem })}
         />
       </section>
@@ -76,17 +76,19 @@ interface AssetGridProps {
   kind: 'banner' | 'emblem';
   assets: CodCardAsset[];
   selected: string;
-  rank: number;
+  profile: CodProfile;
   onSelect: (id: string) => void;
 }
 
-/** Dessins disponibles, du premier débloqué au dernier ; ceux au-dessus du rang du joueur restent visibles. */
-function AssetGrid({ kind, assets, selected, rank, onSelect }: AssetGridProps) {
+/** Dessins disponibles, du premier débloqué au dernier ; ceux au-dessus du niveau du joueur restent visibles. Passer en Prestige demande le rang maximum : les dessins à rang restent acquis ensuite. */
+function AssetGrid({ kind, assets, selected, profile, onSelect }: AssetGridProps) {
   useT();
   return (
     <ul className={`cod-pcard-grid cod-pcard-grid--${kind}`}>
       {assets.map((asset) => {
-        const locked = asset.rank > rank;
+        const needsPrestige = (asset.prestige ?? 0) > profile.prestige;
+        const needsRank = profile.prestige === 0 && asset.rank > profile.rank;
+        const locked = needsPrestige || needsRank;
         return (
           <li key={asset.id}>
             <button
@@ -100,7 +102,11 @@ function AssetGrid({ kind, assets, selected, rank, onSelect }: AssetGridProps) {
               onClick={() => onSelect(asset.id)}
             >
               <img src={kind === 'banner' ? bannerUrl(asset.id) : emblemUrl(asset.id)} alt="" draggable={false} />
-              {locked && <span className="cod-pcard-grid__rank">{t('RANG {rank}', { rank: asset.rank })}</span>}
+              {locked && (
+                <span className="cod-pcard-grid__rank">
+                  {needsPrestige ? t('PRESTIGE {level}', { level: asset.prestige ?? 0 }) : t('RANG {rank}', { rank: asset.rank })}
+                </span>
+              )}
             </button>
           </li>
         );

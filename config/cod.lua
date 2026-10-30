@@ -98,6 +98,12 @@ Config.Cod = {
     -- Rangs : passer du rang n au rang n+1 demande base + growth * (n - 1) XP
     ranks = { max = 55, base = 800, growth = 200 },
 
+    -- Prestige : au rang maximum, le joueur peut repartir du rang 1. Armes, atouts et séries se rebloquent ;
+    -- il garde ses statistiques et sa carte de joueur, et gagne un insigne, sa bannière et son emblème (config/cod_player_cards.lua).
+    --   max : niveaux de Prestige, un dessin par niveau dans tools/cod_card_art.js
+    --   tokens : jetons gagnés à chaque Prestige ; un jeton garde pour toujours une arme, un atout ou une série
+    prestige = { max = 10, tokens = 1 },
+
     -- Listes de jeu proposées dans le menu.
     --   time = durée en secondes ; scoreLimit = score pour gagner
     playlists = {
@@ -354,6 +360,7 @@ Config.Cod = {
         'En Recherche & Destruction, tu n\'as qu\'une seule vie par manche.',
         'Enchaîner les kills en quelques secondes rapporte de l\'XP en plus.',
         'Le premier kill de la partie rapporte un bonus d\'XP.',
+        'Au rang maximum, l\'onglet Prestige te fait repartir du rang 1 avec un nouvel insigne.',
     },
 }
 

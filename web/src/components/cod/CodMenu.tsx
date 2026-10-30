@@ -5,17 +5,19 @@ import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CodCatalog, CodLeaderboardRow, CodProfile, CodQueueData } from '../../types/cod';
 import { CodClassEditor } from './CodClassEditor';
-import { BracketButton, CodOperator, RankBadge, useSecondsLeft } from './CodParts';
+import { BracketButton, CodOperator, isUnlocked, RankBadge, RankCell, useSecondsLeft } from './CodParts';
 import { CodPlayerCard } from './CodPlayerCard';
 import { CodPlayerCardTab } from './CodPlayerCardTab';
+import { CodPrestigeTab } from './CodPrestigeTab';
 
-type Tab = 'play' | 'classes' | 'streaks' | 'card' | 'profile' | 'board';
+type Tab = 'play' | 'classes' | 'streaks' | 'card' | 'prestige' | 'profile' | 'board';
 
 const TABS: { id: Tab; label: string; title: string; subtitle: string }[] = [
   { id: 'play', label: 'Salon', title: 'Multijoueur', subtitle: 'Salon d\'attente' },
   { id: 'classes', label: 'Classes', title: 'Classes', subtitle: 'Compose ton équipement' },
   { id: 'streaks', label: 'Séries', title: 'Séries', subtitle: 'Choisis tes séries d\'éliminations' },
   { id: 'card', label: 'Carte de joueur', title: 'Carte de joueur', subtitle: 'Vue par ceux que tu élimines' },
+  { id: 'prestige', label: 'Prestige', title: 'Prestige', subtitle: 'Repars du rang 1 avec un nouvel insigne' },
   { id: 'profile', label: 'Profil', title: 'Profil', subtitle: 'Ta progression' },
   { id: 'board', label: 'Classement', title: 'Classement', subtitle: 'Les meilleurs joueurs' },
 ];
@@ -47,7 +49,11 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
         {TABS.map((entry) => (
           <button
             key={entry.id}
-            className={entry.id === tab ? 'cod-tab cod-tab--active' : 'cod-tab'}
+            className={[
+              'cod-tab',
+              entry.id === tab && 'cod-tab--active',
+              entry.id === 'prestige' && (profile.canPrestige || profile.tokens > 0) && 'cod-tab--alert',
+            ].filter(Boolean).join(' ')}
             onClick={() => setTab(entry.id)}
           >
             {t(entry.label)}
@@ -60,6 +66,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
         {tab === 'classes' && <CodClassEditor profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'streaks' && <StreaksTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'card' && <CodPlayerCardTab profile={profile} catalog={catalog} onProfile={onProfile} />}
+        {tab === 'prestige' && <CodPrestigeTab profile={profile} catalog={catalog} searching={Boolean(queue)} onProfile={onProfile} />}
         {tab === 'profile' && <ProfileTab profile={profile} />}
         {tab === 'board' && <BoardTab />}
       </div>
@@ -212,7 +219,7 @@ export function StreaksTab({ profile, catalog, onProfile }: { profile: CodProfil
       <span className="cod-label">{t('Séries choisies : {count}/{max}', { count: chosen.length, max: catalog.maxStreaks })}</span>
       <ul className="cod-list cod-list--scroll">
         {catalog.streaks.map((streak) => {
-          const locked = streak.rank > profile.rank;
+          const locked = !isUnlocked(streak.id, streak.rank, profile);
           const active = chosen.includes(streak.id);
           return (
             <li key={streak.id}>
@@ -260,17 +267,18 @@ function ProfileTab({ profile }: { profile: CodProfile }) {
     ['Défaites', profile.losses],
     ['Meilleure série', profile.bestStreak],
     ['XP totale', profile.xp],
+    ['Prestige', profile.prestige],
   ];
   return (
     <section className="cod-column cod-column--wide">
       <div className="cod-profile__rank">
-        <RankBadge rank={profile.rank} size={72} />
+        <RankBadge rank={profile.rank} prestige={profile.prestige} size={72} />
         <div>
           <span className="cod-label">{t('Rang {rank} sur {max}', { rank: profile.rank, max: profile.maxRank })}</span>
           <span className="cod-profile__name">{profile.name}</span>
         </div>
       </div>
-      <CodPlayerCard card={{ ...profile.card, name: profile.name, rank: profile.rank }} />
+      <CodPlayerCard card={{ ...profile.card, name: profile.name, rank: profile.rank, prestige: profile.prestige }} />
       <dl className="cod-stats">
         {stats.map(([label, value]) => (
           <div key={label} className="cod-stats__row">
@@ -311,7 +319,7 @@ function BoardTab() {
               <tr key={`${row.name}-${index}`}>
                 <td>{index + 1}</td>
                 <td className="cod-table__name">{row.name}</td>
-                <td>{row.rank}</td>
+                <td><RankCell rank={row.rank} prestige={row.prestige} /></td>
                 <td>{row.kills}</td>
                 <td>{row.deaths}</td>
                 <td>{row.wins}</td>

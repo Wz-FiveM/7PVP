@@ -1,4 +1,5 @@
 import type { CodPlayerCardData } from '../../types/cod';
+import { prestigeUrl } from './CodParts';
 import './codPlayerCard.css';
 
 export const bannerUrl = (id: string) => `./cod/banners/${id}.svg`;
@@ -24,7 +25,9 @@ export function CodPlayerCard({ card, label, compact }: CodPlayerCardProps) {
           <span className="cod-pcard__meta">
             {card.tag && <span>[{card.tag}]</span>}
             <span className="cod-pcard__rank">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5 15.2 8.6 23 9.4 17.2 14.6 18.8 22.3 12 18.4 5.2 22.3 6.8 14.6 1 9.4 8.8 8.6Z" /></svg>
+              {card.prestige > 0
+                ? <img src={prestigeUrl(card.prestige)} alt="" draggable={false} />
+                : <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.5 15.2 8.6 23 9.4 17.2 14.6 18.8 22.3 12 18.4 5.2 22.3 6.8 14.6 1 9.4 8.8 8.6Z" /></svg>}
               {card.rank}
             </span>
           </span>

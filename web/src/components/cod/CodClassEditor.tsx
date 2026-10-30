@@ -3,7 +3,7 @@ import { codApi } from '../../api/codApi';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CodCatalog, CodCatalogEntry, CodClass, CodPerk, CodProfile } from '../../types/cod';
-import { BracketButton, WeaponImage } from './CodParts';
+import { BracketButton, isUnlocked, WeaponImage } from './CodParts';
 
 type Slot = 'primary' | 'secondary' | 'equipment' | 'perk1' | 'perk2' | 'perk3';
 
@@ -137,7 +137,7 @@ export function CodClassEditor({ profile, catalog, onProfile }: CodClassEditorPr
         <span className="cod-label">{t(SLOTS.find((entry) => entry.id === slot)?.label ?? '')}</span>
         <ul className="cod-options">
           {options.map((option) => {
-            const locked = option.rank > profile.rank;
+            const locked = !isUnlocked(option.id, option.rank, profile);
             const showGroup = option.group && option.group !== lastGroup;
             if (option.group) lastGroup = option.group;
             return (

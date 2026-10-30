@@ -81,7 +81,7 @@ export function Cod({ visible }: { visible: boolean }) {
     <div className="cod" hidden={!visible}>
       {/* Masqué sans être démonté : le fil des kills et les compteurs continuent pendant la pause */}
       <div className="cod-hud" hidden={paused || loading !== null || loadout !== null}>
-        <CodHud hud={hud} live={live} catalog={catalog} rank={profile?.rank ?? 1} name={profile?.name ?? ''} />
+        <CodHud hud={hud} live={live} catalog={catalog} rank={profile?.rank ?? 1} prestige={profile?.prestige ?? 0} name={profile?.name ?? ''} />
       </div>
       {loading && !paused && <CodLoadingScreen data={loading} />}
       {loadout && profile && catalog && (

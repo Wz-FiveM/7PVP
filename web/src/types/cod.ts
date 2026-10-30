@@ -37,6 +37,8 @@ export interface CodCardAsset {
   id: string;
   label: string;
   rank: number;
+  /** niveau de Prestige requis */
+  prestige?: number;
 }
 export interface CodCatalog {
   playlists: CodPlaylist[];
@@ -50,6 +52,9 @@ export interface CodCatalog {
   banners: CodCardAsset[];
   emblems: CodCardAsset[];
   tagLength: number;
+  maxPrestige: number;
+  /** jetons gagnés à chaque Prestige */
+  prestigeTokens: number;
   keys: { streak: string; class: string; scoreboard: string };
 }
 
@@ -73,11 +78,20 @@ export interface CodPlayerCardChoice {
 export interface CodPlayerCardData extends CodPlayerCardChoice {
   name: string;
   rank: number;
+  prestige: number;
 }
 export interface CodProfile {
   name: string;
   rank: number;
   maxRank: number;
+  /** 0 : pas encore passé en Prestige */
+  prestige: number;
+  /** jetons de Prestige à dépenser */
+  tokens: number;
+  /** armes, atouts et séries gardés pour toujours avec un jeton */
+  permanent: string[];
+  canPrestige: boolean;
+  /** XP de tous les Prestiges */
   xp: number;
   xpInto: number;
   /** 0 au rang maximum */
@@ -118,6 +132,8 @@ export type CodTeamId = 'alpha' | 'bravo';
 export interface CodBoardEntry {
   id: number;
   name: string;
+  rank: number;
+  prestige: number;
   /** false en chacun pour soi */
   team: CodTeamId | false;
   kills: number;
@@ -230,12 +246,13 @@ export interface CodEndData {
   team: CodTeamId | false;
   scores: Record<CodTeamId, number> | false;
   board: CodBoardEntry[];
-  summary?: { earned: number; bonus: number; rankBefore: number; rankAfter: number; unlocks: string[] };
+  summary?: { earned: number; bonus: number; rankBefore: number; rankAfter: number; prestige: number; canPrestige: boolean; unlocks: string[] };
   seconds: number;
 }
 export interface CodLeaderboardRow {
   name: string;
   rank: number;
+  prestige: number;
   kills: number;
   deaths: number;
   wins: number;

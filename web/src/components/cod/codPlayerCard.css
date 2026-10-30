@@ -79,6 +79,11 @@
   fill: var(--cod-white);
   filter: drop-shadow(0 0.0625rem 0.0625rem rgba(0, 0, 0, 0.8));
 }
+.cod-pcard__rank img {
+  width: 1.25rem;
+  height: 1.25rem;
+  filter: drop-shadow(0 0.0625rem 0.0625rem rgba(0, 0, 0, 0.8));
+}
 
 /* Version basse, pour les listes de joueurs */
 .cod-pcard--compact {

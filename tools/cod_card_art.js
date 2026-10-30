@@ -243,6 +243,66 @@ const EMBLEMS = {
   king: () => emblem(`<g transform="translate(32 38) scale(1.6)"><path d="${SKULL}" fill="#f2f3f0" fill-rule="evenodd" stroke="#0a0b0c" stroke-width="1.2"/></g>${shape('M12 8 21 18 32 3 43 18 52 8 49 26H15Z', '#f2c230')}<g stroke="#0a0b0c"><circle cx="24" cy="22" r="2" fill="#e5484d"/><circle cx="32" cy="22" r="2" fill="#5fd1e8"/><circle cx="40" cy="22" r="2" fill="#e5484d"/></g>`),
 };
 
+// Insignes de Prestige : l'emblème sert aussi d'écusson de rang (RankBadge), la bannière reprend ses couleurs.
+const PRESTIGE_COLORS = [
+  { metal: '#b87333', light: '#eab283', dark: '#2e1c10' }, // bronze
+  { metal: '#aeb7c0', light: '#f2f5f7', dark: '#23272c' }, // argent
+  { metal: '#d9a227', light: '#ffe48f', dark: '#33260a' }, // or
+  { metal: '#d8353b', light: '#ff9d92', dark: '#330d10' }, // rubis
+  { metal: '#2f7fd6', light: '#a5d4ff', dark: '#0c2138' }, // saphir
+  { metal: '#8a4fd8', light: '#d9bcff', dark: '#22103a' }, // améthyste
+  { metal: '#22ad78', light: '#a8f6d6', dark: '#0a2d22' }, // émeraude
+  { metal: '#ec7a1c', light: '#ffc98c', dark: '#361a06' }, // braise
+  { metal: '#cfd6dd', light: '#ffffff', dark: '#0a0b0d' }, // platine
+  { metal: '#f2b90f', light: '#fff3b0', dark: '#4a0b0b' }, // légende
+];
+const INSIGNIA_SHIELD = 'M32 4 55 13V33C55 46 45 55 32 60 19 55 9 46 9 33V13Z';
+const INSIGNIA_HEXAGON = 'M32 3 57 17V47L32 61 7 47V17Z';
+const INSIGNIA_WING_LEFT = 'M20 22C14 16 8 15 1 17 3 21 5 22 8 23 5 24 4 26 4 28 7 29 10 28 12 29 10 31 10 33 11 36 14 36 17 35 20 36Z';
+const INSIGNIA_WING_RIGHT = 'M44 22C50 16 56 15 63 17 61 21 59 22 56 23 59 24 60 26 60 28 57 29 54 28 52 29 54 31 54 33 53 36 50 36 47 35 44 36Z';
+const INSIGNIA_STAR = 'M0-11 3.2-3.4 11-3.4 4.8 1.4 7 9 0 4.4-7 9-4.8 1.4-11-3.4-3.2-3.4Z';
+/** Étoile à `points` branches autour du centre de l'emblème */
+const sunburst = (points, outer, inner) =>
+  `M${Array.from({ length: points * 2 }, (_, index) => {
+    const angle = (index / points) * Math.PI - Math.PI / 2;
+    const radius = index % 2 ? inner : outer;
+    return `${fix(32 + Math.cos(angle) * radius)} ${fix(32 + Math.sin(angle) * radius)}`;
+  }).join('L')}Z`;
+const insigniaChevrons = (count, top) =>
+  times(count, (index) => `<path d="M19 ${top + index * 8} 32 ${top + 7 + index * 8} 45 ${top + index * 8}" fill="none" stroke="url(#metal)" stroke-width="4.6" stroke-linejoin="round"/>`);
+const insigniaStar = (y, scale = 1) => `<path transform="translate(32 ${y}) scale(${scale})" d="${INSIGNIA_STAR}" fill="url(#metal)" ${OUTLINE}/>`;
+const insigniaSkull = (y, scale) => `<g transform="translate(32 ${y}) scale(${scale})"><path d="${SKULL}" fill="url(#metal)" fill-rule="evenodd" stroke="#0a0b0c"/></g>`;
+const insigniaFrame = (d) => `<path d="${d}" fill="url(#plate)" stroke="url(#metal)" stroke-width="3" stroke-linejoin="round"/>`;
+const insigniaWings = `<path d="${INSIGNIA_WING_LEFT}" fill="url(#metal)" ${OUTLINE}/><path d="${INSIGNIA_WING_RIGHT}" fill="url(#metal)" ${OUTLINE}/>`;
+const insigniaCrown = `<path d="M18 21 16 8 24 14 32 4 40 14 48 8 46 21Z" fill="url(#metal)" ${OUTLINE}/>`;
+
+const INSIGNIA_BODIES = [
+  () => insigniaFrame(INSIGNIA_SHIELD) + insigniaStar(21, 0.8) + insigniaChevrons(1, 36),
+  () => insigniaFrame(INSIGNIA_SHIELD) + insigniaStar(19, 0.72) + insigniaChevrons(2, 31),
+  () => insigniaFrame(INSIGNIA_SHIELD) + insigniaStar(17, 0.64) + insigniaChevrons(3, 27),
+  () => insigniaFrame(INSIGNIA_HEXAGON) + insigniaStar(32, 1.7),
+  () => insigniaFrame(INSIGNIA_HEXAGON) + insigniaStar(25, 1.2) + insigniaChevrons(2, 37),
+  () => insigniaFrame(sunburst(8, 31, 22)) + insigniaStar(32, 1.45),
+  () => insigniaWings + insigniaFrame(INSIGNIA_SHIELD.replace('M32 4 55 13V33', 'M32 8 47 14V33').replace('C55 46 45 55 32 60 19 55 9 46 9 33V13Z', 'C47 44 41 51 32 56 23 51 17 44 17 33V14Z')) + insigniaStar(30, 1.05),
+  () => insigniaWings + insigniaFrame(INSIGNIA_SHIELD.replace('M32 4 55 13V33', 'M32 8 47 14V33').replace('C55 46 45 55 32 60 19 55 9 46 9 33V13Z', 'C47 44 41 51 32 56 23 51 17 44 17 33V14Z')) + insigniaSkull(30, 0.95),
+  () => insigniaFrame(sunburst(12, 31, 24)) + insigniaSkull(32, 1.25),
+  () => insigniaFrame(sunburst(16, 31, 25)) + insigniaSkull(37, 1.1) + insigniaCrown,
+];
+const insigniaDefs = ({ metal, light, dark }) =>
+  `<defs>${gradient('metal', [[0, light], [0.55, metal], [1, metal]])}${gradient('plate', [[0, dark], [1, '#08090a']])}</defs>`;
+
+PRESTIGE_COLORS.forEach((colors, index) => {
+  const level = index + 1;
+  const body = INSIGNIA_BODIES[index]();
+  EMBLEMS[`prestige${level}`] = () => emblem(insigniaDefs(colors) + body);
+  BANNERS[`prestige${level}`] = () => banner(
+    `${insigniaDefs(colors)}${gradient('prestigeBack', [[0, colors.dark], [0.6, colors.dark], [1, colors.metal]], false)}${rect('url(#prestigeBack)')}`
+    + times(14, (stripe) => `<path d="M${150 + stripe * 22} -10 ${176 + stripe * 22} 40 ${150 + stripe * 22} 90" fill="none" stroke="${colors.light}" stroke-width="5" opacity="${fix(0.03 + stripe * 0.012)}"/>`)
+    + `<rect width="${W}" height="2" fill="${colors.light}" opacity=".6"/><rect y="${H - 2}" width="${W}" height="2" fill="${colors.light}" opacity=".6"/>`
+    + `<g transform="translate(322 4) scale(1.13)">${body}</g>`,
+  );
+});
+
 for (const [folder, art] of [['banners', BANNERS], ['emblems', EMBLEMS]]) {
   const dir = path.join(OUT, folder);
   fs.mkdirSync(dir, { recursive: true });

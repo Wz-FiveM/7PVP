@@ -10,7 +10,7 @@ import { playGunfire } from '../../utils/codGunSound';
 import { WeaponSilhouette } from '../hud/Killfeed';
 import { Icon } from '../icons/Icon';
 import { CodMedal, CodMedalFrame } from './CodMedal';
-import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
+import { formatTime, RankBadge, RankCell, useSecondsLeft } from './CodParts';
 import { bannerUrl, CodPlayerCard } from './CodPlayerCard';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
@@ -37,11 +37,12 @@ interface CodHudProps {
   live: CodStateData | null;
   catalog: CodCatalog | null;
   rank: number;
+  prestige: number;
   name: string;
 }
 
 /** HUD de partie, épuré : vie sous la carte, emblème et score en bas à gauche, munitions en bas à droite. */
-export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
+export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps) {
   useT();
   const [feed, setFeed] = useState<(CodKillData & Timed)[]>([]);
   const [scores, setScores] = useState<({ xp: number; label: string } & Timed)[]>([]);
@@ -179,7 +180,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         <>
           {!jammed && <RadarFilter sweep={radar} />}
           <Vitals name={name} />
-          <BottomLeft hud={hud} live={live} rank={rank} />
+          <BottomLeft hud={hud} live={live} rank={rank} prestige={prestige} />
           <BottomRight streak={streak} keys={catalog?.keys} />
           <TopCenter hud={hud} live={live} />
         </>
@@ -299,7 +300,7 @@ function Vitals({ name }: { name: string }) {
   );
 }
 
-function BottomLeft({ hud, live, rank }: { hud: CodHudData & { at: number }; live: CodStateData | null; rank: number }) {
+function BottomLeft({ hud, live, rank, prestige }: { hud: CodHudData & { at: number }; live: CodStateData | null; rank: number; prestige: number }) {
   useT();
   const remainingAtStart = useSecondsLeft(hud.remaining, hud.at);
   const remaining = live?.remaining ?? remainingAtStart;
@@ -315,7 +316,7 @@ function BottomLeft({ hud, live, rank }: { hud: CodHudData & { at: number }; liv
     <div className="cod-corner">
       <span className="cod-corner__mode">{hud.playlist.short}</span>
       <div className="cod-corner__row">
-        <RankBadge rank={rank} size={54} />
+        <RankBadge rank={rank} prestige={prestige} size={54} />
         <div className="cod-corner__scores">
           <ScoreLine value={ours} limit={limit} tone="us" />
           <ScoreLine value={theirs} limit={limit} tone="them" />
@@ -557,6 +558,7 @@ export function CodScoreTable({ board, team, teams, scores }: CodScoreTableProps
     list.map((entry, index) => (
       <tr key={entry.id} className={entry.alive ? '' : 'cod-table__dead'}>
         <td>{index + 1}</td>
+        <td><RankCell rank={entry.rank} prestige={entry.prestige} /></td>
         <td className="cod-table__name">{entry.name}</td>
         <td>{entry.score}</td>
         <td>{entry.kills}</td>
@@ -568,6 +570,7 @@ export function CodScoreTable({ board, team, teams, scores }: CodScoreTableProps
     <thead>
       <tr>
         <th>#</th>
+        <th>{t('Rang')}</th>
         <th className="cod-table__name">{t('Joueur')}</th>
         <th>{t('Score')}</th>
         <th>{t('Kills')}</th>

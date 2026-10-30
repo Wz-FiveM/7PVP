@@ -28,6 +28,17 @@ Config.CodPlayerCards = {
         { id = 'nuke', label = 'Champignon', rank = 45 },
         { id = 'gold', label = 'Or massif', rank = 50 },
         { id = 'legend', label = 'Légende', rank = 55 },
+        -- prestige = niveau de Prestige requis
+        { id = 'prestige1', label = 'Prestige 1', rank = 1, prestige = 1 },
+        { id = 'prestige2', label = 'Prestige 2', rank = 1, prestige = 2 },
+        { id = 'prestige3', label = 'Prestige 3', rank = 1, prestige = 3 },
+        { id = 'prestige4', label = 'Prestige 4', rank = 1, prestige = 4 },
+        { id = 'prestige5', label = 'Prestige 5', rank = 1, prestige = 5 },
+        { id = 'prestige6', label = 'Prestige 6', rank = 1, prestige = 6 },
+        { id = 'prestige7', label = 'Prestige 7', rank = 1, prestige = 7 },
+        { id = 'prestige8', label = 'Prestige 8', rank = 1, prestige = 8 },
+        { id = 'prestige9', label = 'Prestige 9', rank = 1, prestige = 9 },
+        { id = 'prestige10', label = 'Prestige 10', rank = 1, prestige = 10 },
     },
 
     emblems = {
@@ -58,5 +69,15 @@ Config.CodPlayerCards = {
         { id = 'crown', label = 'Couronne', rank = 51 },
         { id = 'medal', label = 'Médaille', rank = 53 },
         { id = 'king', label = 'Roi des morts', rank = 55 },
+        { id = 'prestige1', label = 'Prestige 1', rank = 1, prestige = 1 },
+        { id = 'prestige2', label = 'Prestige 2', rank = 1, prestige = 2 },
+        { id = 'prestige3', label = 'Prestige 3', rank = 1, prestige = 3 },
+        { id = 'prestige4', label = 'Prestige 4', rank = 1, prestige = 4 },
+        { id = 'prestige5', label = 'Prestige 5', rank = 1, prestige = 5 },
+        { id = 'prestige6', label = 'Prestige 6', rank = 1, prestige = 6 },
+        { id = 'prestige7', label = 'Prestige 7', rank = 1, prestige = 7 },
+        { id = 'prestige8', label = 'Prestige 8', rank = 1, prestige = 8 },
+        { id = 'prestige9', label = 'Prestige 9', rank = 1, prestige = 9 },
+        { id = 'prestige10', label = 'Prestige 10', rank = 1, prestige = 10 },
     },
 }

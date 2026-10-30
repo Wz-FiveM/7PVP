@@ -1,6 +1,6 @@
 import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
-import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile } from './codMocks';
+import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile, mockCodProfilePrestige } from './codMocks';
 import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 
 /**
@@ -196,6 +196,16 @@ export const DEV_SCREENS: DevScreen[] = [
       resetScreens();
       sendNui({ action: 'mode', data: { mode: 'cod' } });
       sendNui({ action: 'codMenu', data: { open: true, profile: mockCodProfile, catalog: mockCodCatalog } });
+      sendNui({ action: 'codQueue', data: { count: 0 } });
+    },
+  },
+  {
+    id: 'cod-menu-prestige',
+    label: 'CoD : menu, Prestige disponible',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'cod' } });
+      sendNui({ action: 'codMenu', data: { open: true, profile: mockCodProfilePrestige, catalog: mockCodCatalog } });
       sendNui({ action: 'codQueue', data: { count: 0 } });
     },
   },
@@ -678,7 +688,7 @@ export const DEV_ACTIONS: DevAction[] = [
       sendNui({
         action: 'codQueue',
         data: {
-          count: 3, playlist: 'tdm', names: ['Wezor', 'Kaze', 'Nyx'], cards: [{ ...mockCodProfile.card, name: 'Wezor', rank: mockCodProfile.rank }, mockCodCards.kaze, mockCodCards.nyx], needed: 2, max: 12, startIn: 22, vote: 'port',
+          count: 3, playlist: 'tdm', names: ['Wezor', 'Kaze', 'Nyx'], cards: [{ ...mockCodProfile.card, name: 'Wezor', rank: mockCodProfile.rank, prestige: mockCodProfile.prestige }, mockCodCards.kaze, mockCodCards.nyx], needed: 2, max: 12, startIn: 22, vote: 'port',
           maps: [
             { id: 'port', label: 'Terminal', place: 'Port de Los Santos', votes: 2 },
             { id: 'scrapyard', label: 'La Casse', place: 'Rogers Salvage, La Puerta', votes: 1 },
@@ -771,7 +781,7 @@ export const DEV_ACTIONS: DevAction[] = [
         action: 'codEnd',
         data: {
           result: 'won', reason: 'Score atteint.', team: 'alpha', scores: { alpha: 200, bravo: 143 }, board: mockCodBoard, seconds: 12,
-          summary: { earned: 2450, bonus: 800, rankBefore: 7, rankAfter: 8, unlocks: ['Mitrailleuse'] },
+          summary: { earned: 2450, bonus: 800, rankBefore: 7, rankAfter: 8, prestige: 0, canPrestige: false, unlocks: ['Mitrailleuse'] },
         },
       }),
   },

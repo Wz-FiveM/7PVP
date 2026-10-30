@@ -32,12 +32,15 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
 
       {summary && (
         <footer className="cod-end__xp">
-          <RankBadge rank={summary.rankAfter} size={56} />
+          <RankBadge rank={summary.rankAfter} prestige={summary.prestige} size={56} />
           <div className="cod-end__xp-text">
             <span className="cod-end__earned">+{summary.earned} XP</span>
             <span className="cod-label">{t('Dont {bonus} XP de fin de partie', { bonus: summary.bonus })}</span>
             {summary.rankAfter > summary.rankBefore && (
               <span className="cod-end__rankup">{t('Rang {rank} atteint !', { rank: summary.rankAfter })}</span>
+            )}
+            {summary.canPrestige && (
+              <span className="cod-end__rankup">{t('Prestige disponible dans le menu !')}</span>
             )}
             {summary.unlocks.length > 0 && (
               <span className="cod-end__unlocks">

@@ -349,6 +349,8 @@ function CodMatch:board()
         list[#list + 1] = {
             id = source,
             name = stats.name,
+            rank = CodProfileService.rankOf(source),
+            prestige = CodProfileService.prestigeOf(source),
             team = stats.team,
             kills = stats.kills,
             deaths = stats.deaths,
