@@ -316,7 +316,7 @@ npm run build   # compile dans web/build/ (chargé par FiveM)
 
 ### Écran de chargement
 
-Deuxième page React (`web/loading.html`, code dans `src/loading/`), déclarée en `loadscreen` dans le fxmanifest. Il reste affiché jusqu'au lobby ou au créateur (`loadscreen_manual_shutdown`). Il montre la progression envoyée par FiveM, des astuces (`src/loading/tips.ts`) et le pseudo / nombre de joueurs transmis par le serveur à la connexion (`server/modules/connection`). En dev : `http://localhost:5173/loading.html` (progression simulée).
+Deuxième page React (`web/loading.html`, code dans `src/loading/`), déclarée en `loadscreen` dans le fxmanifest. Il reste affiché jusqu'au lobby ou au créateur (`loadscreen_manual_shutdown`). Il reprend la DA du mode Call of Duty : une carte tactique générée (`src/loading/terrain.ts`) où le trajet et les drapeaux A, B, C suivent la progression envoyée par FiveM (`TacticalMap.tsx`), le texte tapé de début de mission (`Briefing.tsx`), des astuces (`src/loading/tips.ts`) et le pseudo / nombre de joueurs transmis par le serveur à la connexion (`server/modules/connection`). En dev : `http://localhost:5173/loading.html` (progression simulée).
 
 ### Panneau « DEV NUI » (npm run dev)
 

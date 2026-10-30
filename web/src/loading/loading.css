@@ -1,67 +1,325 @@
-/* Écran de chargement (loadscreen FiveM) -------------------------------------- */
+/* Écran de chargement (loadscreen FiveM), avec la direction artistique du mode Call of Duty :
+   une carte tactique en fond, le texte tapé des débuts de mission, un grand titre métallique.
+   Seuls transform et opacity sont animés : le jeu charge en même temps. */
 
 .loading {
+  --cod-accent: #f28a2e;
+  --cod-accent-hi: #ffb060;
+  --cod-friend: #5fd1e8;
+  --cod-enemy: #ff5a3c;
+  --cod-white: #f2f3f0;
+  --cod-muted: rgba(242, 243, 240, 0.6);
+  --cod-line: rgba(242, 243, 240, 0.16);
+  --cod-panel: rgba(14, 15, 17, 0.72);
+  --cod-font: 'Chakra Petch', var(--font-display);
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  background-color: var(--nuit);
-  background-image:
-    radial-gradient(ellipse at 50% 42%, rgba(240, 195, 60, 0.14), transparent 60%),
-    linear-gradient(rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem),
-    linear-gradient(90deg, rgba(46, 54, 58, 0.25) 0.0625rem, transparent 0.0625rem);
-  background-size: 100% 100%, 5rem 5rem, 5rem 5rem;
+  color: var(--cod-white);
+  background: #08090a;
 }
 
-/* Trait d'accent en haut */
-.loading__stripes {
-  height: 0.1875rem;
-  background: var(--signal);
-}
+/* La carte -------------------------------------------------------------------------- */
 
-.loading__center {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
+/* Toujours au format 16/9 et plus grande que l'écran : ses éléments restent alignés sur le relief */
+.loading__stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100vw, 177.78vh);
+  height: max(100vh, 56.25vw);
+  margin-top: calc(max(100vh, 56.25vw) / -2);
+  margin-left: calc(max(100vw, 177.78vh) / -2);
+  transform-origin: 62% 45%;
+  animation: loading-camera 70s ease-in-out infinite alternate;
+  will-change: transform;
 }
-.loading__center img {
-  animation: loading-pulse 3s ease-in-out infinite;
-}
-@keyframes loading-pulse {
-  50% {
+@keyframes loading-camera {
+  from {
     transform: scale(1.03);
   }
+  to {
+    transform: scale(1.12) translate(-1.5%, 1%);
+  }
 }
-.loading__welcome {
-  font-size: 0.9375rem;
+.loading__terrain,
+.loading__route {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.loading__route path {
+  fill: none;
+}
+.loading__route .loading__route-todo {
+  stroke: rgba(242, 243, 240, 0.4);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 7;
+}
+.loading__route .loading__route-done {
+  stroke: var(--cod-accent);
+  stroke-width: 2.5;
+  stroke-dasharray: 1;
+}
+.loading__route .loading__player {
+  fill: var(--cod-friend);
+  stroke: #08090a;
+  stroke-width: 1.5;
+}
+
+.loading__flag {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin: -1.5rem 0 0 -1.5rem;
+  font-family: var(--cod-font);
+  font-size: 1.25rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--os);
+  color: var(--cod-white);
 }
-.loading__players {
-  color: var(--brume);
+.loading__flag > * {
+  grid-area: 1 / 1;
+}
+.loading__flag svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+}
+.loading__flag-base {
+  fill: rgba(8, 9, 10, 0.78);
+  stroke: rgba(242, 243, 240, 0.35);
+  stroke-width: 2;
+}
+.loading__flag-ring {
+  fill: none;
+  stroke: var(--cod-accent);
+  stroke-width: 3;
+  stroke-dasharray: 1;
+}
+.loading__flag--active {
+  color: var(--cod-accent-hi);
+}
+.loading__flag--active::before {
+  content: '';
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  border: 0.125rem solid var(--cod-accent);
+  border-radius: 50%;
+  animation: loading-flag-pulse 1.8s ease-out infinite;
+}
+@keyframes loading-flag-pulse {
+  from {
+    opacity: 0.8;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+.loading__flag--captured {
+  color: var(--cod-friend);
+}
+.loading__flag--captured .loading__flag-ring {
+  stroke: var(--cod-friend);
+}
+
+.loading__blip {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem 0 0 -0.25rem;
+  background: var(--cod-enemy);
+  border-radius: 50%;
+  box-shadow: 0 0 0.625rem 0.125rem rgba(255, 90, 60, 0.7);
+  opacity: 0;
+  animation: loading-blip 14s linear infinite;
+}
+@keyframes loading-blip {
+  0% {
+    opacity: 1;
+  }
+  32% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.loading__sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 88%, rgba(242, 138, 46, 0.07) 99.85%, rgba(255, 176, 96, 0.6) 99.9%);
+  transform: translateX(-100%);
+  animation: loading-sweep linear infinite;
+}
+@keyframes loading-sweep {
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Assombrit les bords pour les textes, et les lignes d'un écran de contrôle */
+.loading__grade {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0, rgba(0, 0, 0, 0.14) 0.0625rem, transparent 0.0625rem, transparent 0.1875rem),
+    linear-gradient(0deg, rgba(8, 9, 10, 0.97) 0%, rgba(8, 9, 10, 0.86) 22%, rgba(8, 9, 10, 0) 48%),
+    linear-gradient(90deg, rgba(8, 9, 10, 0.82) 0%, rgba(8, 9, 10, 0.34) 26%, rgba(8, 9, 10, 0) 44%),
+    linear-gradient(180deg, rgba(8, 9, 10, 0.62) 0%, rgba(8, 9, 10, 0) 20%);
+}
+
+/* Les textes ------------------------------------------------------------------------- */
+
+.loading__top {
+  position: absolute;
+  top: 2.5rem;
+  right: 3.25rem;
+  left: 3.25rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.loading__top img {
+  filter: drop-shadow(0 0.25rem 1rem rgba(0, 0, 0, 0.75));
+}
+.loading__online {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--cod-font);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.8);
+}
+.loading__online::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--cod-accent);
+  border-radius: 50%;
+}
+
+.loading__bottom {
+  position: absolute;
+  right: 3.25rem;
+  bottom: 2.25rem;
+  left: 3.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.loading__briefing {
+  min-height: 6.75rem;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6875rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 0.75rem rgba(0, 0, 0, 0.9);
+}
+.loading__briefing p {
+  height: 1.6875rem;
+  margin: 0;
+  white-space: nowrap;
+}
+.loading__briefing p:first-child {
+  color: var(--cod-accent-hi);
+}
+.loading__caret {
+  display: inline-block;
+  width: 0.5625rem;
+  height: 1rem;
+  margin-left: 0.25rem;
+  vertical-align: -0.125rem;
+  background: currentColor;
+  animation: loading-caret 1s steps(2, jump-none) infinite;
+}
+@keyframes loading-caret {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.loading__status {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 0.875rem;
+}
+.loading__step {
+  margin: 0;
+  padding-bottom: 0.125rem;
+  font-family: var(--cod-font);
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(180deg, #ffffff 15%, #c4c7cb 60%, #8d9096 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0.125rem 0.375rem rgba(0, 0, 0, 0.7));
+  animation: loading-step 0.45s ease-out;
+}
+@keyframes loading-step {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem);
+  }
+}
+.loading__percent {
+  flex: none;
+  font-family: var(--cod-font);
+  font-size: 4.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 0.95;
+  color: var(--cod-white);
+}
+.loading__percent small {
+  margin-left: 0.25rem;
+  font-size: 2rem;
+  color: var(--cod-accent);
 }
 
 .loading__tip {
-  align-self: center;
   display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  width: 42rem;
-  margin-bottom: 2.5rem;
-  padding: 1rem 1.25rem;
-  background: rgba(18, 21, 20, 0.85);
+  align-items: baseline;
+  gap: 1.25rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--cod-panel);
 }
 .loading__tip-label {
-  color: var(--signal);
+  flex: none;
+  font-family: var(--cod-font);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cod-accent);
 }
 .loading__tip-text {
-  font-size: 1rem;
-  line-height: 1.5;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
   animation: loading-fade 0.4s ease-out;
 }
 @keyframes loading-fade {
@@ -71,45 +329,48 @@
   }
 }
 
+.loading__track {
+  display: block;
+  height: 0.1875rem;
+  background: var(--cod-line);
+}
+.loading__track > span {
+  display: block;
+  height: 100%;
+  background: var(--cod-accent);
+  box-shadow: 0 0 0.625rem rgba(242, 138, 46, 0.7);
+}
+
 .loading__footer {
   display: flex;
-  align-items: flex-end;
-  gap: 3rem;
-  padding: 0 3rem 2.5rem;
-}
-.loading__progress {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-.loading__progress-row {
-  display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-}
-.loading__step {
-  font-size: 1rem;
-  font-weight: 700;
-}
-.loading__percent {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--signal);
+  gap: 3rem;
+  margin-top: 0.875rem;
 }
 .loading__log {
-  height: 1rem;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
+  font-family: var(--font-mono);
   font-size: 0.6875rem;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--brume);
+  color: var(--cod-muted);
 }
-
 .loading__keys {
   display: flex;
-  gap: 1.25rem;
-  list-style: none;
+  flex: none;
+  gap: 1.75rem;
+  margin: 0;
+  padding: 0;
   font-size: 0.8125rem;
-  color: var(--brume-hi);
+  font-weight: 600;
+  list-style: none;
+  color: var(--cod-muted);
+}
+.loading__keys kbd {
+  font-family: var(--cod-font);
+  font-weight: 700;
+  color: var(--cod-white);
 }

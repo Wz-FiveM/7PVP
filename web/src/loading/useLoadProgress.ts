@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Progression envoyée par FiveM à l'écran de chargement (window.postMessage) :
@@ -69,4 +69,23 @@ export function useLoadProgress(): LoadProgress {
   }, []);
 
   return progress;
+}
+
+/** FiveM avance par à-coups : la valeur affichée rattrape la vraie en douceur. */
+export function useEased(target: number): number {
+  const [value, setValue] = useState(target);
+  const current = useRef(target);
+
+  useEffect(() => {
+    // Un minuteur, pas requestAnimationFrame : la progression avance même si l'affichage est suspendu
+    const timer = window.setInterval(() => {
+      const gap = target - current.current;
+      current.current = Math.abs(gap) < 0.001 ? target : current.current + gap * 0.12;
+      setValue(current.current);
+      if (current.current === target) window.clearInterval(timer);
+    }, 33);
+    return () => window.clearInterval(timer);
+  }, [target]);
+
+  return value;
 }

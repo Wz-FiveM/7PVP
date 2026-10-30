@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useT } from '../i18n';
 import { Logo } from '../components/ui/Logo';
-import { SegmentBar } from '../components/ui/SegmentBar';
+import { Briefing } from './Briefing';
+import { TacticalMap } from './TacticalMap';
 import { TIPS } from './tips';
-import { useLoadProgress } from './useLoadProgress';
+import { useEased, useLoadProgress } from './useLoadProgress';
 
 /** Infos envoyées par le serveur à la connexion (server/modules/connection) */
 interface Handover {
@@ -21,12 +22,16 @@ const KEYS: [string, string][] = [
   ['E', 'Ramasser'],
 ];
 
+/** En dev (npm run dev), un joueur fictif pour voir l'écran complet */
+const DEV_HANDOVER: Handover = import.meta.env.DEV ? { name: 'Soldat', players: 12, maxPlayers: 48 } : {};
+
 export function LoadingScreen() {
   const t = useT();
   const progress = useLoadProgress();
-  const handover = (window as { nuiHandoverData?: Handover }).nuiHandoverData ?? {};
+  const fraction = useEased(progress.fraction);
+  const handover = (window as { nuiHandoverData?: Handover }).nuiHandoverData ?? DEV_HANDOVER;
   const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * TIPS.length));
-  const percent = Math.round(progress.fraction * 100);
+  const percent = Math.round(fraction * 100);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTipIndex((i) => (i + 1) % TIPS.length), TIP_DURATION);
@@ -35,42 +40,44 @@ export function LoadingScreen() {
 
   return (
     <div className="loading">
-      <div className="loading__stripes" />
+      <TacticalMap fraction={fraction} />
+      <div className="loading__grade" />
 
-      <main className="loading__center">
-        <Logo size={260} />
-        <p className="mono loading__welcome">
-          {handover.name ? t('BIENVENUE, {name}', { name: handover.name.toUpperCase() }) : t('CONNEXION AU SERVEUR')}
-          {handover.players !== undefined && (
-            <span className="loading__players">
-              {' '}· {t('{players}/{max} EN LIGNE', { players: handover.players, max: handover.maxPlayers ?? '?' })}
-            </span>
-          )}
-        </p>
-      </main>
+      <header className="loading__top">
+        <Logo size={150} />
+        {handover.players !== undefined && (
+          <span className="loading__online">
+            {t('{players}/{max} EN LIGNE', { players: handover.players, max: handover.maxPlayers ?? '?' })}
+          </span>
+        )}
+      </header>
 
-      <section className="loading__tip cut">
-        <span className="label loading__tip-label">{t('Astuce')}</span>
-        <p key={tipIndex} className="loading__tip-text">{t(TIPS[tipIndex])}</p>
-      </section>
+      <div className="loading__bottom">
+        <Briefing name={handover.name} />
 
-      <footer className="loading__footer">
-        <div className="loading__progress">
-          <div className="loading__progress-row">
-            <span className="disp loading__step">{t(progress.step)}</span>
-            <span className="mono loading__percent">{percent}%</span>
-          </div>
-          <SegmentBar value={progress.fraction} max={1} segments={40} color="var(--signal)" height={6} />
-          <span className="mono loading__log">{progress.log}</span>
+        <div className="loading__status">
+          <h1 key={progress.step} className="loading__step">{t(progress.step)}</h1>
+          <span className="loading__percent">{percent}<small>%</small></span>
         </div>
-        <ul className="loading__keys">
-          {KEYS.map(([key, label]) => (
-            <li key={key}>
-              <kbd className="keycap">[{key}]</kbd> {t(label)}
-            </li>
-          ))}
-        </ul>
-      </footer>
+
+        <section className="loading__tip">
+          <span className="loading__tip-label">[ {t('Astuce')} ]</span>
+          <p key={tipIndex} className="loading__tip-text">{t(TIPS[tipIndex])}</p>
+        </section>
+
+        <span className="loading__track"><span style={{ width: `${fraction * 100}%` }} /></span>
+
+        <footer className="loading__footer">
+          <span className="loading__log">{progress.log}</span>
+          <ul className="loading__keys">
+            {KEYS.map(([key, label]) => (
+              <li key={key}>
+                <kbd>[ {key} ]</kbd> {t(label)}
+              </li>
+            ))}
+          </ul>
+        </footer>
+      </div>
     </div>
   );
 }
