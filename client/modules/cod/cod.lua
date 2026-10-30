@@ -23,6 +23,12 @@ Cod.CONTROL_SCOREBOARD = 37 -- INPUT_SELECT_WEAPON (TAB, comme la touche du menu
 Cod.LOCKED_CONTROLS = { 21, 22, 24, 25, 30, 31, 32, 33, 34, 35, 44, 140, 141, 142, 257 }
 Cod.REGEN_INTERVAL = 250
 Cod.PED_HEIGHT = 1.0 -- m entre les pieds et le centre du personnage
+-- Position par défaut de la carte (common:/data/ui/frontend.xml)
+Cod.MINIMAP_PARTS = {
+    { name = 'minimap', x = -0.0045, y = 0.002, width = 0.150, height = 0.188888 },
+    { name = 'minimap_mask', x = 0.020, y = 0.032, width = 0.111, height = 0.159 },
+    { name = 'minimap_blur', x = -0.03, y = 0.022, width = 0.266, height = 0.237 },
+}
 Cod.MATE_COLOR = { 95, 209, 232 }
 
 ---@type table|nil partie en cours (données envoyées par le serveur : arena, team, ...)
@@ -352,23 +358,19 @@ function Cod.drawArena(arena)
 end
 
 ---Carte en haut à gauche pendant les parties, à sa place habituelle ensuite.
----Les trois composants gardent les écarts de leur position par défaut, sinon le masque se décale.
+---Les trois composants restent alignés en bas à gauche et bougent du même décalage, sinon le masque se décale.
 ---@param top boolean
 function Cod.setMinimapTop(top)
     if top == Cod.minimapMoved then return end
     Cod.minimapMoved = top
-    if top then
-        local x, y = Config.Cod.minimapLeft, Config.Cod.minimapTop
-        SetMinimapComponentPosition('minimap', 'L', 'T', x - 0.0045, y, 0.150, 0.188)
-        SetMinimapComponentPosition('minimap_mask', 'L', 'T', x + 0.020, y - 0.001, 0.111, 0.159)
-        SetMinimapComponentPosition('minimap_blur', 'L', 'T', x - 0.030, y - 0.069, 0.266, 0.237)
-    else
-        SetMinimapComponentPosition('minimap', 'L', 'B', -0.0045, 0.002, 0.150, 0.188)
-        SetMinimapComponentPosition('minimap_mask', 'L', 'B', 0.020, 0.032, 0.111, 0.159)
-        SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.03, 0.022, 0.266, 0.237)
+    local shift = Config.Cod.minimapShift
+    local x, y = top and shift.x or 0.0, top and shift.y or 0.0
+    for _, part in ipairs(Cod.MINIMAP_PARTS) do
+        SetMinimapComponentPosition(part.name, 'L', 'B', part.x + x, part.y + y, part.width, part.height)
     end
-    -- Le jeu ne prend la nouvelle position qu'en basculant le radar (Hud le remet en petit à l'image suivante)
+    -- Le jeu ne prend la nouvelle position qu'en basculant le radar
     SetRadarBigmapEnabled(true, false)
+    SetRadarBigmapEnabled(false, false)
 end
 
 ---@param data table remaining, scores, board, objective

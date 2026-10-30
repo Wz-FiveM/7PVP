@@ -20,9 +20,9 @@ Config.Cod = {
         lookHeight = 0.05,
         fov = 38.0,
     },
-    -- Carte en haut à gauche pendant les parties (position remise par défaut en quittant le mode)
-    minimapTop = 0.035,
-    minimapLeft = 0.012,
+    -- Carte en haut à gauche pendant les parties : décalage depuis sa position par défaut (y négatif = vers le haut),
+    -- retiré en quittant le mode
+    minimapShift = { x = 0.01, y = -0.77 },
 
     queueDelay = 25, -- secondes de vote de carte une fois `minPlayers` atteint
     voteChoices = 3, -- cartes proposées au vote
