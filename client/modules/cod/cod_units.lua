@@ -18,6 +18,13 @@ CodUnits.HIT_FLAGS = 1 + 2 + 16 -- carte, véhicules, objets
 CodUnits.BULLET = GetHashKey('WEAPON_MINIGUN')
 CodUnits.MUZZLE_OFFSET = 2.5 -- m entre l'unité et le départ de la balle
 CodUnits.TARGET_HEIGHT = 0.4 -- m au-dessus du centre du personnage visé
+CodUnits.TARGET_MISS = 1.5 -- m à côté du joueur visé pour la balle tirée chez lui
+CodUnits.BARREL_YAW = 270.0 -- cap du canon d'un modèle d'arme quand le modèle a le cap 0 (axe X), sans os de bouche
+CodUnits.BARREL_MIN = 0.1 -- m : en dessous, la position de l'os de bouche ne donne pas de direction
+CodUnits.MUZZLE_BONE = 'gun_muzzle'
+CodUnits.MUZZLE_FLASH = 'muz_minigun'
+CodUnits.FLASH_SCALE = 1.5
+CodUnits.TRACER_TIME = 70 -- ms d'affichage d'une traçante
 CodUnits.DESTROYED_EXPLOSION = 5
 CodUnits.COLOR_FRIEND = 3
 CodUnits.COLOR_ENEMY = 1
@@ -25,6 +32,8 @@ CodUnits.COLOR_ENEMY = 1
 ---@type table<integer, table> id -> unité (données du serveur, born, entity, extra, blip, nextShot)
 CodUnits.units = {}
 CodUnits.nextHitCheck = 0
+---@type { from: vector3, to: vector3, untilAt: integer }[]
+CodUnits.tracers = {}
 
 function CodUnits.init()
     CodEffects.EXTERNAL.unitStart = CodUnits.onStart
@@ -44,6 +53,7 @@ function CodUnits.onStart(data)
         CodUnits.createModels(unit)
     end)
     RequestWeaponAsset(CodUnits.BULLET, 31, 0)
+    RequestNamedPtfxAsset('core')
     if unit.owned and unit.settings.piloted then CodGunner.launch(unit) end
 end
 
@@ -62,7 +72,8 @@ function CodUnits.createModels(unit)
         ControlLandingGear(unit.entity, 3)
     else
         unit.entity = CreateObject(model, coords.x, coords.y, coords.z + settings.gunHeight, false, false, false)
-        SetEntityHeading(unit.entity, unit.heading)
+        CodUnits.findBarrel(unit)
+        CodUnits.aimGun(unit)
         CodUnits.createBase(unit, coords)
     end
     SetModelAsNoLongerNeeded(model)
@@ -73,6 +84,27 @@ function CodUnits.createModels(unit)
         unit.blip = AddBlipForEntity(unit.entity)
         SetBlipSprite(unit.blip, settings.blip)
         SetBlipColour(unit.blip, unit.friendly and CodUnits.COLOR_FRIEND or CodUnits.COLOR_ENEMY)
+    end
+end
+
+---Le canon d'un modèle d'arme n'est pas dans l'axe du cap de l'objet : on le mesure sur son os de bouche.
+---@param unit table
+function CodUnits.findBarrel(unit)
+    unit.barrelYaw = CodUnits.BARREL_YAW
+    local bone = GetEntityBoneIndexByName(unit.entity, CodUnits.MUZZLE_BONE)
+    if bone == -1 then return end
+    unit.muzzleBone = bone
+    local offset = GetOffsetFromEntityGivenWorldCoords(unit.entity, GetWorldPositionOfEntityBone(unit.entity, bone))
+    if #offset.xy >= CodUnits.BARREL_MIN then
+        unit.barrelYaw = GetHeadingFromVector_2d(offset.x, offset.y)
+    end
+end
+
+---Tourne le canon vers le cap de l'unité.
+---@param unit table
+function CodUnits.aimGun(unit)
+    if unit.entity and DoesEntityExist(unit.entity) then
+        SetEntityHeading(unit.entity, unit.heading - (unit.barrelYaw or 0.0))
     end
 end
 
@@ -121,10 +153,12 @@ end
 function CodUnits.clear()
     for _, unit in pairs(CodUnits.units) do CodUnits.remove(unit) end
     CodUnits.nextHitCheck = 0
+    CodUnits.tracers = {}
 end
 
----Balle sans dégâts ni tireur, pour le bruit et la traçante : les dégâts sont appliqués par le serveur.
----@param data { id: integer, x: number, y: number, z: number }
+---Balle sans dégâts ni tireur, pour le bruit et l'impact : les dégâts sont appliqués par le serveur. Chez le joueur
+---visé, elle passe à côté de lui : le jeu pourrait lui compter ses propres dégâts en plus de ceux du serveur.
+---@param data { id: integer, x: number, y: number, z: number, target: integer|nil }
 function CodUnits.onShot(data)
     local unit = CodUnits.units[data.id]
     if not unit then return end
@@ -132,14 +166,45 @@ function CodUnits.onShot(data)
     local to = vector3(data.x, data.y, data.z + CodUnits.TARGET_HEIGHT)
     if not unit.radius then
         unit.heading = GetHeadingFromVector_2d(to.x - from.x, to.y - from.y)
-        if unit.entity and DoesEntityExist(unit.entity) then SetEntityHeading(unit.entity, unit.heading) end
+        CodUnits.aimGun(unit)
     end
     local line = to - from
     local distance = #line
     if distance <= CodUnits.MUZZLE_OFFSET then return end
-    local muzzle = from + line / distance * CodUnits.MUZZLE_OFFSET
+    local direction = line / distance
+    local muzzle = from + direction * CodUnits.MUZZLE_OFFSET
     if not unit.settings.aircraft then muzzle = muzzle + vector3(0.0, 0.0, unit.settings.gunHeight) end
-    ShootSingleBulletBetweenCoords(muzzle.x, muzzle.y, muzzle.z, to.x, to.y, to.z, 0, true, CodUnits.BULLET, 0, true, false, -1.0)
+    local aim = to
+    if data.target == Cod.match.self then aim = to + vector3(-direction.y, direction.x, 0.0) * CodUnits.TARGET_MISS end
+    ShootSingleBulletBetweenCoords(muzzle.x, muzzle.y, muzzle.z, aim.x, aim.y, aim.z, 0, true, CodUnits.BULLET, 0, true, false, -1.0)
+    CodUnits.showShot(unit, muzzle, direction, to)
+end
+
+---Une balle du jeu se voit à peine : flamme à la bouche du canon et traçante jusqu'au point visé.
+---@param unit table
+---@param muzzle vector3 départ de la balle
+---@param direction vector3
+---@param to vector3
+function CodUnits.showShot(unit, muzzle, direction, to)
+    local start = unit.muzzleBone and GetWorldPositionOfEntityBone(unit.entity, unit.muzzleBone) or muzzle
+    if HasNamedPtfxAssetLoaded('core') then
+        UseParticleFxAssetNextCall('core')
+        StartParticleFxNonLoopedAtCoord(CodUnits.MUZZLE_FLASH, start.x, start.y, start.z,
+            0.0, 0.0, GetHeadingFromVector_2d(direction.x, direction.y) + 90.0, CodUnits.FLASH_SCALE, false, false, false)
+    end
+    CodUnits.tracers[#CodUnits.tracers + 1] = { from = start, to = to, untilAt = GetGameTimer() + CodUnits.TRACER_TIME }
+end
+
+---@param now integer
+function CodUnits.drawTracers(now)
+    for index = #CodUnits.tracers, 1, -1 do
+        local tracer = CodUnits.tracers[index]
+        if now >= tracer.untilAt then
+            table.remove(CodUnits.tracers, index)
+        else
+            DrawLine(tracer.from.x, tracer.from.y, tracer.from.z, tracer.to.x, tracer.to.y, tracer.to.z, 255, 214, 130, 230)
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -148,6 +213,7 @@ end
 
 ---@param now integer
 function CodUnits.frame(now)
+    CodUnits.drawTracers(now)
     if not next(CodUnits.units) then return end
     for _, unit in pairs(CodUnits.units) do
         if unit.radius and unit.entity and DoesEntityExist(unit.entity) then

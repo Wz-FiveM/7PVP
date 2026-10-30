@@ -170,6 +170,7 @@ function CodUnits.fire(match, source, id, targetId)
         x = coords.x + (math.random() - 0.5) * 2 * offset,
         y = coords.y + (math.random() - 0.5) * 2 * offset,
         z = coords.z,
+        target = target,
     })
     if hit then CodStreaks.hurtPlayer(match, source, target, settings.damage, settings.label) end
 end

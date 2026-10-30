@@ -238,7 +238,7 @@ Config.Cod = {
     units = {
         sentry = {
             model = 'w_mg_minigun', base = 'prop_box_ammo03a', gunHeight = 0.75,
-            duration = 60, hits = 25, range = 50.0, interval = 220, damage = 20, accuracy = 0.75, label = 'Tourelle',
+            duration = 60, hits = 25, range = 50.0, interval = 220, damage = 8, accuracy = 0.75, label = 'Tourelle',
         },
         helicopter = {
             aircraft = 'buzzard', orbit = 0.65, orbitSpeed = 0.18, height = 50.0, blip = 43,
