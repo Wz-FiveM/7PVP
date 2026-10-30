@@ -541,11 +541,84 @@
   background: var(--signal);
 }
 
+.admin-pos__note {
+  flex: none;
+  font-size: 0.5625rem;
+  color: var(--hazard);
+}
+.admin-pos__removed {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.875rem;
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.admin-pos__removed .btn {
+  flex: none;
+  min-height: 1.5rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+}
+
 .admin-pos__panel {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+}
+.admin-pos__setting {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.admin-pos__count {
+  font-size: 0.625rem;
+  opacity: 0.7;
+}
+
+/* Carte Call of Duty : nom, lieu, rayon, vote, suppression */
+.admin-map {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 0.0625rem solid var(--trait);
+}
+.admin-map__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+.admin-map__fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.375rem;
+}
+.admin-map__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.admin-map__field--wide {
+  flex: 1;
+  min-width: 8rem;
+}
+.admin-map__fields .btn {
+  flex: none;
+  min-height: 2rem;
+  padding: 0 0.625rem;
+}
+.admin-map__status {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.admin-map__status--warn {
+  color: var(--hazard);
 }
 .admin-pos__head {
   display: flex;

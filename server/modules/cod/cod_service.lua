@@ -13,6 +13,7 @@ local CodStreaks = PVP.use('CodStreaks')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
+local CodMapService = PVP.use('CodMapService')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -185,6 +186,9 @@ function CodService.toggleQueue(source, playlistId)
     end
     local playlist = CodService.findPlaylist(playlistId)
     if not playlist then return { ok = false } end
+    if not CodService.joinableMatch(playlist) and #CodService.pickMaps() == 0 then
+        return { ok = false, message = Locale.t('Aucune carte disponible pour le moment.') }
+    end
     CodService.joinPlaylist(source, playlist)
     return { ok = true }
 end
@@ -265,12 +269,36 @@ end
 
 ---@return table[] cartes tirées au sort pour le vote
 function CodService.pickMaps()
-    local pool = { table.unpack(Config.Cod.maps) }
+    local pool = {}
+    for _, map in ipairs(Config.Cod.maps) do
+        if CodMapService.playable(map) then pool[#pool + 1] = map end
+    end
     local maps = {}
     while #pool > 0 and #maps < Config.Cod.voteChoices do
         maps[#maps + 1] = table.remove(pool, math.random(#pool))
     end
     return maps
+end
+
+---Cartes modifiées par un admin : le vote en cours ne garde que celles encore jouables.
+function CodService.refreshVotes()
+    for _, playlist in ipairs(Config.Cod.playlists) do
+        local queue = CodService.queues[playlist.id]
+        if queue.maps then
+            local maps, kept = {}, {}
+            for _, map in ipairs(queue.maps) do
+                if CodMapService.playable(map) then
+                    maps[#maps + 1] = map
+                    kept[map.id] = true
+                end
+            end
+            for source, choice in pairs(queue.votes) do
+                if not kept[choice] then queue.votes[source] = nil end
+            end
+            queue.maps = #maps > 0 and maps or CodService.pickMaps()
+            CodService.sendQueue(playlist)
+        end
+    end
 end
 
 ---@param playlist table
@@ -326,7 +354,7 @@ function CodService.vote(source, mapId)
 end
 
 ---@param queue CodQueue
----@return table carte qui a le plus de votes (au hasard à égalité)
+---@return table|nil carte qui a le plus de votes (au hasard à égalité), nil sans carte jouable
 function CodService.votedMap(queue)
     local counts = {}
     for _, choice in pairs(queue.votes) do
@@ -338,7 +366,21 @@ function CodService.votedMap(queue)
         if votes > top then best, top = { map }, votes
         elseif votes == top then best[#best + 1] = map end
     end
+    if #best == 0 then return nil end
     return best[math.random(#best)]
+end
+
+---Plus aucune carte jouable (toutes retirées par un admin) : la recherche s'arrête.
+---@param playlist table
+function CodService.cancelQueue(playlist)
+    local queue = CodService.queues[playlist.id]
+    for _, source in ipairs(queue.players) do
+        CodService.playerQueue[source] = nil
+        TriggerClientEvent(Events.client.codQueue, source, false)
+        local player = PlayerService.get(source)
+        if player then player:notify(Locale.t('Aucune carte disponible pour le moment.'), 'error') end
+    end
+    queue.players, queue.startAt, queue.maps, queue.votes = {}, nil, nil, {}
 end
 
 ---@param playlist table
@@ -346,6 +388,7 @@ function CodService.launch(playlist)
     local queue = CodService.queues[playlist.id]
     queue.maps = queue.maps or CodService.pickMaps()
     local map = CodService.votedMap(queue)
+    if not map then return CodService.cancelQueue(playlist) end
 
     local players = {}
     while #queue.players > 0 and #players < playlist.maxPlayers do

@@ -124,8 +124,10 @@ export type FreeroamSetting = {
   modified: boolean;
   /** nom court, dans le menu de l'onglet « Positions » */
   short?: string;
-  /** carte Call of Duty : ses listes de points sont regroupées sous elle */
-  section?: string;
+  /** carte Call of Duty (id) : ses listes de points sont regroupées sous elle */
+  map?: string;
+  /** points nécessaires pour que la carte soit proposée au vote */
+  min?: number;
   /** nom d'un point de la liste (« Drapeau », « Apparition »...) */
   point?: string;
   /** points numérotés A, B, C plutôt que 1, 2, 3 */
@@ -138,6 +140,19 @@ export type FreeroamSetting = {
   | { kind: 'arenas'; category: false; value: CvcArenaSpawns[] }
   | { kind: 'places'; category: false; value: FreeroamPlace[] }
 );
+
+/** Carte Call of Duty (server/modules/cod/cod_map_service.lua) */
+export interface CodMapData {
+  id: string;
+  label: string;
+  place: string;
+  /** rayon de la zone de combat, en mètres */
+  radius: number;
+  /** proposée au vote (si elle a assez de points) */
+  enabled: boolean;
+  /** créée depuis le panneau, absente de config/cod.lua */
+  custom: boolean;
+}
 
 export type ChasePhase = 'vote' | 'countdown' | 'running' | 'pause' | 'ended';
 
@@ -160,6 +175,9 @@ export interface FreeroamAdminData {
   ok: boolean;
   message?: string;
   settings: FreeroamSetting[];
+  codMaps: CodMapData[];
+  /** cartes de config/cod.lua supprimées, qu'on peut remettre */
+  codMapsRemoved: { id: string; label: string }[];
   chases: ChaseMatchInfo[];
   /** joueurs dans la file de la course poursuite */
   chaseQueue: number;

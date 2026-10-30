@@ -11,6 +11,8 @@
 local FreeroamConfigService = PVP.define('FreeroamConfigService')
 local AdminService = PVP.use('AdminService')
 local ChaseService = PVP.use('ChaseService')
+local CodService = PVP.use('CodService')
+local CodMapService = PVP.use('CodMapService')
 local FreeroamPositions = PVP.use('FreeroamPositions')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
@@ -42,7 +44,8 @@ FreeroamConfigService.KINDS = {
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
 --  sync     : lu par les clients (renvoyé à tous à chaque changement)
 --  short    : nom court, dans le menu de l'onglet « Positions »
---  section  : carte Call of Duty, sous laquelle la liste est rangée
+--  map      : carte Call of Duty (id), sous laquelle la liste est rangée ; min : points nécessaires
+--  empty    : la liste peut rester vide
 --  point    : nom d'un point de la liste (« Drapeau 1 ») ; letters : numérotés A, B, C
 FreeroamConfigService.SETTINGS = {
     {
@@ -135,30 +138,14 @@ FreeroamConfigService.SETTINGS = {
     },
 }
 
--- Call of Duty : les points de chaque carte (config/cod.lua), dans leur propre section du panneau
+-- Call of Duty : les points de chaque carte (voir CodMapService), dans leur propre section du panneau.
+-- min : points qu'il faut au moins pour que la carte soit proposée au vote
 FreeroamConfigService.COD_LISTS = {
-    { key = 'alpha', label = 'Départs 1', point = 'Apparition', hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
-    { key = 'bravo', label = 'Départs 2', point = 'Apparition', hint = 'Apparitions du second camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
-    { key = 'flags', label = 'Drapeaux', point = 'Drapeau', letters = true, hint = 'Drapeaux de la Domination : A, B, C dans l\'ordre de la liste. Évite de les placer à côté des départs.' },
-    { key = 'sites', label = 'Sites de bombe', point = 'Site', letters = true, hint = 'Sites de Recherche & Destruction : A, B dans l\'ordre de la liste.' },
+    { key = 'alpha', label = 'Départs 1', point = 'Apparition', min = 2, hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'bravo', label = 'Départs 2', point = 'Apparition', min = 2, hint = 'Apparitions du second camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
+    { key = 'flags', label = 'Drapeaux', point = 'Drapeau', letters = true, min = 3, hint = 'Drapeaux de la Domination : A, B, C dans l\'ordre de la liste. Évite de les placer à côté des départs.' },
+    { key = 'sites', label = 'Sites de bombe', point = 'Site', letters = true, min = 2, hint = 'Sites de Recherche & Destruction : A, B dans l\'ordre de la liste.' },
 }
-for _, map in ipairs(Config.Cod.maps) do
-    for _, list in ipairs(FreeroamConfigService.COD_LISTS) do
-        local key = map.id .. '_' .. list.key
-        FreeroamConfigService.SETTINGS[#FreeroamConfigService.SETTINGS + 1] = {
-            name = 'cod_' .. key,
-            group = 'cod',
-            kind = 'points',
-            label = ('%s · %s'):format(map.label, list.label),
-            short = list.label,
-            section = map.label,
-            point = list.point,
-            letters = list.letters,
-            hint = list.hint,
-            path = { 'CodSpawns', key },
-        }
-    end
-end
 
 FreeroamConfigService.MAX_VEHICLES = 40
 FreeroamConfigService.MAX_POINTS = 30
@@ -173,6 +160,7 @@ FreeroamConfigService.defaults = {}
 FreeroamConfigService.modified = {}
 
 function FreeroamConfigService.init()
+    for _, map in ipairs(Config.Cod.maps) do FreeroamConfigService.addCodMap(map) end
     for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
         FreeroamConfigService.defaults[setting.name] = FreeroamConfigService.copy(FreeroamConfigService.get(setting))
     end
@@ -193,6 +181,10 @@ end
 function FreeroamConfigService.load()
     MySQL.query.await(FreeroamConfigService.SCHEMA)
     local rows = MySQL.query.await('SELECT name, data FROM pvp_freeroam_settings') or {}
+    -- Les cartes Call of Duty d'abord : les points des cartes créées en jeu sont des réglages
+    for _, row in ipairs(rows) do
+        if row.name == CodMapService.ROW then CodMapService.apply(row.data) end
+    end
     for _, row in ipairs(rows) do
         local setting = FreeroamConfigService.find(row.name)
         local ok, data = pcall(json.decode, row.data)
@@ -235,6 +227,7 @@ end
 function FreeroamConfigService.set(setting, value)
     FreeroamConfigService[FreeroamConfigService.KINDS[setting.kind].set](setting, value)
     if setting.sync then FreeroamConfigService.sendSynced(-1, setting) end
+    if setting.map then CodService.refreshVotes() end
 end
 
 ---@param setting table
@@ -251,6 +244,60 @@ function FreeroamConfigService.sendSynced(target, only)
     for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
         if setting.sync and (not only or only == setting) and FreeroamConfigService.modified[setting.name] then
             TriggerClientEvent(Events.client.freeroamSettings, target, setting.name, FreeroamConfigService.get(setting))
+        end
+    end
+end
+
+-- Cartes Call of Duty ----------------------------------------------------------------------
+
+---Ajoute les listes de points d'une carte. Une carte d'origine remise repart des valeurs de config/cod.lua.
+---@param map table entrée de Config.Cod.maps
+function FreeroamConfigService.addCodMap(map)
+    for _, list in ipairs(FreeroamConfigService.COD_LISTS) do
+        local key = map.id .. '_' .. list.key
+        local setting = {
+            name = 'cod_' .. key,
+            group = 'cod',
+            kind = 'points',
+            label = ('%s · %s'):format(map.label, list.label),
+            short = list.label,
+            map = map.id,
+            min = list.min,
+            empty = true,
+            point = list.point,
+            letters = list.letters,
+            hint = list.hint,
+            path = { 'CodSpawns', key },
+        }
+        FreeroamConfigService.SETTINGS[#FreeroamConfigService.SETTINGS + 1] = setting
+        Config.CodSpawns[key] = Config.CodSpawns[key] or {}
+        local defaults = FreeroamConfigService.defaults[setting.name]
+        if defaults then FreeroamConfigService.setPoints(setting, FreeroamConfigService.copy(defaults)) end
+        FreeroamConfigService.defaults[setting.name] = defaults or FreeroamConfigService.copy(FreeroamConfigService.getPoints(setting))
+    end
+end
+
+---@param map table entrée de Config.Cod.maps, déjà renommée
+function FreeroamConfigService.renameCodMap(map)
+    for _, setting in ipairs(FreeroamConfigService.SETTINGS) do
+        if setting.map == map.id then setting.label = ('%s · %s'):format(map.label, setting.short) end
+    end
+end
+
+---Retire les listes de points d'une carte, en jeu et en base. Les parties en cours gardent leurs points.
+---@param map table entrée de Config.Cod.maps
+---@param forget boolean carte créée en jeu : plus rien à quoi revenir
+function FreeroamConfigService.removeCodMap(map, forget)
+    for index = #FreeroamConfigService.SETTINGS, 1, -1 do
+        local setting = FreeroamConfigService.SETTINGS[index]
+        if setting.map == map.id then
+            table.remove(FreeroamConfigService.SETTINGS, index)
+            FreeroamConfigService.modified[setting.name] = nil
+            MySQL.update('DELETE FROM pvp_freeroam_settings WHERE name = ?', { setting.name })
+            if forget then
+                FreeroamConfigService.defaults[setting.name] = nil
+                Config.CodSpawns[setting.path[2]] = nil
+            end
         end
     end
 end
@@ -401,8 +448,9 @@ function FreeroamConfigService.point(point)
 end
 
 ---@param data any
+---@param setting? table `empty` : la liste peut rester vide (carte Call of Duty en cours de création)
 ---@return table[]|nil
-function FreeroamConfigService.validatePoints(data)
+function FreeroamConfigService.validatePoints(data, setting)
     if type(data) ~= 'table' then return nil end
     local clean = {}
     for _, point in ipairs(data) do
@@ -410,7 +458,7 @@ function FreeroamConfigService.validatePoints(data)
         if not coords then return nil end
         clean[#clean + 1] = coords
     end
-    if #clean == 0 or #clean > FreeroamConfigService.MAX_POINTS then return nil end
+    if (#clean == 0 and not (setting and setting.empty)) or #clean > FreeroamConfigService.MAX_POINTS then return nil end
     return clean
 end
 
@@ -485,7 +533,8 @@ function FreeroamConfigService.getCallback(source)
             label = Locale.t(setting.label),
             hint = Locale.t(setting.hint),
             short = setting.short and Locale.t(setting.short),
-            section = setting.section and Locale.t(setting.section),
+            map = setting.map,
+            min = setting.min,
             point = setting.point and Locale.t(setting.point),
             letters = setting.letters == true,
             category = setting.category == true,
@@ -493,7 +542,15 @@ function FreeroamConfigService.getCallback(source)
             modified = FreeroamConfigService.modified[setting.name] == true,
         }
     end
-    return { ok = true, settings = settings, chases = ChaseService.describeMatches(), chaseQueue = #ChaseService.queue }
+    local codMaps, codMapsRemoved = CodMapService.describe()
+    return {
+        ok = true,
+        settings = settings,
+        codMaps = codMaps,
+        codMapsRemoved = codMapsRemoved,
+        chases = ChaseService.describeMatches(),
+        chaseQueue = #ChaseService.queue,
+    }
 end
 
 ---@param source integer

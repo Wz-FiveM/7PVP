@@ -4,6 +4,7 @@ import type {
   AdminActionPayload,
   AdminActionResult,
   AdminPlayer,
+  CodMapData,
   FreeroamAdminData,
   FreeroamSetting,
   LootAdminData,
@@ -43,6 +44,16 @@ export const adminApi = {
 
   freeroamReset: (name: string) =>
     fetchNui<AdminActionResult>('adminFreeroamReset', { name }, { ok: true, message: 'Réglage remis par défaut (simulé)' }),
+
+  /** Cartes Call of Duty de l'onglet « Positions » : création sans `id`, modification avec */
+  codMapSave: (map: Omit<CodMapData, 'id' | 'custom'> & { id?: string }) =>
+    fetchNui<AdminActionResult & { id?: string }>('adminCodMapSave', map, { ok: true, id: map.id ?? 'map1', message: 'Carte enregistrée (simulé)' }),
+
+  codMapDelete: (id: string) =>
+    fetchNui<AdminActionResult>('adminCodMapDelete', { id }, { ok: true, message: 'Carte supprimée (simulé)' }),
+
+  codMapRestore: (id: string) =>
+    fetchNui<AdminActionResult & { id?: string }>('adminCodMapRestore', { id }, { ok: true, id, message: 'Carte remise (simulé)' }),
 
   /** Position actuelle de l'admin (bouton « Ma position ») */
   position: () =>

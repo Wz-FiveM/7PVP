@@ -103,17 +103,24 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
         { x: 975, y: -3090, z: 5.9, w: 270 },
       ],
     },
-    ...['Terminal', 'La Casse', 'La Scierie', 'Le Chantier'].flatMap((map) => [
-      { key: 'alpha', short: 'Départs 1', point: 'Apparition', letters: false, count: 5, hint: 'Apparitions du premier camp, dans ta direction.' },
-      { key: 'bravo', short: 'Départs 2', point: 'Apparition', letters: false, count: 5, hint: 'Apparitions du second camp, dans ta direction.' },
-      { key: 'flags', short: 'Drapeaux', point: 'Drapeau', letters: true, count: 3, hint: "Drapeaux de la Domination : A, B, C dans l'ordre de la liste. Évite de les placer à côté des départs." },
-      { key: 'sites', short: 'Sites de bombe', point: 'Site', letters: true, count: 2, hint: "Sites de Recherche & Destruction : A, B dans l'ordre de la liste." },
+    ...['port', 'scrapyard', 'sawmill', 'map1'].flatMap((map) => [
+      { key: 'alpha', short: 'Départs 1', point: 'Apparition', letters: false, count: 5, min: 2, hint: 'Apparitions du premier camp, dans ta direction.' },
+      { key: 'bravo', short: 'Départs 2', point: 'Apparition', letters: false, count: 5, min: 2, hint: 'Apparitions du second camp, dans ta direction.' },
+      { key: 'flags', short: 'Drapeaux', point: 'Drapeau', letters: true, count: 3, min: 3, hint: "Drapeaux de la Domination : A, B, C dans l'ordre de la liste. Évite de les placer à côté des départs." },
+      { key: 'sites', short: 'Sites de bombe', point: 'Site', letters: true, count: 2, min: 2, hint: "Sites de Recherche & Destruction : A, B dans l'ordre de la liste." },
     ].map(({ key, count, ...list }): FreeroamSetting => ({
       ...list,
-      name: `cod_${map}_${key}`, group: 'cod', label: `${map} · ${list.short}`, section: map, kind: 'points', category: false, modified: map === 'Terminal' && key === 'flags',
-      value: Array.from({ length: count }, (_, index) => ({ x: 995 + index * 15, y: -3045, z: 5.9, w: 180 })),
+      name: `cod_${map}_${key}`, group: 'cod', label: `${map} · ${list.short}`, map, kind: 'points', category: false, modified: map === 'port' && key === 'flags',
+      value: map === 'map1' && key !== 'alpha' ? [] : Array.from({ length: count }, (_, index) => ({ x: 995 + index * 15, y: -3045, z: 5.9, w: 180 })),
     }))),
   ],
+  codMaps: [
+    { id: 'port', label: 'Terminal', place: 'Port de Los Santos', radius: 85, enabled: true, custom: false },
+    { id: 'scrapyard', label: 'La Casse', place: 'Rogers Salvage, La Puerta', radius: 70, enabled: false, custom: false },
+    { id: 'sawmill', label: 'La Scierie', place: 'Paleto Bay', radius: 80, enabled: true, custom: false },
+    { id: 'map1', label: 'Aéroport', place: 'LSIA', radius: 120, enabled: true, custom: true },
+  ],
+  codMapsRemoved: [{ id: 'construction', label: 'Le Chantier' }],
 };
 import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
 
