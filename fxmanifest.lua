@@ -165,6 +165,7 @@ client_scripts {
     'client/modules/activities/gunfight.lua',
     'client/modules/activities/gungame.lua',
     'client/modules/cod/cod.lua',
+    'client/modules/cod/cod_squad.lua',
     'client/modules/cod/cod_loadout.lua',
     'client/modules/cod/cod_objectives.lua',
     'client/modules/cod/cod_effects.lua',

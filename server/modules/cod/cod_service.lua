@@ -35,7 +35,11 @@ function CodService.init()
 
     Callback.register(Events.callbacks.codQueue, CodService.toggleQueue)
     Callback.register(Events.callbacks.codVote, CodService.vote)
-    Callback.register(Events.callbacks.codSaveClass, CodProfileService.saveClass)
+    Callback.register(Events.callbacks.codSaveClass, function(source, index, data)
+        local result = CodProfileService.saveClass(source, index, data)
+        if result.ok then CodService.refreshSquad(source) end
+        return result
+    end)
     Callback.register(Events.callbacks.codSaveStreaks, function(source, data)
         local result = CodProfileService.saveStreaks(source, data)
         -- Depuis le menu pause : les cases du HUD suivent le nouveau choix
@@ -44,7 +48,11 @@ function CodService.init()
         return result
     end)
     Callback.register(Events.callbacks.codSavePlayerCard, CodProfileService.savePlayerCard)
-    Callback.register(Events.callbacks.codSelectClass, CodProfileService.selectClass)
+    Callback.register(Events.callbacks.codSelectClass, function(source, index)
+        local result = CodProfileService.selectClass(source, index)
+        if result.ok then CodService.refreshSquad(source) end
+        return result
+    end)
     Callback.register(Events.callbacks.codLeaderboard, CodProfileService.leaderboard)
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)
 
@@ -206,7 +214,33 @@ function CodService.updateQueue(playlist)
             if queue.startAt == planned then CodService.launch(playlist) end
         end)
     end
+    CodService.sendSquad(playlist)
     CodService.sendQueue(playlist)
+end
+
+---Personnages du salon : chaque joueur voit ceux des autres autour du sien (client/modules/cod/cod_squad.lua).
+---@param playlist table
+function CodService.sendSquad(playlist)
+    local queue = CodService.queues[playlist.id]
+    local members = {}
+    for index, source in ipairs(queue.players) do
+        local player = PlayerService.get(source)
+        members[index] = {
+            id = source,
+            appearance = player and player.appearance,
+            weapon = CodProfileService.selectedClass(source).primary,
+        }
+    end
+    for _, source in ipairs(queue.players) do
+        TriggerClientEvent(Events.client.codSquad, source, members)
+    end
+end
+
+---La classe d'un joueur du salon a changé : les autres voient sa nouvelle arme.
+---@param source integer
+function CodService.refreshSquad(source)
+    local playlist = CodService.findPlaylist(CodService.playerQueue[source])
+    if playlist then CodService.sendSquad(playlist) end
 end
 
 ---@return table[] cartes tirées au sort pour le vote

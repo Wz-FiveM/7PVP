@@ -100,6 +100,7 @@ Events.client = {
     codOpen = '7pvp:client:codOpen',
     codCleanup = '7pvp:client:codCleanup',
     codQueue = '7pvp:client:codQueue',
+    codSquad = '7pvp:client:codSquad',
     codStart = '7pvp:client:codStart',
     codSpawn = '7pvp:client:codSpawn',
     codState = '7pvp:client:codState',

@@ -11,14 +11,24 @@ Config.Cod = {
     bucketBase = 6000, -- buckets des parties : bucketBase + numéro de la partie
     menuBucketBase = 16000, -- menu du mode : chaque joueur seul avec son personnage, menuBucketBase + son id
 
-    -- Décor du menu : le personnage du joueur, de face, avec l'arme principale de sa classe.
+    -- Décor du menu (toit de la Maze Bank) : le personnage du joueur, de face, avec l'arme principale de sa classe.
     -- Le joueur regarde le personnage depuis `cameraDistance` mètres. Position à ajuster en jeu avec /pvp_coords.
+    --   squad : places des autres joueurs du salon, les plus visibles d'abord, depuis le personnage du joueur
+    --           (x = à sa droite, y = devant lui : négatif = derrière lui)
     menuScene = {
-        ped = vector4(1020.0, -3090.0, 5.9, 180.0),
+        ped = vector4(-75.0, -818.5, 326.18, 160.0),
         cameraDistance = 3.4,
         cameraHeight = 0.25,
         lookHeight = 0.05,
         fov = 38.0,
+        squad = {
+            vector2(1.0, -0.9), vector2(-1.0, -0.9),
+            vector2(1.9, -1.7), vector2(-1.9, -1.7),
+            vector2(2.8, -2.5), vector2(-2.8, -2.5),
+            vector2(1.35, -3.4), vector2(-1.35, -3.4),
+            vector2(3.0, -3.9), vector2(-3.0, -3.9),
+            vector2(3.7, -3.3),
+        },
     },
     -- Carte en haut à gauche pendant les parties : décalage depuis sa position par défaut (y négatif = vers le haut),
     -- retiré en quittant le mode
