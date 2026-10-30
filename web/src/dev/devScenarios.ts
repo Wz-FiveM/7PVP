@@ -690,8 +690,11 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'CoD : kill',
     run: () => {
-      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', victim: 'Rook', victimTeam: 'bravo', weapon: 'Carabine', headshot: true } });
-      sendNui({ action: 'codKill', data: { killer: 'Rook', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'SMG', headshot: false } });
+      sendNui({ action: 'codKill', data: { killer: 'Nyx', killerTeam: 'bravo', victim: 'Rook', victimTeam: 'alpha', weapon: 'WEAPON_GRENADE', headshot: false } });
+      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', victim: 'Rook', victimTeam: 'bravo', weapon: 'WEAPON_CARBINERIFLE', headshot: true } });
+      sendNui({ action: 'codKill', data: { killer: 'Rook', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'WEAPON_HEAVYSNIPER', headshot: false } });
+      sendNui({ action: 'codKill', data: { killer: 'Kaze', killerTeam: 'alpha', victim: 'Nyx', victimTeam: 'bravo', streak: 'predator', headshot: false } });
+      sendNui({ action: 'codKill', data: { victim: 'Kaze', victimTeam: 'alpha', headshot: false } });
       sendNui({ action: 'codScore', data: { xp: 100, label: 'Ennemi éliminé' } });
       sendNui({ action: 'codScore', data: { xp: 50, label: 'Tir à la tête' } });
     },

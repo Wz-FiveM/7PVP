@@ -442,17 +442,18 @@ end
 
 ---@param weapon any hash envoyé par le client (signé ou non)
 ---@return string|nil nom de l'arme à traduire
+---@return string|nil id de l'arme, pour sa silhouette dans le fil des kills
 function CodMatch.weaponLabel(weapon)
     weapon = tonumber(weapon)
     if not weapon then return nil end
     local hash = math.floor(weapon) & 0xFFFFFFFF
     for _, list in pairs(Config.Cod.weapons) do
         for _, entry in ipairs(list) do
-            if (GetHashKey(entry.id) & 0xFFFFFFFF) == hash then return entry.label end
+            if (GetHashKey(entry.id) & 0xFFFFFFFF) == hash then return entry.label, entry.id end
         end
     end
-    if (GetHashKey(Config.Cod.knife) & 0xFFFFFFFF) == hash then return 'Couteau' end
-    if (GetHashKey(Config.Cod.juggernaut.weapon) & 0xFFFFFFFF) == hash then return 'Minigun' end
+    if (GetHashKey(Config.Cod.knife) & 0xFFFFFFFF) == hash then return 'Couteau', Config.Cod.knife end
+    if (GetHashKey(Config.Cod.juggernaut.weapon) & 0xFFFFFFFF) == hash then return 'Minigun', Config.Cod.juggernaut.weapon end
     return nil
 end
 
@@ -476,7 +477,12 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     local running = self.phase == 'running'
     local killer, byStreak = nil, false
     if running then killer, byStreak = self:resolveKiller(source, killerId) end
-    local weaponLabel = byStreak and victim.strikeLabel or (killer and CodMatch.weaponLabel(weapon)) or nil
+    local weaponLabel, weaponId, streakId
+    if byStreak and victim.strikeLabel then
+        weaponLabel, streakId = victim.strikeLabel, CodStreaks.idFromLabel(victim.strikeLabel)
+    elseif killer then
+        weaponLabel, weaponId = CodMatch.weaponLabel(weapon)
+    end
     if killer then
         self:rewardKill(killer, source, headshot == true)
     end
@@ -487,7 +493,8 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
         killerTeam = killer and self.stats[killer].team or nil,
         victim = victim.name,
         victimTeam = victim.team,
-        weapon = weaponLabel,
+        weapon = weaponId,
+        streak = streakId,
         headshot = killer ~= nil and headshot == true,
     })
 

@@ -137,7 +137,10 @@ export interface CodKillData {
   killerTeam?: CodTeamId | false;
   victim: string;
   victimTeam: CodTeamId | false;
+  /** Arme du coup mortel (image de web/public/items) */
   weapon?: string;
+  /** Série à l'origine du kill : son pictogramme remplace l'arme */
+  streak?: string;
   headshot: boolean;
 }
 export interface CodStreakState {

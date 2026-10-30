@@ -12,7 +12,7 @@ const missingImages = new Set<string>();
  * L'adresse est absolue : un url() relatif passé par une variable CSS serait résolu depuis
  * la feuille de style (build/assets/), où le dossier items n'existe pas.
  */
-function WeaponSilhouette({ weapon }: { weapon?: string }) {
+export function WeaponSilhouette({ weapon }: { weapon?: string }) {
   const file = useGame().state.config.items[weapon ?? '']?.image ?? weapon;
   const [missing, setMissing] = useState(() => !file || missingImages.has(file));
 

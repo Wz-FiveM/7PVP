@@ -74,6 +74,13 @@ const ICONS: Record<string, ReactNode> = {
       ))}
     </>
   ),
+  // Pas une série : fil des kills, mort sans arme connue
+  skull: (
+    <path
+      fillRule="evenodd"
+      d="M12 2C6.9 2 3 5.7 3 10.5c0 3 1.5 5.4 4 6.9V21h2.5v-2h1.5v2h2v-2h1.5v2H17v-3.6c2.5-1.5 4-3.9 4-6.9C21 5.7 17.1 2 12 2zM8.5 9.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm7 0a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"
+    />
+  ),
 };
 
 /** Pictogramme d'une série d'éliminations, teinté par la couleur du texte. */

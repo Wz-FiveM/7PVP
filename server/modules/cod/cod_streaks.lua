@@ -178,6 +178,15 @@ function CodStreaks.hurtPlayer(match, source, other, damage, label)
     TriggerClientEvent(Events.client.codEffect, other, { type = 'hurt', damage = math.floor(damage) })
 end
 
+---@param label string nom donné à hurtPlayer
+---@return string|nil série de ce nom, pour son pictogramme dans le fil des kills
+function CodStreaks.idFromLabel(label)
+    for _, streak in ipairs(Config.Cod.streaks) do
+        if streak.label == label then return streak.id end
+    end
+    return nil
+end
+
 ---Effet chez tout le monde (explosion créée par l'auteur seul, sans dégâts, pour qu'elle ne soit pas
 ---multipliée), dégâts appliqués aux ennemis à portée.
 ---@param match table

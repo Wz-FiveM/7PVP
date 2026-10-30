@@ -1049,28 +1049,36 @@
   color: var(--cod-danger);
 }
 
+/* Fil des kills : sans fond, au-dessus de l'emblème, le plus récent en bas */
 .cod-feed {
   position: absolute;
-  top: 2.5vh;
-  right: 1.5vw;
+  bottom: calc(2.5vh + 7.5rem);
+  left: 2vw;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 0.125rem;
   text-shadow: var(--ombre-texte);
 }
+/* Le fondu se termine à la fin de FEED_TIME (CodHud.tsx) */
 .cod-feed__row {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--cod-font);
+  font-size: 1rem;
   font-weight: 600;
-  animation: cod-feed-in 0.18s ease-out;
+  animation: cod-feed-in 0.18s ease-out, cod-feed-out 0.8s ease-in 4.2s forwards;
 }
 @keyframes cod-feed-in {
   from {
     opacity: 0;
-    transform: translateX(0.75rem);
+    transform: translateX(-0.75rem);
+  }
+}
+@keyframes cod-feed-out {
+  to {
+    opacity: 0;
   }
 }
 .cod-feed__name--friend {
@@ -1079,10 +1087,24 @@
 .cod-feed__name--enemy {
   color: var(--cod-enemy);
 }
+/* Sur le parent : le masque de la silhouette couperait une ombre posée sur elle */
 .cod-feed__how {
-  font-size: 0.6875rem;
-  font-weight: 400;
-  color: var(--cod-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--cod-white);
+  filter: drop-shadow(0 0.0625rem 0.125rem rgba(0, 0, 0, 0.9));
+}
+.cod-feed__how .killfeed__weapon {
+  width: 4rem;
+  height: 1.5rem;
+  margin: 0;
+  background: var(--cod-white);
+}
+.cod-feed__how .cod-streak__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  opacity: 0.9;
 }
 
 .cod-scores {

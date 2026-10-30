@@ -6,6 +6,8 @@ import type {
   CodBoardEntry, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodObjective, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
+import { WeaponSilhouette } from '../hud/Killfeed';
+import { Icon } from '../icons/Icon';
 import { formatTime, RankBadge, useSecondsLeft } from './CodParts';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
@@ -72,7 +74,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return;
       case 'codKill': {
         const id = Date.now() + Math.random();
-        setFeed((current) => [{ ...message.data, id }, ...current].slice(0, FEED_SIZE));
+        setFeed((current) => [...current, { ...message.data, id }].slice(-FEED_SIZE));
         window.setTimeout(() => setFeed((current) => current.filter((entry) => entry.id !== id)), FEED_TIME);
         return;
       }
@@ -358,14 +360,13 @@ function BombStatus({ objective, team }: { objective: Extract<CodObjective, { ki
 }
 
 function FeedRow({ entry, team }: { entry: CodKillData & Timed; team: CodTeamId | false }) {
-  useT();
   const tone = (side?: CodTeamId | false) => (team && side === team ? 'cod-feed__name--friend' : 'cod-feed__name--enemy');
   return (
     <div className="cod-feed__row">
       {entry.killer && <span className={`cod-feed__name ${tone(entry.killerTeam)}`}>{entry.killer}</span>}
       <span className="cod-feed__how">
-        {entry.killer ? (entry.weapon ? t(entry.weapon) : t('Élimination')) : t('Suicide')}
-        {entry.headshot ? ` · ${t('Tête')}` : ''}
+        {entry.weapon ? <WeaponSilhouette weapon={entry.weapon.toLowerCase()} /> : <CodStreakIcon id={entry.streak ?? 'skull'} />}
+        {entry.headshot && <Icon name="crosshair" size={14} strokeWidth={2.2} />}
       </span>
       <span className={`cod-feed__name ${tone(entry.victimTeam)}`}>{entry.victim}</span>
     </div>
