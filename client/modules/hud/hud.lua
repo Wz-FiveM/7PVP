@@ -27,6 +27,7 @@ Hud.minimapBlockedUntil = 0
 Hud.weaponByHash = {} -- [hash GTA] = nom de l'objet arme
 Hud.last = nil
 Hud.lastMinimap = nil
+Hud.minimapOffset = { x = 0.0, y = 0.0 }
 
 function Hud.init()
     for name, item in pairs(Config.Items) do
@@ -141,6 +142,14 @@ function Hud.collect()
     return data
 end
 
+---La minimap vient d'être déplacée (SetMinimapComponentPosition) : l'interface suit aussitôt.
+---@param x number
+---@param y number
+function Hud.setMinimapOffset(x, y)
+    Hud.minimapOffset = { x = x, y = y }
+    Hud.updateMinimap()
+end
+
 ---Position de la minimap, en fractions de l'écran (0 à 1), selon la résolution,
 ---le format et la zone de sécurité réglée dans les options du jeu.
 ---@return table
@@ -152,8 +161,8 @@ function Hud.getMinimapAnchor()
 
     local width = (resX / (4 * aspectRatio)) / resX
     local height = (resY / 5.674) / resY
-    local left = margin
-    local bottom = 1.0 - margin
+    local left = margin + Hud.minimapOffset.x
+    local bottom = 1.0 - margin + Hud.minimapOffset.y
 
     return {
         visible = not IsRadarHidden(),

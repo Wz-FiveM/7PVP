@@ -706,6 +706,67 @@
 
 /* HUD ------------------------------------------------------------------------------- */
 
+/* Vieux téléviseur sur la carte. L'interface recouvre le jeu sans pouvoir retoucher son image : le filtre
+   assombrit et teinte, sans déformer. Les bords fondus évitent un cadre visible si la carte est décalée. */
+.cod-crt {
+  position: absolute;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at center, transparent 45%, rgba(3, 8, 6, 0.6) 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.34) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255, 60, 60, 0.05) 0 1px, rgba(60, 255, 120, 0.05) 1px 2px, rgba(70, 110, 255, 0.05) 2px 3px),
+    rgba(90, 170, 130, 0.07);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent), linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent), linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+/* La bande claire qui remonte l'écran */
+.cod-crt::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 28%;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.07) 50%, transparent);
+  animation: cod-crt-roll 7s linear infinite;
+}
+/* Le léger scintillement de l'image */
+.cod-crt::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.04);
+  animation: cod-crt-flicker 900ms steps(1) infinite;
+}
+@keyframes cod-crt-roll {
+  from {
+    transform: translateY(360%);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+@keyframes cod-crt-flicker {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  30% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.3;
+  }
+  85% {
+    opacity: 0.6;
+  }
+}
+
 /* Sous la carte (déplacée en haut à gauche pendant les parties, voir Cod.setMinimapTop) */
 .cod-vitals {
   position: absolute;

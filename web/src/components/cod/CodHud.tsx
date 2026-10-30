@@ -127,6 +127,7 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
     <>
       {!flying && (
         <>
+          {!jammed && <RadarFilter />}
           <Vitals name={name} />
           <BottomLeft hud={hud} live={live} rank={rank} />
           <BottomRight streak={streak} keys={catalog?.keys} />
@@ -182,6 +183,23 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         </div>
       )}
     </>
+  );
+}
+
+/** Filtre de vieux téléviseur, posé exactement sur la carte du jeu. */
+function RadarFilter() {
+  const { minimap } = useGame().state;
+  if (!minimap?.visible) return null;
+  return (
+    <div
+      className="cod-crt"
+      style={{
+        left: `${minimap.left * 100}%`,
+        top: `${minimap.top * 100}%`,
+        width: `${(minimap.right - minimap.left) * 100}%`,
+        height: `${(minimap.bottom - minimap.top) * 100}%`,
+      }}
+    />
   );
 }
 

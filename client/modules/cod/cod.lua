@@ -20,6 +20,7 @@ local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 local Pause = PVP.use('Pause')
+local Hud = PVP.use('Hud')
 
 Cod.FADE = 300
 Cod.MODE = 'cod'
@@ -431,6 +432,7 @@ function Cod.setMinimapTop(top)
     -- Le jeu ne prend la nouvelle position qu'en basculant le radar
     SetRadarBigmapEnabled(true, false)
     SetRadarBigmapEnabled(false, false)
+    Hud.setMinimapOffset(x, y)
 end
 
 ---@param data table remaining, scores, board, objective
