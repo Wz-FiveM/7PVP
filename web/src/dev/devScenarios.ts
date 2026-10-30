@@ -712,7 +712,12 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : tableau des scores', run: () => sendNui({ action: 'codScoreboard', data: { open: true } }) },
   { label: 'CoD : fermer le tableau', run: () => sendNui({ action: 'codScoreboard', data: { open: false } }) },
   { label: 'CoD : série', run: () => sendNui({ action: 'codStreakEarned', data: { label: 'Drone' } }) },
-  { label: 'CoD : tir d\'unité', run: () => sendNui({ action: 'codGunfire', data: { volume: 0.6 } }) },
+  {
+    label: 'CoD : tir d\'unité',
+    run: () => {
+      for (let shot = 0; shot < 6; shot++) window.setTimeout(() => sendNui({ action: 'codGunfire', data: { id: 1, volume: 0.6 } }), shot * 240);
+    },
+  },
   {
     label: 'CoD : médaille (triplé)',
     run: () => {

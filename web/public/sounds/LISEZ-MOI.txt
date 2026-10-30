@@ -11,3 +11,6 @@ Pour un son différent selon le type de touche, dépose ici un .ogg (prioritaire
 Garde-les très courts (moins de 0,3 s) et vérifie que tu as le droit de les utiliser.
 Sans aucun fichier, le jeu joue un son synthétisé (web/src/utils/hitSound.ts).
 Après un ajout : npm run build dans web/, puis ensure 7PVP.
+
+minigun.mp3 : tirs des unités du mode Call of Duty (tourelle, hélicoptères, Harrier...), joué en boucle tant qu'elles tirent.
+Si tu le remplaces, adapte LOOP_START et LOOP_END dans web/src/utils/codGunSound.ts.

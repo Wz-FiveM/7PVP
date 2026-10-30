@@ -119,7 +119,7 @@ export type NuiMessage =
   | { action: 'codNuke'; data: { seconds: number } }
   | { action: 'codJam'; data: { active: boolean } }
   | { action: 'codRadar'; data: { seconds: number } }
-  | { action: 'codGunfire'; data: { volume: number } }
+  | { action: 'codGunfire'; data: { id: number; volume: number } }
   | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[]; clear?: boolean } }
   | { action: 'codTabletStatus'; data: { altitude?: number; boost?: boolean; weapon?: string; ready?: number; remaining?: number; firing?: boolean } }
   | { action: 'codEnd'; data: CodEndData }

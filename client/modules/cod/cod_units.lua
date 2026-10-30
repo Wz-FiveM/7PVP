@@ -160,7 +160,7 @@ end
 
 ---Balle sans dégâts ni tireur, pour le bruit et l'impact : les dégâts sont appliqués par le serveur. Chez le joueur
 ---visé, elle passe à côté de lui : le jeu pourrait lui compter ses propres dégâts en plus de ceux du serveur.
----@param data { id: integer, x: number, y: number, z: number, target: integer|nil }
+---@param data { id: integer, x: number, y: number, z: number, target: integer|nil, gunfire: boolean|nil }
 function CodUnits.onShot(data)
     local unit = CodUnits.units[data.id]
     if not unit then return end
@@ -179,7 +179,7 @@ function CodUnits.onShot(data)
     local aim = to
     if data.target == Cod.match.self then aim = to + vector3(-direction.y, direction.x, 0.0) * CodUnits.TARGET_MISS end
     ShootSingleBulletBetweenCoords(muzzle.x, muzzle.y, muzzle.z, aim.x, aim.y, aim.z, 0, true, CodUnits.BULLET, 0, true, false, -1.0)
-    CodUnits.showShot(unit, muzzle, direction, to)
+    CodUnits.showShot(unit, muzzle, direction, to, data.gunfire)
 end
 
 ---Une balle du jeu se voit à peine : flamme à la bouche du canon et traçante jusqu'au point visé.
@@ -187,7 +187,8 @@ end
 ---@param muzzle vector3 départ de la balle
 ---@param direction vector3
 ---@param to vector3
-function CodUnits.showShot(unit, muzzle, direction, to)
+---@param gunfire boolean|nil arme d'un pilote qui tire des balles (pas d'obus explosifs)
+function CodUnits.showShot(unit, muzzle, direction, to, gunfire)
     local start = unit.gunMuzzle or unit.muzzleBone and GetWorldPositionOfEntityBone(unit.entity, unit.muzzleBone) or muzzle
     if HasNamedPtfxAssetLoaded('core') then
         UseParticleFxAssetNextCall('core')
@@ -197,10 +198,11 @@ function CodUnits.showShot(unit, muzzle, direction, to)
     end
     CodUnits.tracers[#CodUnits.tracers + 1] = { from = start, to = to, untilAt = GetGameTimer() + CodUnits.TRACER_TIME }
     if unit.gunMuzzle then
-        Nui.send('codGunfire', { volume = unit.settings.doorGun.volume })
-    elseif not unit.settings.piloted then
-        local proximity = 1.0 - #(GetEntityCoords(PlayerPedId()) - start) / CodUnits.GUN_RANGE
-        if proximity > 0.0 then Nui.send('codGunfire', { volume = proximity * proximity }) end
+        Nui.send('codGunfire', { id = unit.id, volume = unit.settings.doorGun.volume })
+    elseif gunfire or not unit.settings.piloted then
+        -- Depuis la caméra : un pilote entend son appareil, pas ce qui entoure son personnage
+        local proximity = 1.0 - #(GetFinalRenderedCamCoord() - start) / CodUnits.GUN_RANGE
+        if proximity > 0.0 then Nui.send('codGunfire', { id = unit.id, volume = proximity * proximity }) end
     end
 end
 
