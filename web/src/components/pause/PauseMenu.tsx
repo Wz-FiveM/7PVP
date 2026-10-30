@@ -180,6 +180,8 @@ function buildKeys(info: PauseInfo): [string, string][] {
       [info.keys.noclip, 'Noclip'],
       ['/tpm', t('Téléportation au marqueur')],
       ['/heure 22', t('Heure du jeu (/heure reset)')],
+      ['/codserie', t('Call of Duty : se donner ses séries (/codserie toutes)')],
+      ['/codniveau 5', t('Call of Duty : gagner des rangs')],
     );
   }
   return keys;

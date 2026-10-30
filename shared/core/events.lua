@@ -109,6 +109,7 @@ Events.client = {
     codMedal = '7pvp:client:codMedal',
     codCard = '7pvp:client:codCard',
     codScavenge = '7pvp:client:codScavenge',
+    codProfile = '7pvp:client:codProfile',
     codStreak = '7pvp:client:codStreak',
     codNotice = '7pvp:client:codNotice',
     codEffect = '7pvp:client:codEffect',

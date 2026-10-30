@@ -43,6 +43,8 @@ export function Cod({ visible }: { visible: boolean }) {
         return;
       case 'codQueue':
         return setQueue(message.data.count > 0 ? message.data : null);
+      case 'codProfile':
+        return setProfile(message.data);
       case 'codPicker':
         setPickerOpen(message.data.open);
         if (message.data.profile) setProfile(message.data.profile);

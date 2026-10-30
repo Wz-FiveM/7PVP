@@ -294,6 +294,19 @@ function DiscordService.adminCommand(source, command, label)
     })
 end
 
+---codserie / codniveau
+---@param source integer 0 = console
+---@param command string
+---@param label string joueur ciblé
+---@param detail string
+function DiscordService.codAdminCommand(source, command, label, detail)
+    DiscordService.send('admin', {
+        title = ('🎖️ /%s'):format(command),
+        description = ('**%s** (%s) par %s'):format(DiscordService.escape(label), DiscordService.escape(detail), DiscordService.playerTag(source)),
+        color = DiscordService.COLORS.critique,
+    })
+end
+
 ---addpoints / removepoints (achats Tebex compris : exécutés depuis la console)
 ---@param source integer 0 = console
 ---@param label string joueur ciblé (nom ou licence)

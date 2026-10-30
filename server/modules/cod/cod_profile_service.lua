@@ -30,6 +30,7 @@
 
 ---@class CodProfileServiceModule
 local CodProfileService = PVP.define('CodProfileService')
+local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
 CodProfileService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_cod_profiles (
@@ -114,6 +115,24 @@ end
 function CodProfileService.rankOf(source)
     local profile = CodProfileService.profiles[source]
     return profile and CodProfileService.rankFromXp(profile.xp) or 1
+end
+
+---Commande admin : le joueur arrive au début du rang visé.
+---@param source integer profil chargé
+---@param amount integer négatif pour descendre
+---@return integer rang avant, integer rang après
+function CodProfileService.addRanks(source, amount)
+    local profile = CodProfileService.profiles[source]
+    local before = CodProfileService.rankFromXp(profile.xp)
+    local after = math.max(1, math.min(before + amount, Config.Cod.ranks.max))
+    if after == before then return before, after end
+
+    local xp = 0
+    for rank = 1, after - 1 do xp = xp + CodProfileService.xpForRank(rank) end
+    profile.xp = xp
+    CodProfileService.save(profile)
+    TriggerClientEvent(Events.client.codProfile, source, CodProfileService.describe(profile))
+    return before, after
 end
 
 ---Ce qui se débloque en atteignant les rangs de `from` (exclu) à `to` (inclus).

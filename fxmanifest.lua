@@ -97,6 +97,7 @@ server_scripts {
     'server/modules/cod/cod_crates.lua',
     'server/modules/cod/cod_match.lua',
     'server/modules/cod/cod_service.lua',
+    'server/modules/cod/cod_admin_commands.lua',
     'server/modules/activities/activity_service.lua',
     'server/modules/activities/activity_rating.lua',
     'server/modules/activities/chase_service.lua',

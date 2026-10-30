@@ -98,6 +98,7 @@ export type NuiMessage =
   | { action: 'codLoadingProgress'; data: { progress: number } }
   | { action: 'codLoadout'; data: { open: boolean; seconds?: number; profile?: CodProfile; portrait?: string } }
   | { action: 'codPicker'; data: { open: boolean; profile?: CodProfile } }
+  | { action: 'codProfile'; data: CodProfile }
   | { action: 'codHud'; data: { open: boolean } & Partial<CodHudData> }
   | { action: 'codState'; data: CodStateData }
   | { action: 'codKill'; data: CodKillData }

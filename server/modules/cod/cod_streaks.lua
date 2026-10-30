@@ -85,6 +85,19 @@ function CodStreaks.give(match, source, streak)
     TriggerClientEvent(Events.client.codEffect, source, { type = 'streakEarned', label = streak.label })
 end
 
+---Commande admin : les moins chères sortent en premier, pour que la touche des séries ne lance pas tout de suite une frappe nucléaire.
+---@param match table
+---@param source integer
+---@param streaks table[]
+function CodStreaks.grant(match, source, streaks)
+    local stats = match.stats[source]
+    local sorted = { table.unpack(streaks) }
+    table.sort(sorted, function(a, b) return a.kills > b.kills end)
+    for _, streak in ipairs(sorted) do stats.streakItems[#stats.streakItems + 1] = streak.id end
+    TriggerClientEvent(Events.client.codEffect, source, { type = 'streakEarned', label = sorted[#sorted].label })
+    CodStreaks.sendState(match, source)
+end
+
 ---Touche des séries : utilise la dernière gagnée.
 ---@param match table
 ---@param source integer
