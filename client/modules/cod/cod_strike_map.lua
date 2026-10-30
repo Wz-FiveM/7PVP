@@ -52,6 +52,13 @@ function CodStrikeMap.run(session, bombing)
         local ground = CodStrikeMap.groundAt(camera)
         CodTablet.frame(camera, vector3(session.x, session.y, ground))
         CodStrikeMap.drawBombs(session, bombing, top, ground)
+        CodTablet.sendStatus(session, {
+            altitude = math.floor(settings.height),
+            heading = session.heading,
+            range = math.floor(camera.z - ground),
+            x = session.x,
+            y = session.y,
+        })
 
         if IsDisabledControlJustPressed(0, CodStrikeMap.CONTROL_CANCEL) then return CodTablet.stop() end
         if IsDisabledControlJustPressed(0, CodStrikeMap.CONTROL_CONFIRM) then

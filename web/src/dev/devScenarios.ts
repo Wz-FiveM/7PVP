@@ -750,14 +750,14 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CoD : vol du missile',
     run: () => {
       sendNui({ action: 'codTablet', data: { state: 'flying', title: 'Missile Predator', help: ['Souris : diriger', 'Clic gauche : accélérer'] } });
-      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { altitude: 184, boost: true } }), 100);
+      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { altitude: 184, boost: true, speed: 90, impact: 2.04, heading: 312, x: -1243.6, y: 2871.2 } }), 100);
     },
   },
   {
     label: 'CoD : AC-130',
     run: () => {
       sendNui({ action: 'codTablet', data: { state: 'flying', title: 'AC-130', help: ['Souris : viser', 'Clic gauche : tirer', 'Clic droit : changer d\'arme'] } });
-      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { weapon: '105 mm', ready: 0.6, remaining: 27 } }), 100);
+      window.setTimeout(() => sendNui({ action: 'codTabletStatus', data: { weapon: '105 mm', ready: 0.6, remaining: 27, altitude: 230, heading: 48, pitch: -41, range: 352, x: -1243.6, y: 2871.2, radius: 12 } }), 100);
     },
   },
   {

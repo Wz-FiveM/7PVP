@@ -145,6 +145,13 @@ function CodGunner.frame(session, unit)
         ready = 1 - math.max(0, readyAt - now) / weapon.cooldown,
         remaining = math.max(0, math.ceil(unit.remaining - (now - unit.born) / 1000 + unit.elapsed)),
         firing = unit.settings.doorGun ~= nil and now - (session.lastShot or 0) < CodGunner.FIRING_TIME,
+        altitude = math.floor(coords.z - Cod.match.arena.center.z),
+        heading = session.yaw,
+        pitch = session.pitch,
+        range = math.floor(#(aim - coords)),
+        x = aim.x,
+        y = aim.y,
+        radius = weapon.radius,
     })
 end
 

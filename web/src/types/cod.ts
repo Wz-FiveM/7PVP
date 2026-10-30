@@ -204,6 +204,30 @@ export interface CodKillData {
   streak?: string;
   headshot: boolean;
 }
+/** Télémétrie d'une série pilotée */
+export interface CodTabletStatus {
+  altitude?: number;
+  boost?: boolean;
+  /** m/s */
+  speed?: number;
+  /** secondes avant l'impact */
+  impact?: number;
+  /** cap de la caméra, en degrés du jeu */
+  heading?: number;
+  /** m jusqu'au point visé */
+  range?: number;
+  /** position du point visé */
+  x?: number;
+  y?: number;
+  /** inclinaison de la caméra, en degrés */
+  pitch?: number;
+  /** m : zone touchée par l'arme */
+  radius?: number;
+  weapon?: string;
+  ready?: number;
+  remaining?: number;
+  firing?: boolean;
+}
 export interface CodMedalData {
   id: string;
   label: string;

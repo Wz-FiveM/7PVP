@@ -1,0 +1,566 @@
+/* Tablette des séries pilotées (missile Predator, AC-130, choix d'une frappe) : un flux de drone militaire,
+   sur une tablette durcie. Le texte reste sobre : blanc fin, ombre noire pour rester lisible sur une image claire. */
+.cod-tablet {
+  --hud: rgba(236, 240, 236, 0.92);
+  --hud-dim: rgba(236, 240, 236, 0.55);
+  --hud-line: rgba(236, 240, 236, 0.7);
+  --hud-alert: #ff5340;
+  --hud-shadow: 0 0 0.25rem rgba(0, 0, 0, 0.85), 0 1px 1px rgba(0, 0, 0, 0.9);
+  --shell: #17191c;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  color: var(--hud);
+  text-shadow: var(--hud-shadow);
+}
+
+/* ------------------------------------------------------------------ */
+/* Ouverture : la tablette monte du bas de l'écran et finit par le couvrir : la coupure vers la caméra ne se voit pas */
+/* ------------------------------------------------------------------ */
+.cod-tablet__raise {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40vw;
+  height: 25vw;
+  padding: 1.5vw;
+  border-radius: 1.3vw;
+  background: linear-gradient(150deg, #2a2d31, var(--shell) 35%, #101214);
+  box-shadow:
+    0 2.5vw 7vw rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8);
+  animation: cod-tablet-raise linear forwards;
+}
+@keyframes cod-tablet-raise {
+  0% {
+    transform: translate(-50%, 70vh) scale(0.8) rotate(-3deg);
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1) rotate(0);
+  }
+  72% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(5);
+  }
+}
+.cod-tablet__screw {
+  position: absolute;
+  width: 0.55vw;
+  height: 0.55vw;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #666b72, #24272b 70%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+.cod-tablet__screw--tl {
+  top: 0.5vw;
+  left: 0.5vw;
+}
+.cod-tablet__screw--tr {
+  top: 0.5vw;
+  right: 0.5vw;
+}
+.cod-tablet__screw--bl {
+  bottom: 0.5vw;
+  left: 0.5vw;
+}
+.cod-tablet__screw--br {
+  right: 0.5vw;
+  bottom: 0.5vw;
+}
+.cod-tablet__led {
+  position: absolute;
+  top: 0.55vw;
+  left: 50%;
+  width: 0.4vw;
+  height: 0.4vw;
+  border-radius: 50%;
+  background: #62e08a;
+  box-shadow: 0 0 0.5vw #62e08a;
+  transform: translateX(-50%);
+}
+.cod-tablet__boot {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5vw;
+  padding: 0 3vw;
+  border-radius: 0.3vw;
+  background: radial-gradient(ellipse at center, #10151a, #05070a);
+  box-shadow: inset 0 0 1.5vw #000, 0 0 0 1px #000;
+  font-size: 0.8vw;
+  color: var(--hud-dim);
+  text-shadow: none;
+}
+.cod-tablet__boot-title {
+  margin-bottom: 0.6vw;
+  font-size: 1.25vw;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--hud);
+}
+.cod-tablet__boot-line {
+  opacity: 0;
+  animation: cod-tablet-boot-line 80ms linear forwards;
+}
+.cod-tablet__boot-line::after {
+  content: ' ... OK';
+  color: #62e08a;
+}
+@keyframes cod-tablet-boot-line {
+  to {
+    opacity: 1;
+  }
+}
+.cod-tablet__boot-bar {
+  height: 0.25vw;
+  margin-top: 0.8vw;
+  background: rgba(236, 240, 236, 0.12);
+}
+.cod-tablet__boot-bar span {
+  display: block;
+  height: 100%;
+  background: var(--hud);
+  animation: cod-tablet-boot-bar linear forwards;
+  transform-origin: left;
+}
+@keyframes cod-tablet-boot-bar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.cod-tablet__boot-status {
+  font-size: 0.7vw;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ */
+/* Image de la caméra */
+/* ------------------------------------------------------------------ */
+.cod-tablet__view {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+}
+.cod-tablet__view--clear {
+  background: none;
+}
+.cod-tablet__glass {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(112deg, rgba(255, 255, 255, 0.035) 0 26%, transparent 26.1%);
+}
+.cod-tablet__bezel {
+  position: absolute;
+  inset: 0;
+  border: 2.6vh solid var(--shell);
+  border-radius: 3.6vh;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 6vh rgba(0, 0, 0, 0.55),
+    0 0 0 5vh var(--shell);
+}
+.cod-tablet__bezel .cod-tablet__led {
+  top: -1.55vh;
+  width: 0.6vh;
+  height: 0.6vh;
+  box-shadow: 0 0 0.8vh #62e08a;
+}
+.cod-tablet__head {
+  position: absolute;
+  top: 6vh;
+  left: 4.5vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cod-tablet__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.cod-tablet__link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--hud-dim);
+}
+.cod-tablet__rec {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--hud-alert);
+  animation: cod-tablet-blink 1.2s steps(2, jump-none) infinite;
+}
+@keyframes cod-tablet-blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.15;
+  }
+}
+
+/* Bande de cap */
+.cod-tablet__compass {
+  position: absolute;
+  top: 6vh;
+  left: 50%;
+  width: 42vh;
+  transform: translateX(-50%);
+}
+.cod-tablet__compass-tape {
+  position: relative;
+  height: 2.4rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+.cod-tablet__tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 0.5rem;
+  background: var(--hud-line);
+  box-shadow: 0 0 2px #000;
+}
+.cod-tablet__tick--major {
+  height: 0.875rem;
+  background: var(--hud);
+}
+.cod-tablet__tick b {
+  position: absolute;
+  top: 1.05rem;
+  left: 50%;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transform: translateX(-50%);
+}
+.cod-tablet__compass-value {
+  position: absolute;
+  top: 2.5rem;
+  left: 50%;
+  padding: 0 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--hud-line);
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+}
+.cod-tablet__compass::before {
+  content: '';
+  position: absolute;
+  top: -0.5rem;
+  left: 50%;
+  border: 0.25rem solid transparent;
+  border-top-color: var(--hud);
+  transform: translateX(-50%);
+}
+
+/* Échelle d'altitude */
+.cod-tablet__altitude {
+  position: absolute;
+  top: 50%;
+  left: 4.5vw;
+  width: 3.5rem;
+  height: 36vh;
+  overflow: hidden;
+  border-left: 1px solid var(--hud-line);
+  transform: translateY(-50%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 15%, #000 85%, transparent);
+}
+.cod-tablet__rung {
+  position: absolute;
+  left: 0;
+  width: 0.375rem;
+  height: 1px;
+  background: var(--hud-line);
+}
+.cod-tablet__rung--major {
+  width: 0.75rem;
+  background: var(--hud);
+}
+.cod-tablet__rung b {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  transform: translateY(-50%);
+}
+.cod-tablet__altitude-value {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  padding: 0 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid var(--hud-line);
+  background: rgba(0, 0, 0, 0.55);
+  transform: translateY(-50%);
+}
+
+/* Télémétrie */
+.cod-tablet__readouts {
+  position: absolute;
+  top: 6vh;
+  right: 4.5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+.cod-tablet__readout {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--hud-dim);
+}
+.cod-tablet__readout b {
+  min-width: 5.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--hud);
+}
+.cod-tablet__readout--alert,
+.cod-tablet__readout--alert b {
+  color: var(--hud-alert);
+}
+
+/* Cadre de visée : le point d'impact, toujours au centre de l'image */
+.cod-tablet__reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.12s ease-out, height 0.12s ease-out;
+}
+.cod-tablet__reticle--small {
+  width: 5vh;
+  height: 5vh;
+}
+.cod-tablet__corner {
+  position: absolute;
+  width: 18%;
+  height: 18%;
+  border: 0 solid var(--hud);
+  filter: drop-shadow(0 0 1px #000);
+}
+.cod-tablet__corner--tl {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+}
+.cod-tablet__corner--tr {
+  top: 0;
+  right: 0;
+  border-width: 2px 2px 0 0;
+}
+.cod-tablet__corner--bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 2px 2px;
+}
+.cod-tablet__corner--br {
+  right: 0;
+  bottom: 0;
+  border-width: 0 2px 2px 0;
+}
+/* Croix à quatre branches, vide au centre pour laisser voir la cible */
+.cod-tablet__cross {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4.4vh;
+  height: 4.4vh;
+  background:
+    linear-gradient(var(--hud), var(--hud)) left center / 35% 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) right center / 35% 2px no-repeat,
+    linear-gradient(var(--hud), var(--hud)) center top / 2px 35% no-repeat,
+    linear-gradient(var(--hud), var(--hud)) center bottom / 2px 35% no-repeat;
+  filter: drop-shadow(0 0 1px #000);
+  transform: translate(-50%, -50%);
+}
+.cod-tablet__reticle--small .cod-tablet__cross {
+  width: 100%;
+  height: 100%;
+}
+.cod-tablet__boost {
+  position: absolute;
+  top: 64%;
+  left: 50%;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--hud-alert);
+  border: 1px solid var(--hud-alert);
+  background: rgba(0, 0, 0, 0.45);
+  transform: translateX(-50%);
+  animation: cod-tablet-blink 0.5s steps(2, jump-none) infinite alternate;
+}
+
+/* Coordonnées de la cible */
+.cod-tablet__grid {
+  position: absolute;
+  bottom: 7vh;
+  left: 4.5vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  font-size: 0.6875rem;
+  color: var(--hud-dim);
+}
+.cod-tablet__grid b {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--hud);
+}
+
+/* Arme en cours */
+.cod-tablet__weapon {
+  position: absolute;
+  right: 4.5vw;
+  bottom: 7vh;
+  display: flex;
+  width: 15rem;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cod-tablet__weapon-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  color: var(--hud-alert);
+}
+.cod-tablet__weapon--ready .cod-tablet__weapon-head {
+  color: #62e08a;
+}
+.cod-tablet__weapon-head b {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--hud);
+}
+.cod-tablet__weapon-bar {
+  display: block;
+  height: 0.25rem;
+  border: 1px solid var(--hud-line);
+  box-sizing: content-box;
+  background: rgba(0, 0, 0, 0.4);
+}
+.cod-tablet__weapon-bar span {
+  display: block;
+  height: 100%;
+  background: var(--hud);
+}
+.cod-tablet__help {
+  position: absolute;
+  bottom: 7vh;
+  left: 50%;
+  display: flex;
+  font-size: 0.6875rem;
+  white-space: nowrap;
+  color: var(--hud-dim);
+  transform: translateX(-50%);
+}
+.cod-tablet__help span {
+  padding: 0 0.75rem;
+}
+.cod-tablet__help span + span {
+  border-left: 1px solid var(--hud-dim);
+}
+.cod-tablet__fade {
+  position: absolute;
+  inset: 0;
+  background: #050709;
+  animation: cod-tablet-fade 400ms ease-out forwards;
+}
+@keyframes cod-tablet-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Douilles du minigun (vue à bord) */
+.cod-tablet__casing {
+  position: absolute;
+  bottom: 14vh;
+  left: 53%;
+  width: 1.7vh;
+  height: 5.5vh;
+  border-radius: 0.5vh 0.5vh 0.2vh 0.2vh;
+  background: linear-gradient(90deg, #7a5a1e, #e8c36a 45%, #a67c2c);
+  box-shadow: 0 0 0.3vh rgba(0, 0, 0, 0.5);
+  animation: cod-tablet-casing 650ms ease-out forwards;
+}
+@keyframes cod-tablet-casing {
+  0% {
+    transform: translate(0, 0) rotate(60deg) scale(0.6);
+  }
+  35% {
+    transform: translate(calc(var(--drift) * 0.5), calc(var(--rise) * -1)) rotate(calc(60deg + var(--spin) * 0.4)) scale(1);
+  }
+  100% {
+    transform: translate(var(--drift), 30vh) rotate(calc(60deg + var(--spin))) scale(1.5);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Fin : l'écran passe à la neige */
+/* ------------------------------------------------------------------ */
+.cod-tablet__lost {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.4 -0.3'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E"),
+    #101214;
+  animation: cod-tablet-static 180ms steps(4) infinite;
+}
+@keyframes cod-tablet-static {
+  to {
+    background-position: 256px 128px, 0 0;
+  }
+}
+.cod-tablet__lost-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 2.5rem;
+  border: 1px solid var(--hud);
+  background: rgba(0, 0, 0, 0.8);
+  text-shadow: none;
+}
+.cod-tablet__lost-box b {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.cod-tablet__lost-box span {
+  font-size: 0.75rem;
+  color: var(--hud-dim);
+}

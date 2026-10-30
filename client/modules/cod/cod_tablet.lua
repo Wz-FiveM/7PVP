@@ -12,14 +12,17 @@ CodTablet.BONE = 60309 -- main gauche
 CodTablet.ANIM_DICT = 'amb@code_human_in_bus_passenger_idles@female@tablet@base'
 CodTablet.ANIM_NAME = 'base'
 CodTablet.ANIM_FLAGS = 49 -- en boucle, haut du corps seulement
-CodTablet.CAMERA_FILTER = 'scanline_cam_cheap'
+CodTablet.CAMERA_FILTER = 'heliGunCam' -- l'image de la caméra de tir des hélicoptères du jeu
 CodTablet.WEAPON_UNARMED = GetHashKey('WEAPON_UNARMED')
 -- Pendant la séance : ni déplacement, ni tir, ni changement d'arme
 CodTablet.LOCKED_CONTROLS = { 1, 2, 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 30, 31, 32, 33, 34, 35, 37, 44, 45, 75, 140, 141, 142, 257, 263, 264 }
 CodTablet.LOST_TIME = 500 -- ms de neige à l'écran à la fin
 CodTablet.STATUS_INTERVAL = 100 -- ms entre deux envois de l'état au HUD
-CodTablet.MARKER_SCALE = 0.03 -- taille des cercles sur les joueurs, en proportion de l'altitude
-CodTablet.MARKER_MIN = 1.2
+CodTablet.BOX_BODY = 1.0 -- m de part et d'autre du centre du personnage, pour son cadre
+CodTablet.BOX_MIN = 0.012 -- demi-hauteur minimale du cadre à l'écran
+CodTablet.BOX_RATIO = 0.7 -- largeur du cadre par rapport à sa hauteur
+CodTablet.BOX_ARM = 0.4 -- longueur des coins, par rapport au cadre
+CodTablet.BOX_LINE = 0.0018 -- épaisseur des coins à l'écran
 CodTablet.ENEMY_COLOR = { 255, 90, 60 }
 -- Losange au-dessus des joueurs en vue à bord, dessiné par-dessus le décor. Tailles en proportion de la hauteur d'écran
 CodTablet.ICON_HEIGHT = 1.5 -- m au-dessus du centre du personnage
@@ -119,12 +122,12 @@ function CodTablet.frame(coords, focus)
     if CodTablet.session and CodTablet.session.clear then
         CodTablet.drawIcons()
     else
-        CodTablet.drawPlayers(coords.z - Cod.match.arena.center.z)
+        CodTablet.drawPlayers()
     end
 end
 
 ---@param session table
----@param status table altitude, boost, weapon, ready, remaining
+---@param status table voir CodTabletStatus (web/src/types/cod.ts)
 function CodTablet.sendStatus(session, status)
     local now = GetGameTimer()
     if now < session.nextStatus then return end
@@ -148,12 +151,34 @@ end
 
 ---Cercle au sol sous chaque joueur.
 ---@param altitude number
-function CodTablet.drawPlayers(altitude)
-    local size = math.max(altitude * CodTablet.MARKER_SCALE, CodTablet.MARKER_MIN)
+function CodTablet.drawPlayers()
+    local aspect = GetAspectRatio(false)
     CodTablet.forEachPlayer(function(coords, color)
-        DrawMarker(27, coords.x, coords.y, coords.z - 0.9, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, size, size, 1.0,
-            color[1], color[2], color[3], 220, false, false, 2, false, nil, nil, false)
+        local visible, x, y = GetScreenCoordFromWorldCoord(coords.x, coords.y, coords.z)
+        if not visible then return end
+        local _, _, top = GetScreenCoordFromWorldCoord(coords.x, coords.y, coords.z + CodTablet.BOX_BODY)
+        local halfHeight = math.max(math.abs(y - top), CodTablet.BOX_MIN)
+        CodTablet.drawBox(x, y, halfHeight * CodTablet.BOX_RATIO / aspect, halfHeight, aspect, color)
     end)
+end
+
+---Cadre de ciblage : seulement ses quatre coins.
+---@param x number centre, à l'écran
+---@param y number
+---@param halfWidth number
+---@param halfHeight number
+---@param aspect number
+---@param color integer[]
+function CodTablet.drawBox(x, y, halfWidth, halfHeight, aspect, color)
+    local armX, armY = halfWidth * 2 * CodTablet.BOX_ARM, halfHeight * 2 * CodTablet.BOX_ARM
+    local lineX, lineY = CodTablet.BOX_LINE / aspect, CodTablet.BOX_LINE
+    for _, sideX in ipairs({ -1, 1 }) do
+        for _, sideY in ipairs({ -1, 1 }) do
+            local cornerX, cornerY = x + sideX * halfWidth, y + sideY * halfHeight
+            DrawRect(cornerX - sideX * armX / 2, cornerY, armX, lineY, color[1], color[2], color[3], 235)
+            DrawRect(cornerX, cornerY - sideY * armY / 2, lineX, armY, color[1], color[2], color[3], 235)
+        end
+    end
 end
 
 ---Losange au-dessus de chaque joueur, de la même taille à l'écran quelle que soit la distance.

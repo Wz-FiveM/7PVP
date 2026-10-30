@@ -109,7 +109,16 @@ function CodPredator.advance(session)
     end
     SetCamCoord(session.cam, to.x, to.y, to.z - CodPredator.NOSE)
     CodTablet.frame(to, vector3(to.x, to.y, center.z))
-    CodTablet.sendStatus(session, { altitude = math.max(0, math.floor(to.z - center.z)), boost = boost })
+    local altitude = math.max(0, to.z - center.z)
+    CodTablet.sendStatus(session, {
+        altitude = math.floor(altitude),
+        boost = boost,
+        speed = math.floor(speed),
+        impact = altitude / speed,
+        heading = session.yaw,
+        x = to.x,
+        y = to.y,
+    })
     return nil
 end
 

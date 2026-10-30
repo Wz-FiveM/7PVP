@@ -6,7 +6,7 @@ import type {
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
-  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState,
+  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodQueueData, CodRoundEndData, CodStateData, CodStreakState, CodTabletStatus,
 } from './cod';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -121,7 +121,7 @@ export type NuiMessage =
   | { action: 'codRadar'; data: { seconds: number } }
   | { action: 'codGunfire'; data: { id: number; volume: number } }
   | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[]; clear?: boolean } }
-  | { action: 'codTabletStatus'; data: { altitude?: number; boost?: boolean; weapon?: string; ready?: number; remaining?: number; firing?: boolean } }
+  | { action: 'codTabletStatus'; data: CodTabletStatus }
   | { action: 'codEnd'; data: CodEndData }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
