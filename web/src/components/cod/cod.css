@@ -785,6 +785,36 @@
   line-height: 1;
   color: var(--cod-accent-hi);
 }
+.cod-operators__access {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--cod-panel);
+}
+.cod-operators__balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: var(--cod-font);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cod-accent-hi);
+}
+.cod-operators__balance .cod-leave {
+  min-width: 0;
+}
+.cod-operators__name {
+  margin: 0.5rem 0 0;
+  font-family: var(--cod-font);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--cod-white);
+}
 .cod-prestige__kept,
 .cod-prestige__needs {
   flex: none;

@@ -10,8 +10,15 @@ Appearance.palettes = nil
 Appearance.MODEL_TIMEOUT = 30000
 Appearance.MAX_HEALTH = 200 -- 100 points de vie (100 = mort), pour les deux sexes
 Appearance.HEALTH_CHECK_INTERVAL = 500
+---@type integer|nil modèle porté à la place du personnage du joueur (mode Call of Duty)
+Appearance.forcedModel = nil
+---@type table<integer, boolean> modèles qui acceptent une apparence
+Appearance.customizable = {}
 
 function Appearance.init()
+    for _, name in pairs(AppearanceSchema.MODELS) do
+        Appearance.customizable[GetHashKey(name)] = true
+    end
     -- Le modèle féminin n'a que 175 de vie max par défaut, et le jeu peut y revenir à la résurrection
     CreateThread(function()
         while true do
@@ -36,7 +43,19 @@ end
 ---@param sex 'male'|'female'
 ---@return boolean true si le modèle a changé
 function Appearance.ensureModel(sex)
-    local model = GetHashKey(AppearanceSchema.MODELS[sex] or AppearanceSchema.MODELS.male)
+    return Appearance.setPlayerModel(Appearance.forcedModel or GetHashKey(AppearanceSchema.MODELS[sex] or AppearanceSchema.MODELS.male))
+end
+
+---Impose un modèle au joueur à la place de son personnage, jusqu'à nouvel ordre. Appliqué au prochain ensureModel.
+---@param name string|false|nil nil ou false : son personnage ; un modèle absent du jeu est ignoré
+function Appearance.setForcedModel(name)
+    local model = name and GetHashKey(name)
+    Appearance.forcedModel = (model and IsModelInCdimage(model) and IsModelAPed(model)) and model or nil
+end
+
+---@param model integer
+---@return boolean true si le modèle a changé
+function Appearance.setPlayerModel(model)
     if GetEntityModel(PlayerPedId()) == model then return false end
 
     -- SetPlayerModel sur un modèle non chargé laisse un ped à moitié créé, et le jeu plante
@@ -55,6 +74,12 @@ end
 ---@param ped integer
 ---@param data table apparence validée
 function Appearance.apply(ped, data)
+    -- Modèle additionnel (config/cod_operators.lua) : ni visage ni vêtements à régler
+    if not Appearance.customizable[GetEntityModel(ped)] then
+        SetPedDefaultComponentVariation(ped)
+        return
+    end
+
     local heritage = data.heritage
     SetPedHeadBlendData(ped, heritage.mother, heritage.father, 0, heritage.mother, heritage.father, 0,
         heritage.shapeMix, heritage.skinMix, 0.0, false)

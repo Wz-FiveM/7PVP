@@ -13,6 +13,7 @@ local CodStreaks = PVP.use('CodStreaks')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
+local CodOperatorService = PVP.use('CodOperatorService')
 local CodMapService = PVP.use('CodMapService')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
@@ -58,6 +59,12 @@ function CodService.init()
     Callback.register(Events.callbacks.codLeaveMatch, CodService.leaveToMenu)
     Callback.register(Events.callbacks.codPrestige, CodService.enterPrestige)
     Callback.register(Events.callbacks.codPrestigeUnlock, CodProfileService.unlockPermanent)
+    Callback.register(Events.callbacks.codSelectOperator, function(source, id)
+        return CodService.changeOperator(source, CodOperatorService.select, id)
+    end)
+    Callback.register(Events.callbacks.codBuyOperator, function(source, id)
+        return CodService.changeOperator(source, CodOperatorService.buy, id)
+    end)
 
     RegisterNetEvent(Events.server.codDeploy, function()
         local match = CodService.matchOf(source)
@@ -150,6 +157,18 @@ function CodService.enterPrestige(source)
         return { ok = false, message = Locale.t('Annule ta recherche de partie avant de passer en Prestige.') }
     end
     return CodProfileService.enterPrestige(source)
+end
+
+---Le personnage ne change que depuis le menu ; les autres joueurs du salon le voient aussitôt.
+---@param source integer
+---@param action fun(source: integer, id: any): { ok: boolean, message?: string, profile?: table }
+---@param id any
+---@return { ok: boolean, message?: string, profile?: table }
+function CodService.changeOperator(source, action, id)
+    if CodService.playerMatch[source] then return { ok = false } end
+    local result = action(source, id)
+    if result.ok then CodService.refreshSquad(source) end
+    return result
 end
 
 ---Menu du mode : le joueur est seul dans son bucket, avec son personnage (voir client/modules/cod/cod.lua).
@@ -253,6 +272,7 @@ function CodService.sendSquad(playlist)
             id = source,
             appearance = player and player.appearance,
             weapon = CodProfileService.selectedClass(source).primary,
+            model = CodOperatorService.modelOf(source),
         }
     end
     for _, source in ipairs(queue.players) do

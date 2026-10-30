@@ -40,6 +40,18 @@ export interface CodCardAsset {
   /** niveau de Prestige requis */
   prestige?: number;
 }
+/** Personnage à porter (config/cod_operators.lua) */
+export interface CodOperatorEntry {
+  id: string;
+  label: string;
+  universe: string;
+  /** prix en points boutique */
+  price: number;
+  /** auteur du modèle */
+  credit: string;
+  /** le modèle est dans le jeu (renseigné par le client) */
+  available?: boolean;
+}
 export interface CodCatalog {
   playlists: CodPlaylist[];
   primary: CodCatalogEntry[];
@@ -52,6 +64,7 @@ export interface CodCatalog {
   banners: CodCardAsset[];
   emblems: CodCardAsset[];
   tagLength: number;
+  operators: CodOperatorEntry[];
   maxPrestige: number;
   /** jetons gagnés à chaque Prestige */
   prestigeTokens: number;
@@ -106,6 +119,12 @@ export interface CodProfile {
   classes: CodClass[];
   streaks: string[];
   card: CodPlayerCardChoice;
+  /** personnage porté ; false : celui du joueur */
+  operator: string | false;
+  /** personnages achetés */
+  ownedOperators: string[];
+  /** jours de VIP restants, 0 sans VIP */
+  vipDays: number;
 }
 
 export interface CodMapVote {

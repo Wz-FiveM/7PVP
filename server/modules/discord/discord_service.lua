@@ -323,6 +323,22 @@ function DiscordService.shopPoints(source, label, amount, reference)
     })
 end
 
+---addvip / removevip (achats Tebex compris : exécutés depuis la console)
+---@param source integer 0 = console
+---@param label string joueur ciblé (nom ou licence)
+---@param days integer 0 pour un retrait
+---@param reference string|nil référence du paiement
+function DiscordService.vip(source, label, days, reference)
+    DiscordService.send('admin', {
+        title = days > 0 and '⭐ VIP ajouté' or '⭐ VIP retiré',
+        description = ('**%s** : %s par %s%s'):format(
+            DiscordService.escape(label), days > 0 and ('+%d jours'):format(days) or 'retiré', DiscordService.playerTag(source),
+            reference and (' (réf. `%s`)'):format(DiscordService.escape(reference)) or ''
+        ),
+        color = days > 0 and DiscordService.COLORS.toxine or DiscordService.COLORS.danger,
+    })
+end
+
 ---@param kind string ex : « Expulsion »
 ---@param source integer admin (0 = console)
 ---@param target PvpPlayer

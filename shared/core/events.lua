@@ -132,6 +132,8 @@ Events.internal = {
     -- Profil chargé depuis la base (statut admin, données à envoyer au client...)
     playerLoaded = '7pvp:internal:playerLoaded',
     playerUnloading = '7pvp:internal:playerUnloading',
+    -- Serveur : le VIP d'un joueur connecté a changé (argument : licence)
+    vipChanged = '7pvp:internal:vipChanged',
     -- Client : le joueur a changé de langue (argument : code de la langue)
     languageChanged = '7pvp:internal:languageChanged',
 }
@@ -198,6 +200,8 @@ Events.callbacks = {
     codLeaveMatch = 'cod:leaveMatch',
     codPrestige = 'cod:prestige',
     codPrestigeUnlock = 'cod:prestigeUnlock',
+    codSelectOperator = 'cod:selectOperator',
+    codBuyOperator = 'cod:buyOperator',
     tradeRequest = 'trade:request',
     tradeRespond = 'trade:respond',
     tradeOffer = 'trade:offer',

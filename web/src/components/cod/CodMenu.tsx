@@ -5,17 +5,19 @@ import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CodCatalog, CodLeaderboardRow, CodProfile, CodQueueData } from '../../types/cod';
 import { CodClassEditor } from './CodClassEditor';
+import { CodOperatorsTab } from './CodOperatorsTab';
 import { BracketButton, CodOperator, isUnlocked, RankBadge, RankCell, useSecondsLeft } from './CodParts';
 import { CodPlayerCard } from './CodPlayerCard';
 import { CodPlayerCardTab } from './CodPlayerCardTab';
 import { CodPrestigeTab } from './CodPrestigeTab';
 
-type Tab = 'play' | 'classes' | 'streaks' | 'card' | 'prestige' | 'profile' | 'board';
+type Tab = 'play' | 'classes' | 'streaks' | 'operators' | 'card' | 'prestige' | 'profile' | 'board';
 
 const TABS: { id: Tab; label: string; title: string; subtitle: string }[] = [
   { id: 'play', label: 'Salon', title: 'Multijoueur', subtitle: 'Salon d\'attente' },
   { id: 'classes', label: 'Classes', title: 'Classes', subtitle: 'Compose ton équipement' },
   { id: 'streaks', label: 'Séries', title: 'Séries', subtitle: 'Choisis tes séries d\'éliminations' },
+  { id: 'operators', label: 'Personnages', title: 'Personnages', subtitle: 'Choisis qui tu incarnes' },
   { id: 'card', label: 'Carte de joueur', title: 'Carte de joueur', subtitle: 'Vue par ceux que tu élimines' },
   { id: 'prestige', label: 'Prestige', title: 'Prestige', subtitle: 'Repars du rang 1 avec un nouvel insigne' },
   { id: 'profile', label: 'Profil', title: 'Profil', subtitle: 'Ta progression' },
@@ -65,6 +67,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
         {tab === 'play' && <PlayTab catalog={catalog} queue={queue} />}
         {tab === 'classes' && <CodClassEditor profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'streaks' && <StreaksTab profile={profile} catalog={catalog} onProfile={onProfile} />}
+        {tab === 'operators' && <CodOperatorsTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'card' && <CodPlayerCardTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'prestige' && <CodPrestigeTab profile={profile} catalog={catalog} searching={Boolean(queue)} onProfile={onProfile} />}
         {tab === 'profile' && <ProfileTab profile={profile} />}

@@ -7,12 +7,14 @@ local LootService = PVP.use('LootService')
 local Zones = PVP.use('Zones')
 local ChatService = PVP.use('ChatService')
 local ShopPointsService = PVP.use('ShopPointsService')
+local VipService = PVP.use('VipService')
 
 ServerApi.EXPORTS = {
     'getPlayer', 'getMoney', 'addMoney', 'removeMoney', 'addXp',
     'giveItem', 'removeItem', 'getItemCount', 'getZone', 'isInSafeZone', 'dropLoot',
     'sendSystemMessage', 'announce',
     'getShopPoints', 'addShopPoints', 'removeShopPoints',
+    'isVip',
 }
 
 function ServerApi.init()
@@ -164,4 +166,11 @@ function ServerApi.removeShopPoints(source, amount, reason)
     if not player or not ShopPointsService.spend(player, amount, tostring(reason or 'export')) then return false end
     player:sync()
     return true
+end
+
+---@param source integer
+---@return boolean le joueur en ligne est VIP
+function ServerApi.isVip(source)
+    local player = PlayerService.get(source)
+    return player ~= nil and VipService.isActive(player.identifier)
 end

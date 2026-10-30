@@ -1,4 +1,4 @@
-import type { CodBoardEntry, CodCardAsset, CodCatalog, CodPlayerCardData, CodProfile } from '../types/cod';
+import type { CodBoardEntry, CodCardAsset, CodCatalog, CodOperatorEntry, CodPlayerCardData, CodProfile } from '../types/cod';
 
 /** Données factices du mode Call of Duty (npm run dev uniquement), extraites de config/cod.lua et cod_player_cards.lua. */
 const prestigeAssets: CodCardAsset[] = Array.from({ length: 10 }, (_, index) => ({
@@ -78,6 +78,22 @@ export const mockCodCatalog: CodCatalog = {
   banners,
   emblems,
   tagLength: 4,
+  operators: [
+    ['ghost_desert', 'Ghost Desert', 'Call of Duty', 1000, 'oliver8979', true],
+    ['ghost_nightwar', 'Ghost NightWar', 'Call of Duty', 1200, 'Lee_Costumes', true],
+    ['price_mw4', 'John Price', 'Call of Duty', 1200, 'YourWelshRaptor', true],
+    ['venerated', 'Venerated US Army', 'Call of Duty', 1000, 'YourWelshRaptor', true],
+    ['horangi', 'Horangi', 'Call of Duty', 1000, 'oliver8979', true],
+    ['nikto', 'Nikto Dark Side', 'Call of Duty', 1000, 'kritbualad', true],
+    ['templar', 'Templar', 'Call of Duty', 1000, 'kritbualad', true],
+    ['witch_warden', 'Witch Warden', 'Call of Duty', 1000, 'oliver8979', false],
+    ['spiderman', 'Spider-Man', 'Marvel', 1500, 'zio321', true],
+    ['ultron', 'Ultron', 'Marvel', 1500, 'zio321', true],
+    ['black_knight', 'Black Knight', 'Fortnite', 1200, 'kazuya4x4', true],
+    ['drakon', 'Silverwing Drakon', 'Fortnite', 1200, 'zio321', true],
+    ['naruto', 'Naruto Akatsuki', 'Naruto', 300, 'Kong2545', true],
+    ['bull', 'Bull Comes', 'Original', 800, 'NcNc', true],
+  ].map(([id, label, universe, price, credit, available]) => ({ id, label, universe, price, credit, available } as CodOperatorEntry)),
   maxPrestige: 10,
   prestigeTokens: 1,
   keys: { streak: 'G', class: 'B', scoreboard: 'TAB' },
@@ -112,6 +128,9 @@ export const mockCodProfile: CodProfile = {
   ],
   streaks: ['uav', 'predator'],
   card: { banner: 'million', emblem: 'cherries', tag: 'thic' },
+  operator: false,
+  ownedOperators: [],
+  vipDays: 0,
 };
 
 /** Au rang maximum : le Prestige est disponible */
@@ -124,6 +143,9 @@ export const mockCodProfilePrestige: CodProfile = {
   tokens: 1,
   permanent: ['WEAPON_COMBATMG', 'emp'],
   canPrestige: true,
+  operator: 'ghost_nightwar',
+  ownedOperators: ['price_mw4'],
+  vipDays: 23,
 };
 
 export const mockCodCards: Record<string, CodPlayerCardData> = {

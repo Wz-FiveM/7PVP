@@ -4,16 +4,17 @@
 ---@class CodSquadModule
 local CodSquad = PVP.define('CodSquad')
 local Cod = PVP.use('Cod')
+local CodOperators = PVP.use('CodOperators')
 local Appearance = PVP.use('Appearance')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local PedUtils = PVP.use('PedUtils')
 
----@type { id: integer, appearance: table|nil, weapon: string }[] autres joueurs du salon
+---@type { id: integer, appearance: table|nil, weapon: string, model: string|false }[] autres joueurs du salon
 CodSquad.members = {}
----@type table<integer, { ped: integer, weapon: string }> server id -> personnage affiché
+---@type table<integer, { ped: integer, weapon: string, model: string|false }> server id -> personnage affiché
 CodSquad.shown = {}
 
----@param members { id: integer, appearance: table|nil, weapon: string }[] joueurs du salon, lui compris
+---@param members { id: integer, appearance: table|nil, weapon: string, model: string|false }[] joueurs du salon, lui compris
 function CodSquad.setMembers(members)
     local self = GetPlayerServerId(PlayerId())
     CodSquad.members = {}
@@ -39,6 +40,8 @@ function CodSquad.sync()
     for index, member in ipairs(CodSquad.members) do
         local slot = Config.Cod.menuScene.squad[index]
         if not slot then break end
+        -- Il a changé de personnage (config/cod_operators.lua)
+        if CodSquad.shown[member.id] and CodSquad.shown[member.id].model ~= member.model then CodSquad.remove(member.id) end
         if not CodSquad.shown[member.id] then CodSquad.create(member) end
         if not Cod.menuOpen then return CodSquad.clear() end
         local shown = CodSquad.shown[member.id]
@@ -51,10 +54,11 @@ function CodSquad.sync()
     end
 end
 
----@param member { id: integer, appearance: table|nil, weapon: string }
+---@param member { id: integer, appearance: table|nil, weapon: string, model: string|false }
 function CodSquad.create(member)
     local appearance = member.appearance or AppearanceSchema.default('male')
     local model = GetHashKey(AppearanceSchema.MODELS[appearance.sex] or AppearanceSchema.MODELS.male)
+    if CodOperators.isInstalled(member.model) then model = GetHashKey(member.model) end
     if not PedUtils.loadModel(model) then return end
 
     local coords = GetEntityCoords(PlayerPedId())
@@ -66,7 +70,7 @@ function CodSquad.create(member)
     SetPedCanRagdoll(ped, false)
     SetPedFleeAttributes(ped, 0, false)
     Appearance.apply(ped, appearance)
-    CodSquad.shown[member.id] = { ped = ped }
+    CodSquad.shown[member.id] = { ped = ped, model = member.model }
 end
 
 ---@param shown { ped: integer, weapon: string|nil }

@@ -34,6 +34,21 @@ export const codApi = {
       profile: { ...current, tokens: current.tokens - 1, permanent: [...current.permanent, id] },
     }),
 
+  /** montre un personnage dans le menu ; 'own' : celui du joueur, null : le choix enregistré */
+  previewOperator: (id: string | null) => fetchNui<void>('codOperatorPreview', { id }),
+
+  /** porte un personnage, null pour reprendre le sien ; `current` ne sert qu'au navigateur */
+  selectOperator: (id: string | null, current: CodProfile) =>
+    fetchNui<CodActionResult>('codOperatorSelect', { id }, { ok: true, profile: { ...current, operator: id ?? false } }),
+
+  /** achète un personnage pour toujours ; `current` ne sert qu'au navigateur */
+  buyOperator: (id: string, current: CodProfile) =>
+    fetchNui<CodActionResult>('codOperatorBuy', { id }, {
+      ok: true,
+      message: 'Personnage acheté',
+      profile: { ...current, operator: id, ownedOperators: [...current.ownedOperators, id] },
+    }),
+
   leaderboard: () =>
     fetchNui<{ rows: CodLeaderboardRow[] }>('codLeaderboard', {}, {
       rows: [

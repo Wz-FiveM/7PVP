@@ -130,6 +130,23 @@ points <id | license:xxxx>                            affiche le solde
 Sur Tebex, dans chaque paquet, ajouter la commande (avec « joueur en ligne requis ») :
 `addpoints {sid} 1000 {transaction}` — et pour les remboursements / rétrofacturations : `removepoints {sid} 1000`.
 
+### VIP (Tebex)
+
+Statut à durée limitée (`pvp_vip`, historique dans `pvp_vip_log`), qui court aussi hors ligne ; chaque ajout s'ajoute aux jours restants et part dans le salon Discord admin. Il donne accès à tous les personnages du mode Call of Duty. Réglages : `config/vip.lua`.
+
+```
+addvip <id | license:xxxx> <jours> [référence]   ajoute des jours (même hors ligne) ; une référence déjà créditée est ignorée
+removevip <id | license:xxxx>                    retire le VIP
+vip <id | license:xxxx>                          affiche la date de fin
+```
+
+Sur Tebex, dans chaque paquet, ajouter la commande (avec « joueur en ligne requis ») :
+`addvip {sid} 30 {transaction}` — et pour les remboursements / rétrofacturations : `removevip {sid}`.
+
+### Personnages du mode Call of Duty
+
+Modèles de ped additionnels, ouverts aux VIP ou achetés pour toujours en points boutique (`pvp_cod_operators_owned`), montrés sur le personnage du menu (onglet Personnages). Catalogue et prix : `config/cod_operators.lua`. Les fichiers des modèles vivent dans la ressource à part `7PVP_operators`, hors de ce dépôt : un modèle absent s'affiche « Bientôt disponible », sans pouvoir être acheté ni porté.
+
 ## Anti-cheat
 
 Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans `config/anticheat.lua`) ; les admins ne sont jamais contrôlés.

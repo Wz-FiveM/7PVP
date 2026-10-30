@@ -22,6 +22,8 @@ local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local CodKillcam = PVP.use('CodKillcam')
 local CodSquad = PVP.use('CodSquad')
+local CodOperators = PVP.use('CodOperators')
+local Appearance = PVP.use('Appearance')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -218,10 +220,17 @@ end
 ---@return table
 function Cod.storeProfile(result)
     if result and result.profile then
-        Cod.profile = result.profile
+        Cod.setProfile(result.profile)
         Cod.previewClass()
     end
     return result or { ok = false }
+end
+
+---@param profile table
+function Cod.setProfile(profile)
+    Cod.profile = profile
+    -- Une réponse peut arriver après le retour au lobby : le personnage choisi ne quitte pas le mode
+    Appearance.setForcedModel(State.mode == Cod.MODE and profile.operatorModel)
 end
 
 ---@return boolean
@@ -239,7 +248,8 @@ function Cod.openMenu(data)
     -- Arrivée depuis le lobby : il se ferme juste après, et reprendrait le focus
     while Lobby.active do Wait(0) end
     if State.mode ~= Cod.MODE then return end
-    Cod.profile = data.profile
+    Cod.setProfile(data.profile)
+    CodOperators.markInstalled(data.catalog)
 
     DoScreenFadeOut(Cod.FADE)
     while not IsScreenFadedOut() do Wait(0) end
@@ -759,6 +769,7 @@ end
 ---Retour au lobby : il reprend le focus et cache le personnage juste après.
 function Cod.cleanup()
     Cod.clearMatch()
+    Appearance.setForcedModel(nil)
     Cod.stopMenuCamera()
     CodSquad.clear()
     Cod.menuOpen = false

@@ -31,6 +31,8 @@
 ---@field classes CodClass[]
 ---@field streaks string[] séries choisies
 ---@field card CodPlayerCard
+---@field operator string|false personnage choisi (config/cod_operators.lua)
+---@field owned table<string, boolean> personnages achetés
 
 ---Ce que le joueur a le droit de choisir.
 ---@class CodAccess
@@ -40,6 +42,7 @@
 
 ---@class CodProfileServiceModule
 local CodProfileService = PVP.define('CodProfileService')
+local CodOperatorService = PVP.use('CodOperatorService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -61,6 +64,7 @@ CodProfileService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_cod_profiles (
     classes LONGTEXT NULL,
     streaks LONGTEXT NULL,
     player_card LONGTEXT NULL,
+    operator_id VARCHAR(32) NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (identifier),
     KEY idx_xp (xp)
@@ -73,6 +77,7 @@ CodProfileService.MIGRATIONS = {
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS prestige_tokens TINYINT NOT NULL DEFAULT 0 AFTER prestige',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS prestige_unlocks LONGTEXT NULL AFTER prestige_tokens',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS banked_xp INT NOT NULL DEFAULT 0 AFTER prestige_unlocks',
+    'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS operator_id VARCHAR(32) NULL AFTER player_card',
 }
 
 ---@type table<integer, CodProfile> par joueur connecté dans le mode
@@ -226,6 +231,8 @@ function CodProfileService.load(player)
         selected = row.selected_class or 1,
         classes = {},
         streaks = {},
+        operator = row.operator_id or false,
+        owned = CodOperatorService.loadOwned(player.identifier),
     }
     local access = CodProfileService.accessOf(profile)
     local savedClasses = CodProfileService.decode(row.classes)
@@ -272,19 +279,20 @@ end
 ---@param profile CodProfile
 function CodProfileService.save(profile)
     MySQL.insert(
-        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card, operator_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE name = VALUES(name), xp = VALUES(xp), prestige = VALUES(prestige),
               prestige_tokens = VALUES(prestige_tokens), prestige_unlocks = VALUES(prestige_unlocks), banked_xp = VALUES(banked_xp),
               kills = VALUES(kills), deaths = VALUES(deaths),
               assists = VALUES(assists), wins = VALUES(wins), losses = VALUES(losses), best_streak = VALUES(best_streak),
               selected_class = VALUES(selected_class), classes = VALUES(classes), streaks = VALUES(streaks),
-              player_card = VALUES(player_card)]],
+              player_card = VALUES(player_card), operator_id = VALUES(operator_id)]],
         {
             profile.identifier, profile.name, profile.xp, profile.prestige, profile.tokens, json.encode(profile.permanent), profile.bankedXp,
             profile.kills, profile.deaths, profile.assists,
             profile.wins, profile.losses, profile.bestStreak, profile.selected,
             json.encode(profile.classes), json.encode(profile.streaks), json.encode(profile.card),
+            profile.operator or nil,
         }
     )
 end
@@ -648,7 +656,12 @@ end
 ---@return table
 function CodProfileService.describe(profile)
     local rank, into, needed = CodProfileService.rankFromXp(profile.xp)
+    local operators = CodOperatorService.describe(profile)
     return {
+        operator = operators.operator,
+        operatorModel = operators.operatorModel,
+        ownedOperators = operators.ownedOperators,
+        vipDays = operators.vipDays,
         name = profile.name,
         rank = rank,
         maxRank = Config.Cod.ranks.max,
@@ -687,6 +700,7 @@ function CodProfileService.catalog()
         banners = Config.CodPlayerCards.banners,
         emblems = Config.CodPlayerCards.emblems,
         tagLength = Config.CodPlayerCards.tagLength,
+        operators = Config.CodOperators.list,
         maxPrestige = Config.Cod.prestige.max,
         prestigeTokens = Config.Cod.prestige.tokens,
         keys = { streak = Config.Cod.streakKey, class = Config.Cod.classKey, scoreboard = Config.MenuKeyLabel },
