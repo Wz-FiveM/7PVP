@@ -6,6 +6,7 @@ import type {
   CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
+import { playGunfire } from '../../utils/codGunSound';
 import { WeaponSilhouette } from '../hud/Killfeed';
 import { Icon } from '../icons/Icon';
 import { CodMedal, CodMedalFrame } from './CodMedal';
@@ -147,6 +148,8 @@ export function CodHud({ hud, live, catalog, rank, name }: CodHudProps) {
         return setNuke({ seconds: message.data.seconds, at: Date.now() });
       case 'codJam':
         return setJammed(message.data.active);
+      case 'codGunfire':
+        return playGunfire(message.data.volume);
       case 'codRadar':
         // Le balayage tourne tant que les relevés du drone arrivent
         window.clearTimeout(radarTimer.current);

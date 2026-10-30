@@ -186,19 +186,20 @@ Config.Cod = {
     maxStreaks = 3,
     defaultStreaks = { 'uav', 'counter_uav', 'predator' },
     streaks = {
-        -- target : ce que le client envoie à l'utilisation ('aim' : le point visé, 'front' : le sol devant le joueur)
+        -- target : ce que le client envoie à l'utilisation ('aim' : le point visé, 'front' : le sol devant le joueur,
+        -- 'map' : le point et la direction choisis depuis la tablette, vue du dessus)
         { id = 'uav', kills = 3, rank = 1, duration = 30, label = 'Drone', description = 'Les ennemis apparaissent sur la carte pendant 30 s.' },
         { id = 'care_package', kills = 4, rank = 3, target = 'aim', label = 'Colis de ravitaillement', description = 'Un colis tombe là où tu vises, avec une série au hasard.' },
         { id = 'counter_uav', kills = 4, rank = 1, duration = 30, label = 'Contre-drone', description = 'Coupe la carte des ennemis pendant 30 s.' },
         { id = 'sentry', kills = 5, rank = 5, target = 'front', label = 'Tourelle', description = 'Une tourelle devant toi tire seule sur les ennemis.' },
         { id = 'predator', kills = 5, rank = 1, label = 'Missile Predator', description = 'Guide un missile depuis ta tablette jusqu\'au sol.' },
-        { id = 'precision', kills = 6, rank = 8, target = 'aim', label = 'Frappe de précision', description = 'Des avions bombardent en ligne l\'endroit que tu vises.' },
-        { id = 'harrier', kills = 7, rank = 14, target = 'aim', label = 'Harrier', description = 'Bombarde l\'endroit que tu vises, puis reste sur place et tire.' },
+        { id = 'precision', kills = 6, rank = 8, target = 'map', label = 'Frappe de précision', description = 'Des avions bombardent en ligne l\'endroit que tu choisis sur la carte.' },
+        { id = 'harrier', kills = 7, rank = 14, target = 'map', label = 'Harrier', description = 'Bombarde l\'endroit que tu choisis sur la carte, puis reste sur place et tire.' },
         { id = 'helicopter', kills = 7, rank = 10, label = 'Hélicoptère d\'attaque', description = 'Un hélicoptère tourne au-dessus de la carte et tire sur les ennemis.' },
         { id = 'juggernaut', kills = 7, rank = 12, label = 'Juggernaut', description = 'Armure pleine et minigun jusqu\'à ta mort.' },
         { id = 'airdrop', kills = 8, rank = 17, target = 'aim', label = 'Largage d\'urgence', description = 'Quatre colis tombent là où tu vises.' },
         { id = 'pave_low', kills = 9, rank = 22, label = 'Pave Low', description = 'Un hélicoptère blindé, plus puissant et plus résistant.' },
-        { id = 'stealth', kills = 9, rank = 20, target = 'aim', label = 'Bombardier furtif', description = 'Un long tapis de bombes, sans repère ni alerte pour les ennemis.' },
+        { id = 'stealth', kills = 9, rank = 20, target = 'map', label = 'Bombardier furtif', description = 'Un long tapis de bombes, sans repère ni alerte pour les ennemis.' },
         { id = 'chopper_gunner', kills = 11, rank = 26, label = 'Hélico mitrailleur', description = 'Prends le minigun d\'un hélicoptère depuis ta tablette.' },
         { id = 'ac130', kills = 11, rank = 28, label = 'AC-130', description = 'Prends les trois canons d\'un AC-130 depuis ta tablette.' },
         { id = 'emp', kills = 15, rank = 34, duration = 60, label = 'EMP', description = 'Détruit les séries ennemies et bloque carte et séries pendant 60 s.' },
@@ -212,6 +213,9 @@ Config.Cod = {
     precision = { delay = 3, bombs = 8, length = 50.0, interval = 150, radius = 10.0, damage = 220, explosion = 5, plane = 'lazer', planes = 3, warn = true },
     stealth = { delay = 4, bombs = 16, length = 130.0, interval = 120, radius = 11.0, damage = 240, explosion = 5, plane = 'hydra', planes = 1, warn = false },
     harrierBombing = { delay = 3, bombs = 6, length = 36.0, interval = 150, radius = 9.0, damage = 200, explosion = 5, plane = 'hydra', planes = 2, warn = true },
+    -- Vue du dessus pour choisir le point d'un bombardement. height : m au-dessus du milieu de la carte ;
+    -- steer : déplacement à la souris, en proportion de la hauteur ; steerKeys : m/s avec les touches ; turnStep : degrés par cran de molette
+    strikeMap = { height = 140.0, fov = 50.0, steer = 0.14, steerKeys = 40.0, turnStep = 15.0 },
 
     -- Colis : ils tombent là où le joueur vise et s'ouvrent en maintenant la touche d'action
     crates = {
@@ -236,6 +240,7 @@ Config.Cod = {
     --   orbit : tourne autour du milieu de la carte (rayon en part de celui de la carte), orbitSpeed : radians/s
     --   height : m au-dessus du point ; aircraft : modèle de véhicule, sinon model et base sont des objets
     --   interval : ms entre deux tirs ; damage : par tir ; accuracy : chance de toucher ; range : m (toute la carte sinon)
+    --   burst : tirs d'une rafale, suivie d'une pause de burstPause ms
     --   piloted : le joueur tire lui-même depuis sa tablette (weapons, cooldown en ms ; explosion : type de GTA)
     units = {
         sentry = {
@@ -244,15 +249,15 @@ Config.Cod = {
         },
         helicopter = {
             aircraft = 'buzzard', orbit = 0.65, orbitSpeed = 0.18, height = 50.0, blip = 43,
-            duration = 45, hits = 45, interval = 240, damage = 22, accuracy = 0.55, label = 'Hélicoptère d\'attaque',
+            duration = 45, hits = 30, interval = 240, damage = 14, accuracy = 0.45, burst = 6, burstPause = 3000, label = 'Hélicoptère d\'attaque',
         },
         pave_low = {
             aircraft = 'savage', orbit = 0.5, orbitSpeed = 0.15, height = 55.0, blip = 43,
-            duration = 60, hits = 110, interval = 160, damage = 26, accuracy = 0.6, label = 'Pave Low',
+            duration = 60, hits = 110, interval = 160, damage = 16, accuracy = 0.5, burst = 8, burstPause = 2500, label = 'Pave Low',
         },
         harrier = {
             aircraft = 'hydra', height = 40.0, blip = 16,
-            duration = 30, hits = 40, interval = 200, damage = 24, accuracy = 0.55, label = 'Harrier',
+            duration = 30, hits = 40, interval = 200, damage = 14, accuracy = 0.45, burst = 6, burstPause = 3000, label = 'Harrier',
         },
         chopper_gunner = {
             aircraft = 'annihilator', orbit = 1.0, orbitSpeed = 0.12, height = 65.0, blip = 43, fov = 55.0,

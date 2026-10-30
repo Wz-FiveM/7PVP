@@ -57,6 +57,7 @@ function CodUnits.start(match, source, kind, point, heading)
         endsAt = now + settings.duration * 1000,
         hits = settings.hits,
         nextShot = 0,
+        shots = 0,
         ready = {},
         heading = heading or 0.0,
     }
@@ -160,7 +161,12 @@ function CodUnits.fire(match, source, id, targetId)
 
     local coords = GetEntityCoords(GetPlayerPed(target))
     if settings.range and #(coords - vector3(unit.x, unit.y, unit.z)) > settings.range + CodUnits.RANGE_SLACK then return end
-    unit.nextShot = now + settings.interval - CodUnits.SHOT_SLACK
+    unit.shots = unit.shots + 1
+    if settings.burst and unit.shots % settings.burst == 0 then
+        unit.nextShot = now + settings.burstPause
+    else
+        unit.nextShot = now + settings.interval - CodUnits.SHOT_SLACK
+    end
 
     local hit = math.random() <= settings.accuracy
     local offset = hit and 0.0 or CodUnits.MISS_OFFSET

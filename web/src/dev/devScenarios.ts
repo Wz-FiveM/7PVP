@@ -702,6 +702,7 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : tableau des scores', run: () => sendNui({ action: 'codScoreboard', data: { open: true } }) },
   { label: 'CoD : fermer le tableau', run: () => sendNui({ action: 'codScoreboard', data: { open: false } }) },
   { label: 'CoD : série', run: () => sendNui({ action: 'codStreakEarned', data: { label: 'Drone' } }) },
+  { label: 'CoD : tir d\'unité', run: () => sendNui({ action: 'codGunfire', data: { volume: 0.6 } }) },
   {
     label: 'CoD : médaille (triplé)',
     run: () => {

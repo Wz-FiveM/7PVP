@@ -16,6 +16,8 @@ local CodEffects = PVP.use('CodEffects')
 local CodLoading = PVP.use('CodLoading')
 local CodLoadout = PVP.use('CodLoadout')
 local CodTablet = PVP.use('CodTablet')
+local CodPredator = PVP.use('CodPredator')
+local CodStrikeMap = PVP.use('CodStrikeMap')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local Callback = PVP.use('Callback')
@@ -67,7 +69,7 @@ Cod.cam = nil -- caméra du menu
 Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
 Cod.weapons = {}
----@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front')
+---@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front', 'map')
 Cod.streakTargets = {}
 
 function Cod.init()
@@ -567,6 +569,7 @@ function Cod.loop()
             Cod.drawMates()
             if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
             CodUnits.frame(now)
+            CodPredator.frame(now)
             if not Cod.ended and not CodLoadout.isActive() then
                 CodCrates.frame(now)
                 CodObjectives.frame()
@@ -658,9 +661,12 @@ end
 function Cod.useStreak()
     if not Cod.isActive() or Cod.ended or not State.isAlive() or IsNuiFocused() then return end
     if CodTablet.isActive() or CodLoading.isActive() or CodObjectives.acting or #Cod.streakItems == 0 then return end
-    local mode = Cod.streakTargets[Cod.streakItems[#Cod.streakItems].id]
+    local streak = Cod.streakItems[#Cod.streakItems]
+    local mode = Cod.streakTargets[streak.id]
     local target = nil
-    if mode == 'aim' then
+    if mode == 'map' then
+        return CodStrikeMap.open(streak)
+    elseif mode == 'aim' then
         target = CodEffects.aimPoint()
     elseif mode == 'front' then
         target = CodEffects.frontPoint()
@@ -693,6 +699,7 @@ function Cod.clearMatch()
     CodLoadout.close()
     CodLoading.stop()
     CodTablet.stop()
+    CodPredator.clear()
     CodUnits.clear()
     CodCrates.clear()
     Cod.setPicker(false)

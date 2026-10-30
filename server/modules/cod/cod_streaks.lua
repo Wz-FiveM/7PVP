@@ -11,6 +11,7 @@ local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
 CodStreaks.PREDATOR_SLACK = 10 -- secondes de marge sur la durée du vol (saccades, latence)
+CodStreaks.PREDATOR_MOVE_INTERVAL = 80 -- ms minimum entre deux positions du missile acceptées
 CodStreaks.BLAST_FALLOFF = 0.8 -- part des dégâts perdue au bord d'une explosion
 
 ---Séries actives de la partie.
@@ -349,6 +350,25 @@ function CodStreaks.startPredator(match, source)
     local flight = Config.Cod.tabletTime + settings.height / settings.speed + CodStreaks.PREDATOR_SLACK
     match.stats[source].predatorUntil = GetGameTimer() + flight * 1000
     match:broadcast(Events.client.codEffect, { type = 'predatorCall', pilot = source })
+end
+
+---Position du missile, pour que les autres joueurs le voient arriver.
+---@param match table
+---@param source integer
+---@param target any
+function CodStreaks.predatorMove(match, source, target)
+    local stats = match.stats[source]
+    if match.phase ~= 'running' or not stats or not stats.alive or not stats.predatorUntil then return end
+    local now = GetGameTimer()
+    if now >= stats.predatorUntil or now < (stats.nextPredatorMove or 0) then return end
+    local point = CodStreaks.arenaPoint(match, target)
+    if not point then return end
+    stats.nextPredatorMove = now + CodStreaks.PREDATOR_MOVE_INTERVAL
+    for _, other in ipairs(match.players) do
+        if other ~= source then
+            TriggerClientEvent(Events.client.codEffect, other, { type = 'predatorMove', pilot = source, x = point.x, y = point.y, z = point.z })
+        end
+    end
 end
 
 ---Impact annoncé par le pilote : valable une fois, pendant le vol, s'il est toujours en vie.

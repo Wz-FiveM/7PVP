@@ -7,6 +7,7 @@ local CodUnits = PVP.define('CodUnits')
 local Cod = PVP.use('Cod')
 local CodEffects = PVP.use('CodEffects')
 local CodGunner = PVP.use('CodGunner')
+local Nui = PVP.use('Nui')
 local PedUtils = PVP.use('PedUtils')
 local Events = PVP.use('Events')
 
@@ -25,6 +26,7 @@ CodUnits.MUZZLE_BONE = 'gun_muzzle'
 CodUnits.MUZZLE_FLASH = 'muz_minigun'
 CodUnits.FLASH_SCALE = 1.5
 CodUnits.TRACER_TIME = 70 -- ms d'affichage d'une traçante
+CodUnits.GUN_RANGE = 250.0 -- m : au-delà, le tir ne s'entend plus
 CodUnits.DESTROYED_EXPLOSION = 5
 CodUnits.COLOR_FRIEND = 3
 CodUnits.COLOR_ENEMY = 1
@@ -193,6 +195,10 @@ function CodUnits.showShot(unit, muzzle, direction, to)
             0.0, 0.0, GetHeadingFromVector_2d(direction.x, direction.y) + 90.0, CodUnits.FLASH_SCALE, false, false, false)
     end
     CodUnits.tracers[#CodUnits.tracers + 1] = { from = start, to = to, untilAt = GetGameTimer() + CodUnits.TRACER_TIME }
+    if not unit.settings.piloted then
+        local proximity = 1.0 - #(GetEntityCoords(PlayerPedId()) - start) / CodUnits.GUN_RANGE
+        if proximity > 0.0 then Nui.send('codGunfire', { volume = proximity * proximity }) end
+    end
 end
 
 ---@param now integer

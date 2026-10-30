@@ -170,6 +170,7 @@ client_scripts {
     'client/modules/cod/cod_loading.lua',
     'client/modules/cod/cod_tablet.lua',
     'client/modules/cod/cod_predator.lua',
+    'client/modules/cod/cod_strike_map.lua',
     'client/modules/cod/cod_units.lua',
     'client/modules/cod/cod_gunner.lua',
     'client/modules/cod/cod_crates.lua',

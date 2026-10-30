@@ -69,6 +69,10 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then CodStreaks.use(match, source, target) end
     end)
+    RegisterNetEvent(Events.server.codPredatorMove, function(target)
+        local match = CodService.matchOf(source)
+        if match then CodStreaks.predatorMove(match, source, target) end
+    end)
     RegisterNetEvent(Events.server.codPredatorImpact, function(target)
         local match = CodService.matchOf(source)
         if match then CodStreaks.predatorImpact(match, source, target) end
