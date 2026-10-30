@@ -1,7 +1,7 @@
 ---Mode Call of Duty côté client (server/modules/cod/) : menu du mode, placement aux apparitions, classe
 ---(armes et atouts), santé qui remonte, limite de la zone de combat, signalement de sa mort, HUD.
 ---Le serveur décide des kills, des scores et de la fin de partie. Les touches qu'il annule désynchronisent
----les joueurs : la protection d'apparition est donc appliquée ici, côté jeu.
+---les joueurs : la protection d'apparition et le tir allié sont donc d'abord bloqués ici, côté jeu.
 ---@class CodModule
 local Cod = PVP.define('Cod')
 local State = PVP.use('State')
@@ -48,6 +48,7 @@ Cod.perks = {} -- atouts de la vie en cours : [id] = true
 Cod.streakItems = {} -- séries disponibles (la dernière est utilisée en premier)
 Cod.mates = {} -- server ids des coéquipiers
 Cod.mateBlips = {} -- server id -> repère
+Cod.teamGroups = {} -- équipe -> groupe de relations du personnage
 Cod.protectedUntil = 0 -- GetGameTimer() de fin de la protection d'apparition, 0 sans protection
 Cod.ghosts = {} -- server id -> GetGameTimer() depuis lequel ce joueur vivant apparaît mort ici
 Cod.lastHealth = 0
@@ -64,6 +65,15 @@ function Cod.init()
     for _, list in pairs(Config.Cod.weapons) do
         for _, entry in ipairs(list) do Cod.weapons[entry.id] = entry end
     end
+    for _, team in ipairs({ 'alpha', 'bravo' }) do
+        local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
+        Cod.teamGroups[team] = group
+    end
+    local alpha, bravo = Cod.teamGroups.alpha, Cod.teamGroups.bravo
+    SetRelationshipBetweenGroups(0, alpha, alpha)
+    SetRelationshipBetweenGroups(0, bravo, bravo)
+    SetRelationshipBetweenGroups(5, alpha, bravo)
+    SetRelationshipBetweenGroups(5, bravo, alpha)
 
     RegisterNetEvent(Events.client.codOpen, function(data)
         Cod.exclusive(function() Cod.openMenu(data) end)
@@ -303,11 +313,22 @@ function Cod.placeAt(spawn, class, appearance, protection)
     Spawn.spawnAt(spawn, appearance)
     if not Cod.match then return end
     Cod.applyClass(class)
+    Cod.applyTeam(Cod.match.team)
     Cod.protectedUntil = GetGameTimer() + protection * 1000
     SetEntityInvincible(PlayerPedId(), true)
     Cod.outside = false
     Nui.send('codOutside', { outside = false })
     Nui.send('codSpawn', { protection = protection })
+end
+
+---Le jeu refuse lui-même le tir sur un allié : le serveur n'a pas de touche à annuler. Il faut les trois
+---réglages ensemble ; sans l'hostilité entre équipes (Cod.init), les ennemis seraient protégés aussi.
+---@param team string|false 'alpha', 'bravo', false en chacun pour soi ou hors partie
+function Cod.applyTeam(team)
+    local ped = PlayerPedId()
+    SetPedRelationshipGroupHash(ped, Cod.teamGroups[team] or GetHashKey('PLAYER'))
+    SetCanAttackFriendly(ped, not team, false)
+    NetworkSetFriendlyFireOption(not team)
 end
 
 ---Fin de la protection d'apparition : au bout du temps, ou au premier tir du joueur.
@@ -619,6 +640,7 @@ function Cod.clearMatch()
     Cod.clearMateBlips()
     Cod.ghosts = {}
     if Cod.protectedUntil ~= 0 then Cod.endProtection() end
+    Cod.applyTeam(false)
     Death.stopSpectate()
     CodObjectives.clear()
     CodEffects.clear()
