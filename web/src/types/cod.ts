@@ -6,6 +6,8 @@ export interface CodCatalogEntry {
   category: string;
   rank: number;
   ammo: number;
+  /** pour ce qui n'est pas une arme (insertion tactique) */
+  description?: string;
 }
 export interface CodPerk {
   id: string;
@@ -84,6 +86,7 @@ export interface CodCatalog {
   primary: CodCatalogEntry[];
   secondary: CodCatalogEntry[];
   equipment: CodCatalogEntry[];
+  tactical: CodCatalogEntry[];
   perks: CodPerk[];
   streaks: CodStreakInfo[];
   maxStreaks: number;
@@ -121,8 +124,22 @@ export interface CodClass {
   secondaryMods: CodWeaponMods;
   /** false : pas d'équipement */
   equipment: string | false;
+  /** false : pas d'équipement tactique */
+  tactical: string | false;
   /** un atout par niveau (1, 2, 3) */
   perks: string[];
+}
+export interface CodChallenge {
+  id: string;
+  label: string;
+  target: number;
+  progress: number;
+  xp: number;
+}
+export interface CodChallengeGroup {
+  /** secondes avant les défis suivants */
+  resetIn: number;
+  items: CodChallenge[];
 }
 /** Choix du joueur */
 export interface CodPlayerCardChoice {
@@ -165,6 +182,7 @@ export interface CodProfile {
   weapons: Record<string, CodWeaponProgress>;
   /** bonus d'XP en cours (commande admin /codxp) */
   xpBoost: { factor: number; minutes: number } | false;
+  challenges: { daily: CodChallengeGroup; weekly: CodChallengeGroup };
   card: CodPlayerCardChoice;
   /** personnage porté ; false : celui du joueur */
   operator: string | false;

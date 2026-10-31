@@ -76,6 +76,8 @@ Config.Cod = {
     classKey = 'B',
     primaryKey = '1',
     secondaryKey = '2',
+    equipmentKey = '3',
+    tacticalKey = '4',
 
     knife = 'WEAPON_KNIFE',
 
@@ -173,6 +175,7 @@ Config.Cod = {
         rotate = 60, -- secondes avant que la zone change de place
         scoreInterval = 1, -- secondes entre deux points
         xpEvery = 5, -- points marqués entre deux gains d'XP (xp.zoneTick)
+        objectiveEvery = 20, -- points marqués pour compter un objectif dans les défis
     },
 
     -- Hardcore : part de la vie d'un personnage à l'apparition
@@ -248,9 +251,18 @@ Config.Cod = {
         -- id = false : pas d'équipement
         equipment = {
             { id = 'WEAPON_GRENADE', label = 'Grenade', category = 'Équipement', rank = 1, ammo = 2 },
-            { id = 'WEAPON_SMOKEGRENADE', label = 'Fumigène', category = 'Équipement', rank = 4, ammo = 2 },
             { id = 'WEAPON_MOLOTOV', label = 'Cocktail Molotov', category = 'Équipement', rank = 9, ammo = 2 },
             { id = 'WEAPON_STICKYBOMB', label = 'Charge collante', category = 'Équipement', rank = 17, ammo = 2 },
+            { id = 'WEAPON_PROXMINE', label = 'Mine de proximité', category = 'Équipement', rank = 23, ammo = 2 },
+        },
+        -- item = true : pas une arme, la touche de l'équipement tactique déclenche son effet
+        tactical = {
+            { id = 'WEAPON_SMOKEGRENADE', label = 'Fumigène', category = 'Tactique', rank = 4, ammo = 2 },
+            { id = 'WEAPON_FLARE', label = 'Fusée éclairante', category = 'Tactique', rank = 12, ammo = 2 },
+            {
+                id = 'insertion', label = 'Insertion tactique', category = 'Tactique', rank = 15, ammo = 1, item = true,
+                description = 'Marque ta position : tu y réapparais une fois à ta prochaine mort.',
+            },
         },
     },
 
@@ -259,16 +271,24 @@ Config.Cod = {
         { id = 'lightweight', tier = 1, rank = 1, label = 'Agilité', description = 'Tu cours plus vite (+10 %).' },
         { id = 'scavenger', tier = 1, rank = 6, label = 'Charognard', description = 'Chaque kill recharge tes munitions.' },
         { id = 'flak', tier = 1, rank = 15, label = 'Gilet pare-balles', description = 'Tu apparais avec 40 points d\'armure.' },
+        { id = 'ammo_belt', tier = 1, rank = 11, label = 'Cartouchière', description = 'Moitié plus de munitions au départ.' },
         { id = 'hardline', tier = 2, rank = 1, label = 'Détermination', description = 'Tes séries demandent un kill de moins.' },
         { id = 'stopping', tier = 2, rank = 13, label = 'Force de frappe', description = 'Dégâts de tes balles : +15 %.' },
         { id = 'vitality', tier = 2, rank = 21, label = 'Vitalité', description = 'Ta santé remonte deux fois plus tôt.' },
+        { id = 'blade', tier = 2, rank = 23, label = 'Lame affûtée', description = 'Dégâts de ton couteau : ×2.' },
+        { id = 'demolition', tier = 2, rank = 29, label = 'Démolition', description = 'Une charge de plus de chaque équipement.' },
         { id = 'marathon', tier = 3, rank = 1, label = 'Marathon', description = 'Tu ne t\'essouffles jamais.' },
         { id = 'ghost', tier = 3, rank = 19, label = 'Fantôme', description = 'Tu restes invisible aux drones ennemis.' },
         { id = 'revenge', tier = 3, rank = 25, label = 'Vengeance', description = 'Ton tueur apparaît sur ta carte après ta mort.' },
+        { id = 'specialist', tier = 3, rank = 33, label = 'Spécialiste', description = 'Tu captures, poses et désamorces moitié plus vite.' },
     },
     flakArmor = 40,
     lightweightSpeed = 1.1,
     stoppingPower = 1.15,
+    ammoBeltFactor = 1.5,
+    bladeDamage = 2.0,
+    demolitionBonus = 1,
+    specialistSpeed = 1.5,
 
     -- Séries d'éliminations : `kills` sans mourir pour en gagner une, utilisée avec streakKey.
     -- Chaque joueur en équipe jusqu'à maxStreaks.
@@ -427,6 +447,8 @@ Config.Cod = {
         'Au rang maximum, l\'onglet Prestige te fait repartir du rang 1 avec un nouvel insigne.',
         'Les kills font monter le niveau de ton arme : accessoires et camouflages se débloquent dans l\'éditeur de classe.',
         'En Point stratégique, tenir la zone rapporte plus que les kills : surveille son prochain déplacement.',
+        'Les défis du jour et de la semaine donnent beaucoup d\'XP : regarde-les dans l\'onglet Défis.',
+        'L\'équipement se sort avec ses propres touches, comme les armes : 3 et 4 par défaut.',
         'En Hardcore, la carte ne revient que pendant le balayage d\'un drone.',
         'En Élimination confirmée, un kill ne compte que si un allié ou toi ramassez la plaque de la victime.',
         'En Course aux armes, le couteau ne fait pas avancer mais renvoie ta victime à son arme précédente.',

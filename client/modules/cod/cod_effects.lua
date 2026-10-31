@@ -36,6 +36,7 @@ CodEffects.HANDLERS = {
     empBlast = 'onEmpBlast',
     hurt = 'onHurt',
     juggernaut = 'onJuggernaut',
+    insertion = 'onInsertion',
     streakEarned = 'onStreakEarned',
     nukeCall = 'onNukeCall',
     nukeBlast = 'onNukeBlast',
@@ -62,6 +63,7 @@ function CodEffects.applyPerks(perks)
     local player = PlayerId()
     SetRunSprintMultiplierForPlayer(player, perks.lightweight and Config.Cod.lightweightSpeed or 1.0)
     SetPlayerWeaponDamageModifier(player, perks.stopping and Config.Cod.stoppingPower or 1.0)
+    SetPlayerMeleeWeaponDamageModifier(player, perks.blade and Config.Cod.bladeDamage or 1.0)
 end
 
 -- ---------------------------------------------------------------------------
@@ -99,6 +101,7 @@ function CodEffects.clear()
         if DoesBlipExist(entry.blip) then RemoveBlip(entry.blip) end
     end
     CodEffects.blips = {}
+    CodEffects.clearInsertion()
     CodEffects.jamUntil = 0
     CodEffects.radarUntil = 0
     if CodEffects.jammed then
@@ -129,6 +132,20 @@ end
 ---@param data { duration: integer }
 function CodEffects.onJam(data)
     CodEffects.jamUntil = GetGameTimer() + data.duration * 1000
+end
+
+---Insertion tactique posée : repère sur la carte du joueur, jusqu'à sa prochaine apparition.
+---@param data { x: number, y: number, z: number }
+function CodEffects.onInsertion(data)
+    CodEffects.clearInsertion()
+    CodEffects.insertionBlip = AddBlipForCoord(data.x, data.y, data.z)
+    SetBlipColour(CodEffects.insertionBlip, 3)
+    SetBlipSprite(CodEffects.insertionBlip, 478)
+end
+
+function CodEffects.clearInsertion()
+    if CodEffects.insertionBlip and DoesBlipExist(CodEffects.insertionBlip) then RemoveBlip(CodEffects.insertionBlip) end
+    CodEffects.insertionBlip = nil
 end
 
 ---Atout Vengeance : le tueur reste sur la carte quelques secondes.

@@ -6,7 +6,7 @@ import type { CodCatalog, CodCatalogEntry, CodClass, CodPerk, CodProfile, CodWea
 import { CodGunsmith, type GunsmithPanel } from './CodGunsmith';
 import { BracketButton, isUnlocked, WeaponImage } from './CodParts';
 
-type Slot = 'primary' | 'secondary' | 'equipment' | 'perk1' | 'perk2' | 'perk3';
+type Slot = 'primary' | 'secondary' | 'equipment' | 'tactical' | 'perk1' | 'perk2' | 'perk3';
 
 const PANELS: { id: 'weapon' | GunsmithPanel; label: string }[] = [
   { id: 'weapon', label: 'Arme' },
@@ -18,6 +18,7 @@ const SLOTS: { id: Slot; label: string }[] = [
   { id: 'primary', label: 'Arme principale' },
   { id: 'secondary', label: 'Arme secondaire' },
   { id: 'equipment', label: 'Équipement' },
+  { id: 'tactical', label: 'Équipement tactique' },
   { id: 'perk1', label: 'Atout 1' },
   { id: 'perk2', label: 'Atout 2' },
   { id: 'perk3', label: 'Atout 3' },
@@ -35,12 +36,15 @@ interface Option {
 }
 
 function optionsFor(slot: Slot, catalog: CodCatalog): Option[] {
-  const fromWeapon = (entry: CodCatalogEntry): Option => ({ id: entry.id, label: entry.label, group: entry.category, rank: entry.rank, weapon: true });
+  const fromWeapon = (entry: CodCatalogEntry): Option => ({ id: entry.id, label: entry.label, group: entry.category, rank: entry.rank, description: entry.description, weapon: true });
   const fromPerk = (entry: CodPerk): Option => ({ id: entry.id, label: entry.label, group: '', rank: entry.rank, description: entry.description, weapon: false });
   if (slot === 'primary') return catalog.primary.map(fromWeapon);
   if (slot === 'secondary') return catalog.secondary.map(fromWeapon);
   if (slot === 'equipment') {
     return [{ id: false, label: 'Aucun', group: '', rank: 1, weapon: false }, ...catalog.equipment.map(fromWeapon)];
+  }
+  if (slot === 'tactical') {
+    return [{ id: false, label: 'Aucun', group: '', rank: 1, weapon: false }, ...catalog.tactical.map(fromWeapon)];
   }
   return catalog.perks.filter((perk) => perk.tier === perkTier(slot)).map(fromPerk);
 }
@@ -49,6 +53,7 @@ function slotValue(slot: Slot, draft: CodClass): string | false {
   if (slot === 'primary') return draft.primary;
   if (slot === 'secondary') return draft.secondary;
   if (slot === 'equipment') return draft.equipment;
+  if (slot === 'tactical') return draft.tactical;
   return draft.perks[perkTier(slot) - 1];
 }
 
@@ -59,6 +64,7 @@ function withSlot(slot: Slot, draft: CodClass, value: string | false): CodClass 
   if (slot === 'primary') return value === draft.primary ? draft : { ...draft, primary: value as string, primaryMods: NO_MODS };
   if (slot === 'secondary') return value === draft.secondary ? draft : { ...draft, secondary: value as string, secondaryMods: NO_MODS };
   if (slot === 'equipment') return { ...draft, equipment: value };
+  if (slot === 'tactical') return { ...draft, tactical: value };
   const perks = [...draft.perks];
   perks[perkTier(slot) - 1] = value as string;
   return { ...draft, perks };

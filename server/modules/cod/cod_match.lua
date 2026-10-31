@@ -29,6 +29,8 @@
 ---@field holding boolean touche d'objectif maintenue (bombe)
 ---@field actionProgress number secondes de pose ou de désamorçage
 ---@field nextResync integer|nil GetGameTimer() à partir duquel une resynchronisation est permise
+---@field insertion vector4|nil insertion tactique posée : prochain point d'apparition
+---@field insertionPlaced boolean|nil déjà posée pendant cette vie
 ---@field gunLevel integer|nil arme en cours (Course aux armes)
 ---@field gunPrevious string|nil arme précédente (Course aux armes)
 ---@field gunPreviousUntil integer|nil GetGameTimer() jusqu'où elle compte encore
@@ -40,6 +42,7 @@ local CodStreaks = PVP.use('CodStreaks')
 local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
+local CodChallenges = PVP.use('CodChallenges')
 local CodService = PVP.use('CodService')
 local PlayerService = PVP.use('PlayerService')
 local Logger = PVP.use('Logger')
@@ -300,11 +303,32 @@ function CodMatch:respawn(source, ownSide, delay)
     stats.respawnReady = false
     stats.class = self:classOf(source)
     stats.protectedUntil = GetGameTimer() + protection * 1000
+    -- Un retour au point de départ (nouvelle manche) ne tient pas compte de l'insertion tactique
+    local insertion = not ownSide and stats.insertion or nil
+    stats.insertion = nil
+    stats.insertionPlaced = false
     TriggerClientEvent(Events.client.codSpawn, source, {
-        spawn = self:chooseSpawn(source, ownSide == true),
+        spawn = insertion or self:chooseSpawn(source, ownSide == true),
         class = stats.class,
         protection = protection,
     })
+end
+
+---Insertion tactique : la position vient du serveur, le joueur y réapparaîtra une fois.
+---@param source integer
+function CodMatch:placeInsertion(source)
+    local stats = self.stats[source]
+    if self.phase ~= 'running' or not stats or not stats.alive or stats.class.tactical ~= 'insertion' then return end
+    if stats.insertionPlaced or not self.rules.canRespawn(self) then return end
+    local ped = GetPlayerPed(source)
+    if ped == 0 then return end
+    local coords = GetEntityCoords(ped)
+    if #(coords.xy - self.arena.center.xy) > self.arena.radius then return end
+
+    stats.insertion = vector4(coords.x, coords.y, coords.z, GetEntityHeading(ped))
+    stats.insertionPlaced = true
+    TriggerClientEvent(Events.client.codEffect, source, { type = 'insertion', x = coords.x, y = coords.y, z = coords.z })
+    TriggerClientEvent(Events.client.codNotice, source, { text = Locale.t('Insertion tactique posée'), friendly = true })
 end
 
 ---Fin de l'écran de choix de classe : première apparition, de son côté de la carte.
@@ -469,6 +493,16 @@ function CodMatch:award(source, amount, label)
     TriggerClientEvent(Events.client.codScore, source, { xp = amount, label = label })
 end
 
+---Compte une action pour les défis du joueur : ceux qu'elle termine donnent leur XP tout de suite.
+---@param source integer
+---@param stat string
+function CodMatch:track(source, stat)
+    for _, entry in ipairs(CodChallenges.add(source, stat, 1)) do
+        self:award(source, entry.xp, Locale.t('Défi terminé'))
+        TriggerClientEvent(Events.client.codNotice, source, { text = Locale.t('Défi terminé : %s', Locale.t(entry.label)), friendly = true })
+    end
+end
+
 ---Médaille au centre de l'écran du joueur.
 ---@param source integer
 ---@param id string
@@ -544,6 +578,7 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     if killer then
         self:rewardKill(killer, source, headshot == true)
         if weaponId then self:rewardWeapon(killer, weaponId, headshot == true) end
+        if weaponId == Config.Cod.knife then self:track(killer, 'knife') end
     end
     if running then self:rewardAssists(source, killer) end
 
@@ -713,7 +748,11 @@ function CodMatch:rewardKill(killer, source, headshot)
     local now = GetGameTimer()
     stats.kills = stats.kills + 1
     self:award(killer, xp.kill, Locale.t('Ennemi éliminé'))
-    if headshot then self:award(killer, xp.headshot, Locale.t('Tir à la tête')) end
+    self:track(killer, 'kills')
+    if headshot then
+        self:award(killer, xp.headshot, Locale.t('Tir à la tête'))
+        self:track(killer, 'headshots')
+    end
 
     if not self.firstBlood then
         self.firstBlood = true
@@ -734,6 +773,7 @@ function CodMatch:rewardKill(killer, source, headshot)
         self:award(killer, xp.multiKill * (stats.multiKill - 1), Locale.t(medal.label))
         self:medal(killer, medal.id, medal.label)
         self:card(killer, 'medal', medal.id, medal.label)
+        self:track(killer, 'multikills')
     end
 
     if self:hasPerk(killer, 'scavenger') then TriggerClientEvent(Events.client.codScavenge, killer) end
@@ -771,6 +811,7 @@ function CodMatch:rewardAssists(source, killer)
         if shooter ~= killer and stats and now - at <= Config.Cod.assistWindow * 1000 then
             stats.assists = stats.assists + 1
             self:award(shooter, Config.Cod.xp.assist, Locale.t('Assistance'))
+            self:track(shooter, 'assists')
         end
     end
     self.stats[source].damagedBy = {}
@@ -824,6 +865,11 @@ function CodMatch:finish(winner, reason, noKillcam)
     self.phase = 'ended'
     self:broadcast(Events.client.codEnding)
 
+    -- Avant le tableau et le bilan : un défi terminé ici compte dans le score et l'XP de la partie
+    for _, source in ipairs(self.players) do
+        self:track(source, 'matches')
+        if winner ~= nil and self:sideKey(source) == winner then self:track(source, 'wins') end
+    end
     local board = self:board()
     local results = {}
     for _, source in ipairs(self.players) do

@@ -96,6 +96,8 @@ function Pause.buildInfo()
             codStreak = Config.Cod.streakKey,
             codPrimary = Config.Cod.primaryKey,
             codSecondary = Config.Cod.secondaryKey,
+            codEquipment = Config.Cod.equipmentKey,
+            codTactical = Config.Cod.tacticalKey,
         },
     }
 end

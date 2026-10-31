@@ -75,6 +75,10 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then match:onDied(source, killerId, weapon, headshot) end
     end)
+    RegisterNetEvent(Events.server.codInsertion, function()
+        local match = CodService.matchOf(source)
+        if match then match:placeInsertion(source) end
+    end)
     RegisterNetEvent(Events.server.codKillcamClip, function(victim, clip)
         local match = CodService.matchOf(source)
         if match then match:killcamClip(source, victim, clip) end

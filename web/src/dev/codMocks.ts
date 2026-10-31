@@ -51,6 +51,10 @@ export const mockCodCatalog: CodCatalog = {
     { id: 'WEAPON_GRENADE', label: 'Grenade', category: 'Équipement', rank: 1, ammo: 2 },
     { id: 'WEAPON_MOLOTOV', label: 'Cocktail Molotov', category: 'Équipement', rank: 9, ammo: 2 },
   ],
+  tactical: [
+    { id: 'WEAPON_SMOKEGRENADE', label: 'Fumigène', category: 'Tactique', rank: 4, ammo: 2 },
+    { id: 'insertion', label: 'Insertion tactique', category: 'Tactique', rank: 15, ammo: 1, description: 'Marque ta position : tu y réapparais une fois à ta prochaine mort.' },
+  ],
   perks: [
     { id: 'lightweight', tier: 1, rank: 1, label: 'Agilité', description: 'Tu cours plus vite (+10 %).' },
     { id: 'scavenger', tier: 1, rank: 6, label: 'Charognard', description: 'Chaque kill recharge tes munitions.' },
@@ -139,7 +143,7 @@ export const mockCodCatalog: CodCatalog = {
 };
 
 const defaultPerks = ['lightweight', 'hardline', 'marathon'];
-const noMods: Pick<CodClass, 'primaryMods' | 'secondaryMods'> = { primaryMods: { attachments: [], camo: false }, secondaryMods: { attachments: [], camo: false } };
+const noMods: Pick<CodClass, 'primaryMods' | 'secondaryMods' | 'tactical'> = { primaryMods: { attachments: [], camo: false }, secondaryMods: { attachments: [], camo: false }, tactical: false };
 
 export const mockCodProfile: CodProfile = {
   name: 'Wezor',
@@ -162,7 +166,7 @@ export const mockCodProfile: CodProfile = {
   classes: [
     {
       name: 'Assaut', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks,
-      primaryMods: { attachments: ['scope', 'mag'], camo: 'army' }, secondaryMods: { attachments: [], camo: false },
+      primaryMods: { attachments: ['scope', 'mag'], camo: 'army' }, secondaryMods: { attachments: [], camo: false }, tactical: 'WEAPON_SMOKEGRENADE',
     },
     { name: 'Mitraillette', primary: 'WEAPON_SMG', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks, ...noMods },
     { name: 'Pompe', primary: 'WEAPON_PUMPSHOTGUN', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks, ...noMods },
@@ -171,6 +175,24 @@ export const mockCodProfile: CodProfile = {
   ],
   streaks: ['uav', 'predator'],
   xpBoost: { factor: 2, minutes: 150 },
+  challenges: {
+    daily: {
+      resetIn: 18600,
+      items: [
+        { id: 'd_kills', label: 'Élimine 25 ennemis', target: 25, progress: 25, xp: 1000 },
+        { id: 'd_objective', label: 'Accomplis 5 objectifs (drapeau, point, plaque, bombe)', target: 5, progress: 2, xp: 1200 },
+        { id: 'd_wins', label: 'Gagne une partie', target: 1, progress: 0, xp: 1000 },
+      ],
+    },
+    weekly: {
+      resetIn: 280800,
+      items: [
+        { id: 'w_kills', label: 'Élimine 200 ennemis', target: 200, progress: 92, xp: 6000 },
+        { id: 'w_headshots', label: 'Réussis 60 tirs à la tête', target: 60, progress: 31, xp: 7000 },
+        { id: 'w_wins', label: 'Gagne 7 parties', target: 7, progress: 3, xp: 7000 },
+      ],
+    },
+  },
   weapons: {
     WEAPON_CARBINERIFLE: { kills: 92, headshots: 31, level: 4, into: 17, needed: 45 },
     WEAPON_SMG: { kills: 12, headshots: 2, level: 1, into: 12, needed: 15 },

@@ -74,8 +74,11 @@ Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
 Cod.DEAD_HEALTH = 100 -- GTA : un personnage meurt à cette santé
 Cod.HUD_RETICLE = 14
+Cod.CONTROL_THROW = 58 -- lancer de GTA, sur la même touche que les séries : l'équipement a ses propres touches
 Cod.weapons = {}
 Cod.camos = {}
+---@type table<string, boolean> équipements à lancer ou à poser : leurs munitions ne suivent pas celles des armes
+Cod.throwables = {}
 ---@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front', 'map')
 Cod.streakTargets = {}
 
@@ -84,6 +87,11 @@ function Cod.init()
         for _, entry in ipairs(list) do Cod.weapons[entry.id] = entry end
     end
     for _, entry in ipairs(Config.CodGunsmith.camos) do Cod.camos[entry.id] = entry end
+    for _, list in ipairs({ Config.Cod.weapons.equipment, Config.Cod.weapons.tactical }) do
+        for _, entry in ipairs(list) do
+            if not entry.item then Cod.throwables[entry.id] = true end
+        end
+    end
     for _, entry in ipairs(Config.Cod.streaks) do Cod.streakTargets[entry.id] = entry.target end
     for _, team in ipairs({ 'alpha', 'bravo' }) do
         local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
@@ -177,6 +185,14 @@ function Cod.init()
         Cod.selectWeapon('secondary')
     end, false)
     RegisterKeyMapping('pvp_cod_secondary', Locale.t('Call of Duty : arme secondaire'), 'keyboard', Config.Cod.secondaryKey)
+    RegisterCommand('pvp_cod_equipment', function()
+        Cod.selectWeapon('equipment')
+    end, false)
+    RegisterKeyMapping('pvp_cod_equipment', Locale.t('Call of Duty : équipement'), 'keyboard', Config.Cod.equipmentKey)
+    RegisterCommand('pvp_cod_tactical', function()
+        Cod.selectWeapon('tactical')
+    end, false)
+    RegisterKeyMapping('pvp_cod_tactical', Locale.t('Call of Duty : équipement tactique'), 'keyboard', Config.Cod.tacticalKey)
 
     RegisterNUICallback('codQueue', function(data, cb)
         cb(Callback.await(Events.callbacks.codQueue, data.playlist) or { ok = false })
@@ -391,6 +407,7 @@ function Cod.respawn(data)
     if not Cod.match then return end
     CodLoadout.close()
     CodKillcam.stop(true)
+    CodEffects.clearInsertion()
     Cod.placeAt(data.spawn, data.class, nil, data.protection)
 end
 
@@ -453,6 +470,7 @@ function Cod.applyClass(class, keepHealth)
     SetPedInfiniteAmmoClip(ped, false)
     GiveWeaponToPed(ped, GetHashKey(Config.Cod.knife), 0, false, false)
     if class.equipment then Cod.giveWeapon(ped, class.equipment) end
+    if Cod.throwables[class.tactical] then Cod.giveWeapon(ped, class.tactical) end
     if class.secondary then Cod.giveWeapon(ped, class.secondary, class.secondaryMods) end
     local primary = Cod.giveWeapon(ped, class.primary, class.primaryMods)
     SetCurrentPedWeapon(ped, primary, true)
@@ -473,14 +491,23 @@ end
 ---@return integer hash
 function Cod.giveWeapon(ped, id, mods)
     local hash = GetHashKey(id)
-    local entry = Cod.weapons[id]
-    GiveWeaponToPed(ped, hash, entry and entry.ammo or 0, false, false)
+    local ammo = Cod.ammoOf(id)
+    GiveWeaponToPed(ped, hash, ammo, false, false)
     Cod.applyMods(ped, id, mods)
     SetPedInfiniteAmmo(ped, false, hash)
-    SetPedAmmo(ped, hash, entry and entry.ammo or 0)
+    SetPedAmmo(ped, hash, ammo)
     -- Un chargeur étendu commencerait à moitié vide
     if mods then SetAmmoInClip(ped, hash, GetMaxAmmoInClip(ped, hash, true)) end
     return hash
+end
+
+---@param id string arme du catalogue
+---@return integer munitions au départ, avec les atouts Cartouchière et Démolition
+function Cod.ammoOf(id)
+    local entry = Cod.weapons[id]
+    if not entry then return 0 end
+    if Cod.throwables[id] then return entry.ammo + (Cod.perks.demolition and Config.Cod.demolitionBonus or 0) end
+    return Cod.perks.ammo_belt and math.floor(entry.ammo * Config.Cod.ammoBeltFactor) or entry.ammo
 end
 
 ---Pose les accessoires et le camouflage sur une arme que le personnage possède déjà.
@@ -501,12 +528,16 @@ end
 
 ---Touches d'armes : celles de GTA (1 à 9) sont coupées partout (Shortcuts.DISABLED_CONTROLS).
 ---La mitrailleuse du Juggernaut prend la place de l'arme principale, sinon elle serait perdue en changeant d'arme.
----@param slot 'primary'|'secondary'
+---L'insertion tactique n'est pas une arme : le serveur la pose à la position du joueur.
+---@param slot 'primary'|'secondary'|'equipment'|'tactical'
 function Cod.selectWeapon(slot)
     if not Cod.isActive() or Cod.ended or not Cod.class or not State.isAlive() or IsNuiFocused() then return end
     if CodTablet.isActive() or CodLoading.isActive() or CodLoadout.isActive() or CodObjectives.acting then return end
-    -- Pas de seconde arme quand la liste de jeu impose les armes
+    -- Rien dans cet emplacement (ou armes imposées par la liste de jeu)
     if not Cod.class[slot] then return end
+    if Cod.weapons[Cod.class[slot]] and Cod.weapons[Cod.class[slot]].item then
+        return TriggerServerEvent(Events.server.codInsertion)
+    end
     local ped = PlayerPedId()
     local hash = GetHashKey(Cod.class[slot])
     local juggernaut = GetHashKey(Config.Cod.juggernaut.weapon)
@@ -518,9 +549,9 @@ end
 function Cod.refillAmmo()
     if not Cod.isActive() or not Cod.class then return end
     local ped = PlayerPedId()
-    for _, id in ipairs({ Cod.class.primary, Cod.class.secondary, Cod.class.equipment }) do
+    for _, id in ipairs({ Cod.class.primary, Cod.class.secondary, Cod.class.equipment, Cod.class.tactical }) do
         local entry = id and Cod.weapons[id]
-        if entry then SetPedAmmo(ped, GetHashKey(id), entry.ammo) end
+        if entry and not entry.item then SetPedAmmo(ped, GetHashKey(id), Cod.ammoOf(id)) end
     end
 end
 
@@ -641,6 +672,7 @@ function Cod.loop()
                 for _, control in ipairs(Cod.LOCKED_CONTROLS) do DisableControlAction(0, control, true) end
             end
             Cod.updateScoreboard()
+            DisableControlAction(0, Cod.CONTROL_THROW, true)
             if Cod.match.hardcore then Cod.applyHardcore(now) end
             CodKillcam.record(now)
             if not CodKillcam.isPlaying() then Cod.drawMates() end

@@ -32,6 +32,7 @@ export function CodLoadoutSelect({ data, profile, catalog, hud, onProfile }: Cod
     .sort((a, b) => a.kills - b.kills);
   const perks = current.perks.map((id) => catalog.perks.find((perk) => perk.id === id));
   const equipment = catalog.equipment.find((entry) => entry.id === current.equipment);
+  const tactical = catalog.tactical.find((entry) => entry.id === current.tactical);
 
   return (
     <div className="cod-deploy">
@@ -98,6 +99,7 @@ export function CodLoadoutSelect({ data, profile, catalog, hud, onProfile }: Cod
                 : <span className="cod-deploy__value cod-deploy__value--muted">{t('Aucun')}</span>}
             </div>
             {equipment && <span className="cod-deploy__name">{t(equipment.label)} × {equipment.ammo}</span>}
+            {tactical && <span className="cod-deploy__name">{t(tactical.label)} × {tactical.ammo}</span>}
           </div>
           <div className="cod-deploy__cells">
             {perks.map((perk, position) => (

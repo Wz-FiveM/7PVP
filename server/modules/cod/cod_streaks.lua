@@ -124,6 +124,7 @@ function CodStreaks.use(match, source, target)
     local streak = CodProfileService.streaks[id]
     CodStreaks.STARTERS[id](match, source, streak, target)
     match:card(source, 'streak', streak.id, streak.label)
+    match:track(source, 'streaks')
     CodStreaks.sendState(match, source)
 end
 

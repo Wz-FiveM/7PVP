@@ -34,6 +34,7 @@ Events.server = {
     codPilotFire = '7pvp:server:codPilotFire',
     codUnitHit = '7pvp:server:codUnitHit',
     codCrateTake = '7pvp:server:codCrateTake',
+    codInsertion = '7pvp:server:codInsertion',
     codKillcamClip = '7pvp:server:codKillcamClip',
     codKillcamOwn = '7pvp:server:codKillcamOwn',
     codKillcamDone = '7pvp:server:codKillcamDone',

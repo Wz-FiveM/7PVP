@@ -8,6 +8,7 @@
 ---@field primaryMods CodWeaponMods
 ---@field secondaryMods CodWeaponMods
 ---@field equipment string|false
+---@field tactical string|false équipement tactique
 ---@field perks string[] un atout par niveau (1, 2, 3)
 
 ---Accessoires et camouflage d'une arme dans une classe (config/cod_gunsmith.lua).
@@ -42,6 +43,7 @@
 ---@field classes CodClass[]
 ---@field streaks string[] séries choisies
 ---@field weapons table<string, CodWeaponProgress> par arme, gardé après un Prestige
+---@field challenges table<string, CodChallengeState> défis du jour et de la semaine
 ---@field card CodPlayerCard
 ---@field operator string|false personnage choisi (config/cod_operators.lua)
 ---@field owned table<string, boolean> personnages achetés
@@ -56,6 +58,7 @@
 ---@class CodProfileServiceModule
 local CodProfileService = PVP.define('CodProfileService')
 local CodOperatorService = PVP.use('CodOperatorService')
+local CodChallenges = PVP.use('CodChallenges')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -79,6 +82,7 @@ CodProfileService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_cod_profiles (
     player_card LONGTEXT NULL,
     operator_id VARCHAR(32) NULL,
     weapon_progress LONGTEXT NULL,
+    challenges LONGTEXT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (identifier),
     KEY idx_xp (xp)
@@ -93,6 +97,7 @@ CodProfileService.MIGRATIONS = {
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS banked_xp INT NOT NULL DEFAULT 0 AFTER prestige_unlocks',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS operator_id VARCHAR(32) NULL AFTER player_card',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS weapon_progress LONGTEXT NULL AFTER operator_id',
+    'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS challenges LONGTEXT NULL AFTER weapon_progress',
 }
 
 ---@type table<integer, CodProfile> par joueur connecté dans le mode
@@ -103,6 +108,7 @@ CodProfileService.leaderboardCache = nil
 CodProfileService.primary = {}
 CodProfileService.secondary = {}
 CodProfileService.equipment = {}
+CodProfileService.tactical = {}
 CodProfileService.perks = {}
 CodProfileService.streaks = {}
 CodProfileService.banners = {}
@@ -122,13 +128,14 @@ function CodProfileService.init()
     for _, entry in ipairs(Config.Cod.weapons.primary) do CodProfileService.primary[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.weapons.secondary) do CodProfileService.secondary[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.weapons.equipment) do CodProfileService.equipment[entry.id] = entry end
+    for _, entry in ipairs(Config.Cod.weapons.tactical) do CodProfileService.tactical[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.perks) do CodProfileService.perks[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.streaks) do CodProfileService.streaks[entry.id] = entry end
     for _, entry in ipairs(Config.CodPlayerCards.banners) do CodProfileService.banners[entry.id] = entry end
     for _, entry in ipairs(Config.CodPlayerCards.emblems) do CodProfileService.emblems[entry.id] = entry end
     for _, entry in ipairs(Config.CodGunsmith.attachments) do CodProfileService.attachments[entry.id] = entry end
     for _, entry in ipairs(Config.CodGunsmith.camos) do CodProfileService.camos[entry.id] = entry end
-    for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.perks, Config.Cod.streaks }) do
+    for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.weapons.tactical, Config.Cod.perks, Config.Cod.streaks }) do
         for _, entry in ipairs(list) do
             if entry.rank > 1 then CodProfileService.permanentCatalog[entry.id] = entry end
         end
@@ -238,7 +245,7 @@ end
 ---@return string[] noms à traduire
 function CodProfileService.unlocksBetween(from, to, profile)
     local access = CodProfileService.accessOf(profile)
-    local lists = { Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.perks, Config.Cod.streaks }
+    local lists = { Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.weapons.tactical, Config.Cod.perks, Config.Cod.streaks }
     -- Après un Prestige, les dessins de la carte sont déjà tous acquis
     if profile.prestige == 0 then
         lists[#lists + 1] = Config.CodPlayerCards.banners
@@ -283,6 +290,7 @@ function CodProfileService.load(player)
         classes = {},
         streaks = {},
         weapons = CodProfileService.cleanWeapons(CodProfileService.decode(row.weapon_progress)),
+        challenges = CodChallenges.clean(CodProfileService.decode(row.challenges)),
         operator = row.operator_id or false,
         owned = CodOperatorService.loadOwned(player.identifier),
     }
@@ -320,6 +328,7 @@ function CodProfileService.copyClass(class)
         primaryMods = { attachments = {}, camo = false },
         secondaryMods = { attachments = {}, camo = false },
         equipment = class.equipment,
+        tactical = false,
         perks = { table.unpack(class.perks) },
     }
 end
@@ -333,14 +342,14 @@ end
 ---@param profile CodProfile
 function CodProfileService.save(profile)
     MySQL.insert(
-        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card, operator_id, weapon_progress)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card, operator_id, weapon_progress, challenges)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE name = VALUES(name), xp = VALUES(xp), prestige = VALUES(prestige),
               prestige_tokens = VALUES(prestige_tokens), prestige_unlocks = VALUES(prestige_unlocks), banked_xp = VALUES(banked_xp),
               kills = VALUES(kills), deaths = VALUES(deaths),
               assists = VALUES(assists), wins = VALUES(wins), losses = VALUES(losses), best_streak = VALUES(best_streak),
               selected_class = VALUES(selected_class), classes = VALUES(classes), streaks = VALUES(streaks),
-              player_card = VALUES(player_card), operator_id = VALUES(operator_id), weapon_progress = VALUES(weapon_progress)]],
+              player_card = VALUES(player_card), operator_id = VALUES(operator_id), weapon_progress = VALUES(weapon_progress), challenges = VALUES(challenges)]],
         {
             profile.identifier, profile.name, profile.xp, profile.prestige, profile.tokens, json.encode(profile.permanent), profile.bankedXp,
             profile.kills, profile.deaths, profile.assists,
@@ -348,6 +357,7 @@ function CodProfileService.save(profile)
             json.encode(profile.classes), json.encode(profile.streaks), json.encode(profile.card),
             profile.operator or nil,
             json.encode(profile.weapons),
+            json.encode(profile.challenges),
         }
     )
 end
@@ -398,7 +408,14 @@ function CodProfileService.cleanClass(data, access)
     if not CodProfileService.unlocked(CodProfileService.secondary, data.secondary, access) then return nil end
     -- Le JSON n'a pas toujours gardé `false` : sans équipement = false
     local equipment = data.equipment or false
+    local tactical = data.tactical or false
+    -- Classes d'avant l'équipement tactique : le fumigène y était un équipement
+    if equipment and CodProfileService.tactical[equipment] then
+        tactical = tactical or equipment
+        equipment = false
+    end
     if equipment and not CodProfileService.unlocked(CodProfileService.equipment, equipment, access) then return nil end
+    if tactical and not CodProfileService.unlocked(CodProfileService.tactical, tactical, access) then return nil end
 
     local perks = {}
     for tier = 1, 3 do
@@ -414,6 +431,7 @@ function CodProfileService.cleanClass(data, access)
         primaryMods = CodProfileService.cleanMods(data.primary, data.primaryMods, access),
         secondaryMods = CodProfileService.cleanMods(data.secondary, data.secondaryMods, access),
         equipment = equipment,
+        tactical = tactical,
         perks = perks,
     }
 end
@@ -610,6 +628,8 @@ function CodProfileService.relockClass(class, default, access)
     -- false : le joueur a choisi de ne pas en prendre
     local equipment = class.equipment
     if equipment and not unlocked(CodProfileService.equipment, equipment, access) then equipment = default.equipment end
+    local tactical = class.tactical
+    if tactical and not unlocked(CodProfileService.tactical, tactical, access) then tactical = false end
     local perks = {}
     for tier = 1, 3 do
         perks[tier] = unlocked(CodProfileService.perks, class.perks[tier], access) and class.perks[tier] or default.perks[tier]
@@ -623,6 +643,7 @@ function CodProfileService.relockClass(class, default, access)
         primaryMods = CodProfileService.cleanMods(primary, primary == class.primary and class.primaryMods or nil, access),
         secondaryMods = CodProfileService.cleanMods(secondary, secondary == class.secondary and class.secondaryMods or nil, access),
         equipment = equipment,
+        tactical = tactical,
         perks = perks,
     }
 end
@@ -884,6 +905,7 @@ function CodProfileService.describe(profile)
         streaks = profile.streaks,
         weapons = CodProfileService.describeWeapons(profile),
         xpBoost = CodProfileService.describeXpBoost(),
+        challenges = CodChallenges.describe(profile),
         card = profile.card,
     }
 end
@@ -896,6 +918,7 @@ function CodProfileService.catalog()
         primary = Config.Cod.weapons.primary,
         secondary = Config.Cod.weapons.secondary,
         equipment = Config.Cod.weapons.equipment,
+        tactical = Config.Cod.weapons.tactical,
         perks = Config.Cod.perks,
         streaks = Config.Cod.streaks,
         maxStreaks = Config.Cod.maxStreaks,

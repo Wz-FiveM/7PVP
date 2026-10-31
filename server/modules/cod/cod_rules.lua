@@ -45,6 +45,16 @@ end
 function CodRules.noop() end
 function CodRules.always() return true end
 
+---@param match table
+---@param players integer[] joueurs sur l'objectif
+---@return number vitesse d'une capture : plus rapide avec un Spécialiste parmi eux
+function CodRules.objectiveSpeed(match, players)
+    for _, source in ipairs(players) do
+        if match:hasPerk(source, 'specialist') then return Config.Cod.specialistSpeed end
+    end
+    return 1.0
+end
+
 -- ---------------------------------------------------------------------------
 -- Match à mort par équipe
 -- ---------------------------------------------------------------------------
@@ -177,9 +187,11 @@ end
 function CodRules.Kc.take(match, tag, source)
     local team = match.stats[source].team
     if team == tag.team then
+        match:track(source, 'objective')
         return match:award(source, Config.Cod.xp.tagDenied, Locale.t('Élimination refusée'))
     end
     match:award(source, Config.Cod.xp.tagConfirmed, Locale.t('Élimination confirmée'))
+    match:track(source, 'objective')
     match.scores[team] = match.scores[team] + 1
     if match.scores[team] >= match.playlist.scoreLimit then
         match:finish(team, Locale.t('Score atteint.'))
@@ -374,7 +386,8 @@ function CodRules.Dom.updateFlag(match, flag, delta)
         flag.progress = 0.0
     end
     local count = #present[team]
-    flag.progress = flag.progress + delta / settings.captureTime * (1 + settings.captureBonus * (count - 1))
+    local speed = (1 + settings.captureBonus * (count - 1)) * CodRules.objectiveSpeed(match, present[team])
+    flag.progress = flag.progress + delta / settings.captureTime * speed
     if flag.progress < 1.0 then return end
 
     flag.owner = team
@@ -382,6 +395,7 @@ function CodRules.Dom.updateFlag(match, flag, delta)
     flag.progress = 0.0
     for _, source in ipairs(present[team]) do
         match:award(source, Config.Cod.xp.capture, Locale.t('Drapeau capturé'))
+        match:track(source, 'objective')
     end
     match:broadcast(Events.client.codNotice, {
         text = Locale.t('Drapeau %s capturé', flag.id),
@@ -457,10 +471,14 @@ end
 function CodRules.Hp.score(match, team, present)
     match.scores[team] = match.scores[team] + 1
     match.zoneTicks = match.zoneTicks + 1
-    if match.zoneTicks % Config.Cod.hardpoint.xpEvery == 0 then
+    local settings = Config.Cod.hardpoint
+    if match.zoneTicks % settings.xpEvery == 0 then
         for _, source in ipairs(present) do
             match:award(source, Config.Cod.xp.zoneTick, Locale.t('Point tenu'))
         end
+    end
+    if match.zoneTicks % settings.objectiveEvery == 0 then
+        for _, source in ipairs(present) do match:track(source, 'objective') end
     end
     if match.scores[team] >= match.playlist.scoreLimit then
         match:finish(team, Locale.t('Score atteint.'))
@@ -573,10 +591,11 @@ function CodRules.Snd.actionFor(match, source, stats)
     local settings = Config.Cod.searchDestroy
     local site = CodRules.Snd.siteAt(match, source)
     if not site then return nil end
+    local speed = CodRules.objectiveSpeed(match, { source })
     if stats.team == match.attackers then
-        if not match.bomb then return 'plant', settings.plantTime end
+        if not match.bomb then return 'plant', settings.plantTime / speed end
     elseif match.bomb and match.bomb.site == site then
-        return 'defuse', settings.defuseTime
+        return 'defuse', settings.defuseTime / speed
     end
     return nil
 end
@@ -588,6 +607,7 @@ function CodRules.Snd.plant(match, source, settings)
     local site = CodRules.Snd.siteAt(match, source)
     match.bomb = { site = site, at = GetGameTimer() + settings.bombTime * 1000 }
     match:award(source, Config.Cod.xp.plant, Locale.t('Bombe posée'))
+    match:track(source, 'objective')
     match:broadcast(Events.client.codNotice, { text = Locale.t('Bombe posée sur le site %s', site), team = match.attackers })
     match:broadcast(Events.client.codEffect, { type = 'bombPlanted', site = site })
 end
@@ -596,6 +616,7 @@ end
 ---@param source integer
 function CodRules.Snd.defuse(match, source)
     match:award(source, Config.Cod.xp.defuse, Locale.t('Bombe désamorcée'))
+    match:track(source, 'objective')
     CodRules.Snd.endRound(match, match.stats[source].team, Locale.t('La bombe a été désamorcée.'))
 end
 

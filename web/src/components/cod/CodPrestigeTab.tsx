@@ -131,6 +131,7 @@ function PermanentShop({ profile, catalog, onProfile }: Omit<CodPrestigeTabProps
       { label: 'Armes principales', entries: weapons(catalog.primary) },
       { label: 'Armes secondaires', entries: weapons(catalog.secondary) },
       { label: 'Équipement', entries: weapons(catalog.equipment) },
+      { label: 'Équipement tactique', entries: weapons(catalog.tactical) },
       { label: 'Atouts', entries: others(catalog.perks) },
       { label: 'Séries', entries: others(catalog.streaks) },
     ];
