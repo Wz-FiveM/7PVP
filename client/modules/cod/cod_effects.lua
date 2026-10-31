@@ -24,6 +24,7 @@ CodEffects.EXTERNAL = {}
 CodEffects.blips = {}
 CodEffects.jamUntil = 0
 CodEffects.jammed = false
+CodEffects.radarUntil = 0 -- GetGameTimer() de fin du dernier balayage de drone (carte du mode Hardcore)
 
 -- Effets envoyés par le serveur : type -> méthode
 CodEffects.HANDLERS = {
@@ -99,6 +100,7 @@ function CodEffects.clear()
     end
     CodEffects.blips = {}
     CodEffects.jamUntil = 0
+    CodEffects.radarUntil = 0
     if CodEffects.jammed then
         CodEffects.jammed = false
         DisplayRadar(true)
@@ -120,6 +122,7 @@ function CodEffects.onUav(data)
         SetBlipAsShortRange(blip, false)
         CodEffects.keepBlip(blip, data.ttl * 1000)
     end
+    CodEffects.radarUntil = GetGameTimer() + data.ttl * 1000
     Nui.send('codRadar', { seconds = data.ttl })
 end
 

@@ -6,6 +6,8 @@
 ---    /codniveau 5 12               → pour le joueur 12
 ---    /codarme WEAPON_SMG 100 30    → 100 kills dont 30 tirs à la tête avec cette arme
 ---    /codarme toutes 600 200 12    → sur toutes les armes, pour le joueur 12
+---    /codxp 2 48                   → XP doublée pendant 48 heures, pour tout le mode
+---    /codxp 1 0                    → arrête le bonus
 ---@class CodAdminCommandsModule
 local CodAdminCommands = PVP.define('CodAdminCommands')
 local CodProfileService = PVP.use('CodProfileService')
@@ -28,6 +30,9 @@ function CodAdminCommands.init()
     end, false)
     RegisterCommand('codarme', function(source, args)
         CodAdminCommands.setWeapon(source, args)
+    end, false)
+    RegisterCommand('codxp', function(source, args)
+        CodAdminCommands.setXpBoost(source, args)
     end, false)
 end
 
@@ -122,6 +127,28 @@ function CodAdminCommands.giveRanks(source, args)
     CodAdminCommands.reply(source, Locale.t('%s passe du rang %d au rang %d.', GetPlayerName(target), before, after), 'success')
     if target ~= source then
         CodAdminCommands.reply(target, Locale.t('Un admin te fait passer au rang %d.', after), 'success')
+    end
+end
+
+---@param source integer 0 = console
+---@param args string[]
+function CodAdminCommands.setXpBoost(source, args)
+    if not CodAdminCommands.allowed(source) then return end
+    local factor, hours = tonumber(args[1]), tonumber(args[2])
+    if not factor or not hours or factor < 1 or factor > Config.Cod.xpBoostMax or hours < 0 then
+        return CodAdminCommands.reply(source, Locale.t('Utilisation : /codxp <multiplicateur, de 1 à %d> <heures>', Config.Cod.xpBoostMax), 'error')
+    end
+
+    CodProfileService.setXpBoost(factor, hours)
+    local active = CodProfileService.xpFactor() > 1
+    local text = active and ('×%g, %g h'):format(factor, hours) or 'arrêté'
+    local by = source == 0 and 'console' or GetPlayerName(source)
+    Logger.info('[admin] %s : codxp (%s)', by, text)
+    DiscordService.codAdminCommand(source, 'codxp', 'Bonus d\'XP', text)
+    local message = active and Locale.t('XP ×%s pendant %s h !', ('%g'):format(factor), ('%g'):format(hours)) or Locale.t('Le bonus d\'XP est terminé.')
+    CodAdminCommands.reply(source, message, 'success')
+    for target in pairs(CodProfileService.profiles) do
+        if target ~= source then CodAdminCommands.reply(target, message, 'success') end
     end
 end
 

@@ -163,6 +163,8 @@ export interface CodProfile {
   classes: CodClass[];
   streaks: string[];
   weapons: Record<string, CodWeaponProgress>;
+  /** bonus d'XP en cours (commande admin /codxp) */
+  xpBoost: { factor: number; minutes: number } | false;
   card: CodPlayerCardChoice;
   /** personnage porté ; false : celui du joueur */
   operator: string | false;
@@ -214,6 +216,8 @@ export interface CodHudData {
   map: { label: string; place: string };
   team: CodTeamId | false;
   teams: { id: CodTeamId; label: string }[];
+  /** peu d'informations à l'écran : ni vie, ni munitions, ni carte hors drone */
+  hardcore?: boolean;
   countdown: number;
   remaining: number;
 }
@@ -228,6 +232,8 @@ export interface CodFlag {
 export type CodObjective =
   | { kind: 'flags'; flags: CodFlag[] }
   | { kind: 'sites'; round: number; attackers: CodTeamId; bomb: { site: string; remaining: number } | false }
+  /** Point stratégique : moveIn, secondes avant que la zone change de place */
+  | { kind: 'zone'; active: string; owner: CodTeamId | false; contested: boolean; moveIn: number }
   /** Élimination confirmée : les plaques ne se voient que dans le monde */
   | { kind: 'tags' }
   /** Course aux armes : nombre d'armes à passer */

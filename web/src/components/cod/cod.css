@@ -170,6 +170,13 @@
   font-size: 0.6875rem;
   color: var(--cod-muted);
 }
+.cod-menu__boost {
+  font-family: var(--cod-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--cod-accent-hi);
+}
 .cod-xpbar {
   display: block;
   width: 100%;

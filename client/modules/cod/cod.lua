@@ -72,6 +72,8 @@ Cod.busy = false
 Cod.cam = nil -- caméra du menu
 Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
+Cod.DEAD_HEALTH = 100 -- GTA : un personnage meurt à cette santé
+Cod.HUD_RETICLE = 14
 Cod.weapons = {}
 Cod.camos = {}
 ---@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front', 'map')
@@ -375,6 +377,7 @@ function Cod.start(data)
         map = data.map,
         team = data.team,
         teams = data.teams,
+        hardcore = data.hardcore,
         countdown = data.countdown,
         remaining = data.remaining,
     })
@@ -455,8 +458,10 @@ function Cod.applyClass(class, keepHealth)
     SetCurrentPedWeapon(ped, primary, true)
     if keepHealth then return end
 
-    SetEntityHealth(ped, GetEntityMaxHealth(ped))
-    SetPedArmour(ped, Cod.perks.flak and Config.Cod.flakArmor or 0)
+    local hardcore = Cod.match and Cod.match.hardcore
+    local maxHealth = GetEntityMaxHealth(ped)
+    SetEntityHealth(ped, hardcore and math.floor(Cod.DEAD_HEALTH + (maxHealth - Cod.DEAD_HEALTH) * Config.Cod.hardcore.health) or maxHealth)
+    SetPedArmour(ped, Cod.perks.flak and not hardcore and Config.Cod.flakArmor or 0)
     Cod.lastHealth = GetEntityHealth(ped)
     Cod.lastArmor = GetPedArmour(ped)
     Cod.lastDamageAt = 0
@@ -636,6 +641,7 @@ function Cod.loop()
                 for _, control in ipairs(Cod.LOCKED_CONTROLS) do DisableControlAction(0, control, true) end
             end
             Cod.updateScoreboard()
+            if Cod.match.hardcore then Cod.applyHardcore(now) end
             CodKillcam.record(now)
             if not CodKillcam.isPlaying() then Cod.drawMates() end
             if Cod.protectedUntil ~= 0 then Cod.updateProtection(now) end
@@ -655,6 +661,14 @@ function Cod.loop()
             Wait(500)
         end
     end
+end
+
+---Hardcore : ni viseur, ni carte sauf pendant le balayage d'un drone. Redemandé à chaque image : plusieurs écrans rendent
+---la carte en se fermant. Le menu la cache et la rend lui-même après la partie.
+---@param now integer
+function Cod.applyHardcore(now)
+    HideHudComponentThisFrame(Cod.HUD_RETICLE)
+    DisplayRadar(now < CodEffects.radarUntil and not CodEffects.jammed and not CodKillcam.isPlaying())
 end
 
 ---Tableau des scores : tant que la touche est maintenue.
@@ -684,6 +698,7 @@ end
 ---La santé remonte seule après quelques secondes sans dégâts (l'armure, non).
 ---@param now integer
 function Cod.regenerate(now)
+    if Cod.match.hardcore then return end
     local ped = PlayerPedId()
     local health, armor = GetEntityHealth(ped), GetPedArmour(ped)
     if health < Cod.lastHealth or armor < Cod.lastArmor then Cod.lastDamageAt = now end

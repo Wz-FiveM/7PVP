@@ -186,6 +186,7 @@ function CodMatch:addPlayer(source)
         self = source,
         playlist = { id = self.playlist.id, label = self.playlist.label, short = self.playlist.short, scoreLimit = self.playlist.scoreLimit },
         fixedClass = self.playlist.fixedClass == true,
+        hardcore = self.playlist.hardcore == true,
         map = { label = self.map.label, place = self.map.place },
         team = team,
         teams = settings.teams,
@@ -463,6 +464,7 @@ end
 function CodMatch:award(source, amount, label)
     local stats = self.stats[source]
     if not stats or amount <= 0 then return end
+    amount = math.floor(amount * CodProfileService.xpFactor())
     stats.xp = stats.xp + amount
     TriggerClientEvent(Events.client.codScore, source, { xp = amount, label = label })
 end
@@ -558,8 +560,9 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     })
 
     -- Avant la règle : ce kill peut finir la partie et devenir la kill cam finale
-    local killcam = killer ~= nil and not byStreak
-    if killcam then self:requestKillcam(killer, source, weaponLabel) end
+    local recorded = killer ~= nil and not byStreak
+    local killcam = recorded and not self.playlist.hardcore
+    if recorded then self:requestKillcam(killer, source, weaponLabel, killcam) end
     if running then self.rules.onKill(self, killer, source, weaponId) end
     if self.phase == 'ended' then return end
 
@@ -604,10 +607,11 @@ end
 ---@param killer integer
 ---@param source integer victime
 ---@param weapon string|nil nom de l'arme à traduire
-function CodMatch:requestKillcam(killer, source, weapon)
+---@param watching boolean la victime regarde le replay avant de réapparaître
+function CodMatch:requestKillcam(killer, source, weapon, watching)
     local stats = self.stats[source]
     stats.killcamFrom = killer
-    stats.watchingKillcam = true
+    stats.watchingKillcam = watching
     self.lastKill = { killer = killer, victim = source, weapon = weapon, at = GetGameTimer() }
     TriggerClientEvent(Events.client.codKillcamRequest, killer, source)
     TriggerClientEvent(Events.client.codKillcamOwn, source)
@@ -634,7 +638,7 @@ function CodMatch:killcamClip(killer, victim, clip)
     stats.killcamFrom = nil
     local last = self.lastKill
     if last and last.killer == killer and last.victim == victim then last.clip = clip end
-    if self.phase ~= 'ended' then TriggerClientEvent(Events.client.codKillcamClip, victim, clip) end
+    if self.phase ~= 'ended' and stats.watchingKillcam then TriggerClientEvent(Events.client.codKillcamClip, victim, clip) end
 end
 
 ---Enregistrement de la victime : gardé pour la kill cam finale, où les autres joueurs ne l'ont pas.

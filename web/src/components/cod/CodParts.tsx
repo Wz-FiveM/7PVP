@@ -4,6 +4,8 @@ import type { CodProfile } from '../../types/cod';
 
 export const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
+const formatBoostTime = (minutes: number) => (minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')}`);
+
 /** Temps restant, recalculé à partir du dernier chiffre reçu. */
 export function useSecondsLeft(total: number, at: number): number {
   const [now, setNow] = useState(Date.now);
@@ -66,6 +68,11 @@ export function CodOperator({ profile }: { profile: CodProfile }) {
             ? t('PRESTIGE DISPONIBLE')
             : profile.xpNeeded > 0 ? `${profile.xpInto} / ${profile.xpNeeded} XP` : t('RANG MAXIMUM')}
         </span>
+        {profile.xpBoost && (
+          <span className="cod-menu__boost">
+            {t('XP ×{factor} · encore {time}', { factor: profile.xpBoost.factor, time: formatBoostTime(profile.xpBoost.minutes) })}
+          </span>
+        )}
       </div>
       <RankBadge rank={profile.rank} prestige={profile.prestige} size={52} />
     </div>

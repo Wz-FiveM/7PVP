@@ -111,6 +111,10 @@ CodProfileService.attachments = {}
 CodProfileService.camos = {}
 -- Ce qu'un jeton de Prestige peut garder : les armes, atouts et séries qui demandent un rang
 CodProfileService.permanentCatalog = {}
+-- Bonus d'XP en cours (commande /codxp), gardé d'un redémarrage à l'autre
+CodProfileService.XP_BOOST_KVP = 'cod_xp_boost'
+---@type { factor: number, untilAt: integer }|nil
+CodProfileService.xpBoost = nil
 -- Séries retirées du jeu, encore enregistrées dans les profils : ancienne -> remplaçante
 CodProfileService.REPLACED_STREAKS = { airstrike = 'predator' }
 
@@ -129,6 +133,9 @@ function CodProfileService.init()
             if entry.rank > 1 then CodProfileService.permanentCatalog[entry.id] = entry end
         end
     end
+
+    local boost = CodProfileService.decode(GetResourceKvpString(CodProfileService.XP_BOOST_KVP))
+    if type(boost.factor) == 'number' and type(boost.untilAt) == 'number' then CodProfileService.xpBoost = boost end
 
     MySQL.ready(function()
         MySQL.query.await(CodProfileService.SCHEMA)
@@ -197,6 +204,31 @@ function CodProfileService.addRanks(source, amount)
     CodProfileService.save(profile)
     TriggerClientEvent(Events.client.codProfile, source, CodProfileService.describe(profile))
     return before, after
+end
+
+---@return number multiplicateur de l'XP gagnée en ce moment
+function CodProfileService.xpFactor()
+    local boost = CodProfileService.xpBoost
+    return boost and os.time() < boost.untilAt and boost.factor or 1
+end
+
+---Commande admin : un multiplicateur de 1 ou une durée nulle arrête le bonus.
+---Les joueurs du mode voient le changement aussitôt dans leur menu.
+---@param factor number
+---@param hours number
+function CodProfileService.setXpBoost(factor, hours)
+    CodProfileService.xpBoost = factor > 1 and hours > 0 and { factor = factor, untilAt = os.time() + math.floor(hours * 3600) } or nil
+    SetResourceKvp(CodProfileService.XP_BOOST_KVP, json.encode(CodProfileService.xpBoost or {}))
+    for source, profile in pairs(CodProfileService.profiles) do
+        TriggerClientEvent(Events.client.codProfile, source, CodProfileService.describe(profile))
+    end
+end
+
+---@return { factor: number, minutes: integer }|false bonus affiché dans le menu
+function CodProfileService.describeXpBoost()
+    if CodProfileService.xpFactor() == 1 then return false end
+    local boost = CodProfileService.xpBoost
+    return { factor = boost.factor, minutes = math.ceil((boost.untilAt - os.time()) / 60) }
 end
 
 ---Ce qui se débloque en atteignant les rangs de `from` (exclu) à `to` (inclus).
@@ -778,6 +810,7 @@ function CodProfileService.applyMatch(source, stats, result)
 
     local xpConfig = Config.Cod.xp
     local bonus = result == 'won' and xpConfig.win or (result == 'draw' and xpConfig.draw or xpConfig.loss)
+    bonus = math.floor(bonus * CodProfileService.xpFactor())
     local before = CodProfileService.rankFromXp(profile.xp)
     local earned = stats.xp + bonus
 
@@ -850,6 +883,7 @@ function CodProfileService.describe(profile)
         classes = profile.classes,
         streaks = profile.streaks,
         weapons = CodProfileService.describeWeapons(profile),
+        xpBoost = CodProfileService.describeXpBoost(),
         card = profile.card,
     }
 end

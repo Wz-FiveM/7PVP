@@ -390,6 +390,84 @@ function CodRules.Dom.updateFlag(match, flag, delta)
 end
 
 -- ---------------------------------------------------------------------------
+-- Point stratégique
+-- ---------------------------------------------------------------------------
+
+CodRules.Hp = {
+    canRespawn = CodRules.always,
+    onKill = CodRules.noop,
+    onTimeout = CodRules.finishByScore,
+    onLeave = CodRules.noop,
+}
+
+---@param match table
+function CodRules.Hp.setup(match)
+    CodRules.Dom.setup(match)
+    match.zoneIndex = 1
+    match.zoneOwner = false
+    match.zoneContested = false
+    match.zoneTicks = 0
+    match.nextZoneMove = match.runAt + Config.Cod.hardpoint.rotate * 1000
+end
+
+---@param match table
+---@return table
+function CodRules.Hp.objectives(match)
+    local objectives = CodRules.Dom.objectives(match)
+    objectives.kind = 'zone'
+    return objectives
+end
+
+---@param match table
+---@return table
+function CodRules.Hp.describe(match)
+    return {
+        kind = 'zone',
+        active = match.flags[match.zoneIndex].id,
+        owner = match.zoneOwner,
+        contested = match.zoneContested,
+        moveIn = math.max(0, math.ceil((match.nextZoneMove - GetGameTimer()) / 1000)),
+    }
+end
+
+---@param match table
+---@param now integer
+function CodRules.Hp.tick(match, now)
+    local settings = Config.Cod.hardpoint
+    if now >= match.nextZoneMove then
+        match.zoneIndex = match.zoneIndex % #match.flags + 1
+        match.nextZoneMove = match.nextZoneMove + settings.rotate * 1000
+        match.nextBroadcast = 0
+        match:broadcast(Events.client.codNotice, { text = Locale.t('Le point se déplace en %s', match.flags[match.zoneIndex].id) })
+    end
+    if now < match.nextScore then return end
+    match.nextScore = now + settings.scoreInterval * 1000
+
+    local present = CodRules.Dom.presentOn(match, match.flags[match.zoneIndex])
+    local alpha, bravo = #present.alpha, #present.bravo
+    local team = alpha > 0 and bravo == 0 and 'alpha' or (bravo > 0 and alpha == 0 and 'bravo') or false
+    match.zoneOwner = team
+    match.zoneContested = alpha > 0 and bravo > 0
+    if team then CodRules.Hp.score(match, team, present[team]) end
+end
+
+---@param match table
+---@param team string
+---@param present integer[] joueurs de l'équipe sur la zone
+function CodRules.Hp.score(match, team, present)
+    match.scores[team] = match.scores[team] + 1
+    match.zoneTicks = match.zoneTicks + 1
+    if match.zoneTicks % Config.Cod.hardpoint.xpEvery == 0 then
+        for _, source in ipairs(present) do
+            match:award(source, Config.Cod.xp.zoneTick, Locale.t('Point tenu'))
+        end
+    end
+    if match.scores[team] >= match.playlist.scoreLimit then
+        match:finish(team, Locale.t('Score atteint.'))
+    end
+end
+
+-- ---------------------------------------------------------------------------
 -- Recherche & Destruction
 -- ---------------------------------------------------------------------------
 
@@ -642,6 +720,8 @@ CodRules.handlers = {
     ffa = CodRules.Ffa,
     kc = CodRules.Kc,
     gun = CodRules.Gun,
+    hctdm = CodRules.Tdm,
+    hp = CodRules.Hp,
     dom = CodRules.Dom,
     snd = CodRules.Snd,
 }

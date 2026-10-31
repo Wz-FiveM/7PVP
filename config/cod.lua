@@ -93,6 +93,7 @@ Config.Cod = {
         defuse = 300,
         roundWin = 100,
         unitDestroyed = 200, -- tourelle ou appareil ennemi détruit
+        zoneTick = 25, -- par joueur sur le point tenu, toutes les hardpoint.xpEvery secondes (Point stratégique)
         tagConfirmed = 100, -- plaque ennemie ramassée (Élimination confirmée)
         tagDenied = 50, -- plaque d'un allié reprise (Élimination confirmée)
         gunLevel = 100, -- arme suivante (Course aux armes)
@@ -114,6 +115,7 @@ Config.Cod = {
     -- Listes de jeu proposées dans le menu.
     --   time = durée en secondes ; scoreLimit = score pour gagner
     --   fixedClass = armes imposées : ni choix de classe, ni séries
+    --   hardcore = peu de vie sans remontée, ni carte (sauf pendant un drone), ni viseur, ni kill cam
     playlists = {
         {
             id = 'tdm', label = 'Match à mort par équipe', short = 'MME',
@@ -124,6 +126,11 @@ Config.Cod = {
             id = 'dom', label = 'Domination', short = 'DOM',
             description = 'Capturez et tenez les drapeaux : chaque drapeau rapporte des points à votre équipe.',
             teams = true, minPlayers = 2, maxPlayers = 12, time = 600, scoreLimit = 200,
+        },
+        {
+            id = 'hp', label = 'Point stratégique', short = 'PS',
+            description = 'Une seule zone à tenir, qui change de place chaque minute : chaque seconde seul dessus rapporte un point. 150 points pour gagner.',
+            teams = true, minPlayers = 2, maxPlayers = 12, time = 600, scoreLimit = 150,
         },
         {
             id = 'kc', label = 'Élimination confirmée', short = 'EC',
@@ -142,6 +149,11 @@ Config.Cod = {
             teams = false, minPlayers = 2, maxPlayers = 10, time = 600, scoreLimit = 15, fixedClass = true,
         },
         {
+            id = 'hctdm', label = 'Match à mort Hardcore', short = 'HC',
+            description = 'Peu de vie et aucune remontée, sans carte, viseur ni kill cam : la première équipe à 75 kills gagne.',
+            teams = true, minPlayers = 2, maxPlayers = 12, time = 600, scoreLimit = 75, hardcore = true,
+        },
+        {
             id = 'snd', label = 'Recherche & Destruction', short = 'R&D',
             description = 'Une seule vie par manche. Les attaquants posent la bombe, les défenseurs la désamorcent.',
             teams = true, minPlayers = 2, maxPlayers = 10, time = 3600, scoreLimit = 4,
@@ -155,6 +167,19 @@ Config.Cod = {
         captureBonus = 0.25, -- vitesse en plus par joueur supplémentaire
         scoreInterval = 5, -- secondes entre deux rentrées de points
     },
+
+    -- Point stratégique : les drapeaux de la carte servent de zones, à tour de rôle (rayon : domination.captureRadius)
+    hardpoint = {
+        rotate = 60, -- secondes avant que la zone change de place
+        scoreInterval = 1, -- secondes entre deux points
+        xpEvery = 5, -- points marqués entre deux gains d'XP (xp.zoneTick)
+    },
+
+    -- Hardcore : part de la vie d'un personnage à l'apparition
+    hardcore = { health = 0.3 },
+
+    -- Bonus d'XP (commande admin /codxp) : multiplicateur maximum
+    xpBoostMax = 5,
 
     -- Élimination confirmée : une plaque tombe à chaque kill d'un joueur
     killConfirmed = {
@@ -401,6 +426,8 @@ Config.Cod = {
         'Le premier kill de la partie rapporte un bonus d\'XP.',
         'Au rang maximum, l\'onglet Prestige te fait repartir du rang 1 avec un nouvel insigne.',
         'Les kills font monter le niveau de ton arme : accessoires et camouflages se débloquent dans l\'éditeur de classe.',
+        'En Point stratégique, tenir la zone rapporte plus que les kills : surveille son prochain déplacement.',
+        'En Hardcore, la carte ne revient que pendant le balayage d\'un drone.',
         'En Élimination confirmée, un kill ne compte que si un allié ou toi ramassez la plaque de la victime.',
         'En Course aux armes, le couteau ne fait pas avancer mais renvoie ta victime à son arme précédente.',
     },

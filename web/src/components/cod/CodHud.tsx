@@ -179,10 +179,10 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
     <>
       {!flying && !killcam && (
         <>
-          {!jammed && <RadarFilter sweep={radar} />}
-          <Vitals name={name} />
+          {!jammed && (!hud.hardcore || radar !== null) && <RadarFilter sweep={radar} />}
+          {!hud.hardcore && <Vitals name={name} />}
           <BottomLeft hud={hud} live={live} rank={rank} prestige={prestige} />
-          <BottomRight streak={streak} keys={catalog?.keys} />
+          <BottomRight streak={streak} keys={catalog?.keys} hardcore={hud.hardcore} />
           <TopCenter hud={hud} live={live} />
         </>
       )}
@@ -339,11 +339,11 @@ function ScoreLine({ value, limit, tone }: { value: number; limit: number; tone:
   );
 }
 
-function BottomRight({ streak, keys }: { streak: CodStreakState | null; keys?: CodCatalog['keys'] }) {
+function BottomRight({ streak, keys, hardcore }: { streak: CodStreakState | null; keys?: CodCatalog['keys']; hardcore?: boolean }) {
   useT();
   const { state } = useGame();
   const vitals = state.vitals;
-  const hasAmmo = vitals.weapon && vitals.clip + vitals.reserve > 0;
+  const hasAmmo = !hardcore && vitals.weapon && vitals.clip + vitals.reserve > 0;
   return (
     <div className="cod-ammo">
       {streak && <StreakSlots streak={streak} keyLabel={keys?.streak ?? 'G'} />}
@@ -405,6 +405,16 @@ function TopCenter({ hud, live }: { hud: CodHudData; live: CodStateData | null }
         <FlagChip key={flag.id} flag={flag} team={hud.team} />
       ))}
       {objective.kind === 'sites' && <BombStatus objective={objective} team={hud.team} />}
+      {objective.kind === 'zone' && (
+        <>
+          <FlagChip flag={{ id: objective.active, owner: objective.owner, capturing: false, progress: 0 }} team={hud.team} />
+          <span className="cod-bomb">
+            <span className="cod-label">
+              {objective.contested ? t('POINT DISPUTÉ') : t('DÉPLACEMENT DANS {seconds} S', { seconds: objective.moveIn })}
+            </span>
+          </span>
+        </>
+      )}
       {objective.kind === 'gun' && (
         <span className="cod-bomb">
           <span className="cod-label">{t('ARME {level} / {total}', { level: passed + 1, total: objective.levels })}</span>

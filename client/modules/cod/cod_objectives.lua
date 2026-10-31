@@ -1,5 +1,5 @@
----Objectifs du mode Call of Duty : drapeaux de la Domination, sites de bombe de Recherche & Destruction,
----plaques de l'Élimination confirmée. Marqueurs et repères sur la carte, touche maintenue pour poser ou
+---Objectifs du mode Call of Duty : drapeaux de la Domination, zone du Point stratégique, sites de bombe de Recherche
+---& Destruction, plaques de l'Élimination confirmée. Marqueurs et repères sur la carte, touche maintenue pour poser ou
 ---désamorcer (le serveur vérifie le rôle, la distance et compte le temps).
 ---@class CodObjectivesModule
 local CodObjectives = PVP.define('CodObjectives')
@@ -52,9 +52,18 @@ function CodObjectives.setup(objectives, team)
         ShowNumberOnBlip(point.blip, index)
         SetBlipColour(point.blip, CodObjectives.COLORS.neutral.blip)
         BeginTextCommandSetBlipName('STRING')
-        AddTextComponentSubstringPlayerName(objectives.kind == 'flags' and Locale.t('Drapeau %s', point.id) or Locale.t('Site %s', point.id))
+        AddTextComponentSubstringPlayerName(CodObjectives.pointName(objectives.kind, point.id))
         EndTextCommandSetBlipName(point.blip)
     end
+end
+
+---@param kind string
+---@param id string
+---@return string
+function CodObjectives.pointName(kind, id)
+    if kind == 'flags' then return Locale.t('Drapeau %s', id) end
+    if kind == 'zone' then return Locale.t('Point %s', id) end
+    return Locale.t('Site %s', id)
 end
 
 function CodObjectives.clear()
@@ -76,6 +85,7 @@ function CodObjectives.onState(state)
     if state.kind == 'tags' then CodObjectives.syncTagBlips(state.tags) end
     for _, point in ipairs(CodObjectives.data.points) do
         SetBlipColour(point.blip, CodObjectives.colorOf(point).blip)
+        if state.kind == 'zone' then SetBlipAlpha(point.blip, point.id == state.active and 255 or 0) end
     end
 end
 
@@ -119,6 +129,10 @@ function CodObjectives.colorOf(point)
         end
         return colors.neutral
     end
+    if state.kind == 'zone' then
+        if point.id ~= state.active or not state.owner then return colors.neutral end
+        return state.owner == CodObjectives.team and colors.friend or colors.enemy
+    end
     if state.bomb and state.bomb.site == point.id then return colors.enemy end
     return colors.neutral
 end
@@ -131,16 +145,20 @@ function CodObjectives.frame()
     local refreshGround = now >= CodObjectives.nextGround
     if refreshGround then CodObjectives.nextGround = now + CodObjectives.GROUND_INTERVAL end
 
+    local state = CodObjectives.state
     for _, point in ipairs(data.points) do
         -- Le sol n'est connu qu'une fois la zone chargée autour du joueur
         if refreshGround then
             local found, ground = GetGroundZFor_3dCoord(point.x, point.y, point.z + 50.0, false)
             if found then point.ground = ground end
         end
-        local color = CodObjectives.colorOf(point)
-        DrawMarker(1, point.x, point.y, point.ground - 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            data.radius * 2, data.radius * 2, 2.0, color[1], color[2], color[3], 70, false, false, 2, false, nil, nil, false)
-        CodObjectives.drawLetter(point, color)
+        -- Point stratégique : seule la zone active se voit
+        if data.kind ~= 'zone' or (state and state.active == point.id) then
+            local color = CodObjectives.colorOf(point)
+            DrawMarker(1, point.x, point.y, point.ground - 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                data.radius * 2, data.radius * 2, 2.0, color[1], color[2], color[3], 70, false, false, 2, false, nil, nil, false)
+            CodObjectives.drawLetter(point, color)
+        end
     end
     if data.kind == 'sites' then CodObjectives.updateBombAction() end
     if data.kind == 'tags' then CodObjectives.drawTags() end
