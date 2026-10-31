@@ -63,9 +63,15 @@ function CodKillcam.init()
     RegisterNetEvent(Events.client.codKillcamClip, function(clip)
         CodKillcam.onClip(clip)
     end)
+    RegisterNetEvent(Events.client.codKillcamOwn, function()
+        TriggerServerEvent(Events.server.codKillcamOwn, CodKillcam.snapshot(CodKillcam.deadAt or GetGameTimer()))
+    end)
+    RegisterNetEvent(Events.client.codFinalKillcam, function(data)
+        CodKillcam.playFinal(data)
+    end)
     RegisterCommand('pvp_cod_killcam_skip', function()
         local session = CodKillcam.session
-        if session and session.shown then session.skipped = true end
+        if session and session.shown and not session.final then session.skipped = true end
     end, false)
     RegisterKeyMapping('pvp_cod_killcam_skip', Locale.t('Call of Duty : passer la kill cam'), 'keyboard', Config.Cod.killcam.skipKey)
 end
@@ -251,6 +257,29 @@ function CodKillcam.onClip(clip)
     end)
 end
 
+---Fin de partie : tout le monde revoit le dernier kill. L'écran reste noir après le replay : les résultats, envoyés par
+---le serveur au bout de Config.Cod.killcam.finalDuration, le rouvrent (Cod.finish).
+---@param data table killcam (tueur), victim, killer, weapon, card, clip, own (enregistrement de la victime)
+function CodKillcam.playFinal(data)
+    if not Cod.isActive() then return end
+    CodKillcam.stop()
+    local session = {
+        data = data,
+        final = true,
+        started = true,
+        diedAt = GetGameTimer(),
+        own = CodKillcam.decode(data.own or { samples = {}, shots = {}, weapons = {}, loadout = {} }),
+        tracers = {},
+        entities = {},
+    }
+    CodKillcam.session = session
+    CreateThread(function()
+        local ok, message = pcall(CodKillcam.play, session, data.clip)
+        if not ok then print(('[7PVP] Kill cam finale : %s'):format(message)) end
+        CodKillcam.release(session)
+    end)
+end
+
 -- ---------------------------------------------------------------------------
 -- Replay
 -- ---------------------------------------------------------------------------
@@ -286,7 +315,14 @@ function CodKillcam.play(session, clip)
     if CodKillcam.session ~= session then return end
 
     session.shown = true
-    Nui.send('codKillcam', { open = true, killer = data.killer, weapon = data.weapon, card = data.card, key = settings.skipKey })
+    Nui.send('codKillcam', {
+        open = true,
+        killer = data.killer,
+        weapon = data.weapon,
+        card = data.card,
+        key = not session.final and settings.skipKey or nil,
+        final = session.final,
+    })
     DoScreenFadeIn(CodKillcam.FADE)
 
     -- Le temps du réseau : le ralenti du monde pourrait fausser les autres horloges du jeu
@@ -375,12 +411,22 @@ function CodKillcam.createKiller(session, source, track)
     return actor
 end
 
----La victime est recréée d'après son apparence : son personnage réel est déjà mort.
+---La victime est recréée d'après son apparence : son personnage réel est déjà mort. Dans la kill cam finale, ce peut
+---être n'importe quel joueur : elle est copiée, comme le tueur.
 ---@param session table
 ---@return table|nil acteur
 function CodKillcam.createVictim(session)
     local track = session.own
     if #track.samples == 0 then return nil end
+    if session.final then
+        local player = GetPlayerFromServerId(session.data.victim)
+        if player == -1 then return nil end
+        local copy = ClonePed(GetPlayerPed(player), false, false, true)
+        if not DoesEntityExist(copy) then return nil end
+        local actor = CodKillcam.createActor(session, copy, track)
+        if IsEntityDead(copy) then ResurrectPed(copy) end
+        return actor
+    end
     local model = GetEntityModel(PlayerPedId())
     if not PedUtils.loadModel(model) then return nil end
     local first = track.samples[1]

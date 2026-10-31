@@ -204,6 +204,8 @@ export interface CodBoardEntry {
   deaths: number;
   assists: number;
   score: number;
+  /** score en chacun pour soi : les kills, ou les armes passées en Course aux armes */
+  points?: number;
   alive: boolean;
 }
 export interface CodHudData {
@@ -225,7 +227,11 @@ export interface CodFlag {
 }
 export type CodObjective =
   | { kind: 'flags'; flags: CodFlag[] }
-  | { kind: 'sites'; round: number; attackers: CodTeamId; bomb: { site: string; remaining: number } | false };
+  | { kind: 'sites'; round: number; attackers: CodTeamId; bomb: { site: string; remaining: number } | false }
+  /** Élimination confirmée : les plaques ne se voient que dans le monde */
+  | { kind: 'tags' }
+  /** Course aux armes : nombre d'armes à passer */
+  | { kind: 'gun'; levels: number };
 
 export interface CodStateData {
   phase: string;
@@ -309,6 +315,8 @@ export interface CodKillcamData {
   card?: CodPlayerCardData;
   /** touche pour passer */
   key?: string;
+  /** kill cam finale, vue par tous les joueurs */
+  final?: boolean;
 }
 export interface CodRoundEndData {
   result: 'won' | 'lost';

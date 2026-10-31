@@ -29,6 +29,9 @@
 ---@field holding boolean touche d'objectif maintenue (bombe)
 ---@field actionProgress number secondes de pose ou de désamorçage
 ---@field nextResync integer|nil GetGameTimer() à partir duquel une resynchronisation est permise
+---@field gunLevel integer|nil arme en cours (Course aux armes)
+---@field gunPrevious string|nil arme précédente (Course aux armes)
+---@field gunPreviousUntil integer|nil GetGameTimer() jusqu'où elle compte encore
 
 ---@class CodMatchModule
 local CodMatch = PVP.define('CodMatch')
@@ -163,7 +166,6 @@ function CodMatch:addPlayer(source)
         streak = 0,
         bestStreak = 0,
         streakItems = {},
-        class = CodProfileService.selectedClass(source),
         lastKillAt = 0,
         multiKill = 0,
         damagedBy = {},
@@ -176,12 +178,14 @@ function CodMatch:addPlayer(source)
     SetPlayerRoutingBucket(source, self.bucket)
 
     local stats = self.stats[source]
+    stats.class = self:classOf(source)
     -- Une partie rejointe en cours passe aussi par l'écran de chargement : bloqué et protégé pendant ce temps
     local countdown = math.max(settings.loadTime, math.ceil((self.runAt - now) / 1000))
     stats.protectedUntil = now + (countdown + settings.spawnProtection) * 1000
     TriggerClientEvent(Events.client.codStart, source, {
         self = source,
         playlist = { id = self.playlist.id, label = self.playlist.label, short = self.playlist.short, scoreLimit = self.playlist.scoreLimit },
+        fixedClass = self.playlist.fixedClass == true,
         map = { label = self.map.label, place = self.map.place },
         team = team,
         teams = settings.teams,
@@ -200,6 +204,13 @@ function CodMatch:addPlayer(source)
         CodUnits.sendActive(self, source)
         CodCrates.sendActive(self, source)
     end)
+end
+
+---@param source integer
+---@return CodClass classe de sa prochaine vie : celle qu'il a choisie, sauf si la liste de jeu l'impose
+function CodMatch:classOf(source)
+    if self.rules.classOf then return self.rules.classOf(self, source) end
+    return CodProfileService.selectedClass(source)
 end
 
 ---@param a integer
@@ -286,7 +297,7 @@ function CodMatch:respawn(source, ownSide, delay)
     stats.killcamFrom = nil
     stats.watchingKillcam = false
     stats.respawnReady = false
-    stats.class = CodProfileService.selectedClass(source)
+    stats.class = self:classOf(source)
     stats.protectedUntil = GetGameTimer() + protection * 1000
     TriggerClientEvent(Events.client.codSpawn, source, {
         spawn = self:chooseSpawn(source, ownSide == true),
@@ -337,7 +348,7 @@ function CodMatch:leader()
     end
     local board = self:board()
     if not board[1] then return nil end
-    if board[2] and board[2].kills == board[1].kills then return nil end
+    if board[2] and board[2].points == board[1].points then return nil end
     return board[1].id
 end
 
@@ -356,12 +367,13 @@ function CodMatch:board()
             deaths = stats.deaths,
             assists = stats.assists,
             score = stats.xp,
+            points = self.rules.points and self.rules.points(stats) or stats.kills,
             alive = stats.alive,
         }
     end
-    local byKills = not self.playlist.teams
+    local byPoints = not self.playlist.teams
     table.sort(list, function(a, b)
-        if byKills and a.kills ~= b.kills then return a.kills > b.kills end
+        if byPoints and a.points ~= b.points then return a.points > b.points end
         if a.score ~= b.score then return a.score > b.score end
         if a.kills ~= b.kills then return a.kills > b.kills end
         if a.deaths ~= b.deaths then return a.deaths < b.deaths end
@@ -545,13 +557,14 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
         headshot = killer ~= nil and headshot == true,
     })
 
-    if running then self.rules.onKill(self, killer, source) end
+    -- Avant la règle : ce kill peut finir la partie et devenir la kill cam finale
+    local killcam = killer ~= nil and not byStreak
+    if killcam then self:requestKillcam(killer, source, weaponLabel) end
+    if running then self.rules.onKill(self, killer, source, weaponId) end
     if self.phase == 'ended' then return end
 
     local canRespawn = self.rules.canRespawn(self)
     local revenge = killer and self:hasPerk(source, 'revenge') and GetEntityCoords(GetPlayerPed(killer)) or nil
-    local killcam = killer ~= nil and not byStreak
-    if killcam then self:requestKillcam(killer, source) end
     TriggerClientEvent(Events.client.codDead, source, {
         killer = killer and self.stats[killer].name or nil,
         weapon = weaponLabel,
@@ -586,14 +599,28 @@ function CodMatch:scheduleRespawn(source, killcam)
     end
 end
 
----Le tueur envoie ses dernières secondes (voir client/modules/cod/cod_killcam.lua).
+---Le tueur envoie ses dernières secondes (voir client/modules/cod/cod_killcam.lua), la victime aussi : ce kill sera
+---la kill cam finale s'il reste le dernier.
 ---@param killer integer
 ---@param source integer victime
-function CodMatch:requestKillcam(killer, source)
+---@param weapon string|nil nom de l'arme à traduire
+function CodMatch:requestKillcam(killer, source, weapon)
     local stats = self.stats[source]
     stats.killcamFrom = killer
     stats.watchingKillcam = true
+    self.lastKill = { killer = killer, victim = source, weapon = weapon, at = GetGameTimer() }
     TriggerClientEvent(Events.client.codKillcamRequest, killer, source)
+    TriggerClientEvent(Events.client.codKillcamOwn, source)
+end
+
+---@param clip any
+---@return boolean un enregistrement de kill cam bien formé (il vient d'un client)
+function CodMatch.validClip(clip)
+    if type(clip) ~= 'table' then return false end
+    for _, list in ipairs({ clip.samples, clip.shots, clip.loadout }) do
+        if type(list) ~= 'table' or #list > CodMatch.KILLCAM_MAX_ENTRIES then return false end
+    end
+    return type(clip.samples) == 'table' and type(clip.shots) == 'table' and type(clip.loadout) == 'table'
 end
 
 ---Enregistrement du tueur, transmis à sa victime si c'est bien lui qui l'a tuée.
@@ -603,12 +630,42 @@ end
 function CodMatch:killcamClip(killer, victim, clip)
     victim = tonumber(victim)
     local stats = victim and self.stats[victim]
-    if not stats or stats.killcamFrom ~= killer or type(clip) ~= 'table' then return end
-    if type(clip.samples) ~= 'table' or #clip.samples > CodMatch.KILLCAM_MAX_ENTRIES then return end
-    if type(clip.shots) ~= 'table' or #clip.shots > CodMatch.KILLCAM_MAX_ENTRIES then return end
-    if type(clip.loadout) ~= 'table' or #clip.loadout > CodMatch.KILLCAM_MAX_ENTRIES then return end
+    if not stats or stats.killcamFrom ~= killer or not CodMatch.validClip(clip) then return end
     stats.killcamFrom = nil
-    TriggerClientEvent(Events.client.codKillcamClip, victim, clip)
+    local last = self.lastKill
+    if last and last.killer == killer and last.victim == victim then last.clip = clip end
+    if self.phase ~= 'ended' then TriggerClientEvent(Events.client.codKillcamClip, victim, clip) end
+end
+
+---Enregistrement de la victime : gardé pour la kill cam finale, où les autres joueurs ne l'ont pas.
+---@param source integer
+---@param clip any
+function CodMatch:killcamOwn(source, clip)
+    local last = self.lastKill
+    if last and last.victim == source and not last.own and CodMatch.validClip(clip) then last.own = clip end
+end
+
+---Tout le monde revoit le dernier kill. Bloque le temps de le jouer : à appeler dans un thread.
+function CodMatch:playFinalKillcam()
+    local settings = Config.Cod.killcam
+    local last = self.lastKill
+    if not last or GetGameTimer() - last.at > settings.finalMaxAge * 1000 then return end
+    -- Le kill qui finit la partie vient d'avoir lieu : son enregistrement est encore en route
+    local deadline = GetGameTimer() + settings.clipTimeout
+    while not (last.clip and last.own) and GetGameTimer() < deadline do Wait(100) end
+    if not last.clip or not self.stats[last.killer] then return end
+
+    local present = self.stats[last.victim] ~= nil
+    self:broadcast(Events.client.codFinalKillcam, {
+        killcam = last.killer,
+        victim = present and last.victim or nil,
+        killer = self.stats[last.killer].name,
+        weapon = last.weapon,
+        card = CodProfileService.playerCard(last.killer),
+        clip = last.clip,
+        own = present and last.own or nil,
+    })
+    Wait(settings.finalDuration * 1000)
 end
 
 ---Le joueur a fini de regarder la kill cam (ou l'a passée, ou n'en a pas eu).
@@ -747,38 +804,47 @@ function CodMatch:checkPlayers()
             counts[team] = counts[team] + 1
         end
         if counts.alpha == 0 or counts.bravo == 0 then
-            self:finish(counts.alpha > 0 and 'alpha' or (counts.bravo > 0 and 'bravo' or nil), Locale.t('Plus assez de joueurs : la partie s\'arrête.'))
+            self:finish(counts.alpha > 0 and 'alpha' or (counts.bravo > 0 and 'bravo' or nil), Locale.t('Plus assez de joueurs : la partie s\'arrête.'), true)
         end
     elseif #self.players < 2 then
-        self:finish(self.players[1], Locale.t('Plus assez de joueurs : la partie s\'arrête.'))
+        self:finish(self.players[1], Locale.t('Plus assez de joueurs : la partie s\'arrête.'), true)
     end
 end
 
+---La progression est comptée tout de suite : un joueur peut partir pendant la kill cam finale.
 ---@param winner string|integer|nil équipe ou joueur gagnant, nil = égalité
 ---@param reason string|table message à traduire (Locale.t)
-function CodMatch:finish(winner, reason)
+---@param noKillcam boolean|nil résultats tout de suite, sans kill cam finale
+function CodMatch:finish(winner, reason, noKillcam)
     if self.phase == 'ended' then return end
     self.phase = 'ended'
+    self:broadcast(Events.client.codEnding)
 
     local board = self:board()
+    local results = {}
     for _, source in ipairs(self.players) do
         local stats = self.stats[source]
         local key = self:sideKey(source)
         local result = winner == nil and 'draw' or (key == winner and 'won' or 'lost')
-        local summary = CodProfileService.applyMatch(source, stats, result)
-        TriggerClientEvent(Events.client.codEnd, source, {
+        results[source] = {
             result = result,
             reason = reason,
             team = stats.team,
             scores = self.playlist.teams and self.scores or false,
             board = board,
-            summary = summary,
+            summary = CodProfileService.applyMatch(source, stats, result),
             seconds = Config.Cod.endScreen,
-        })
+        }
     end
     Logger.info('[cod] partie n°%d terminée : %s', self.id, Locale.resolve(reason, Locale.SOURCE))
-    SetTimeout(Config.Cod.endScreen * 1000, function()
-        CodService.closeMatch(self)
+    CreateThread(function()
+        if not noKillcam then self:playFinalKillcam() end
+        for _, source in ipairs(self.players) do
+            TriggerClientEvent(Events.client.codEnd, source, results[source])
+        end
+        SetTimeout(Config.Cod.endScreen * 1000, function()
+            CodService.closeMatch(self)
+        end)
     end)
 end
 

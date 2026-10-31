@@ -25,7 +25,9 @@ export const mockCodCatalog: CodCatalog = {
   playlists: [
     { id: 'tdm', label: 'Match à mort par équipe', short: 'MME', description: 'Deux équipes, réapparition immédiate : la première à 75 kills gagne.', teams: true, minPlayers: 2, maxPlayers: 12, time: 600, scoreLimit: 75 },
     { id: 'dom', label: 'Domination', short: 'DOM', description: 'Capturez et tenez les drapeaux : chaque drapeau rapporte des points à votre équipe.', teams: true, minPlayers: 2, maxPlayers: 12, time: 600, scoreLimit: 200 },
+    { id: 'kc', label: 'Élimination confirmée', short: 'EC', description: 'Ramasse la plaque de tes victimes pour marquer, et celles de tes alliés pour refuser le point : 50 plaques pour gagner.', teams: true, minPlayers: 2, maxPlayers: 12, time: 600, scoreLimit: 50 },
     { id: 'ffa', label: 'Mêlée générale', short: 'MG', description: 'Chacun pour soi : le premier à 30 kills gagne.', teams: false, minPlayers: 2, maxPlayers: 10, time: 600, scoreLimit: 30 },
+    { id: 'gun', label: 'Course aux armes', short: 'CA', description: 'Chaque kill donne l\'arme suivante, le dernier se fait au couteau. Un coup de couteau renvoie l\'ennemi à son arme précédente.', teams: false, minPlayers: 2, maxPlayers: 10, time: 600, scoreLimit: 15 },
     { id: 'snd', label: 'Recherche & Destruction', short: 'R&D', description: 'Une seule vie par manche. Les attaquants posent la bombe, les défenseurs la désamorcent.', teams: true, minPlayers: 2, maxPlayers: 10, time: 3600, scoreLimit: 4 },
   ],
   primary: [

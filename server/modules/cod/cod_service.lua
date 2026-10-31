@@ -79,6 +79,10 @@ function CodService.init()
         local match = CodService.matchOf(source)
         if match then match:killcamClip(source, victim, clip) end
     end)
+    RegisterNetEvent(Events.server.codKillcamOwn, function(clip)
+        local match = CodService.matchOf(source)
+        if match then match:killcamOwn(source, clip) end
+    end)
     RegisterNetEvent(Events.server.codKillcamDone, function()
         local match = CodService.matchOf(source)
         if match then match:killcamDone(source) end

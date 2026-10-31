@@ -57,6 +57,9 @@ Config.Cod = {
         clipTimeout = 2500, -- ms d'attente de l'enregistrement du tueur : au-delà, pas de kill cam
         maxDelay = 10, -- secondes après la mort : réapparition forcée si la kill cam n'est pas terminée
         skipKey = 'F',
+        -- Kill cam finale : à la fin de la partie, tout le monde revoit le dernier kill
+        finalDuration = 7, -- secondes avant les résultats (doit couvrir le replay et ses fondus)
+        finalMaxAge = 30, -- secondes : un dernier kill plus ancien n'est pas remontré
     },
     spawnProtection = 2, -- secondes sans prendre de dégâts après chaque apparition
     outsideDamage = 10, -- dégâts par seconde hors de la zone de combat
@@ -90,6 +93,10 @@ Config.Cod = {
         defuse = 300,
         roundWin = 100,
         unitDestroyed = 200, -- tourelle ou appareil ennemi détruit
+        tagConfirmed = 100, -- plaque ennemie ramassée (Élimination confirmée)
+        tagDenied = 50, -- plaque d'un allié reprise (Élimination confirmée)
+        gunLevel = 100, -- arme suivante (Course aux armes)
+        humiliation = 100, -- ennemi renvoyé à l'arme précédente au couteau (Course aux armes)
         win = 800,
         loss = 300,
         draw = 500,
@@ -106,6 +113,7 @@ Config.Cod = {
 
     -- Listes de jeu proposées dans le menu.
     --   time = durée en secondes ; scoreLimit = score pour gagner
+    --   fixedClass = armes imposées : ni choix de classe, ni séries
     playlists = {
         {
             id = 'tdm', label = 'Match à mort par équipe', short = 'MME',
@@ -118,9 +126,20 @@ Config.Cod = {
             teams = true, minPlayers = 2, maxPlayers = 12, time = 600, scoreLimit = 200,
         },
         {
+            id = 'kc', label = 'Élimination confirmée', short = 'EC',
+            description = 'Ramasse la plaque de tes victimes pour marquer, et celles de tes alliés pour refuser le point : 50 plaques pour gagner.',
+            teams = true, minPlayers = 2, maxPlayers = 12, time = 600, scoreLimit = 50,
+        },
+        {
             id = 'ffa', label = 'Mêlée générale', short = 'MG',
             description = 'Chacun pour soi : le premier à 30 kills gagne.',
             teams = false, minPlayers = 2, maxPlayers = 10, time = 600, scoreLimit = 30,
+        },
+        {
+            -- scoreLimit : le nombre d'armes de gunGame.ladder
+            id = 'gun', label = 'Course aux armes', short = 'CA',
+            description = 'Chaque kill donne l\'arme suivante, le dernier se fait au couteau. Un coup de couteau renvoie l\'ennemi à son arme précédente.',
+            teams = false, minPlayers = 2, maxPlayers = 10, time = 600, scoreLimit = 15, fixedClass = true,
         },
         {
             id = 'snd', label = 'Recherche & Destruction', short = 'R&D',
@@ -135,6 +154,23 @@ Config.Cod = {
         captureTime = 8, -- secondes pour un joueur seul
         captureBonus = 0.25, -- vitesse en plus par joueur supplémentaire
         scoreInterval = 5, -- secondes entre deux rentrées de points
+    },
+
+    -- Élimination confirmée : une plaque tombe à chaque kill d'un joueur
+    killConfirmed = {
+        radius = 2.2, -- m pour la ramasser
+        lifetime = 30, -- secondes avant qu'elle disparaisse
+    },
+
+    -- Course aux armes : une arme après l'autre, dans cet ordre
+    gunGame = {
+        ladder = {
+            'WEAPON_PISTOL', 'WEAPON_COMBATPISTOL', 'WEAPON_PISTOL50', 'WEAPON_MICROSMG', 'WEAPON_SMG',
+            'WEAPON_PUMPSHOTGUN', 'WEAPON_ASSAULTSHOTGUN', 'WEAPON_ASSAULTRIFLE', 'WEAPON_CARBINERIFLE', 'WEAPON_ADVANCEDRIFLE',
+            'WEAPON_MG', 'WEAPON_COMBATMG', 'WEAPON_SNIPERRIFLE', 'WEAPON_HEAVYSNIPER', 'WEAPON_KNIFE',
+        },
+        perks = { 'lightweight', 'marathon' },
+        previousWindow = 1500, -- ms : un kill signalé juste après le changement d'arme compte encore pour la précédente
     },
 
     -- Recherche & Destruction : tous les attaquants peuvent poser la bombe.
@@ -365,6 +401,8 @@ Config.Cod = {
         'Le premier kill de la partie rapporte un bonus d\'XP.',
         'Au rang maximum, l\'onglet Prestige te fait repartir du rang 1 avec un nouvel insigne.',
         'Les kills font monter le niveau de ton arme : accessoires et camouflages se débloquent dans l\'éditeur de classe.',
+        'En Élimination confirmée, un kill ne compte que si un allié ou toi ramassez la plaque de la victime.',
+        'En Course aux armes, le couteau ne fait pas avancer mais renvoie ta victime à son arme précédente.',
     },
 }
 

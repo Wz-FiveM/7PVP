@@ -1,6 +1,6 @@
----Objectifs du mode Call of Duty : drapeaux de la Domination, sites de bombe de Recherche & Destruction.
----Marqueurs et repères sur la carte, touche maintenue pour poser ou désamorcer (le serveur vérifie
----le rôle, la distance et compte le temps).
+---Objectifs du mode Call of Duty : drapeaux de la Domination, sites de bombe de Recherche & Destruction,
+---plaques de l'Élimination confirmée. Marqueurs et repères sur la carte, touche maintenue pour poser ou
+---désamorcer (le serveur vérifie le rôle, la distance et compte le temps).
 ---@class CodObjectivesModule
 local CodObjectives = PVP.define('CodObjectives')
 local State = PVP.use('State')
@@ -13,6 +13,7 @@ CodObjectives.CONTROL_ACTION = 38 -- INPUT_PICKUP (E)
 CodObjectives.GROUND_INTERVAL = 2000
 CodObjectives.ANIM_DICT = 'mini@repair'
 CodObjectives.ANIM_NAME = 'fixing_a_ped'
+CodObjectives.TAG_MARKER = 21 -- double chevron, tourne et flotte au-dessus du sol
 -- Couleurs : neutre, ami, ennemi (marqueurs : rvb, repères : couleur de GTA)
 CodObjectives.COLORS = {
     neutral = { 236, 238, 232, blip = 0 },
@@ -28,6 +29,8 @@ CodObjectives.state = nil
 CodObjectives.holding = false
 CodObjectives.acting = false
 CodObjectives.nextGround = 0
+---@type table<integer, integer> plaque -> repère sur la carte
+CodObjectives.tagBlips = {}
 
 function CodObjectives.init()
     RegisterNetEvent(Events.client.codAction, function(data)
@@ -61,6 +64,7 @@ function CodObjectives.clear()
             if point.blip and DoesBlipExist(point.blip) then RemoveBlip(point.blip) end
         end
     end
+    CodObjectives.syncTagBlips({})
     CodObjectives.data = nil
     CodObjectives.state = nil
 end
@@ -69,8 +73,35 @@ end
 function CodObjectives.onState(state)
     CodObjectives.state = state
     if not state or not CodObjectives.data then return end
+    if state.kind == 'tags' then CodObjectives.syncTagBlips(state.tags) end
     for _, point in ipairs(CodObjectives.data.points) do
         SetBlipColour(point.blip, CodObjectives.colorOf(point).blip)
+    end
+end
+
+---@param tag { team: string }
+---@return table couleur de la plaque : allié à sauver, ou ennemi à confirmer
+function CodObjectives.tagColor(tag)
+    return tag.team == CodObjectives.team and CodObjectives.COLORS.friend or CodObjectives.COLORS.enemy
+end
+
+---@param tags table[]
+function CodObjectives.syncTagBlips(tags)
+    local wanted = {}
+    for _, tag in ipairs(tags) do
+        wanted[tag.id] = true
+        if not CodObjectives.tagBlips[tag.id] then
+            local blip = AddBlipForCoord(tag.x, tag.y, tag.z)
+            SetBlipScale(blip, 0.5)
+            SetBlipColour(blip, CodObjectives.tagColor(tag).blip)
+            CodObjectives.tagBlips[tag.id] = blip
+        end
+    end
+    for id, blip in pairs(CodObjectives.tagBlips) do
+        if not wanted[id] then
+            if DoesBlipExist(blip) then RemoveBlip(blip) end
+            CodObjectives.tagBlips[id] = nil
+        end
     end
 end
 
@@ -112,6 +143,17 @@ function CodObjectives.frame()
         CodObjectives.drawLetter(point, color)
     end
     if data.kind == 'sites' then CodObjectives.updateBombAction() end
+    if data.kind == 'tags' then CodObjectives.drawTags() end
+end
+
+function CodObjectives.drawTags()
+    local state = CodObjectives.state
+    if not state or state.kind ~= 'tags' then return end
+    for _, tag in ipairs(state.tags) do
+        local color = CodObjectives.tagColor(tag)
+        DrawMarker(CodObjectives.TAG_MARKER, tag.x, tag.y, tag.z, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.6, 0.6, 0.6, color[1], color[2], color[3], 230, true, false, 2, true, nil, nil, false)
+    end
 end
 
 ---@param point table

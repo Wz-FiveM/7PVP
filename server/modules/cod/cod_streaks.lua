@@ -43,6 +43,14 @@ function CodStreaks.killsNeeded(match, source, streak)
     return streak.kills - (match:hasPerk(source, 'hardline') and 1 or 0)
 end
 
+---@param match table
+---@param source integer
+---@return table[] séries que le joueur peut gagner dans cette partie : aucune quand la liste de jeu impose les armes
+function CodStreaks.available(match, source)
+    if match.playlist.fixedClass then return {} end
+    return CodStreaks.chosen(source)
+end
+
 ---Compteur, séries disponibles et séries choisies (les cases du HUD).
 ---@param match table
 ---@param source integer
@@ -54,7 +62,7 @@ function CodStreaks.sendState(match, source)
         items[index] = { id = id, label = CodProfileService.streaks[id].label }
     end
     local slots = {}
-    for index, streak in ipairs(CodStreaks.chosen(source)) do
+    for index, streak in ipairs(CodStreaks.available(match, source)) do
         slots[index] = { id = streak.id, label = streak.label, kills = CodStreaks.killsNeeded(match, source, streak) }
     end
     table.sort(slots, function(a, b) return a.kills < b.kills end)
@@ -68,7 +76,7 @@ function CodStreaks.onKill(match, source)
     local stats = match.stats[source]
     stats.streak = stats.streak + 1
     stats.bestStreak = math.max(stats.bestStreak, stats.streak)
-    for _, streak in ipairs(CodStreaks.chosen(source)) do
+    for _, streak in ipairs(CodStreaks.available(match, source)) do
         if stats.streak == CodStreaks.killsNeeded(match, source, streak) then
             CodStreaks.give(match, source, streak)
         end
@@ -425,7 +433,7 @@ function CodStreaks.tick(match, now)
     CodCrates.tick(match, now)
     if match.nuke and now >= match.nuke.at then
         match:broadcast(Events.client.codEffect, { type = 'nukeBlast' })
-        match:finish(match.nuke.key, Locale.t('Frappe nucléaire de %s.', match.nuke.name))
+        match:finish(match.nuke.key, Locale.t('Frappe nucléaire de %s.', match.nuke.name), true)
     end
 end
 

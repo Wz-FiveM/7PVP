@@ -149,8 +149,14 @@ function Cod.init()
     RegisterNetEvent(Events.client.codRoundEnd, function(data)
         Nui.send('codRoundEnd', data)
     end)
+    RegisterNetEvent(Events.client.codEnding, function()
+        Cod.beginEnding()
+    end)
     RegisterNetEvent(Events.client.codEnd, function(data)
         Cod.finish(data)
+    end)
+    RegisterNetEvent(Events.client.codClass, function(class)
+        if Cod.isActive() then Cod.applyClass(class, true) end
     end)
 
     RegisterCommand('pvp_cod_streak', function()
@@ -329,7 +335,7 @@ end
 ---Sélecteur de classe en partie : s'applique à la prochaine apparition.
 ---@param open boolean
 function Cod.setPicker(open)
-    if open and (not Cod.isActive() or Cod.ended or IsNuiFocused() or CodTablet.isActive() or CodLoading.isActive()) then return end
+    if open and (not Cod.isActive() or Cod.ended or Cod.match.fixedClass or IsNuiFocused() or CodTablet.isActive() or CodLoading.isActive()) then return end
     if open == Cod.pickerOpen then return end
     Cod.pickerOpen = open
     SetNuiFocus(open, open)
@@ -432,7 +438,8 @@ end
 
 ---Armes et atouts de la classe, munitions et vie au maximum.
 ---@param class table
-function Cod.applyClass(class)
+---@param keepHealth boolean|nil changement d'arme en pleine vie (Course aux armes) : la vie ne bouge pas
+function Cod.applyClass(class, keepHealth)
     Cod.class = class
     Cod.perks = {}
     for _, perk in ipairs(class.perks) do Cod.perks[perk] = true end
@@ -443,9 +450,10 @@ function Cod.applyClass(class)
     SetPedInfiniteAmmoClip(ped, false)
     GiveWeaponToPed(ped, GetHashKey(Config.Cod.knife), 0, false, false)
     if class.equipment then Cod.giveWeapon(ped, class.equipment) end
-    Cod.giveWeapon(ped, class.secondary, class.secondaryMods)
+    if class.secondary then Cod.giveWeapon(ped, class.secondary, class.secondaryMods) end
     local primary = Cod.giveWeapon(ped, class.primary, class.primaryMods)
     SetCurrentPedWeapon(ped, primary, true)
+    if keepHealth then return end
 
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
     SetPedArmour(ped, Cod.perks.flak and Config.Cod.flakArmor or 0)
@@ -492,6 +500,8 @@ end
 function Cod.selectWeapon(slot)
     if not Cod.isActive() or Cod.ended or not Cod.class or not State.isAlive() or IsNuiFocused() then return end
     if CodTablet.isActive() or CodLoading.isActive() or CodLoadout.isActive() or CodObjectives.acting then return end
+    -- Pas de seconde arme quand la liste de jeu impose les armes
+    if not Cod.class[slot] then return end
     local ped = PlayerPedId()
     local hash = GetHashKey(Cod.class[slot])
     local juggernaut = GetHashKey(Config.Cod.juggernaut.weapon)
@@ -743,10 +753,9 @@ end
 -- Fin
 -- ---------------------------------------------------------------------------
 
----Résultats : le joueur reste figé en attendant le retour au menu (envoyé par le serveur).
----@param data table result, reason, scores, board, summary, seconds
-function Cod.finish(data)
-    if not Cod.isActive() then return end
+---La partie est finie : le joueur reste figé, jusqu'à la kill cam finale puis aux résultats.
+function Cod.beginEnding()
+    if not Cod.isActive() or Cod.ended then return end
     Cod.ended = true
     CodKillcam.stop()
     if CodLoadout.isActive() then DoScreenFadeIn(Cod.FADE) end
@@ -756,6 +765,15 @@ function Cod.finish(data)
     Cod.setPicker(false)
     Pause.close()
     CodObjectives.stopHolding()
+    Death.stopSpectate()
+end
+
+---Résultats : le joueur attend le retour au menu (envoyé par le serveur).
+---@param data table result, reason, scores, board, summary, seconds
+function Cod.finish(data)
+    if not Cod.isActive() then return end
+    Cod.beginEnding()
+    CodKillcam.stop()
     Nui.send('codHud', { open = false })
     Nui.send('codEnd', data)
 end

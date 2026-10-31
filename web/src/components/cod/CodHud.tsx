@@ -310,8 +310,9 @@ function BottomLeft({ hud, live, rank, prestige }: { hud: CodHudData & { at: num
   const team = hud.team;
   const them: CodTeamId = team === 'alpha' ? 'bravo' : 'alpha';
   const limit = hud.playlist.scoreLimit;
-  const ours = team ? (live?.scores[team] ?? 0) : (me?.kills ?? 0);
-  const theirs = team ? (live?.scores[them] ?? 0) : (leader && leader.id !== hud.self ? leader.kills : (live?.board[1]?.kills ?? 0));
+  const points = (entry?: CodBoardEntry) => entry?.points ?? entry?.kills ?? 0;
+  const ours = team ? (live?.scores[team] ?? 0) : points(me);
+  const theirs = team ? (live?.scores[them] ?? 0) : points(leader && leader.id !== hud.self ? leader : live?.board[1]);
 
   return (
     <div className="cod-corner">
@@ -397,12 +398,18 @@ function TopCenter({ hud, live }: { hud: CodHudData; live: CodStateData | null }
   useT();
   const objective = live?.objective;
   if (!objective) return null;
+  const passed = live?.board.find((entry) => entry.id === hud.self)?.points ?? 0;
   return (
     <div className="cod-objective">
       {objective.kind === 'flags' && objective.flags.map((flag) => (
         <FlagChip key={flag.id} flag={flag} team={hud.team} />
       ))}
       {objective.kind === 'sites' && <BombStatus objective={objective} team={hud.team} />}
+      {objective.kind === 'gun' && (
+        <span className="cod-bomb">
+          <span className="cod-label">{t('ARME {level} / {total}', { level: passed + 1, total: objective.levels })}</span>
+        </span>
+      )}
     </div>
   );
 }
@@ -510,7 +517,7 @@ function KillcamOverlay({ killcam }: { killcam: CodKillcamData }) {
   useT();
   return (
     <div className="cod-killcam">
-      <span className="cod-killcam__title">{t('KILL CAM')}</span>
+      <span className="cod-killcam__title">{killcam.final ? t('KILL CAM FINALE') : t('KILL CAM')}</span>
       <div className="cod-dead">
         {killcam.card
           ? <CodPlayerCard card={killcam.card} label={t('Tué par')} />

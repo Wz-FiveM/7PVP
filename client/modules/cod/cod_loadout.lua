@@ -67,8 +67,10 @@ function CodLoadout.open(data)
     while CodLoadout.session == session and not session.hidden do Wait(0) end
     if CodLoadout.session ~= session then return end
 
-    session.deadline = GetGameTimer() + Config.Cod.loadoutTime * 1000
     session.screen = true
+    -- Armes imposées par la liste de jeu : rien à choisir
+    if data.fixedClass then return CodLoadout.deploy() end
+    session.deadline = GetGameTimer() + Config.Cod.loadoutTime * 1000
     CodLoadout.startCamera(session, data.arena, data.spawn.w)
     DisplayRadar(false)
     SetNuiFocus(true, true)

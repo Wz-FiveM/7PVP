@@ -3,10 +3,12 @@
 ---    objectives(match)               positions envoyées aux clients (drapeaux, sites)
 ---    describe(match)                 état de l'objectif, envoyé chaque seconde
 ---    tick(match, now, delta)         drapeaux, bombe...
----    onKill(match, killer, victim)   après chaque mort (killer nil : pas de tueur)
+---    onKill(match, killer, victim, weapon)   après chaque mort (killer nil : pas de tueur ; weapon nil : tué par une série)
 ---    canRespawn(match)               réapparition après une mort
 ---    onTimeout(match)                fin du temps
 ---    onLeave(match, source, stats)   un joueur est parti
+---    classOf(match, source)          facultatif : classe imposée au lieu de celle du joueur
+---    points(stats)                   facultatif : score d'un joueur en chacun pour soi, ses kills sinon
 ---@class CodRulesModule
 local CodRules = PVP.define('CodRules')
 local CodUnits = PVP.use('CodUnits')
@@ -89,6 +91,176 @@ function CodRules.Ffa.onKill(match, killer)
     local stats = match.stats[killer]
     if stats.kills >= match.playlist.scoreLimit then
         match:finish(killer, Locale.t('%s a atteint le score.', stats.name))
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Élimination confirmée
+-- ---------------------------------------------------------------------------
+
+CodRules.Kc = {
+    canRespawn = CodRules.always,
+    onTimeout = CodRules.finishByScore,
+    onLeave = CodRules.noop,
+}
+
+---@param match table
+function CodRules.Kc.setup(match)
+    match.tags = {}
+    match.nextTag = 0
+end
+
+---@return table les plaques arrivent ensuite avec l'état de la partie (describe)
+function CodRules.Kc.objectives()
+    return { kind = 'tags', radius = Config.Cod.killConfirmed.radius, points = {} }
+end
+
+---@param match table
+---@return table
+function CodRules.Kc.describe(match)
+    local tags = {}
+    for index, tag in ipairs(match.tags) do
+        tags[index] = { id = tag.id, team = tag.team, x = tag.coords.x, y = tag.coords.y, z = tag.coords.z }
+    end
+    return { kind = 'tags', tags = tags }
+end
+
+---La plaque tombe à l'endroit de la mort, sans attendre l'envoi régulier de l'état.
+---@param match table
+---@param killer integer|nil
+---@param victim integer
+function CodRules.Kc.onKill(match, killer, victim)
+    local ped = GetPlayerPed(victim)
+    if not killer or ped == 0 then return end
+    match.nextTag = match.nextTag + 1
+    match.tags[#match.tags + 1] = {
+        id = match.nextTag,
+        team = match.stats[victim].team,
+        coords = GetEntityCoords(ped),
+        expires = GetGameTimer() + Config.Cod.killConfirmed.lifetime * 1000,
+    }
+    match.nextBroadcast = 0
+end
+
+---@param match table
+---@param now integer
+function CodRules.Kc.tick(match, now)
+    local radius = Config.Cod.killConfirmed.radius
+    for index = #match.tags, 1, -1 do
+        local tag = match.tags[index]
+        local taker = now < tag.expires and CodRules.Kc.takerOf(match, tag, radius)
+        if taker or now >= tag.expires then
+            table.remove(match.tags, index)
+            match.nextBroadcast = 0
+            if taker then CodRules.Kc.take(match, tag, taker) end
+            if match.phase ~= 'running' then return end
+        end
+    end
+end
+
+---@param match table
+---@param tag table
+---@param radius number
+---@return integer|nil joueur vivant sur la plaque
+function CodRules.Kc.takerOf(match, tag, radius)
+    for _, source in ipairs(match.players) do
+        local ped = GetPlayerPed(source)
+        if match.stats[source].alive and ped ~= 0 and #(GetEntityCoords(ped) - tag.coords) <= radius then return source end
+    end
+    return nil
+end
+
+---Plaque d'un ennemi : un point pour le camp du joueur. Plaque d'un allié : le point est refusé.
+---@param match table
+---@param tag table
+---@param source integer
+function CodRules.Kc.take(match, tag, source)
+    local team = match.stats[source].team
+    if team == tag.team then
+        return match:award(source, Config.Cod.xp.tagDenied, Locale.t('Élimination refusée'))
+    end
+    match:award(source, Config.Cod.xp.tagConfirmed, Locale.t('Élimination confirmée'))
+    match.scores[team] = match.scores[team] + 1
+    if match.scores[team] >= match.playlist.scoreLimit then
+        match:finish(team, Locale.t('Score atteint.'))
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Course aux armes
+-- ---------------------------------------------------------------------------
+
+CodRules.Gun = {
+    setup = CodRules.noop,
+    objectives = CodRules.noop,
+    tick = CodRules.noop,
+    canRespawn = CodRules.always,
+    onTimeout = CodRules.finishByScore,
+    onLeave = CodRules.noop,
+}
+
+---@return table
+function CodRules.Gun.describe()
+    return { kind = 'gun', levels = #Config.Cod.gunGame.ladder }
+end
+
+---@param stats table
+---@return integer armes déjà passées
+function CodRules.Gun.points(stats)
+    return (stats.gunLevel or 1) - 1
+end
+
+---@param match table
+---@param source integer
+---@return CodClass
+function CodRules.Gun.classOf(match, source)
+    local settings = Config.Cod.gunGame
+    return {
+        name = 'Course aux armes',
+        primary = settings.ladder[match.stats[source].gunLevel or 1],
+        secondary = false,
+        equipment = false,
+        perks = settings.perks,
+    }
+end
+
+---@param match table
+---@param killer integer|nil
+---@param victim integer
+---@param weapon string|nil
+function CodRules.Gun.onKill(match, killer, victim, weapon)
+    if not killer or not weapon then return end
+    local settings = Config.Cod.gunGame
+    local stats = match.stats[killer]
+    local level = stats.gunLevel or 1
+    local current = settings.ladder[level]
+    if weapon == Config.Cod.knife and current ~= weapon then return CodRules.Gun.humiliate(match, killer, victim) end
+
+    local previous = weapon == stats.gunPrevious and GetGameTimer() < (stats.gunPreviousUntil or 0)
+    if weapon ~= current and not previous then return end
+    if level >= #settings.ladder then
+        return match:finish(killer, Locale.t('%s a terminé la course.', stats.name))
+    end
+
+    stats.gunLevel = level + 1
+    stats.gunPrevious = current
+    stats.gunPreviousUntil = GetGameTimer() + settings.previousWindow
+    stats.class = CodRules.Gun.classOf(match, killer)
+    match:award(killer, Config.Cod.xp.gunLevel, Locale.t('Arme suivante'))
+    if stats.alive then TriggerClientEvent(Events.client.codClass, killer, stats.class) end
+end
+
+---Tué au couteau : la victime recule d'une arme, à sa prochaine apparition.
+---@param match table
+---@param killer integer
+---@param victim integer
+function CodRules.Gun.humiliate(match, killer, victim)
+    local stats = match.stats[victim]
+    match:award(killer, Config.Cod.xp.humiliation, Locale.t('Humiliation'))
+    match:medal(killer, 'humiliation', 'Humiliation')
+    if (stats.gunLevel or 1) > 1 then
+        stats.gunLevel = stats.gunLevel - 1
+        TriggerClientEvent(Events.client.codNotice, victim, { text = Locale.t('Humilié : tu recules d\'une arme'), friendly = false })
     end
 end
 
@@ -446,6 +618,7 @@ function CodRules.Snd.startRound(match)
         match:broadcast(Events.client.codNotice, { text = Locale.t('Changement de camp') })
     end
     match.bomb = false
+    match.lastKill = nil
     CodUnits.clear(match)
     CodCrates.clear(match)
     match.phase = 'countdown'
@@ -467,6 +640,8 @@ end
 CodRules.handlers = {
     tdm = CodRules.Tdm,
     ffa = CodRules.Ffa,
+    kc = CodRules.Kc,
+    gun = CodRules.Gun,
     dom = CodRules.Dom,
     snd = CodRules.Snd,
 }
