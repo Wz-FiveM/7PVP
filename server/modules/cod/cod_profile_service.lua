@@ -5,8 +5,19 @@
 ---@field name string
 ---@field primary string arme du catalogue
 ---@field secondary string
+---@field primaryMods CodWeaponMods
+---@field secondaryMods CodWeaponMods
 ---@field equipment string|false
 ---@field perks string[] un atout par niveau (1, 2, 3)
+
+---Accessoires et camouflage d'une arme dans une classe (config/cod_gunsmith.lua).
+---@class CodWeaponMods
+---@field attachments string[]
+---@field camo string|false
+
+---@class CodWeaponProgress
+---@field kills integer
+---@field headshots integer
 
 ---@class CodPlayerCard
 ---@field banner string
@@ -30,6 +41,7 @@
 ---@field selected integer classe choisie
 ---@field classes CodClass[]
 ---@field streaks string[] séries choisies
+---@field weapons table<string, CodWeaponProgress> par arme, gardé après un Prestige
 ---@field card CodPlayerCard
 ---@field operator string|false personnage choisi (config/cod_operators.lua)
 ---@field owned table<string, boolean> personnages achetés
@@ -39,6 +51,7 @@
 ---@field rank integer
 ---@field prestige integer
 ---@field permanent table<string, boolean>
+---@field weapons table<string, CodWeaponProgress>
 
 ---@class CodProfileServiceModule
 local CodProfileService = PVP.define('CodProfileService')
@@ -65,6 +78,7 @@ CodProfileService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_cod_profiles (
     streaks LONGTEXT NULL,
     player_card LONGTEXT NULL,
     operator_id VARCHAR(32) NULL,
+    weapon_progress LONGTEXT NULL,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (identifier),
     KEY idx_xp (xp)
@@ -78,6 +92,7 @@ CodProfileService.MIGRATIONS = {
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS prestige_unlocks LONGTEXT NULL AFTER prestige_tokens',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS banked_xp INT NOT NULL DEFAULT 0 AFTER prestige_unlocks',
     'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS operator_id VARCHAR(32) NULL AFTER player_card',
+    'ALTER TABLE pvp_cod_profiles ADD COLUMN IF NOT EXISTS weapon_progress LONGTEXT NULL AFTER operator_id',
 }
 
 ---@type table<integer, CodProfile> par joueur connecté dans le mode
@@ -92,6 +107,8 @@ CodProfileService.perks = {}
 CodProfileService.streaks = {}
 CodProfileService.banners = {}
 CodProfileService.emblems = {}
+CodProfileService.attachments = {}
+CodProfileService.camos = {}
 -- Ce qu'un jeton de Prestige peut garder : les armes, atouts et séries qui demandent un rang
 CodProfileService.permanentCatalog = {}
 -- Séries retirées du jeu, encore enregistrées dans les profils : ancienne -> remplaçante
@@ -105,6 +122,8 @@ function CodProfileService.init()
     for _, entry in ipairs(Config.Cod.streaks) do CodProfileService.streaks[entry.id] = entry end
     for _, entry in ipairs(Config.CodPlayerCards.banners) do CodProfileService.banners[entry.id] = entry end
     for _, entry in ipairs(Config.CodPlayerCards.emblems) do CodProfileService.emblems[entry.id] = entry end
+    for _, entry in ipairs(Config.CodGunsmith.attachments) do CodProfileService.attachments[entry.id] = entry end
+    for _, entry in ipairs(Config.CodGunsmith.camos) do CodProfileService.camos[entry.id] = entry end
     for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary, Config.Cod.weapons.equipment, Config.Cod.perks, Config.Cod.streaks }) do
         for _, entry in ipairs(list) do
             if entry.rank > 1 then CodProfileService.permanentCatalog[entry.id] = entry end
@@ -159,7 +178,7 @@ end
 function CodProfileService.accessOf(profile)
     local permanent = {}
     for _, id in ipairs(profile.permanent) do permanent[id] = true end
-    return { rank = CodProfileService.rankFromXp(profile.xp), prestige = profile.prestige, permanent = permanent }
+    return { rank = CodProfileService.rankFromXp(profile.xp), prestige = profile.prestige, permanent = permanent, weapons = profile.weapons }
 end
 
 ---Commande admin : le joueur arrive au début du rang visé.
@@ -231,6 +250,7 @@ function CodProfileService.load(player)
         selected = row.selected_class or 1,
         classes = {},
         streaks = {},
+        weapons = CodProfileService.cleanWeapons(CodProfileService.decode(row.weapon_progress)),
         operator = row.operator_id or false,
         owned = CodOperatorService.loadOwned(player.identifier),
     }
@@ -265,6 +285,8 @@ function CodProfileService.copyClass(class)
         name = class.name,
         primary = class.primary,
         secondary = class.secondary,
+        primaryMods = { attachments = {}, camo = false },
+        secondaryMods = { attachments = {}, camo = false },
         equipment = class.equipment,
         perks = { table.unpack(class.perks) },
     }
@@ -279,20 +301,21 @@ end
 ---@param profile CodProfile
 function CodProfileService.save(profile)
     MySQL.insert(
-        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card, operator_id)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        [[INSERT INTO pvp_cod_profiles (identifier, name, xp, prestige, prestige_tokens, prestige_unlocks, banked_xp, kills, deaths, assists, wins, losses, best_streak, selected_class, classes, streaks, player_card, operator_id, weapon_progress)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON DUPLICATE KEY UPDATE name = VALUES(name), xp = VALUES(xp), prestige = VALUES(prestige),
               prestige_tokens = VALUES(prestige_tokens), prestige_unlocks = VALUES(prestige_unlocks), banked_xp = VALUES(banked_xp),
               kills = VALUES(kills), deaths = VALUES(deaths),
               assists = VALUES(assists), wins = VALUES(wins), losses = VALUES(losses), best_streak = VALUES(best_streak),
               selected_class = VALUES(selected_class), classes = VALUES(classes), streaks = VALUES(streaks),
-              player_card = VALUES(player_card), operator_id = VALUES(operator_id)]],
+              player_card = VALUES(player_card), operator_id = VALUES(operator_id), weapon_progress = VALUES(weapon_progress)]],
         {
             profile.identifier, profile.name, profile.xp, profile.prestige, profile.tokens, json.encode(profile.permanent), profile.bankedXp,
             profile.kills, profile.deaths, profile.assists,
             profile.wins, profile.losses, profile.bestStreak, profile.selected,
             json.encode(profile.classes), json.encode(profile.streaks), json.encode(profile.card),
             profile.operator or nil,
+            json.encode(profile.weapons),
         }
     )
 end
@@ -352,7 +375,40 @@ function CodProfileService.cleanClass(data, access)
         if CodProfileService.perks[id].tier ~= tier then return nil end
         perks[tier] = id
     end
-    return { name = name, primary = data.primary, secondary = data.secondary, equipment = equipment, perks = perks }
+    return {
+        name = name,
+        primary = data.primary,
+        secondary = data.secondary,
+        primaryMods = CodProfileService.cleanMods(data.primary, data.primaryMods, access),
+        secondaryMods = CodProfileService.cleanMods(data.secondary, data.secondaryMods, access),
+        equipment = equipment,
+        perks = perks,
+    }
+end
+
+---Ce qui n'existe pas sur cette arme ou n'est pas débloqué est retiré, sans refuser la classe : un réglage
+---de config/cod_gunsmith.lua ne doit pas faire perdre sa classe à un joueur.
+---@param weapon string arme déjà validée
+---@param data any accessoires et camouflage reçus du client ou lus en base
+---@param access CodAccess
+---@return CodWeaponMods
+function CodProfileService.cleanMods(weapon, data, access)
+    local clean = { attachments = {}, camo = false }
+    if type(data) ~= 'table' then return clean end
+    local progress = access.weapons[weapon]
+    local level = CodProfileService.weaponLevel(progress and progress.kills or 0)
+    local components = Config.CodGunsmith.weapons[weapon] or {}
+    local taken = {}
+    for _, id in ipairs(type(data.attachments) == 'table' and data.attachments or {}) do
+        local entry = type(id) == 'string' and CodProfileService.attachments[id]
+        if entry and components[id] and entry.level <= level and not taken[entry.slot] then
+            taken[entry.slot] = true
+            clean.attachments[#clean.attachments + 1] = id
+        end
+    end
+    local camo = type(data.camo) == 'string' and CodProfileService.camos[data.camo]
+    if camo and CodProfileService.camoUnlocked(camo, progress) then clean.camo = data.camo end
+    return clean
 end
 
 ---@param data any
@@ -526,10 +582,14 @@ function CodProfileService.relockClass(class, default, access)
     for tier = 1, 3 do
         perks[tier] = unlocked(CodProfileService.perks, class.perks[tier], access) and class.perks[tier] or default.perks[tier]
     end
+    local primary = unlocked(CodProfileService.primary, class.primary, access) and class.primary or default.primary
+    local secondary = unlocked(CodProfileService.secondary, class.secondary, access) and class.secondary or default.secondary
     return {
         name = class.name,
-        primary = unlocked(CodProfileService.primary, class.primary, access) and class.primary or default.primary,
-        secondary = unlocked(CodProfileService.secondary, class.secondary, access) and class.secondary or default.secondary,
+        primary = primary,
+        secondary = secondary,
+        primaryMods = CodProfileService.cleanMods(primary, primary == class.primary and class.primaryMods or nil, access),
+        secondaryMods = CodProfileService.cleanMods(secondary, secondary == class.secondary and class.secondaryMods or nil, access),
         equipment = equipment,
         perks = perks,
     }
@@ -597,6 +657,113 @@ function CodProfileService.unlockPermanent(source, id)
 end
 
 -- ---------------------------------------------------------------------------
+-- Progression des armes (config/cod_gunsmith.lua)
+-- ---------------------------------------------------------------------------
+
+---@param kills integer avec cette arme
+---@return integer niveau, integer kills dans le niveau, integer kills pour le niveau suivant (0 au niveau maximum)
+function CodProfileService.weaponLevel(kills)
+    local levels = Config.CodGunsmith.levels
+    local level, left = 1, kills
+    while level < levels.max do
+        local needed = levels.base + levels.growth * (level - 1)
+        if left < needed then return level, left, needed end
+        left = left - needed
+        level = level + 1
+    end
+    return level, 0, 0
+end
+
+---@param camo table entrée de Config.CodGunsmith.camos
+---@param progress CodWeaponProgress|nil
+---@return boolean
+function CodProfileService.camoUnlocked(camo, progress)
+    local kills, headshots = progress and progress.kills or 0, progress and progress.headshots or 0
+    return kills >= (camo.kills or 0) and headshots >= (camo.headshots or 0)
+end
+
+---@param id any
+---@return table|nil entrée du catalogue, si c'est une arme principale ou secondaire
+function CodProfileService.progressingWeapon(id)
+    return CodProfileService.primary[id] or CodProfileService.secondary[id]
+end
+
+---@param data table lu en base
+---@return table<string, CodWeaponProgress>
+function CodProfileService.cleanWeapons(data)
+    local clean = {}
+    for id, progress in pairs(data) do
+        if CodProfileService.progressingWeapon(id) and type(progress) == 'table' then
+            clean[id] = { kills = math.tointeger(tonumber(progress.kills)) or 0, headshots = math.tointeger(tonumber(progress.headshots)) or 0 }
+        end
+    end
+    return clean
+end
+
+---Kill avec une arme de la classe. La sauvegarde se fait avec le reste du profil (fin de partie, départ).
+---@param source integer
+---@param id string
+---@param headshot boolean
+---@return { weapon: string, label: string }[] ce que ce kill débloque, noms à traduire
+function CodProfileService.addWeaponKill(source, id, headshot)
+    local profile = CodProfileService.profiles[source]
+    local weapon = CodProfileService.progressingWeapon(id)
+    if not profile or not weapon then return {} end
+
+    local progress = profile.weapons[id] or { kills = 0, headshots = 0 }
+    profile.weapons[id] = progress
+    local before = { kills = progress.kills, headshots = progress.headshots }
+    progress.kills = progress.kills + 1
+    if headshot then progress.headshots = progress.headshots + 1 end
+
+    local unlocks = {}
+    local levelBefore, levelAfter = CodProfileService.weaponLevel(before.kills), CodProfileService.weaponLevel(progress.kills)
+    local components = Config.CodGunsmith.weapons[id] or {}
+    for _, entry in ipairs(Config.CodGunsmith.attachments) do
+        if components[entry.id] and entry.level > levelBefore and entry.level <= levelAfter then
+            unlocks[#unlocks + 1] = { weapon = weapon.label, label = entry.label }
+        end
+    end
+    for _, camo in ipairs(Config.CodGunsmith.camos) do
+        if not CodProfileService.camoUnlocked(camo, before) and CodProfileService.camoUnlocked(camo, progress) then
+            unlocks[#unlocks + 1] = { weapon = weapon.label, label = camo.label }
+        end
+    end
+    return unlocks
+end
+
+---Commande admin : kills et tirs à la tête d'une arme, ou de toutes.
+---@param source integer profil chargé
+---@param id string|nil nil : toutes les armes
+---@param kills integer
+---@param headshots integer
+function CodProfileService.setWeaponProgress(source, id, kills, headshots)
+    local profile = CodProfileService.profiles[source]
+    for _, list in ipairs({ Config.Cod.weapons.primary, Config.Cod.weapons.secondary }) do
+        for _, entry in ipairs(list) do
+            if not id or entry.id == id then profile.weapons[entry.id] = { kills = kills, headshots = headshots } end
+        end
+    end
+    local access = CodProfileService.accessOf(profile)
+    for index, class in ipairs(profile.classes) do
+        profile.classes[index] = CodProfileService.cleanClass(class, access) or class
+    end
+    CodProfileService.save(profile)
+    TriggerClientEvent(Events.client.codProfile, source, CodProfileService.describe(profile))
+end
+
+---@param profile CodProfile
+---@return table<string, table> niveau et progression de chaque arme déjà utilisée
+function CodProfileService.describeWeapons(profile)
+    local weapons = {}
+    for id, progress in pairs(profile.weapons) do
+        local level, into, needed = CodProfileService.weaponLevel(progress.kills)
+        weapons[id] = { kills = progress.kills, headshots = progress.headshots, level = level, into = into, needed = needed }
+    end
+    return weapons
+end
+
+-- ---------------------------------------------------------------------------
 -- Fin de partie
 -- ---------------------------------------------------------------------------
 
@@ -633,6 +800,7 @@ function CodProfileService.applyMatch(source, stats, result)
         prestige = profile.prestige,
         canPrestige = CodProfileService.canPrestige(profile),
         unlocks = after > before and CodProfileService.unlocksBetween(before, after, profile) or {},
+        weaponUnlocks = stats.weaponUnlocks or {},
     }
 end
 
@@ -681,6 +849,7 @@ function CodProfileService.describe(profile)
         selected = profile.selected,
         classes = profile.classes,
         streaks = profile.streaks,
+        weapons = CodProfileService.describeWeapons(profile),
         card = profile.card,
     }
 end
@@ -697,6 +866,7 @@ function CodProfileService.catalog()
         streaks = Config.Cod.streaks,
         maxStreaks = Config.Cod.maxStreaks,
         classNameLength = Config.Cod.classNameLength,
+        gunsmith = Config.CodGunsmith,
         banners = Config.CodPlayerCards.banners,
         emblems = Config.CodPlayerCards.emblems,
         tagLength = Config.CodPlayerCards.tagLength,

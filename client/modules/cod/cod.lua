@@ -73,6 +73,7 @@ Cod.cam = nil -- caméra du menu
 Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
 Cod.weapons = {}
+Cod.camos = {}
 ---@type table<string, string> série -> ce qu'elle envoie au serveur à l'utilisation ('aim', 'front', 'map')
 Cod.streakTargets = {}
 
@@ -80,6 +81,7 @@ function Cod.init()
     for _, list in pairs(Config.Cod.weapons) do
         for _, entry in ipairs(list) do Cod.weapons[entry.id] = entry end
     end
+    for _, entry in ipairs(Config.CodGunsmith.camos) do Cod.camos[entry.id] = entry end
     for _, entry in ipairs(Config.Cod.streaks) do Cod.streakTargets[entry.id] = entry.target end
     for _, team in ipairs({ 'alpha', 'bravo' }) do
         local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
@@ -195,6 +197,11 @@ function Cod.init()
     RegisterNUICallback('codLeaderboard', function(_, cb)
         cb(Callback.await(Events.callbacks.codLeaderboard) or { rows = {} })
     end)
+    RegisterNUICallback('codWeaponPreview', function(data, cb)
+        Cod.menuWeapon = Cod.menuOpen and Cod.weapons[data.weapon] and data or nil
+        Cod.previewClass()
+        cb({})
+    end)
     RegisterNUICallback('codPickerClose', function(_, cb)
         Cod.setPicker(false)
         cb({})
@@ -295,20 +302,23 @@ function Cod.stopMenuCamera()
     Cod.cam = nil
 end
 
----Le personnage du menu tient l'arme principale de la classe choisie.
+---Le personnage du menu tient l'arme en cours d'édition, sinon l'arme principale de la classe choisie.
 function Cod.previewClass()
     local class = Cod.profile and Cod.profile.classes[Cod.profile.selected]
     if not Cod.menuOpen or not class then return end
+    local shown = Cod.menuWeapon or { weapon = class.primary, mods = class.primaryMods }
     local ped = PlayerPedId()
-    local hash = GetHashKey(class.primary)
+    local hash = GetHashKey(shown.weapon)
     RemoveAllPedWeapons(ped, true)
     GiveWeaponToPed(ped, hash, 1, false, true)
+    Cod.applyMods(ped, shown.weapon, shown.mods)
     SetCurrentPedWeapon(ped, hash, true)
 end
 
 function Cod.closeMenu()
     if not Cod.menuOpen then return end
     Cod.menuOpen = false
+    Cod.menuWeapon = nil
     SetNuiFocus(false, false)
     Nui.send('codMenu', { open = false })
     Cod.stopMenuCamera()
@@ -433,8 +443,8 @@ function Cod.applyClass(class)
     SetPedInfiniteAmmoClip(ped, false)
     GiveWeaponToPed(ped, GetHashKey(Config.Cod.knife), 0, false, false)
     if class.equipment then Cod.giveWeapon(ped, class.equipment) end
-    Cod.giveWeapon(ped, class.secondary)
-    local primary = Cod.giveWeapon(ped, class.primary)
+    Cod.giveWeapon(ped, class.secondary, class.secondaryMods)
+    local primary = Cod.giveWeapon(ped, class.primary, class.primaryMods)
     SetCurrentPedWeapon(ped, primary, true)
 
     SetEntityHealth(ped, GetEntityMaxHealth(ped))
@@ -446,14 +456,34 @@ end
 
 ---@param ped integer
 ---@param id string arme du catalogue
+---@param mods table|nil accessoires et camouflage (config/cod_gunsmith.lua)
 ---@return integer hash
-function Cod.giveWeapon(ped, id)
+function Cod.giveWeapon(ped, id, mods)
     local hash = GetHashKey(id)
     local entry = Cod.weapons[id]
     GiveWeaponToPed(ped, hash, entry and entry.ammo or 0, false, false)
+    Cod.applyMods(ped, id, mods)
     SetPedInfiniteAmmo(ped, false, hash)
     SetPedAmmo(ped, hash, entry and entry.ammo or 0)
+    -- Un chargeur étendu commencerait à moitié vide
+    if mods then SetAmmoInClip(ped, hash, GetMaxAmmoInClip(ped, hash, true)) end
     return hash
+end
+
+---Pose les accessoires et le camouflage sur une arme que le personnage possède déjà.
+---@param ped integer
+---@param id string
+---@param mods table|nil { attachments: string[], camo: string|false }
+function Cod.applyMods(ped, id, mods)
+    if type(mods) ~= 'table' then return end
+    local hash = GetHashKey(id)
+    local components = Config.CodGunsmith.weapons[id] or {}
+    for _, attachment in ipairs(mods.attachments or {}) do
+        local component = components[attachment]
+        if component then GiveWeaponComponentToPed(ped, hash, GetHashKey(component)) end
+    end
+    local camo = Cod.camos[mods.camo]
+    SetPedWeaponTintIndex(ped, hash, camo and camo.tint or 0)
 end
 
 ---Touches d'armes : celles de GTA (1 à 9) sont coupées partout (Shortcuts.DISABLED_CONTROLS).

@@ -786,7 +786,7 @@ export const DEV_ACTIONS: DevAction[] = [
         action: 'codEnd',
         data: {
           result: 'won', reason: 'Score atteint.', team: 'alpha', scores: { alpha: 200, bravo: 143 }, board: mockCodBoard, seconds: 12,
-          summary: { earned: 2450, bonus: 800, rankBefore: 7, rankAfter: 8, prestige: 0, canPrestige: false, unlocks: ['Mitrailleuse'] },
+          summary: { earned: 2450, bonus: 800, rankBefore: 7, rankAfter: 8, prestige: 0, canPrestige: false, unlocks: ['Mitrailleuse'], weaponUnlocks: [{ weapon: 'Carabine', label: 'Silencieux' }] },
         },
       }),
   },

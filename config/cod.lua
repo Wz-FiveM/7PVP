@@ -364,6 +364,7 @@ Config.Cod = {
         'Enchaîner les kills en quelques secondes rapporte de l\'XP en plus.',
         'Le premier kill de la partie rapporte un bonus d\'XP.',
         'Au rang maximum, l\'onglet Prestige te fait repartir du rang 1 avec un nouvel insigne.',
+        'Les kills font monter le niveau de ton arme : accessoires et camouflages se débloquent dans l\'éditeur de classe.',
     },
 }
 

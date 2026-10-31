@@ -13,6 +13,12 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
   const seconds = useSecondsLeft(end.seconds, at);
   const summary = end.summary;
   const them = end.team === 'alpha' ? 'bravo' : 'alpha';
+  const unlocks = summary
+    ? [
+        ...summary.unlocks.map((label) => t(label)),
+        ...summary.weaponUnlocks.map((unlock) => `${t(unlock.label)} (${t(unlock.weapon)})`),
+      ]
+    : [];
 
   return (
     <div className={`cod-end cod-end--${end.result}`}>
@@ -42,10 +48,8 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
             {summary.canPrestige && (
               <span className="cod-end__rankup">{t('Prestige disponible dans le menu !')}</span>
             )}
-            {summary.unlocks.length > 0 && (
-              <span className="cod-end__unlocks">
-                {t('Débloqué : {list}', { list: summary.unlocks.map((label) => t(label)).join(', ') })}
-              </span>
+            {unlocks.length > 0 && (
+              <span className="cod-end__unlocks">{t('Débloqué : {list}', { list: unlocks.join(', ') })}</span>
             )}
           </div>
           <span className="cod-end__next">{t('Retour au menu dans {seconds} s', { seconds })}</span>

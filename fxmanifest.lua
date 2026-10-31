@@ -30,6 +30,7 @@ shared_scripts {
     'config/bike.lua',
     'config/gungame.lua',
     'config/cod.lua',
+    'config/cod_gunsmith.lua',
     'config/cod_player_cards.lua',
     'config/cod_operators.lua',
     'config/boards.lua',

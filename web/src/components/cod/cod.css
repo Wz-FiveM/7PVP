@@ -662,6 +662,78 @@
 .cod-option--locked .cod-weapon {
   opacity: 0.3;
 }
+.cod-option__level {
+  flex: none;
+  margin-left: auto;
+  font-family: var(--cod-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--cod-muted);
+}
+.cod-loadout__mods {
+  margin-left: 0.375rem;
+  font-family: var(--cod-font);
+  font-size: 0.75rem;
+  color: var(--cod-accent);
+}
+.cod-gunsmith__tabs {
+  display: flex;
+  flex: none;
+  border-bottom: 0.0625rem solid var(--cod-line);
+}
+.cod-gunsmith__tab {
+  flex: 1;
+  padding: 0.375rem 0.25rem;
+  border: 0;
+  border-bottom: 0.125rem solid transparent;
+  font-family: var(--cod-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cod-muted);
+  background: none;
+  cursor: pointer;
+}
+.cod-gunsmith__tab:hover {
+  color: var(--cod-white);
+}
+.cod-gunsmith__tab--active {
+  border-bottom-color: var(--cod-accent);
+  color: var(--cod-white);
+}
+.cod-gunsmith__level {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.cod-gunsmith__level-title {
+  font-family: var(--cod-font);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cod-gunsmith__swatch {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0.0625rem solid var(--cod-line);
+}
+.cod-gunsmith__swatch--none {
+  background: linear-gradient(135deg, transparent 47%, var(--cod-muted) 47%, var(--cod-muted) 53%, transparent 53%);
+}
+.cod-gunsmith__swatch--small {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-left: 0.375rem;
+}
+.cod-option--locked .cod-gunsmith__swatch {
+  opacity: 0.3;
+}
 .cod-option__text {
   display: flex;
   flex-direction: column;

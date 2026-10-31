@@ -137,10 +137,15 @@ end
 
 ---Enregistrement compact, à envoyer par le réseau. Les temps comptent à partir du kill.
 ---@param anchor integer GetGameTimer() du kill
----@return { samples: integer[][], shots: integer[][], weapons: integer[] }
+---@return { samples: integer[][], shots: integer[][], weapons: integer[], loadout: table[] }
 function CodKillcam.snapshot(anchor)
     local settings = Config.Cod.killcam
-    local clip = { samples = {}, shots = {}, weapons = {} }
+    local clip = { samples = {}, shots = {}, weapons = {}, loadout = {} }
+    -- Accessoires et camouflage à remontrer sur les armes de la classe
+    if Cod.class then
+        clip.loadout[1] = { weapon = Cod.class.primary, mods = Cod.class.primaryMods }
+        clip.loadout[2] = { weapon = Cod.class.secondary, mods = Cod.class.secondaryMods }
+    end
     local weaponIndex = {}
     for _, sample in ipairs(CodKillcam.samples) do
         local t = sample.at - anchor
@@ -170,9 +175,9 @@ function CodKillcam.snapshot(anchor)
 end
 
 ---@param clip table voir CodKillcam.snapshot
----@return { samples: table[], shots: table[], cursor: integer }
+---@return { samples: table[], shots: table[], loadout: table[], cursor: integer }
 function CodKillcam.decode(clip)
-    local track = { samples = {}, shots = {}, cursor = 1 }
+    local track = { samples = {}, shots = {}, loadout = clip.loadout, cursor = 1 }
     for index, entry in ipairs(clip.samples) do
         local coords = vector3(entry[2] / 100, entry[3] / 100, entry[4] / 100)
         track.samples[index] = {
@@ -343,6 +348,7 @@ function CodKillcam.createActor(session, ped, track)
             GiveWeaponToPed(ped, sample.weapon, 9999, false, false)
         end
     end
+    for _, entry in ipairs(track.loadout) do Cod.applyMods(ped, entry.weapon, entry.mods) end
 
     local actor = { ped = ped, track = track, nextTask = 0 }
     if PedUtils.loadModel(CodKillcam.AIM_MODEL) then

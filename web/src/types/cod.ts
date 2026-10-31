@@ -52,6 +52,33 @@ export interface CodOperatorEntry {
   /** le modèle est dans le jeu (renseigné par le client) */
   available?: boolean;
 }
+/** Accessoire d'arme (config/cod_gunsmith.lua) */
+export interface CodAttachment {
+  id: string;
+  slot: string;
+  /** niveau de l'arme qui le débloque */
+  level: number;
+  label: string;
+  description: string;
+}
+/** Camouflage d'arme : ce qu'il faut avoir fait avec elle pour le débloquer */
+export interface CodCamo {
+  id: string;
+  tint: number;
+  /** pastille du menu */
+  color: string;
+  label: string;
+  kills?: number;
+  headshots?: number;
+}
+export interface CodGunsmithCatalog {
+  levels: { max: number; base: number; growth: number };
+  slots: { id: string; label: string }[];
+  attachments: CodAttachment[];
+  camos: CodCamo[];
+  /** arme -> accessoire -> composant de GTA */
+  weapons: Record<string, Record<string, string>>;
+}
 export interface CodCatalog {
   playlists: CodPlaylist[];
   primary: CodCatalogEntry[];
@@ -61,6 +88,7 @@ export interface CodCatalog {
   streaks: CodStreakInfo[];
   maxStreaks: number;
   classNameLength: number;
+  gunsmith: CodGunsmithCatalog;
   banners: CodCardAsset[];
   emblems: CodCardAsset[];
   tagLength: number;
@@ -71,10 +99,26 @@ export interface CodCatalog {
   keys: { streak: string; class: string; scoreboard: string };
 }
 
+export interface CodWeaponMods {
+  attachments: string[];
+  /** false : pas de camouflage */
+  camo: string | false;
+}
+/** Progression d'une arme, absente tant qu'elle n'a fait aucun kill */
+export interface CodWeaponProgress {
+  kills: number;
+  headshots: number;
+  level: number;
+  into: number;
+  /** 0 au niveau maximum */
+  needed: number;
+}
 export interface CodClass {
   name: string;
   primary: string;
   secondary: string;
+  primaryMods: CodWeaponMods;
+  secondaryMods: CodWeaponMods;
   /** false : pas d'équipement */
   equipment: string | false;
   /** un atout par niveau (1, 2, 3) */
@@ -118,6 +162,7 @@ export interface CodProfile {
   selected: number;
   classes: CodClass[];
   streaks: string[];
+  weapons: Record<string, CodWeaponProgress>;
   card: CodPlayerCardChoice;
   /** personnage porté ; false : celui du joueur */
   operator: string | false;
@@ -289,7 +334,17 @@ export interface CodEndData {
   team: CodTeamId | false;
   scores: Record<CodTeamId, number> | false;
   board: CodBoardEntry[];
-  summary?: { earned: number; bonus: number; rankBefore: number; rankAfter: number; prestige: number; canPrestige: boolean; unlocks: string[] };
+  summary?: {
+    earned: number;
+    bonus: number;
+    rankBefore: number;
+    rankAfter: number;
+    prestige: number;
+    canPrestige: boolean;
+    unlocks: string[];
+    /** accessoires et camouflages débloqués pendant la partie */
+    weaponUnlocks: { weapon: string; label: string }[];
+  };
   seconds: number;
 }
 export interface CodLeaderboardRow {

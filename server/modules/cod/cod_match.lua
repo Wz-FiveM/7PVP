@@ -529,6 +529,7 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     end
     if killer then
         self:rewardKill(killer, source, headshot == true)
+        if weaponId then self:rewardWeapon(killer, weaponId, headshot == true) end
     end
     if running then self:rewardAssists(source, killer) end
 
@@ -605,6 +606,7 @@ function CodMatch:killcamClip(killer, victim, clip)
     if not stats or stats.killcamFrom ~= killer or type(clip) ~= 'table' then return end
     if type(clip.samples) ~= 'table' or #clip.samples > CodMatch.KILLCAM_MAX_ENTRIES then return end
     if type(clip.shots) ~= 'table' or #clip.shots > CodMatch.KILLCAM_MAX_ENTRIES then return end
+    if type(clip.loadout) ~= 'table' or #clip.loadout > CodMatch.KILLCAM_MAX_ENTRIES then return end
     stats.killcamFrom = nil
     TriggerClientEvent(Events.client.codKillcamClip, victim, clip)
 end
@@ -675,6 +677,27 @@ function CodMatch:rewardKill(killer, source, headshot)
 
     if self:hasPerk(killer, 'scavenger') then TriggerClientEvent(Events.client.codScavenge, killer) end
     CodStreaks.onKill(self, killer)
+end
+
+---Kill avec une arme de sa classe : elle progresse et peut débloquer un accessoire ou un camouflage.
+---L'arme vient du client de la victime : celles que le tueur n'a pas dans sa classe ne comptent pas.
+---@param killer integer
+---@param weaponId string
+---@param headshot boolean
+function CodMatch:rewardWeapon(killer, weaponId, headshot)
+    local stats = self.stats[killer]
+    if weaponId ~= stats.class.primary and weaponId ~= stats.class.secondary then return end
+    local unlocks = CodProfileService.addWeaponKill(killer, weaponId, headshot)
+    if #unlocks == 0 then return end
+
+    stats.weaponUnlocks = stats.weaponUnlocks or {}
+    for _, unlock in ipairs(unlocks) do
+        stats.weaponUnlocks[#stats.weaponUnlocks + 1] = unlock
+        TriggerClientEvent(Events.client.codNotice, killer, {
+            text = Locale.t('Nouveau pour %s : %s', Locale.t(unlock.weapon), Locale.t(unlock.label)),
+        })
+    end
+    TriggerClientEvent(Events.client.codProfile, killer, CodProfileService.describe(CodProfileService.profiles[killer]))
 end
 
 ---Touches récentes sur la victime : une assistance pour chaque tireur sauf le tueur.

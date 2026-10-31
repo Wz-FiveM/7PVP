@@ -1,4 +1,4 @@
-import type { CodBoardEntry, CodCardAsset, CodCatalog, CodOperatorEntry, CodPlayerCardData, CodProfile } from '../types/cod';
+import type { CodBoardEntry, CodCardAsset, CodCatalog, CodClass, CodOperatorEntry, CodPlayerCardData, CodProfile } from '../types/cod';
 
 /** Données factices du mode Call of Duty (npm run dev uniquement), extraites de config/cod.lua et cod_player_cards.lua. */
 const prestigeAssets: CodCardAsset[] = Array.from({ length: 10 }, (_, index) => ({
@@ -75,6 +75,41 @@ export const mockCodCatalog: CodCatalog = {
   ],
   maxStreaks: 3,
   classNameLength: 20,
+  gunsmith: {
+    levels: { max: 7, base: 15, growth: 10 },
+    slots: [
+      { id: 'optic', label: 'Optique' },
+      { id: 'muzzle', label: 'Bouche du canon' },
+      { id: 'grip', label: 'Poignée' },
+      { id: 'magazine', label: 'Chargeur' },
+      { id: 'light', label: 'Lampe' },
+    ],
+    attachments: [
+      { id: 'light', slot: 'light', level: 2, label: 'Lampe tactique', description: 'Éclaire devant toi quand tu vises.' },
+      { id: 'scope', slot: 'optic', level: 3, label: 'Lunette', description: 'Un viseur pour mieux cadrer tes cibles.' },
+      { id: 'scope_max', slot: 'optic', level: 3, label: 'Lunette avancée', description: 'Grossit plus que la lunette d\'origine.' },
+      { id: 'mag', slot: 'magazine', level: 4, label: 'Chargeur étendu', description: 'Plus de balles avant de recharger.' },
+      { id: 'grip', slot: 'grip', level: 5, label: 'Poignée avant', description: 'Une arme plus stable au tir.' },
+      { id: 'suppressor', slot: 'muzzle', level: 6, label: 'Silencieux', description: 'Étouffe le bruit et la flamme de tes tirs.' },
+      { id: 'drum', slot: 'magazine', level: 7, label: 'Grand chargeur', description: 'Encore plus de balles avant de recharger.' },
+    ],
+    camos: [
+      { id: 'army', tint: 4, color: '#6b6a3a', label: 'Armée', kills: 25 },
+      { id: 'green', tint: 1, color: '#3f7d3a', label: 'Vert', kills: 50 },
+      { id: 'police', tint: 5, color: '#2f4f8f', label: 'Police', headshots: 25 },
+      { id: 'orange', tint: 6, color: '#d9772b', label: 'Orange', headshots: 50 },
+      { id: 'pink', tint: 3, color: '#d65c93', label: 'Rose', kills: 150, headshots: 75 },
+      { id: 'gold', tint: 2, color: '#d4af37', label: 'Or', kills: 300, headshots: 100 },
+      { id: 'platinum', tint: 7, color: '#cfd4d8', label: 'Platine', kills: 600, headshots: 200 },
+    ],
+    weapons: {
+      WEAPON_CARBINERIFLE: { light: 'c', scope: 'c', mag: 'c', grip: 'c', suppressor: 'c', drum: 'c' },
+      WEAPON_SMG: { light: 'c', scope: 'c', mag: 'c', suppressor: 'c', drum: 'c' },
+      WEAPON_SNIPERRIFLE: { scope_max: 'c', suppressor: 'c' },
+      WEAPON_PISTOL: { light: 'c', mag: 'c', suppressor: 'c' },
+      WEAPON_REVOLVER: {},
+    },
+  },
   banners,
   emblems,
   tagLength: 4,
@@ -100,6 +135,7 @@ export const mockCodCatalog: CodCatalog = {
 };
 
 const defaultPerks = ['lightweight', 'hardline', 'marathon'];
+const noMods: Pick<CodClass, 'primaryMods' | 'secondaryMods'> = { primaryMods: { attachments: [], camo: false }, secondaryMods: { attachments: [], camo: false } };
 
 export const mockCodProfile: CodProfile = {
   name: 'Wezor',
@@ -120,13 +156,20 @@ export const mockCodProfile: CodProfile = {
   bestStreak: 9,
   selected: 1,
   classes: [
-    { name: 'Assaut', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks },
-    { name: 'Mitraillette', primary: 'WEAPON_SMG', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks },
-    { name: 'Pompe', primary: 'WEAPON_PUMPSHOTGUN', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks },
-    { name: 'Précision', primary: 'WEAPON_SNIPERRIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks },
-    { name: 'Polyvalent', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: false, perks: defaultPerks },
+    {
+      name: 'Assaut', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks,
+      primaryMods: { attachments: ['scope', 'mag'], camo: 'army' }, secondaryMods: { attachments: [], camo: false },
+    },
+    { name: 'Mitraillette', primary: 'WEAPON_SMG', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks, ...noMods },
+    { name: 'Pompe', primary: 'WEAPON_PUMPSHOTGUN', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks, ...noMods },
+    { name: 'Précision', primary: 'WEAPON_SNIPERRIFLE', secondary: 'WEAPON_PISTOL', equipment: 'WEAPON_GRENADE', perks: defaultPerks, ...noMods },
+    { name: 'Polyvalent', primary: 'WEAPON_CARBINERIFLE', secondary: 'WEAPON_PISTOL', equipment: false, perks: defaultPerks, ...noMods },
   ],
   streaks: ['uav', 'predator'],
+  weapons: {
+    WEAPON_CARBINERIFLE: { kills: 92, headshots: 31, level: 4, into: 17, needed: 45 },
+    WEAPON_SMG: { kills: 12, headshots: 2, level: 1, into: 12, needed: 15 },
+  },
   card: { banner: 'million', emblem: 'cherries', tag: 'thic' },
   operator: false,
   ownedOperators: [],

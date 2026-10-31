@@ -4,6 +4,8 @@
 ---    /codserie toutes              → toutes les séries
 ---    /codniveau 5                  → 5 rangs de plus (négatif : de moins)
 ---    /codniveau 5 12               → pour le joueur 12
+---    /codarme WEAPON_SMG 100 30    → 100 kills dont 30 tirs à la tête avec cette arme
+---    /codarme toutes 600 200 12    → sur toutes les armes, pour le joueur 12
 ---@class CodAdminCommandsModule
 local CodAdminCommands = PVP.define('CodAdminCommands')
 local CodProfileService = PVP.use('CodProfileService')
@@ -23,6 +25,9 @@ function CodAdminCommands.init()
     end, false)
     RegisterCommand('codniveau', function(source, args)
         CodAdminCommands.giveRanks(source, args)
+    end, false)
+    RegisterCommand('codarme', function(source, args)
+        CodAdminCommands.setWeapon(source, args)
     end, false)
 end
 
@@ -118,4 +123,24 @@ function CodAdminCommands.giveRanks(source, args)
     if target ~= source then
         CodAdminCommands.reply(target, Locale.t('Un admin te fait passer au rang %d.', after), 'success')
     end
+end
+
+---@param source integer 0 = console
+---@param args string[]
+function CodAdminCommands.setWeapon(source, args)
+    if not CodAdminCommands.allowed(source) then return end
+    local all = args[1] == CodAdminCommands.ALL_STREAKS
+    local kills, headshots = math.tointeger(tonumber(args[2])), math.tointeger(tonumber(args[3]))
+    local target = CodAdminCommands.target(source, args[4])
+    if not (all or CodProfileService.progressingWeapon(args[1])) or not kills or not headshots or kills < 0 or headshots < 0 or not target then
+        return CodAdminCommands.reply(source, Locale.t('Utilisation : /codarme <arme | toutes> <kills> <tirs à la tête> [id du joueur]'), 'error')
+    end
+    if not CodProfileService.profiles[target] then
+        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans le mode Call of Duty.'), 'error')
+    end
+
+    CodProfileService.setWeaponProgress(target, not all and args[1] or nil, kills, headshots)
+    local text = ('%s : %d kills, %d tirs à la tête'):format(args[1], kills, headshots)
+    CodAdminCommands.log(source, target, 'codarme', text)
+    CodAdminCommands.reply(source, Locale.t('Progression d\'arme de %s réglée (%s).', GetPlayerName(target), text), 'success')
 end

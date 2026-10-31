@@ -2,10 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { codApi } from '../../api/codApi';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { CodCatalog, CodCatalogEntry, CodClass, CodPerk, CodProfile } from '../../types/cod';
+import type { CodCatalog, CodCatalogEntry, CodClass, CodPerk, CodProfile, CodWeaponMods } from '../../types/cod';
+import { CodGunsmith, type GunsmithPanel } from './CodGunsmith';
 import { BracketButton, isUnlocked, WeaponImage } from './CodParts';
 
 type Slot = 'primary' | 'secondary' | 'equipment' | 'perk1' | 'perk2' | 'perk3';
+
+const PANELS: { id: 'weapon' | GunsmithPanel; label: string }[] = [
+  { id: 'weapon', label: 'Arme' },
+  { id: 'attachments', label: 'Accessoires' },
+  { id: 'camo', label: 'Camouflage' },
+];
 
 const SLOTS: { id: Slot; label: string }[] = [
   { id: 'primary', label: 'Arme principale' },
@@ -45,9 +52,12 @@ function slotValue(slot: Slot, draft: CodClass): string | false {
   return draft.perks[perkTier(slot) - 1];
 }
 
+const NO_MODS: CodWeaponMods = { attachments: [], camo: false };
+
+/** Changer d'arme retire les accessoires et le camouflage de la précédente. */
 function withSlot(slot: Slot, draft: CodClass, value: string | false): CodClass {
-  if (slot === 'primary') return { ...draft, primary: value as string };
-  if (slot === 'secondary') return { ...draft, secondary: value as string };
+  if (slot === 'primary') return value === draft.primary ? draft : { ...draft, primary: value as string, primaryMods: NO_MODS };
+  if (slot === 'secondary') return value === draft.secondary ? draft : { ...draft, secondary: value as string, secondaryMods: NO_MODS };
   if (slot === 'equipment') return { ...draft, equipment: value };
   const perks = [...draft.perks];
   perks[perkTier(slot) - 1] = value as string;
@@ -57,6 +67,17 @@ function withSlot(slot: Slot, draft: CodClass, value: string | false): CodClass 
 function labelOf(slot: Slot, draft: CodClass, catalog: CodCatalog): string {
   const value = slotValue(slot, draft);
   return optionsFor(slot, catalog).find((option) => option.id === value)?.label ?? 'Aucun';
+}
+
+/** Sur la ligne de l'arme : pastille du camouflage et nombre d'accessoires. */
+function ModsMark({ mods, catalog }: { mods: CodWeaponMods; catalog: CodCatalog }) {
+  const camo = catalog.gunsmith.camos.find((entry) => entry.id === mods.camo);
+  return (
+    <>
+      {camo && <span className="cod-gunsmith__swatch cod-gunsmith__swatch--small" style={{ background: camo.color }} />}
+      {mods.attachments.length > 0 && <span className="cod-loadout__mods">+{mods.attachments.length}</span>}
+    </>
+  );
 }
 
 interface CodClassEditorProps {
@@ -71,13 +92,27 @@ export function CodClassEditor({ profile, catalog, onProfile }: CodClassEditorPr
   const { actions } = useGame();
   const [index, setIndex] = useState(profile.selected);
   const [slot, setSlot] = useState<Slot>('primary');
+  const [panel, setPanel] = useState<'weapon' | GunsmithPanel>('weapon');
   const saved = profile.classes[index - 1];
+  const savedKey = JSON.stringify(saved);
   const [draft, setDraft] = useState<CodClass>(saved);
-  const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const dirty = JSON.stringify(draft) !== savedKey;
 
-  useEffect(() => setDraft(saved), [saved]);
+  // Pas sur `saved` : un profil reçu en partie (accessoire débloqué) ne doit pas effacer les choix en cours
+  useEffect(() => setDraft(saved), [savedKey]);
 
   const options = useMemo(() => optionsFor(slot, catalog), [slot, catalog]);
+
+  const weaponSlot = slot === 'secondary' ? 'secondary' : slot === 'primary' ? 'primary' : null;
+  const shownWeapon = draft[weaponSlot ?? 'primary'];
+  const shownMods = weaponSlot === 'secondary' ? draft.secondaryMods : draft.primaryMods;
+  const shownKey = JSON.stringify([shownWeapon, shownMods]);
+  const setMods = (mods: CodWeaponMods) =>
+    setDraft({ ...draft, [weaponSlot === 'secondary' ? 'secondaryMods' : 'primaryMods']: mods });
+
+  // Le personnage du menu tient l'arme telle qu'elle est en train d'être réglée
+  useEffect(() => void codApi.previewWeapon(shownWeapon, shownMods), [shownKey]);
+  useEffect(() => () => void codApi.previewWeapon(), []);
 
   const report = (result: { ok: boolean; message?: string; profile?: CodProfile } | undefined) => {
     if (result?.message) actions.notify(result.message, result.ok ? 'success' : 'error');
@@ -121,7 +156,11 @@ export function CodClassEditor({ profile, catalog, onProfile }: CodClassEditorPr
                 onClick={() => setSlot(entry.id)}
               >
                 <span className="cod-loadout__slot">{t(entry.label)}</span>
-                <span className="cod-loadout__value">{t(labelOf(entry.id, draft, catalog))}</span>
+                <span className="cod-loadout__value">
+                  {t(labelOf(entry.id, draft, catalog))}
+                  {entry.id === 'primary' && <ModsMark mods={draft.primaryMods} catalog={catalog} />}
+                  {entry.id === 'secondary' && <ModsMark mods={draft.secondaryMods} catalog={catalog} />}
+                </span>
               </button>
             </li>
           ))}
@@ -135,34 +174,54 @@ export function CodClassEditor({ profile, catalog, onProfile }: CodClassEditorPr
 
       <section className="cod-column cod-column--right cod-column--scroll">
         <span className="cod-label">{t(SLOTS.find((entry) => entry.id === slot)?.label ?? '')}</span>
-        <ul className="cod-options">
-          {options.map((option) => {
-            const locked = !isUnlocked(option.id, option.rank, profile);
-            const showGroup = option.group && option.group !== lastGroup;
-            if (option.group) lastGroup = option.group;
-            return (
-              <li key={String(option.id)}>
-                {showGroup && <span className="cod-options__group">{t(option.group)}</span>}
-                <button
-                  className={[
-                    'cod-option',
-                    option.id === slotValue(slot, draft) && 'cod-option--active',
-                    locked && 'cod-option--locked',
-                  ].filter(Boolean).join(' ')}
-                  disabled={locked}
-                  onClick={() => setDraft(withSlot(slot, draft, option.id))}
-                >
-                  {option.weapon && typeof option.id === 'string' && <WeaponImage id={option.id} />}
-                  <span className="cod-option__text">
-                    <span>{t(option.label)}</span>
-                    {option.description && <span className="cod-list__hint">{t(option.description)}</span>}
-                  </span>
-                  {locked && <span className="cod-locked">{t('RANG {rank}', { rank: option.rank })}</span>}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        {weaponSlot && (
+          <div className="cod-gunsmith__tabs">
+            {PANELS.map((entry) => (
+              <button
+                key={entry.id}
+                className={entry.id === panel ? 'cod-gunsmith__tab cod-gunsmith__tab--active' : 'cod-gunsmith__tab'}
+                onClick={() => setPanel(entry.id)}
+              >
+                {t(entry.label)}
+              </button>
+            ))}
+          </div>
+        )}
+        {weaponSlot && panel !== 'weapon' ? (
+          <CodGunsmith weapon={shownWeapon} mods={shownMods} profile={profile} catalog={catalog} panel={panel} onChange={setMods} />
+        ) : (
+          <ul className="cod-options">
+            {options.map((option) => {
+              const locked = !isUnlocked(option.id, option.rank, profile);
+              const showGroup = option.group && option.group !== lastGroup;
+              if (option.group) lastGroup = option.group;
+              return (
+                <li key={String(option.id)}>
+                  {showGroup && <span className="cod-options__group">{t(option.group)}</span>}
+                  <button
+                    className={[
+                      'cod-option',
+                      option.id === slotValue(slot, draft) && 'cod-option--active',
+                      locked && 'cod-option--locked',
+                    ].filter(Boolean).join(' ')}
+                    disabled={locked}
+                    onClick={() => setDraft(withSlot(slot, draft, option.id))}
+                  >
+                    {option.weapon && typeof option.id === 'string' && <WeaponImage id={option.id} />}
+                    <span className="cod-option__text">
+                      <span>{t(option.label)}</span>
+                      {option.description && <span className="cod-list__hint">{t(option.description)}</span>}
+                    </span>
+                    {locked && <span className="cod-locked">{t('RANG {rank}', { rank: option.rank })}</span>}
+                    {!locked && option.weapon && weaponSlot && typeof option.id === 'string' && (
+                      <span className="cod-option__level">{t('NIV. {level}', { level: profile.weapons[option.id]?.level ?? 1 })}</span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
     </>
   );

@@ -49,12 +49,12 @@ function CodSquad.sync()
             local coords = GetOffsetFromEntityInWorldCoords(player, slot.x, slot.y, 0.0)
             SetEntityCoordsNoOffset(shown.ped, coords.x, coords.y, coords.z, false, false, false)
             SetEntityHeading(shown.ped, GetEntityHeading(player))
-            CodSquad.setWeapon(shown, member.weapon)
+            CodSquad.setWeapon(shown, member.weapon, member.mods)
         end
     end
 end
 
----@param member { id: integer, appearance: table|nil, weapon: string, model: string|false }
+---@param member { id: integer, appearance: table|nil, weapon: string, mods: table|nil, model: string|false }
 function CodSquad.create(member)
     local appearance = member.appearance or AppearanceSchema.default('male')
     local model = GetHashKey(AppearanceSchema.MODELS[appearance.sex] or AppearanceSchema.MODELS.male)
@@ -75,12 +75,15 @@ end
 
 ---@param shown { ped: integer, weapon: string|nil }
 ---@param weapon string
-function CodSquad.setWeapon(shown, weapon)
-    if shown.weapon == weapon then return end
-    shown.weapon = weapon
+---@param mods table|nil accessoires et camouflage
+function CodSquad.setWeapon(shown, weapon, mods)
+    local look = weapon .. json.encode(mods or {})
+    if shown.weapon == look then return end
+    shown.weapon = look
     local hash = GetHashKey(weapon)
     RemoveAllPedWeapons(shown.ped, true)
     GiveWeaponToPed(shown.ped, hash, 1, false, true)
+    Cod.applyMods(shown.ped, weapon, mods)
     SetCurrentPedWeapon(shown.ped, hash, true)
 end
 

@@ -272,6 +272,7 @@ function CodService.sendSquad(playlist)
             id = source,
             appearance = player and player.appearance,
             weapon = CodProfileService.selectedClass(source).primary,
+            mods = CodProfileService.selectedClass(source).primaryMods,
             model = CodOperatorService.modelOf(source),
         }
     end

@@ -1,5 +1,5 @@
 import { fetchNui } from './nui';
-import type { CodActionResult, CodClass, CodLeaderboardRow, CodPlayerCardChoice, CodProfile } from '../types/cod';
+import type { CodActionResult, CodClass, CodLeaderboardRow, CodPlayerCardChoice, CodProfile, CodWeaponMods } from '../types/cod';
 
 /** Mode Call of Duty (voir client/modules/cod/cod.lua). Le serveur valide chaque choix. */
 export const codApi = {
@@ -18,6 +18,9 @@ export const codApi = {
     fetchNui<CodActionResult>('codSavePlayerCard', { card }, { ok: true, message: 'Carte de joueur enregistrée.' }),
 
   selectClass: (index: number) => fetchNui<CodActionResult>('codSelectClass', { index }, { ok: true }),
+
+  /** montre une arme sur le personnage du menu, sans argument : celle de la classe équipée */
+  previewWeapon: (weapon?: string, mods?: CodWeaponMods) => fetchNui<void>('codWeaponPreview', { weapon, mods }),
 
   /** repart du rang 1 au niveau de Prestige suivant ; `current` ne sert qu'au navigateur */
   enterPrestige: (current: CodProfile) =>
