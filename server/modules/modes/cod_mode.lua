@@ -5,6 +5,7 @@ local CodMode = PVP.define('CodMode')
 local ModeRegistry = PVP.use('ModeRegistry')
 local PlayerService = PVP.use('PlayerService')
 local CodService = PVP.use('CodService')
+local CodParty = PVP.use('CodParty')
 local CodProfileService = PVP.use('CodProfileService')
 local Events = PVP.use('Events')
 
@@ -26,6 +27,7 @@ end
 ---@param player PvpPlayer
 function CodMode.leave(player)
     CodService.leave(player.source)
+    CodParty.leave(player.source)
     CodProfileService.unload(player.source)
     TriggerClientEvent(Events.client.codCleanup, player.source)
 end

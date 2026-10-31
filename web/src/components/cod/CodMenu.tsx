@@ -3,8 +3,9 @@ import { codApi } from '../../api/codApi';
 import { gameApi } from '../../api/gameApi';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { CodCatalog, CodLeaderboardRow, CodProfile, CodQueueData } from '../../types/cod';
+import type { CodCatalog, CodLeaderboardRow, CodPartyData, CodProfile, CodQueueData } from '../../types/cod';
 import { CodChallengesTab } from './CodChallengesTab';
+import { CodPartyInvite, CodPartyTab } from './CodPartyTab';
 import { CodClassEditor } from './CodClassEditor';
 import { CodOperatorsTab } from './CodOperatorsTab';
 import { BracketButton, CodOperator, isUnlocked, RankBadge, RankCell, useSecondsLeft } from './CodParts';
@@ -12,10 +13,11 @@ import { CodPlayerCard } from './CodPlayerCard';
 import { CodPlayerCardTab } from './CodPlayerCardTab';
 import { CodPrestigeTab } from './CodPrestigeTab';
 
-type Tab = 'play' | 'classes' | 'streaks' | 'challenges' | 'operators' | 'card' | 'prestige' | 'profile' | 'board';
+type Tab = 'play' | 'party' | 'classes' | 'streaks' | 'challenges' | 'operators' | 'card' | 'prestige' | 'profile' | 'board';
 
 const TABS: { id: Tab; label: string; title: string; subtitle: string }[] = [
   { id: 'play', label: 'Salon', title: 'Multijoueur', subtitle: 'Salon d\'attente' },
+  { id: 'party', label: 'Escouade', title: 'Escouade', subtitle: 'Joue avec tes amis' },
   { id: 'classes', label: 'Classes', title: 'Classes', subtitle: 'Compose ton équipement' },
   { id: 'streaks', label: 'Séries', title: 'Séries', subtitle: 'Choisis tes séries d\'éliminations' },
   { id: 'challenges', label: 'Défis', title: 'Défis', subtitle: 'Termine-les pour gagner de l\'XP' },
@@ -30,11 +32,15 @@ interface CodMenuProps {
   profile: CodProfile;
   catalog: CodCatalog;
   queue: CodQueueData | null;
+  party: CodPartyData | null;
+  /** nom du joueur qui vient d'inviter, null sans invitation */
+  invite: string | null;
+  onInviteClosed: () => void;
   onProfile: (profile: CodProfile) => void;
 }
 
 /** Menu du mode : titre et onglets en haut, personnage au centre (le décor du jeu reste visible). */
-export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
+export function CodMenu({ profile, catalog, queue, party, invite, onInviteClosed, onProfile }: CodMenuProps) {
   useT();
   const [tab, setTab] = useState<Tab>('play');
   const current = TABS.find((entry) => entry.id === tab) ?? TABS[0];
@@ -67,6 +73,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
 
       <div className="cod-menu__body">
         {tab === 'play' && <PlayTab catalog={catalog} queue={queue} />}
+        {tab === 'party' && <CodPartyTab party={party} catalog={catalog} />}
         {tab === 'classes' && <CodClassEditor profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'streaks' && <StreaksTab profile={profile} catalog={catalog} onProfile={onProfile} />}
         {tab === 'challenges' && <CodChallengesTab profile={profile} />}
@@ -76,6 +83,7 @@ export function CodMenu({ profile, catalog, queue, onProfile }: CodMenuProps) {
         {tab === 'profile' && <ProfileTab profile={profile} />}
         {tab === 'board' && <BoardTab />}
       </div>
+      {invite && <CodPartyInvite fromName={invite} onClose={onInviteClosed} />}
     </div>
   );
 }

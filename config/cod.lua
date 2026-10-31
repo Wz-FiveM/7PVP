@@ -44,6 +44,18 @@ Config.Cod = {
     loadoutTime = 12, -- secondes pour choisir sa classe, à l'arrivée dans une partie (après l'écran de chargement)
     loadoutCamera = { height = 1.3, fov = 50.0 }, -- vue aérienne de l'écran de classe (height : en rayons de la zone de combat)
     endScreen = 12, -- secondes de résultats avant le retour au menu
+    -- Podium avant les résultats, sur le décor du menu. slots : place de chaque joueur depuis le premier, en m
+    -- (x = à sa droite, y = devant lui) ; cameraDistance : m devant le premier
+    podium = {
+        seconds = 6,
+        slots = { vector2(0.0, 0.0), vector2(1.3, -0.5), vector2(-1.3, -0.5) },
+        cameraDistance = 4.2,
+        cameraHeight = 0.2,
+        lookHeight = 0.05,
+        fov = 42.0,
+    },
+    -- Escouades : le chef invite et lance la recherche, l'escouade reste dans le même camp
+    party = { maxSize = 4, inviteTimeout = 30 },
 
     respawnDelay = 3, -- secondes avant de réapparaître après une mort
     -- Kill cam : la victime d'un kill par balle ou au couteau le revoit par les yeux du tueur, puis réapparaît

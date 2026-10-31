@@ -5,7 +5,7 @@ import { codApi } from '../../api/codApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { CodCatalog, CodEndData, CodHudData, CodHudState, CodLoadingData, CodLoadoutData, CodProfile, CodQueueData, CodStateData } from '../../types/cod';
+import type { CodCatalog, CodEndData, CodHudData, CodHudState, CodLoadingData, CodLoadoutData, CodPartyData, CodProfile, CodQueueData, CodStateData } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { UiGuard } from '../ui/UiGuard';
 import { CodClassPicker } from './CodClassPicker';
@@ -25,6 +25,8 @@ export function Cod({ visible }: { visible: boolean }) {
   const [profile, setProfile] = useState<CodProfile | null>(null);
   const [catalog, setCatalog] = useState<CodCatalog | null>(null);
   const [queue, setQueue] = useState<CodQueueData | null>(null);
+  const [party, setParty] = useState<CodPartyData | null>(null);
+  const [invite, setInvite] = useState<string | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [end, setEnd] = useState<CodEndData | null>(null);
   const [hud, setHud] = useState<CodHudState | null>(null);
@@ -43,6 +45,12 @@ export function Cod({ visible }: { visible: boolean }) {
         return;
       case 'codQueue':
         return setQueue(message.data.count > 0 ? message.data : null);
+      case 'codParty':
+        return setParty(message.data.party || null);
+      case 'codPartyInvite':
+        setInvite(message.data.fromName);
+        window.setTimeout(() => setInvite((current) => (current === message.data.fromName ? null : current)), message.data.seconds * 1000);
+        return;
       case 'codProfile':
         return setProfile(message.data);
       case 'codPicker':
@@ -91,7 +99,17 @@ export function Cod({ visible }: { visible: boolean }) {
       )}
       {end && <CodEndScreen end={end} />}
       {pickerOpen && profile && catalog && <CodClassPicker profile={profile} catalog={catalog} onProfile={setProfile} />}
-      {menuOpen && profile && catalog && <CodMenu profile={profile} catalog={catalog} queue={queue} onProfile={setProfile} />}
+      {menuOpen && profile && catalog && (
+        <CodMenu
+          profile={profile}
+          catalog={catalog}
+          queue={queue}
+          party={party}
+          invite={invite}
+          onInviteClosed={() => setInvite(null)}
+          onProfile={setProfile}
+        />
+      )}
       {paused && (
         <UiGuard name="cod-pause" onCrash={actions.closePause}>
           <CodPauseMenu hud={hud} live={live} profile={profile} catalog={catalog} onProfile={setProfile} />

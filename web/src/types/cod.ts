@@ -192,6 +192,16 @@ export interface CodProfile {
   vipDays: number;
 }
 
+/** Escouade du joueur ; self : son id, pour savoir s'il en est le chef */
+export interface CodPartyData {
+  leader: number;
+  self: number;
+  members: { id: number; name: string }[];
+}
+export interface CodPartyLobby {
+  players: { id: number; name: string; busy: boolean }[];
+  maps: { id: string; label: string; place: string }[];
+}
 export interface CodMapVote {
   id: string;
   label: string;
@@ -378,6 +388,9 @@ export interface CodEndData {
     weaponUnlocks: { weapon: string; label: string }[];
   };
   seconds: number;
+  /** meilleurs joueurs, montrés avant les résultats */
+  podium?: { id: number; card: CodPlayerCardData }[];
+  podiumSeconds?: number;
 }
 export interface CodLeaderboardRow {
   name: string;

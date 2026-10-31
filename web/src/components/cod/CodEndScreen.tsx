@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { t, useT } from '../../i18n';
 import type { CodEndData } from '../../types/cod';
 import { CodScoreTable } from './CodHud';
 import { RankBadge, useSecondsLeft } from './CodParts';
+import { CodPlayerCard } from './CodPlayerCard';
 
 const TITLES = { won: 'Victoire', lost: 'Défaite', draw: 'Égalité' };
+// Le premier au milieu, le deuxième à droite, le troisième à gauche : comme les personnages du podium
+const PODIUM_ORDER = [2, 0, 1];
 
-/** Fin de partie : résultat, tableau des scores, XP gagnée. Le serveur renvoie ensuite au menu. */
+/** Fin de partie : podium, puis résultat, tableau des scores et XP gagnée. Le serveur renvoie ensuite au menu. */
 export function CodEndScreen({ end }: { end: CodEndData }) {
   useT();
   const [at] = useState(Date.now);
-  const seconds = useSecondsLeft(end.seconds, at);
+  const podiumSeconds = end.podium ? end.podiumSeconds ?? 0 : 0;
+  const [onPodium, setOnPodium] = useState(podiumSeconds > 0);
+  const seconds = useSecondsLeft(end.seconds + podiumSeconds, at);
   const summary = end.summary;
   const them = end.team === 'alpha' ? 'bravo' : 'alpha';
   const unlocks = summary
@@ -19,6 +24,30 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
         ...summary.weaponUnlocks.map((unlock) => `${t(unlock.label)} (${t(unlock.weapon)})`),
       ]
     : [];
+
+  useEffect(() => {
+    if (podiumSeconds <= 0) return;
+    const timer = window.setTimeout(() => setOnPodium(false), podiumSeconds * 1000);
+    return () => window.clearTimeout(timer);
+  }, [podiumSeconds]);
+
+  if (onPodium && end.podium) {
+    return (
+      <div className={`cod-podium cod-end--${end.result}`}>
+        <h1 className="cod-title">{t(TITLES[end.result])}</h1>
+        <div className="cod-podium__cards">
+          {PODIUM_ORDER.map((position) => {
+            const entry = end.podium?.[position];
+            return entry ? (
+              <div key={entry.id} className={position === 0 ? 'cod-podium__card cod-podium__card--first' : 'cod-podium__card'}>
+                <CodPlayerCard card={entry.card} label={`#${position + 1}`} />
+              </div>
+            ) : null;
+          })}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`cod-end cod-end--${end.result}`}>
@@ -36,7 +65,7 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
 
       <CodScoreTable board={end.board} team={end.team} />
 
-      {summary && (
+      {summary ? (
         <footer className="cod-end__xp">
           <RankBadge rank={summary.rankAfter} prestige={summary.prestige} size={56} />
           <div className="cod-end__xp-text">
@@ -52,6 +81,11 @@ export function CodEndScreen({ end }: { end: CodEndData }) {
               <span className="cod-end__unlocks">{t('Débloqué : {list}', { list: unlocks.join(', ') })}</span>
             )}
           </div>
+          <span className="cod-end__next">{t('Retour au menu dans {seconds} s', { seconds })}</span>
+        </footer>
+      ) : (
+        <footer className="cod-end__xp">
+          <span className="cod-label">{t('Partie privée : ni XP ni progression')}</span>
           <span className="cod-end__next">{t('Retour au menu dans {seconds} s', { seconds })}</span>
         </footer>
       )}

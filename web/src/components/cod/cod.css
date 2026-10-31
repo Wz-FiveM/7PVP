@@ -684,6 +684,70 @@
   font-size: 0.75rem;
   color: var(--cod-accent);
 }
+.cod-podium {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3rem 4rem;
+  background: linear-gradient(0deg, rgba(8, 9, 10, 0.75), transparent 35%);
+}
+.cod-podium__cards {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1rem;
+}
+.cod-podium__card {
+  width: 20rem;
+}
+.cod-podium__card--first {
+  width: 24rem;
+}
+.cod-party__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(20, 22, 26, 0.72);
+}
+.cod-party__kick {
+  border: 0;
+  font-family: var(--cod-font);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cod-danger);
+  background: none;
+  cursor: pointer;
+}
+.cod-party__private {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+.cod-party__invite {
+  position: absolute;
+  left: 50%;
+  bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 26rem;
+  padding: 1rem 1.25rem;
+  border-left: 0.1875rem solid var(--cod-accent);
+  background: rgba(8, 9, 10, 0.92);
+  transform: translateX(-50%);
+}
+.cod-party__invite .cod-column__foot--row {
+  display: flex;
+  gap: 0.75rem;
+}
 .cod-challenges {
   display: flex;
   flex-direction: column;

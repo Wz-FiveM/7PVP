@@ -15,6 +15,7 @@ local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
 local CodOperatorService = PVP.use('CodOperatorService')
 local CodMapService = PVP.use('CodMapService')
+local CodParty = PVP.use('CodParty')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -37,6 +38,7 @@ function CodService.init()
 
     Callback.register(Events.callbacks.codQueue, CodService.toggleQueue)
     Callback.register(Events.callbacks.codVote, CodService.vote)
+    Callback.register(Events.callbacks.codPrivate, CodService.startPrivate)
     Callback.register(Events.callbacks.codSaveClass, function(source, index, data)
         local result = CodProfileService.saveClass(source, index, data)
         if result.ok then CodService.refreshSquad(source) end
@@ -207,40 +209,83 @@ function CodService.toggleQueue(source, playlistId)
     if not player or player.mode ~= 'cod' then return { ok = false } end
     if CodService.playerMatch[source] then return { ok = false, message = Locale.t('Tu es déjà dans une partie.') } end
 
+    local party = CodParty.of(source)
+    local leader = not party or party.leader == source
+    -- Annuler : le chef pour toute l'escouade, un membre seulement pour lui (retour de partie, recherche relancée)
     if CodService.playerQueue[source] then
-        CodService.leaveQueue(source)
+        for _, member in ipairs(leader and CodParty.membersOf(source) or { source }) do CodService.leaveQueue(member) end
         return { ok = true }
+    end
+    if not leader then return { ok = false, message = Locale.t('Seul le chef de l\'escouade lance la recherche.') } end
+
+    local members = CodParty.membersOf(source)
+    for _, member in ipairs(members) do
+        if CodService.playerMatch[member] then return { ok = false, message = Locale.t('Un membre de ton escouade est encore en partie.') } end
     end
     local playlist = CodService.findPlaylist(playlistId)
     if not playlist then return { ok = false } end
-    if not CodService.joinableMatch(playlist) and #CodService.pickMaps() == 0 then
+    if not CodService.joinableMatch(playlist, #members) and #CodService.pickMaps() == 0 then
         return { ok = false, message = Locale.t('Aucune carte disponible pour le moment.') }
     end
-    CodService.joinPlaylist(source, playlist)
+    for _, member in ipairs(members) do CodService.leaveQueue(member) end
+    CodService.joinPlaylist(members, playlist)
     return { ok = true }
 end
 
----@param source integer
+---@param members integer[] joueur seul ou escouade : ils restent ensemble
 ---@param playlist table
-function CodService.joinPlaylist(source, playlist)
-    local match = CodService.joinableMatch(playlist)
-    if match then return match:addPlayer(source) end
+function CodService.joinPlaylist(members, playlist)
+    local match = CodService.joinableMatch(playlist, #members)
+    if match then
+        for _, source in ipairs(members) do match:addPlayer(source) end
+        return
+    end
 
     local queue = CodService.queues[playlist.id]
-    queue.players[#queue.players + 1] = source
-    CodService.playerQueue[source] = playlist.id
+    for _, source in ipairs(members) do
+        queue.players[#queue.players + 1] = source
+        CodService.playerQueue[source] = playlist.id
+    end
     CodService.updateQueue(playlist)
 end
 
+---Partie privée : l'escouade seule (ou le joueur seul, pour découvrir une carte), sans XP ni progression.
+---@param source integer
+---@param playlistId any
+---@param mapId any
+---@return { ok: boolean, message?: string }
+function CodService.startPrivate(source, playlistId, mapId)
+    local player = PlayerService.get(source)
+    if not player or player.mode ~= 'cod' then return { ok = false } end
+    local party = CodParty.of(source)
+    if party and party.leader ~= source then return { ok = false, message = Locale.t('Seul le chef de l\'escouade lance une partie privée.') } end
+    local members = CodParty.membersOf(source)
+    for _, member in ipairs(members) do
+        if CodService.isBusy(member) then return { ok = false, message = Locale.t('Toute l\'escouade doit être au menu, sans recherche en cours.') } end
+    end
+    local playlist = CodService.findPlaylist(playlistId)
+    local map = type(mapId) == 'string' and CodService.findMap(mapId)
+    if not playlist or not map or not CodMapService.playable(map) then
+        return { ok = false, message = Locale.t('Cette carte n\'est pas disponible.') }
+    end
+
+    CodService.nextId = CodService.nextId + 1
+    local match = CodMatch.new(CodService.nextId, playlist, map, true)
+    CodService.matches[match.id] = match
+    match:start(members)
+    return { ok = true }
+end
+
 ---@param playlist table
+---@param count integer joueurs à faire entrer ensemble
 ---@return table|nil partie en cours qui a encore de la place et assez de temps
-function CodService.joinableMatch(playlist)
+function CodService.joinableMatch(playlist, count)
     -- Une seule vie par manche : pas d'arrivée en cours de partie
     if playlist.id == 'snd' then return nil end
     local limit = GetGameTimer() + Config.Cod.joinMinRemaining * 1000
     for _, match in pairs(CodService.matches) do
-        if match.playlist.id == playlist.id and match.phase ~= 'ended'
-            and #match.players < playlist.maxPlayers and match.endAt >= limit then
+        if match.playlist.id == playlist.id and match.phase ~= 'ended' and not match.private
+            and #match.players + count <= playlist.maxPlayers and match.endAt >= limit then
             return match
         end
     end
@@ -419,12 +464,19 @@ function CodService.launch(playlist)
     local map = CodService.votedMap(queue)
     if not map then return CodService.cancelQueue(playlist) end
 
+    -- Une escouade part entière, ou attend la partie suivante
     local players = {}
-    while #queue.players > 0 and #players < playlist.maxPlayers do
-        local source = table.remove(queue.players, 1)
-        CodService.playerQueue[source] = nil
-        players[#players + 1] = source
-        TriggerClientEvent(Events.client.codQueue, source, false)
+    while #queue.players > 0 do
+        local squad = CodService.queuedSquad(queue, queue.players[1])
+        if #players + #squad > playlist.maxPlayers then break end
+        for _, source in ipairs(squad) do
+            for index, queued in ipairs(queue.players) do
+                if queued == source then table.remove(queue.players, index) break end
+            end
+            CodService.playerQueue[source] = nil
+            players[#players + 1] = source
+            TriggerClientEvent(Events.client.codQueue, source, false)
+        end
     end
     queue.startAt, queue.maps, queue.votes = nil, nil, {}
     if #players == 0 then return end
@@ -434,6 +486,19 @@ function CodService.launch(playlist)
     CodService.matches[match.id] = match
     match:start(players)
     CodService.updateQueue(playlist)
+end
+
+---@param queue CodQueue
+---@param source integer joueur de la file
+---@return integer[] lui et les membres de son escouade présents dans cette file
+function CodService.queuedSquad(queue, source)
+    local squad = {}
+    for _, member in ipairs(CodParty.membersOf(source)) do
+        for _, queued in ipairs(queue.players) do
+            if queued == member then squad[#squad + 1] = member break end
+        end
+    end
+    return squad
 end
 
 ---@param source integer
@@ -479,12 +544,28 @@ end
 function CodService.closeMatch(match)
     CodService.matches[match.id] = nil
     local players = { table.unpack(match.players) }
+    local inMenu = {}
     for _, source in ipairs(players) do
         CodService.playerMatch[source] = nil
         local player = PlayerService.get(source)
         if player and player.mode == 'cod' then
             CodService.openMenu(player)
-            CodService.joinPlaylist(source, match.playlist)
+            inMenu[source] = true
+        end
+    end
+    if match.private then return end
+
+    -- Les escouades repartent ensemble
+    for _, source in ipairs(players) do
+        if inMenu[source] then
+            local together = {}
+            for _, member in ipairs(CodParty.membersOf(source)) do
+                if inMenu[member] then
+                    together[#together + 1] = member
+                    inMenu[member] = nil
+                end
+            end
+            CodService.joinPlaylist(together, match.playlist)
         end
     end
 end

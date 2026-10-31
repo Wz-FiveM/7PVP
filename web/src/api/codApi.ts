@@ -1,5 +1,5 @@
 import { fetchNui } from './nui';
-import type { CodActionResult, CodClass, CodLeaderboardRow, CodPlayerCardChoice, CodProfile, CodWeaponMods } from '../types/cod';
+import type { CodActionResult, CodClass, CodLeaderboardRow, CodPartyLobby, CodPlayerCardChoice, CodProfile, CodWeaponMods } from '../types/cod';
 
 /** Mode Call of Duty (voir client/modules/cod/cod.lua). Le serveur valide chaque choix. */
 export const codApi = {
@@ -60,6 +60,23 @@ export const codApi = {
         { name: 'Nyx', rank: 18, prestige: 0, kills: 870, deaths: 910, wins: 63 },
       ],
     }),
+
+  partyInvite: (id: number) => fetchNui<CodActionResult>('codPartyInvite', { id }, { ok: true, message: 'Invitation envoyée.' }),
+
+  partyRespond: (accept: boolean) => fetchNui<CodActionResult>('codPartyRespond', { accept }, { ok: true }),
+
+  partyLeave: () => fetchNui<CodActionResult>('codPartyLeave', {}, { ok: true }),
+
+  partyKick: (id: number) => fetchNui<CodActionResult>('codPartyKick', { id }, { ok: true }),
+
+  /** joueurs à inviter et cartes des parties privées */
+  partyLobby: () =>
+    fetchNui<CodPartyLobby>('codPartyLobby', {}, {
+      players: [{ id: 4, name: 'Rook', busy: false }, { id: 7, name: 'Nyx', busy: true }],
+      maps: [{ id: 'port', label: 'Terminal', place: 'Port de Los Santos' }, { id: 'nuketown', label: 'Nuketown', place: 'Île au nord-est de Paleto Bay' }],
+    }),
+
+  startPrivate: (playlist: string, map: string) => fetchNui<CodActionResult>('codPrivate', { playlist, map }, { ok: true }),
 
   closePicker: () => fetchNui<void>('codPickerClose'),
 

@@ -43,6 +43,7 @@ local CodUnits = PVP.use('CodUnits')
 local CodCrates = PVP.use('CodCrates')
 local CodProfileService = PVP.use('CodProfileService')
 local CodChallenges = PVP.use('CodChallenges')
+local CodParty = PVP.use('CodParty')
 local CodService = PVP.use('CodService')
 local PlayerService = PVP.use('PlayerService')
 local Logger = PVP.use('Logger')
@@ -72,8 +73,9 @@ CodMatch.MULTI_KILLS = {
 ---@param id integer
 ---@param playlist table entrée de Config.Cod.playlists
 ---@param map table entrée de Config.Cod.maps
+---@param private boolean|nil partie privée : ni XP ni progression, personne ne la rejoint
 ---@return table
-function CodMatch.new(id, playlist, map)
+function CodMatch.new(id, playlist, map, private)
     local settings = Config.Cod
     local now = GetGameTimer()
     local waiting = settings.loadTime + settings.countdown
@@ -82,6 +84,8 @@ function CodMatch.new(id, playlist, map)
         bucket = settings.bucketBase + id,
         playlist = playlist,
         map = map,
+        private = private == true,
+        partyTeams = {},
         rules = CodRules.get(playlist.id),
         players = {},
         stats = {},
@@ -125,6 +129,15 @@ function CodMatch:start(players)
         local other = math.random(index)
         players[index], players[other] = players[other], players[index]
     end
+    -- Une seule escouade (ou une partie privée entre amis) : elle se répartit dans les deux camps
+    local firstParty = CodParty.of(players[1])
+    self.splitParties = self.private or (firstParty ~= nil and #firstParty.members >= #players)
+    -- Les escouades d'abord : elles doivent tenir dans un camp avant de le compléter
+    table.sort(players, function(a, b)
+        local sizeA, sizeB = #CodParty.membersOf(a), #CodParty.membersOf(b)
+        if sizeA ~= sizeB then return sizeA > sizeB end
+        return a < b
+    end)
     for _, source in ipairs(players) do
         self:addPlayer(source)
     end
@@ -149,13 +162,31 @@ function CodMatch:smallerTeam()
     return self.scores.alpha <= self.scores.bravo and 'alpha' or 'bravo'
 end
 
+---@param source integer
+---@return string|false camp du joueur arrivant : celui de son escouade s'il y reste de la place
+function CodMatch:teamFor(source)
+    if not self.playlist.teams then return false end
+    local party = not self.splitParties and CodParty.of(source)
+    local team = party and self.partyTeams[party.id]
+    if team then
+        local count = 0
+        for _, other in ipairs(self.players) do
+            if self.stats[other].team == team then count = count + 1 end
+        end
+        if count < math.ceil(self.playlist.maxPlayers / 2) then return team end
+    end
+    team = self:smallerTeam()
+    if party then self.partyTeams[party.id] = team end
+    return team
+end
+
 ---Arrivée d'un joueur (au lancement ou en cours de partie).
 ---@param source integer
 function CodMatch:addPlayer(source)
     local settings = Config.Cod
     local now = GetGameTimer()
     local player = PlayerService.get(source)
-    local team = self.playlist.teams and self:smallerTeam() or false
+    local team = self:teamFor(source)
     self.stats[source] = {
         name = GetPlayerName(source) or '?',
         team = team,
@@ -487,7 +518,7 @@ end
 ---@param label string|table message à traduire (Locale.t)
 function CodMatch:award(source, amount, label)
     local stats = self.stats[source]
-    if not stats or amount <= 0 then return end
+    if not stats or amount <= 0 or self.private then return end
     amount = math.floor(amount * CodProfileService.xpFactor())
     stats.xp = stats.xp + amount
     TriggerClientEvent(Events.client.codScore, source, { xp = amount, label = label })
@@ -497,6 +528,7 @@ end
 ---@param source integer
 ---@param stat string
 function CodMatch:track(source, stat)
+    if self.private then return end
     for _, entry in ipairs(CodChallenges.add(source, stat, 1)) do
         self:award(source, entry.xp, Locale.t('Défi terminé'))
         TriggerClientEvent(Events.client.codNotice, source, { text = Locale.t('Défi terminé : %s', Locale.t(entry.label)), friendly = true })
@@ -787,6 +819,7 @@ end
 ---@param headshot boolean
 function CodMatch:rewardWeapon(killer, weaponId, headshot)
     local stats = self.stats[killer]
+    if self.private then return end
     if weaponId ~= stats.class.primary and weaponId ~= stats.class.secondary then return end
     local unlocks = CodProfileService.addWeaponKill(killer, weaponId, headshot)
     if #unlocks == 0 then return end
@@ -834,7 +867,7 @@ function CodMatch:removePlayer(source)
     self.stats[source] = nil
     if self.phase == 'ended' then return end
 
-    CodProfileService.applyAbandon(source, stats)
+    if not self.private then CodProfileService.applyAbandon(source, stats) end
     self.rules.onLeave(self, source, stats)
     self:checkPlayers()
 end
@@ -871,6 +904,8 @@ function CodMatch:finish(winner, reason, noKillcam)
         if winner ~= nil and self:sideKey(source) == winner then self:track(source, 'wins') end
     end
     local board = self:board()
+    local podium = self:podium(board, winner)
+    local podiumSeconds = podium and Config.Cod.podium.seconds or 0
     local results = {}
     for _, source in ipairs(self.players) do
         local stats = self.stats[source]
@@ -882,8 +917,10 @@ function CodMatch:finish(winner, reason, noKillcam)
             team = stats.team,
             scores = self.playlist.teams and self.scores or false,
             board = board,
-            summary = CodProfileService.applyMatch(source, stats, result),
+            summary = not self.private and CodProfileService.applyMatch(source, stats, result) or nil,
             seconds = Config.Cod.endScreen,
+            podium = podium,
+            podiumSeconds = podiumSeconds,
         }
     end
     Logger.info('[cod] partie n°%d terminée : %s', self.id, Locale.resolve(reason, Locale.SOURCE))
@@ -892,10 +929,34 @@ function CodMatch:finish(winner, reason, noKillcam)
         for _, source in ipairs(self.players) do
             TriggerClientEvent(Events.client.codEnd, source, results[source])
         end
-        SetTimeout(Config.Cod.endScreen * 1000, function()
+        SetTimeout((podiumSeconds + Config.Cod.endScreen) * 1000, function()
             CodService.closeMatch(self)
         end)
     end)
+end
+
+---@param board table[] tableau des scores, du meilleur au moins bon
+---@param winner string|integer|nil
+---@return table[]|nil meilleurs joueurs, ceux du camp gagnant d'abord ; nil si personne n'a joué
+function CodMatch:podium(board, winner)
+    local ordered = {}
+    for _, onlyWinners in ipairs({ true, false }) do
+        for _, row in ipairs(board) do
+            if (self:sideKey(row.id) == winner) == onlyWinners then ordered[#ordered + 1] = row end
+        end
+    end
+    local podium = {}
+    for index = 1, math.min(#ordered, #Config.Cod.podium.slots) do
+        local source = ordered[index].id
+        local class = self.stats[source].class
+        podium[index] = {
+            id = source,
+            card = CodProfileService.playerCard(source),
+            weapon = class and class.primary,
+            mods = class and class.primaryMods,
+        }
+    end
+    return #podium > 0 and podium or nil
 end
 
 ---Ce que le joueur a envoyé pendant l'objectif (touche maintenue).
