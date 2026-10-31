@@ -179,6 +179,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   ├── cod.lua                 Mode Call of Duty : listes de jeu, armes, atouts, séries, rangs, cartes
 │   ├── cod_gunsmith.lua        Mode Call of Duty : niveaux d'armes, accessoires et camouflages
 │   ├── cod_challenges.lua      Mode Call of Duty : défis du jour et de la semaine
+│   ├── cod_warzone.lua         Mode Call of Duty : Battle Royale et Résurgence (zone, butin, goulag, stations d'achat)
 │   ├── cod_player_cards.lua    Mode Call of Duty : bannières, emblèmes et tag des cartes de joueur
 │   └── zones.lua               Zones safe / PvE
 ├── locales/                    Traductions (en.json, es.json... : texte français -> traduction)

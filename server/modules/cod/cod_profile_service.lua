@@ -930,6 +930,6 @@ function CodProfileService.catalog()
         operators = Config.CodOperators.list,
         maxPrestige = Config.Cod.prestige.max,
         prestigeTokens = Config.Cod.prestige.tokens,
-        keys = { streak = Config.Cod.streakKey, class = Config.Cod.classKey, scoreboard = Config.MenuKeyLabel },
+        keys = { streak = Config.Cod.streakKey, class = Config.Cod.classKey, scoreboard = Config.MenuKeyLabel, plate = Config.CodWarzone.plateKey },
     }
 end

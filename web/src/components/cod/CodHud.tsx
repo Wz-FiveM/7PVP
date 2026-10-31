@@ -1,9 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type {
-  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillcamData, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId,
+  CodBoardEntry, CodCardData, CodCatalog, CodDeadData, CodHudData, CodHudState, CodKillcamData, CodKillData, CodMedalData, CodObjective, CodPlayerCardData, CodRoundEndData, CodStateData, CodStreakState, CodTeamId, CodWzState,
 } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { playGunfire, stopGunfire } from '../../utils/codGunSound';
@@ -14,6 +14,7 @@ import { formatTime, RankBadge, RankCell, useSecondsLeft } from './CodParts';
 import { bannerUrl, CodPlayerCard } from './CodPlayerCard';
 import { CodStreakIcon } from './CodStreakIcon';
 import { CodTabletScreen, type CodTabletView } from './CodTabletScreen';
+import { CodWzStatus, CodWzZone } from './CodWarzoneHud';
 
 const FEED_TIME = 5000;
 const FEED_SIZE = 5;
@@ -36,14 +37,16 @@ interface CodHudProps {
   hud: CodHudState | null;
   live: CodStateData | null;
   catalog: CodCatalog | null;
+  wz: CodWzState | null;
   rank: number;
   prestige: number;
   name: string;
 }
 
 /** HUD de partie, épuré : vie sous la carte, emblème et score en bas à gauche, munitions en bas à droite. */
-export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps) {
+export function CodHud({ hud, live, catalog, wz, rank, prestige, name }: CodHudProps) {
   useT();
+  const [inPlane, setInPlane] = useState(false);
   const [feed, setFeed] = useState<(CodKillData & Timed)[]>([]);
   const [scores, setScores] = useState<({ xp: number; label: string } & Timed)[]>([]);
   const [medals, setMedals] = useState<(CodMedalData & { key: number })[]>([]);
@@ -93,6 +96,7 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
         setProtection(null);
         setRoundCountdown(null);
         setTablet(null);
+        setInPlane(false);
         if (!message.data.open || !message.data.playlist) setStreak(null);
         return;
       case 'codKill': {
@@ -123,6 +127,8 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
         window.setTimeout(() => setCards((current) => current.filter((entry) => entry.key !== key)), CARD_TIME);
         return;
       }
+      case 'codWzPlane':
+        return setInPlane(message.data.open);
       case 'codStreak':
         return setStreak(message.data);
       case 'codStreakEarned':
@@ -182,9 +188,16 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
           {!jammed && (!hud.hardcore || radar !== null) && <RadarFilter sweep={radar} />}
           {!hud.hardcore && <Vitals name={name} />}
           <BottomLeft hud={hud} live={live} rank={rank} prestige={prestige} />
-          <BottomRight streak={streak} keys={catalog?.keys} hardcore={hud.hardcore} />
+          <BottomRight streak={streak} keys={catalog?.keys} hardcore={hud.hardcore}>
+            {hud.warzone && <CodWzStatus wz={wz} plateKey={catalog?.keys.plate} />}
+          </BottomRight>
           <TopCenter hud={hud} live={live} />
         </>
+      )}
+      {inPlane && (
+        <div className="cod-wz__jump">
+          <span className="cod-key">E</span> {t('Sauter de l\'avion')}
+        </div>
       )}
       {tablet && <CodTabletScreen view={tablet} />}
 
@@ -229,7 +242,7 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
           <CodPlayerCard card={killCard} label={t('Éliminé')} />
         </div>
       )}
-      {dead && !killcam && <DeadBar dead={dead} />}
+      {dead && !killcam && <DeadBar dead={dead} wz={hud.warzone ? wz : null} />}
       {killcam && <KillcamOverlay killcam={killcam} />}
       {action && <ActionBar action={action} />}
       {nuke && <NukeCounter nuke={nuke} />}
@@ -252,7 +265,7 @@ export function CodHud({ hud, live, catalog, rank, prestige, name }: CodHudProps
             <span className="cod-board__title">{t(hud.playlist.label)}</span>
             <span className="cod-label">{t(hud.map.label)}</span>
           </header>
-          <CodScoreTable board={live.board} team={hud.team} teams={hud.teams} scores={live.scores} />
+          <CodScoreTable board={live.board} team={hud.warzone ? false : hud.team} teams={hud.teams} scores={live.scores} />
         </div>
       )}
     </>
@@ -307,7 +320,8 @@ function BottomLeft({ hud, live, rank, prestige }: { hud: CodHudData & { at: num
   const remaining = live?.remaining ?? remainingAtStart;
   const me = live?.board.find((entry) => entry.id === hud.self);
   const leader = live?.board[0];
-  const team = hud.team;
+  // Warzone : pas de score de camp, le coin montre les kills
+  const team = hud.warzone ? false : hud.team;
   const them: CodTeamId = team === 'alpha' ? 'bravo' : 'alpha';
   const limit = hud.playlist.scoreLimit;
   const points = (entry?: CodBoardEntry) => entry?.points ?? entry?.kills ?? 0;
@@ -339,13 +353,14 @@ function ScoreLine({ value, limit, tone }: { value: number; limit: number; tone:
   );
 }
 
-function BottomRight({ streak, keys, hardcore }: { streak: CodStreakState | null; keys?: CodCatalog['keys']; hardcore?: boolean }) {
+function BottomRight({ streak, keys, hardcore, children }: { streak: CodStreakState | null; keys?: CodCatalog['keys']; hardcore?: boolean; children?: ReactNode }) {
   useT();
   const { state } = useGame();
   const vitals = state.vitals;
   const hasAmmo = !hardcore && vitals.weapon && vitals.clip + vitals.reserve > 0;
   return (
     <div className="cod-ammo">
+      {children}
       {streak && <StreakSlots streak={streak} keyLabel={keys?.streak ?? 'G'} />}
       {hasAmmo && (
         <div className="cod-ammo__count">
@@ -415,6 +430,7 @@ function TopCenter({ hud, live }: { hud: CodHudData; live: CodStateData | null }
           </span>
         </>
       )}
+      {objective.kind === 'wz' && <CodWzZone objective={objective} />}
       {objective.kind === 'gun' && (
         <span className="cod-bomb">
           <span className="cod-label">{t('ARME {level} / {total}', { level: passed + 1, total: objective.levels })}</span>
@@ -504,7 +520,14 @@ function Protection({ protection }: { protection: { seconds: number; at: number 
   return <div className="cod-shield">{t('PROTÉGÉ · {seconds} S', { seconds })}</div>;
 }
 
-function DeadBar({ dead }: { dead: CodDeadData & { at: number } }) {
+/** Warzone : pas de manche suivante, ce qui attend le joueur dépend de son état. */
+function waitingText(dead: CodDeadData, wz: CodWzState | null, seconds: number): string {
+  if (wz?.state === 'gulag') return t('Direction le goulag');
+  if (wz?.state === 'out') return t('Éliminé : un coéquipier peut encore te racheter');
+  return dead.respawn === false ? t('Prochaine manche bientôt') : t('Réapparition dans {seconds} s', { seconds });
+}
+
+function DeadBar({ dead, wz }: { dead: CodDeadData & { at: number }; wz: CodWzState | null }) {
   useT();
   const seconds = useSecondsLeft(dead.respawn || 0, dead.at);
   return (
@@ -514,9 +537,7 @@ function DeadBar({ dead }: { dead: CodDeadData & { at: number } }) {
         : <span className="cod-dead__title">{dead.killer ? t('Tué par {name}', { name: dead.killer }) : t('Tu es mort')}</span>}
       {dead.weapon && <span className="cod-label">{t(dead.weapon)}</span>}
       {!dead.killcam && (
-        <span className="cod-dead__next">
-          {dead.respawn === false ? t('Prochaine manche bientôt') : t('Réapparition dans {seconds} s', { seconds })}
-        </span>
+        <span className="cod-dead__next">{waitingText(dead, wz, seconds)}</span>
       )}
     </div>
   );

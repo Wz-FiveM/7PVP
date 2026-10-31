@@ -172,6 +172,17 @@ Config.Cod = {
             description = 'Une seule vie par manche. Les attaquants posent la bombe, les défenseurs la désamorcent.',
             teams = true, minPlayers = 2, maxPlayers = 10, time = 3600, scoreLimit = 4,
         },
+        -- warzone : réglages dans config/cod_warzone.lua ; scoreLimit n'y sert qu'à la jauge de kills du HUD
+        {
+            id = 'wz_br', label = 'Battle Royale', short = 'BR',
+            description = 'Saute de l\'avion, ramasse tes armes et reste dans la zone. Première mort : un duel au goulag pour revenir. La dernière escouade gagne.',
+            teams = true, minPlayers = 2, maxPlayers = 48, time = 1800, scoreLimit = 20, fixedClass = true, warzone = 'br',
+        },
+        {
+            id = 'wz_res', label = 'Résurgence', short = 'RES',
+            description = 'Petite carte et réapparition en parachute tant qu\'un coéquipier est en vie. Escouade entière à terre : éliminée. Plus de retour dans la dernière zone.',
+            teams = true, minPlayers = 2, maxPlayers = 24, time = 1200, scoreLimit = 20, fixedClass = true, warzone = 'resurgence',
+        },
     },
 
     -- Domination
@@ -461,6 +472,8 @@ Config.Cod = {
         'En Point stratégique, tenir la zone rapporte plus que les kills : surveille son prochain déplacement.',
         'Les défis du jour et de la semaine donnent beaucoup d\'XP : regarde-les dans l\'onglet Défis.',
         'L\'équipement se sort avec ses propres touches, comme les armes : 3 et 4 par défaut.',
+        'En Warzone, garde ton argent pour les stations d\'achat : plaques, drone, colis d\'équipement et rachat de coéquipier.',
+        'En Warzone, la touche X pose une plaque d\'armure : mets-la à l\'abri.',
         'En Hardcore, la carte ne revient que pendant le balayage d\'un drone.',
         'En Élimination confirmée, un kill ne compte que si un allié ou toi ramassez la plaque de la victime.',
         'En Course aux armes, le couteau ne fait pas avancer mais renvoie ta victime à son arme précédente.',

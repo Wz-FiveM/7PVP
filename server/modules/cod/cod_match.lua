@@ -100,8 +100,8 @@ function CodMatch.new(id, playlist, map, private)
         nextBroadcast = 0,
     }, CodMatch)
     match.spawnLists = {
-        alpha = Config.CodSpawns[map.id .. '_alpha'],
-        bravo = Config.CodSpawns[map.id .. '_bravo'],
+        alpha = Config.CodSpawns[map.id .. '_alpha'] or {},
+        bravo = Config.CodSpawns[map.id .. '_bravo'] or {},
     }
     match.arena = match:computeArena()
     SetRoutingBucketPopulationEnabled(match.bucket, false)
@@ -112,6 +112,8 @@ end
 
 ---@return { center: vector3, radius: number } zone de combat (relue à chaque partie : points modifiables en jeu)
 function CodMatch:computeArena()
+    -- Carte Warzone : sa zone est écrite dans la config, puis rétrécit
+    if self.map.center then return { center = self.map.center, radius = self.map.radius } end
     local center, count = vector3(0.0, 0.0, 0.0), 0
     for _, list in pairs(self.spawnLists) do
         for _, spawn in ipairs(list) do
@@ -138,6 +140,7 @@ function CodMatch:start(players)
         if sizeA ~= sizeB then return sizeA > sizeB end
         return a < b
     end)
+    if self.rules.onStart then self.rules.onStart(self, players) end
     for _, source in ipairs(players) do
         self:addPlayer(source)
     end
@@ -166,6 +169,7 @@ end
 ---@return string|false camp du joueur arrivant : celui de son escouade s'il y reste de la place
 function CodMatch:teamFor(source)
     if not self.playlist.teams then return false end
+    if self.rules.teamFor then return self.rules.teamFor(self, source) end
     local party = not self.splitParties and CodParty.of(source)
     local team = party and self.partyTeams[party.id]
     if team then
@@ -221,6 +225,7 @@ function CodMatch:addPlayer(source)
         playlist = { id = self.playlist.id, label = self.playlist.label, short = self.playlist.short, scoreLimit = self.playlist.scoreLimit },
         fixedClass = self.playlist.fixedClass == true,
         hardcore = self.playlist.hardcore == true,
+        warzone = self.playlist.warzone or false,
         map = { label = self.map.label, place = self.map.place },
         team = team,
         teams = settings.teams,
@@ -228,11 +233,12 @@ function CodMatch:addPlayer(source)
         outsideDamage = settings.outsideDamage,
         countdown = countdown,
         remaining = math.max(0, math.ceil((self.endAt - now) / 1000)),
-        spawn = self:chooseSpawn(source, true),
+        spawn = self.rules.firstSpawn and self.rules.firstSpawn(self) or self:chooseSpawn(source, true),
         appearance = player and player.appearance,
         objectives = self.rules.objectives(self),
     })
     CodStreaks.sendState(self, source)
+    if self.rules.onJoin then self.rules.onJoin(self, source) end
     -- Après le fondu d'arrivée : le client ignore les effets tant qu'il n'a pas pris la partie en main
     SetTimeout(CodMatch.JOIN_SYNC_DELAY, function()
         if not self.stats[source] then return end
@@ -321,6 +327,7 @@ end
 ---@param delay? integer secondes à ajouter à la protection (compte à rebours du lancement)
 function CodMatch:respawn(source, ownSide, delay)
     if self.phase == 'ended' or CodService.playerMatch[source] ~= self.id then return end
+    if self.rules.mayRespawn and not self.rules.mayRespawn(self, source) then return end
     local stats = self.stats[source]
     local protection = Config.Cod.spawnProtection + (delay or 0)
     stats.alive = true
@@ -338,10 +345,14 @@ function CodMatch:respawn(source, ownSide, delay)
     local insertion = not ownSide and stats.insertion or nil
     stats.insertion = nil
     stats.insertionPlaced = false
+    local placement = self.rules.placement and self.rules.placement(self, source) or {}
     TriggerClientEvent(Events.client.codSpawn, source, {
-        spawn = insertion or self:chooseSpawn(source, ownSide == true),
+        spawn = placement.spawn or insertion or self:chooseSpawn(source, ownSide == true),
         class = stats.class,
         protection = protection,
+        plane = placement.plane,
+        air = placement.air,
+        gulag = placement.gulag,
     })
 end
 
@@ -628,36 +639,38 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
 
     -- Avant la règle : ce kill peut finir la partie et devenir la kill cam finale
     local recorded = killer ~= nil and not byStreak
-    local killcam = recorded and not self.playlist.hardcore
+    local killcam = recorded and not self.playlist.hardcore and not self.playlist.warzone
     if recorded then self:requestKillcam(killer, source, weaponLabel, killcam) end
     if running then self.rules.onKill(self, killer, source, weaponId) end
     if self.phase == 'ended' then return end
 
-    local canRespawn = self.rules.canRespawn(self)
+    local canRespawn = self.rules.canRespawn(self, source)
+    local respawnDelay = self.rules.respawnDelay and self.rules.respawnDelay(self, source) or Config.Cod.respawnDelay
     local revenge = killer and self:hasPerk(source, 'revenge') and GetEntityCoords(GetPlayerPed(killer)) or nil
     TriggerClientEvent(Events.client.codDead, source, {
         killer = killer and self.stats[killer].name or nil,
         weapon = weaponLabel,
-        respawn = canRespawn and Config.Cod.respawnDelay or false,
+        respawn = canRespawn and respawnDelay or false,
         card = killer and CodProfileService.playerCard(killer) or nil,
         spectate = killer or self:livingMate(source),
         revenge = revenge,
         killcam = killcam and killer or nil,
     })
-    if canRespawn then self:scheduleRespawn(source, killcam) end
+    if canRespawn then self:scheduleRespawn(source, killcam, respawnDelay) end
 end
 
 ---Réapparition après le délai normal, mais pas avant la fin de la kill cam (CodMatch:killcamDone),
 ---dans la limite de Config.Cod.killcam.maxDelay si le client ne la signale jamais.
 ---@param source integer
 ---@param killcam boolean
-function CodMatch:scheduleRespawn(source, killcam)
+---@param delay integer secondes
+function CodMatch:scheduleRespawn(source, killcam, delay)
     local stats = self.stats[source]
     local death = stats.deaths
     local function stillDead()
         return self.stats[source] == stats and not stats.alive and stats.deaths == death
     end
-    SetTimeout(Config.Cod.respawnDelay * 1000, function()
+    SetTimeout(delay * 1000, function()
         if not stillDead() then return end
         stats.respawnReady = true
         if not stats.watchingKillcam then self:respawn(source) end
@@ -874,7 +887,8 @@ end
 
 ---Plus assez de joueurs pour continuer : le camp qui reste gagne.
 function CodMatch:checkPlayers()
-    if self.phase == 'ended' then return end
+    -- Warzone : ses règles comptent les escouades restantes
+    if self.phase == 'ended' or self.playlist.warzone then return end
     if self.playlist.teams then
         local counts = { alpha = 0, bravo = 0 }
         for _, source in ipairs(self.players) do
@@ -914,8 +928,8 @@ function CodMatch:finish(winner, reason, noKillcam)
         results[source] = {
             result = result,
             reason = reason,
-            team = stats.team,
-            scores = self.playlist.teams and self.scores or false,
+            team = not self.playlist.warzone and stats.team or false,
+            scores = self.playlist.teams and not self.playlist.warzone and self.scores or false,
             board = board,
             summary = not self.private and CodProfileService.applyMatch(source, stats, result) or nil,
             seconds = Config.Cod.endScreen,

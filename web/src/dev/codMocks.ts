@@ -31,6 +31,8 @@ export const mockCodCatalog: CodCatalog = {
     { id: 'gun', label: 'Course aux armes', short: 'CA', description: 'Chaque kill donne l\'arme suivante, le dernier se fait au couteau. Un coup de couteau renvoie l\'ennemi à son arme précédente.', teams: false, minPlayers: 2, maxPlayers: 10, time: 600, scoreLimit: 15 },
     { id: 'hctdm', label: 'Match à mort Hardcore', short: 'HC', description: 'Peu de vie et aucune remontée, sans carte, viseur ni kill cam : la première équipe à 75 kills gagne.', teams: true, minPlayers: 2, maxPlayers: 12, time: 600, scoreLimit: 75 },
     { id: 'snd', label: 'Recherche & Destruction', short: 'R&D', description: 'Une seule vie par manche. Les attaquants posent la bombe, les défenseurs la désamorcent.', teams: true, minPlayers: 2, maxPlayers: 10, time: 3600, scoreLimit: 4 },
+    { id: 'wz_br', label: 'Battle Royale', short: 'BR', description: 'Saute de l\'avion, ramasse tes armes et reste dans la zone. Première mort : un duel au goulag pour revenir. La dernière escouade gagne.', teams: true, minPlayers: 2, maxPlayers: 48, time: 1800, scoreLimit: 20, warzone: 'br' },
+    { id: 'wz_res', label: 'Résurgence', short: 'RES', description: 'Petite carte et réapparition en parachute tant qu\'un coéquipier est en vie. Escouade entière à terre : éliminée. Plus de retour dans la dernière zone.', teams: true, minPlayers: 2, maxPlayers: 24, time: 1200, scoreLimit: 20, warzone: 'resurgence' },
   ],
   primary: [
     { id: 'WEAPON_CARBINERIFLE', label: 'Carabine', category: 'Fusils d\'assaut', rank: 1, ammo: 240 },
@@ -139,7 +141,7 @@ export const mockCodCatalog: CodCatalog = {
   ].map(([id, label, universe, price, credit, available]) => ({ id, label, universe, price, credit, available } as CodOperatorEntry)),
   maxPrestige: 10,
   prestigeTokens: 1,
-  keys: { streak: 'G', class: 'B', scoreboard: 'TAB' },
+  keys: { streak: 'G', class: 'B', scoreboard: 'TAB', plate: 'X' },
 };
 
 const defaultPerks = ['lightweight', 'hardline', 'marathon'];

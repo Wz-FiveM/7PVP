@@ -23,6 +23,7 @@ local CodCrates = PVP.use('CodCrates')
 local CodKillcam = PVP.use('CodKillcam')
 local CodSquad = PVP.use('CodSquad')
 local CodPodium = PVP.use('CodPodium')
+local CodWarzone = PVP.use('CodWarzone')
 local CodOperators = PVP.use('CodOperators')
 local Appearance = PVP.use('Appearance')
 local Callback = PVP.use('Callback')
@@ -73,6 +74,7 @@ Cod.busy = false
 Cod.cam = nil -- caméra du menu
 Cod.minimapMoved = false
 ---@type table<string, table> arme -> entrée du catalogue
+Cod.MAX_SQUADS = 48 -- escouades de Warzone : autant que de joueurs, dans le pire des cas
 Cod.DEAD_HEALTH = 100 -- GTA : un personnage meurt à cette santé
 Cod.HUD_RETICLE = 14
 Cod.CONTROL_THROW = 58 -- lancer de GTA, sur la même touche que les séries : l'équipement a ses propres touches
@@ -94,15 +96,18 @@ function Cod.init()
         end
     end
     for _, entry in ipairs(Config.Cod.streaks) do Cod.streakTargets[entry.id] = entry.target end
-    for _, team in ipairs({ 'alpha', 'bravo' }) do
+    -- Les deux camps du multijoueur et les escouades de Warzone : alliés entre eux, ennemis de tous les autres
+    local teams = { 'alpha', 'bravo' }
+    for index = 1, Cod.MAX_SQUADS do teams[#teams + 1] = 'sq' .. index end
+    for _, team in ipairs(teams) do
         local _, group = AddRelationshipGroup('PVP_COD_' .. team:upper())
         Cod.teamGroups[team] = group
     end
-    local alpha, bravo = Cod.teamGroups.alpha, Cod.teamGroups.bravo
-    SetRelationshipBetweenGroups(0, alpha, alpha)
-    SetRelationshipBetweenGroups(0, bravo, bravo)
-    SetRelationshipBetweenGroups(5, alpha, bravo)
-    SetRelationshipBetweenGroups(5, bravo, alpha)
+    for _, team in ipairs(teams) do
+        for _, other in ipairs(teams) do
+            SetRelationshipBetweenGroups(team == other and 0 or 5, Cod.teamGroups[team], Cod.teamGroups[other])
+        end
+    end
 
     RegisterNetEvent(Events.client.codOpen, function(data)
         Cod.exclusive(function() Cod.openMenu(data) end)
@@ -419,6 +424,7 @@ function Cod.start(data)
         team = data.team,
         teams = data.teams,
         hardcore = data.hardcore,
+        warzone = data.warzone,
         countdown = data.countdown,
         remaining = data.remaining,
     })
@@ -434,6 +440,7 @@ function Cod.respawn(data)
     CodKillcam.stop(true)
     CodEffects.clearInsertion()
     Cod.placeAt(data.spawn, data.class, nil, data.protection)
+    if Cod.match and Cod.match.warzone then CodWarzone.onSpawn(data) end
 end
 
 ---@param spawn vector4
@@ -609,6 +616,7 @@ end
 function Cod.onState(data)
     if not Cod.isActive() then return end
     Nui.send('codState', data)
+    if data.objective and data.objective.kind == 'wz' then CodWarzone.onState(data.objective) end
     CodObjectives.onState(data.objective)
     Cod.updateMates(data.board)
     if not Cod.ended then Cod.checkGhosts(data.board) end
@@ -708,8 +716,9 @@ function Cod.loop()
                 CodCrates.frame(now)
                 CodObjectives.frame()
                 CodEffects.frame(now)
+                if Cod.match.warzone then CodWarzone.frame(now) end
                 if State.isAlive() then
-                    Cod.checkArena(now)
+                    if not CodWarzone.ignoresArena() then Cod.checkArena(now) end
                     Cod.regenerate(now)
                 end
             end
@@ -837,6 +846,7 @@ function Cod.beginEnding()
     Cod.setPicker(false)
     Pause.close()
     CodObjectives.stopHolding()
+    CodWarzone.stopPlane()
     Death.stopSpectate()
 end
 
@@ -855,6 +865,7 @@ end
 ---Oublie la partie en cours (retour au menu ou au lobby).
 function Cod.clearMatch()
     CodPodium.clear()
+    CodWarzone.clear()
     CodKillcam.stop()
     CodKillcam.resetRecording()
     CodLoadout.close()

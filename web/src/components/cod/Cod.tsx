@@ -5,7 +5,7 @@ import { codApi } from '../../api/codApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { CodCatalog, CodEndData, CodHudData, CodHudState, CodLoadingData, CodLoadoutData, CodPartyData, CodProfile, CodQueueData, CodStateData } from '../../types/cod';
+import type { CodCatalog, CodEndData, CodHudData, CodHudState, CodLoadingData, CodLoadoutData, CodPartyData, CodProfile, CodQueueData, CodStateData, CodWzShopItem, CodWzState } from '../../types/cod';
 import type { NuiMessage } from '../../types/nui';
 import { UiGuard } from '../ui/UiGuard';
 import { CodClassPicker } from './CodClassPicker';
@@ -15,6 +15,7 @@ import { CodLoadingScreen } from './CodLoadingScreen';
 import { CodLoadoutSelect } from './CodLoadoutSelect';
 import { CodMenu } from './CodMenu';
 import { CodPauseMenu } from './CodPauseMenu';
+import { CodWzShop } from './CodWarzoneHud';
 import './cod.css';
 
 /** Mode Call of Duty : menu du mode, écran de chargement, HUD de partie, menu pause, sélecteur de classe, résultats. */
@@ -27,6 +28,8 @@ export function Cod({ visible }: { visible: boolean }) {
   const [queue, setQueue] = useState<CodQueueData | null>(null);
   const [party, setParty] = useState<CodPartyData | null>(null);
   const [invite, setInvite] = useState<string | null>(null);
+  const [wz, setWz] = useState<CodWzState | null>(null);
+  const [wzShop, setWzShop] = useState<CodWzShopItem[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [end, setEnd] = useState<CodEndData | null>(null);
   const [hud, setHud] = useState<CodHudState | null>(null);
@@ -45,6 +48,10 @@ export function Cod({ visible }: { visible: boolean }) {
         return;
       case 'codQueue':
         return setQueue(message.data.count > 0 ? message.data : null);
+      case 'codWz':
+        return setWz(message.data);
+      case 'codWzShop':
+        return setWzShop(message.data.open ? message.data.items ?? [] : null);
       case 'codParty':
         return setParty(message.data.party || null);
       case 'codPartyInvite':
@@ -89,8 +96,9 @@ export function Cod({ visible }: { visible: boolean }) {
     <div className="cod" hidden={!visible}>
       {/* Masqué sans être démonté : le fil des kills et les compteurs continuent pendant la pause */}
       <div className="cod-hud" hidden={paused || loading !== null || loadout !== null}>
-        <CodHud hud={hud} live={live} catalog={catalog} rank={profile?.rank ?? 1} prestige={profile?.prestige ?? 0} name={profile?.name ?? ''} />
+        <CodHud hud={hud} live={live} catalog={catalog} wz={wz} rank={profile?.rank ?? 1} prestige={profile?.prestige ?? 0} name={profile?.name ?? ''} />
       </div>
+      {wzShop && <CodWzShop items={wzShop} cash={wz?.cash ?? 0} />}
       {loading && !paused && <CodLoadingScreen data={loading} />}
       {loadout && profile && catalog && (
         <UiGuard name="cod-loadout" onCrash={() => void codApi.deploy()}>

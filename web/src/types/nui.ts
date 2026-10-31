@@ -6,7 +6,7 @@ import type {
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
-  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodPartyData, CodQueueData, CodRoundEndData, CodStateData, CodStreakState, CodTabletStatus,
+  CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodPartyData, CodQueueData, CodWzShopItem, CodWzState, CodRoundEndData, CodStateData, CodStreakState, CodTabletStatus,
 } from './cod';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
@@ -94,6 +94,9 @@ export type NuiMessage =
   /** Call of Duty : menu du mode, file et vote, écran de chargement, HUD de partie, résultats */
   | { action: 'codMenu'; data: { open: boolean; profile?: CodProfile; catalog?: CodCatalog } }
   | { action: 'codQueue'; data: CodQueueData }
+  | { action: 'codWz'; data: CodWzState }
+  | { action: 'codWzShop'; data: { open: boolean; items?: CodWzShopItem[] } }
+  | { action: 'codWzPlane'; data: { open: boolean } }
   | { action: 'codParty'; data: { party: CodPartyData | false } }
   | { action: 'codPartyInvite'; data: { fromName: string; seconds: number } }
   | { action: 'codLoading'; data: ({ open: true } & CodLoadingData) | { open: false } }

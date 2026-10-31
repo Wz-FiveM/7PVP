@@ -209,7 +209,7 @@ function GameTab({ hud, live, equipped, onClose, onAction, onClasses }: GameTabP
             <span className="cod-board__title">{t('Tableau des scores')}</span>
             <MatchClock hud={hud} live={live} />
           </header>
-          <CodScoreTable board={live.board} team={hud.team} teams={hud.teams} scores={live.scores} />
+          <CodScoreTable board={live.board} team={hud.warzone ? false : hud.team} teams={hud.teams} scores={live.scores} />
         </section>
       )}
     </>
@@ -233,6 +233,7 @@ function OptionsTab({ info }: { info: PauseInfo }) {
     [info.keys.codSecondary, t('Arme secondaire')],
     [info.keys.codEquipment, t('Équipement')],
     [info.keys.codTactical, t('Équipement tactique')],
+    [info.keys.codPlate, t('Plaque d\'armure (Warzone)')],
     [info.keys.codStreak, t('Utiliser une série')],
     [info.keys.codClass, t('Changer de classe')],
     ['E', t('Poser ou désamorcer la bombe (maintenir)')],

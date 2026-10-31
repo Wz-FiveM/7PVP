@@ -78,6 +78,10 @@ export const codApi = {
 
   startPrivate: (playlist: string, map: string) => fetchNui<CodActionResult>('codPrivate', { playlist, map }, { ok: true }),
 
+  wzBuy: (id: string) => fetchNui<CodActionResult>('codWzBuy', { id }, { ok: true, message: 'Acheté' }),
+
+  wzShopClose: () => fetchNui<void>('codWzShopClose'),
+
   closePicker: () => fetchNui<void>('codPickerClose'),
 
   /** quitte l'écran de choix de classe et rejoint la partie */

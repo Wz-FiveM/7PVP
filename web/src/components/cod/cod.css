@@ -684,6 +684,59 @@
   font-size: 0.75rem;
   color: var(--cod-accent);
 }
+.cod-wz__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  text-shadow: var(--ombre-texte);
+}
+.cod-wz__cash {
+  font-family: var(--cod-font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #6fe08a;
+}
+.cod-wz__plates {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--cod-font);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.cod-wz__jump {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-family: var(--cod-font);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(8, 9, 10, 0.72);
+  transform: translateX(-50%);
+}
+.cod-wz__shop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 30rem;
+  padding: 1.25rem;
+  border-left: 0.1875rem solid var(--cod-accent);
+  background: rgba(8, 9, 10, 0.94);
+  transform: translate(-50%, -50%);
+}
 .cod-podium {
   position: absolute;
   inset: 0;

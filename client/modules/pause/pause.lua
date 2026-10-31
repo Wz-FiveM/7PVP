@@ -98,6 +98,7 @@ function Pause.buildInfo()
             codSecondary = Config.Cod.secondaryKey,
             codEquipment = Config.Cod.equipmentKey,
             codTactical = Config.Cod.tacticalKey,
+            codPlate = Config.CodWarzone.plateKey,
         },
     }
 end

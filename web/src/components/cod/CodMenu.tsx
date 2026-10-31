@@ -28,6 +28,8 @@ const TABS: { id: Tab; label: string; title: string; subtitle: string }[] = [
   { id: 'board', label: 'Classement', title: 'Classement', subtitle: 'Les meilleurs joueurs' },
 ];
 
+const MAX_SHOWN_SLOTS = 12;
+
 interface CodMenuProps {
   profile: CodProfile;
   catalog: CodCatalog;
@@ -100,6 +102,7 @@ function PlayTab({ catalog, queue }: { catalog: CodCatalog; queue: CodQueueData 
   const activeId = queue?.playlist ?? selectedId;
   const playlist = catalog.playlists.find((entry) => entry.id === activeId) ?? catalog.playlists[0];
   const searching = Boolean(queue);
+  const shownPlaylists = searching ? catalog.playlists.filter((entry) => entry.id === activeId) : catalog.playlists;
 
   const toggle = async () => {
     if (!playlist || busy) return;
@@ -115,8 +118,10 @@ function PlayTab({ catalog, queue }: { catalog: CodCatalog; queue: CodQueueData 
         <button className="cod-leave" onClick={() => gameApi.leaveToLobby()}>{t('Retour au lobby')}</button>
         <span className="cod-label">{t('Mode de jeu')}</span>
         <ul className="cod-list">
-          {catalog.playlists.map((entry) => (
+          {/* Pendant la recherche, le vote de carte a besoin de la place : seul le mode choisi reste */}
+          {shownPlaylists.map((entry, index) => (
             <li key={entry.id}>
+              {entry.warzone && !shownPlaylists[index - 1]?.warzone && <span className="cod-options__group">{t('Warzone')}</span>}
               <button
                 className={entry.id === activeId ? 'cod-list__row cod-list__row--active' : 'cod-list__row'}
                 disabled={searching}
@@ -128,7 +133,7 @@ function PlayTab({ catalog, queue }: { catalog: CodCatalog; queue: CodQueueData 
             </li>
           ))}
         </ul>
-        {playlist && <p className="cod-text">{t(playlist.description)}</p>}
+        {playlist && !searching && <p className="cod-text">{t(playlist.description)}</p>}
 
         <div className="cod-column__foot">
           <QueueStatus queue={queue} playlistLabel={playlist?.label ?? ''} />
@@ -193,7 +198,8 @@ function PlayerSlots({ queue, max }: { queue: CodQueueData | null; max: number }
   const cards = queue?.cards ?? [];
   return (
     <ul className="cod-slots">
-      {Array.from({ length: max }, (_, index) => (
+      {/* Warzone : trop de places pour la colonne, on montre les premières */}
+      {Array.from({ length: Math.min(max, MAX_SHOWN_SLOTS) }, (_, index) => (
         cards[index]
           ? <li key={index}><CodPlayerCard card={cards[index]} compact /></li>
           : (

@@ -33,6 +33,8 @@ export interface CodPlaylist {
   maxPlayers: number;
   time: number;
   scoreLimit: number;
+  /** liste de jeu Warzone */
+  warzone?: string;
 }
 /** Bannière ou emblème de la carte de joueur (config/cod_player_cards.lua) */
 export interface CodCardAsset {
@@ -99,7 +101,7 @@ export interface CodCatalog {
   maxPrestige: number;
   /** jetons gagnés à chaque Prestige */
   prestigeTokens: number;
-  keys: { streak: string; class: string; scoreboard: string };
+  keys: { streak: string; class: string; scoreboard: string; plate: string };
 }
 
 export interface CodWeaponMods {
@@ -246,6 +248,8 @@ export interface CodHudData {
   teams: { id: CodTeamId; label: string }[];
   /** peu d'informations à l'écran : ni vie, ni munitions, ni carte hors drone */
   hardcore?: boolean;
+  /** Battle Royale ou Résurgence, false en multijoueur */
+  warzone?: string | false;
   countdown: number;
   remaining: number;
 }
@@ -265,7 +269,22 @@ export type CodObjective =
   /** Élimination confirmée : les plaques ne se voient que dans le monde */
   | { kind: 'tags' }
   /** Course aux armes : nombre d'armes à passer */
-  | { kind: 'gun'; levels: number };
+  | { kind: 'gun'; levels: number }
+  /** Warzone : zone actuelle (x, y, r), prochaine (nx, ny, nr), joueurs et escouades encore en course */
+  | { kind: 'wz'; x: number; y: number; r: number; nx: number; ny: number; nr: number; state: 'wait' | 'shrink' | 'final'; seconds: number; phase: number; damage: number; alive: number; squads: number };
+
+/** Warzone : ce que le joueur a sur lui */
+export interface CodWzState {
+  cash: number;
+  plates: number;
+  state: 'alive' | 'gulag' | 'respawning' | 'out';
+}
+export interface CodWzShopItem {
+  id: string;
+  label: string;
+  description: string;
+  price: number;
+}
 
 export interface CodStateData {
   phase: string;

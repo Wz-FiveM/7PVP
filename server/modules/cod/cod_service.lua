@@ -16,6 +16,7 @@ local CodProfileService = PVP.use('CodProfileService')
 local CodOperatorService = PVP.use('CodOperatorService')
 local CodMapService = PVP.use('CodMapService')
 local CodParty = PVP.use('CodParty')
+local CodWarzone = PVP.use('CodWarzone')
 local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -76,6 +77,26 @@ function CodService.init()
     RegisterNetEvent(Events.server.codDied, function(killerId, weapon, headshot)
         local match = CodService.matchOf(source)
         if match then match:onDied(source, killerId, weapon, headshot) end
+    end)
+    RegisterNetEvent(Events.server.codWzTake, function(id)
+        local match = CodService.warzoneOf(source)
+        if match then CodWarzone.take(match, source, id) end
+    end)
+    RegisterNetEvent(Events.server.codWzPlate, function()
+        local match = CodService.warzoneOf(source)
+        if match then CodWarzone.usePlate(match, source) end
+    end)
+    RegisterNetEvent(Events.server.codWzVehicleClaim, function(id)
+        local match = CodService.warzoneOf(source)
+        if match then CodWarzone.claimVehicle(match, source, id) end
+    end)
+    RegisterNetEvent(Events.server.codWzVehicleSpawned, function(netId)
+        local match = CodService.warzoneOf(source)
+        if match then CodWarzone.vehicleSpawned(match, netId) end
+    end)
+    Callback.register(Events.callbacks.codWzBuy, function(player, station, item)
+        local match = CodService.warzoneOf(player)
+        return match and CodWarzone.buy(match, player, station, item) or { ok = false }
     end)
     RegisterNetEvent(Events.server.codInsertion, function()
         local match = CodService.matchOf(source)
@@ -139,6 +160,13 @@ end
 ---@return table|nil partie du joueur
 function CodService.matchOf(source)
     return CodService.matches[CodService.playerMatch[source]]
+end
+
+---@param source integer
+---@return table|nil partie Warzone du joueur
+function CodService.warzoneOf(source)
+    local match = CodService.matchOf(tonumber(source))
+    return match and match.playlist.warzone and match or nil
 end
 
 ---@param id any
@@ -224,7 +252,7 @@ function CodService.toggleQueue(source, playlistId)
     end
     local playlist = CodService.findPlaylist(playlistId)
     if not playlist then return { ok = false } end
-    if not CodService.joinableMatch(playlist, #members) and #CodService.pickMaps() == 0 then
+    if not CodService.joinableMatch(playlist, #members) and #CodService.pickMaps(playlist) == 0 then
         return { ok = false, message = Locale.t('Aucune carte disponible pour le moment.') }
     end
     for _, member in ipairs(members) do CodService.leaveQueue(member) end
@@ -264,8 +292,9 @@ function CodService.startPrivate(source, playlistId, mapId)
         if CodService.isBusy(member) then return { ok = false, message = Locale.t('Toute l\'escouade doit être au menu, sans recherche en cours.') } end
     end
     local playlist = CodService.findPlaylist(playlistId)
-    local map = type(mapId) == 'string' and CodService.findMap(mapId)
-    if not playlist or not map or not CodMapService.playable(map) then
+    -- Warzone : ses cartes ne sont pas celles du multijoueur
+    local map = playlist and playlist.warzone and CodService.pickMaps(playlist)[1] or (type(mapId) == 'string' and CodService.findMap(mapId))
+    if not playlist or not map or not (playlist.warzone or CodMapService.playable(map)) then
         return { ok = false, message = Locale.t('Cette carte n\'est pas disponible.') }
     end
 
@@ -280,8 +309,8 @@ end
 ---@param count integer joueurs à faire entrer ensemble
 ---@return table|nil partie en cours qui a encore de la place et assez de temps
 function CodService.joinableMatch(playlist, count)
-    -- Une seule vie par manche : pas d'arrivée en cours de partie
-    if playlist.id == 'snd' then return nil end
+    -- Une seule vie par manche, ou tout le monde part du même avion : pas d'arrivée en cours de partie
+    if playlist.id == 'snd' or playlist.warzone then return nil end
     local limit = GetGameTimer() + Config.Cod.joinMinRemaining * 1000
     for _, match in pairs(CodService.matches) do
         if match.playlist.id == playlist.id and match.phase ~= 'ended' and not match.private
@@ -303,7 +332,7 @@ function CodService.updateQueue(playlist)
         return CodService.launch(playlist)
     elseif not queue.startAt then
         queue.startAt = GetGameTimer() + Config.Cod.queueDelay * 1000
-        queue.maps = CodService.pickMaps()
+        queue.maps = CodService.pickMaps(playlist)
         queue.votes = {}
         local planned = queue.startAt
         SetTimeout(Config.Cod.queueDelay * 1000, function()
@@ -341,11 +370,18 @@ function CodService.refreshSquad(source)
     if playlist then CodService.sendSquad(playlist) end
 end
 
+---@param playlist table
 ---@return table[] cartes tirées au sort pour le vote
-function CodService.pickMaps()
+function CodService.pickMaps(playlist)
     local pool = {}
-    for _, map in ipairs(Config.Cod.maps) do
-        if CodMapService.playable(map) then pool[#pool + 1] = map end
+    if playlist.warzone then
+        for _, map in ipairs(Config.CodWarzone.maps) do
+            if map.mode == playlist.warzone then pool[#pool + 1] = map end
+        end
+    else
+        for _, map in ipairs(Config.Cod.maps) do
+            if CodMapService.playable(map) then pool[#pool + 1] = map end
+        end
     end
     local maps = {}
     while #pool > 0 and #maps < Config.Cod.voteChoices do
@@ -358,7 +394,7 @@ end
 function CodService.refreshVotes()
     for _, playlist in ipairs(Config.Cod.playlists) do
         local queue = CodService.queues[playlist.id]
-        if queue.maps then
+        if queue.maps and not playlist.warzone then
             local maps, kept = {}, {}
             for _, map in ipairs(queue.maps) do
                 if CodMapService.playable(map) then
@@ -369,7 +405,7 @@ function CodService.refreshVotes()
             for source, choice in pairs(queue.votes) do
                 if not kept[choice] then queue.votes[source] = nil end
             end
-            queue.maps = #maps > 0 and maps or CodService.pickMaps()
+            queue.maps = #maps > 0 and maps or CodService.pickMaps(playlist)
             CodService.sendQueue(playlist)
         end
     end
@@ -460,7 +496,7 @@ end
 ---@param playlist table
 function CodService.launch(playlist)
     local queue = CodService.queues[playlist.id]
-    queue.maps = queue.maps or CodService.pickMaps()
+    queue.maps = queue.maps or CodService.pickMaps(playlist)
     local map = CodService.votedMap(queue)
     if not map then return CodService.cancelQueue(playlist) end
 
@@ -543,6 +579,7 @@ end
 ---@param match table
 function CodService.closeMatch(match)
     CodService.matches[match.id] = nil
+    if match.rules.cleanup then match.rules.cleanup(match) end
     local players = { table.unpack(match.players) }
     local inMenu = {}
     for _, source in ipairs(players) do

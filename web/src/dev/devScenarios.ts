@@ -183,7 +183,7 @@ export const DEV_SCREENS: DevScreen[] = [
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4', codPlate: 'X' },
           },
         },
       });
@@ -271,7 +271,7 @@ export const DEV_SCREENS: DevScreen[] = [
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
             name: 'Dev', serverId: 1, mode: 'cod', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
-            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4' },
+            keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4', codPlate: 'X' },
           },
         },
       });
@@ -777,6 +777,15 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'CoD : ouverture du colis', run: () => sendNui({ action: 'codAction', data: { kind: 'crate', seconds: 6 } }) },
   { label: 'CoD : mort', run: () => sendNui({ action: 'codDead', data: { killer: 'Rook', weapon: 'SMG', respawn: 3, card: mockCodCards.rook } }) },
   { label: 'CoD : kill cam', run: () => sendNui({ action: 'codKillcam', data: { open: true, killer: 'Rook', weapon: 'SMG', card: mockCodCards.rook, key: 'F' } }) },
+  { label: 'CoD : station d\'achat', run: () => {
+    sendNui({ action: 'codWz', data: { cash: 5200, plates: 2, state: 'alive' } });
+    sendNui({ action: 'codWzShop', data: { open: true, items: [
+      { id: 'plates', label: 'Plaques d\'armure', description: 'Trois plaques de plus.', price: 1000 },
+      { id: 'uav', label: 'Drone', description: 'Les ennemis apparaissent sur la carte pendant 30 s.', price: 4000 },
+      { id: 'loadout', label: 'Colis d\'équipement', description: 'Reçois aussitôt les armes, l\'équipement et les atouts de ta classe.', price: 10000 },
+      { id: 'buyback', label: 'Racheter un coéquipier', description: 'Il revient en parachute. Battle Royale : aussi pour un coéquipier sorti du goulag.', price: 4500 },
+    ] } });
+  } },
   { label: 'CoD : kill cam finale', run: () => sendNui({ action: 'codKillcam', data: { open: true, killer: 'Rook', weapon: 'SMG', card: mockCodCards.rook, final: true } }) },
   { label: 'CoD : fin de kill cam', run: () => sendNui({ action: 'codKillcam', data: { open: false } }) },
   { label: 'CoD : classe en partie', run: () => sendNui({ action: 'codPicker', data: { open: true, profile: mockCodProfile } }) },
