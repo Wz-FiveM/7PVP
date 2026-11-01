@@ -43,6 +43,7 @@ shared_scripts {
     'config/appearance.lua',
     'config/lobby.lua',
     'config/presence.lua',
+    'config/voice.lua',
     'config/admin.lua',
     'shared/core/logger.lua',
     'shared/core/locale.lua',
@@ -131,6 +132,7 @@ server_scripts {
     'server/modules/cases/case_service.lua',
     'server/modules/leaderboard/leaderboard_service.lua',
     'server/modules/presence/presence_service.lua',
+    'server/modules/voice/voice_service.lua',
     'server/modules/discord/live_service.lua',
     'server/api/exports.lua',
     'server/main.lua',
@@ -206,6 +208,7 @@ client_scripts {
     'client/modules/clock/clock.lua',
     'client/modules/dev/dev.lua',
     'client/modules/presence/presence.lua',
+    'client/modules/voice/voice.lua',
     'client/api/exports.lua',
     'client/main.lua',
 }

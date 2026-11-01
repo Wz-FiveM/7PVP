@@ -1,0 +1,26 @@
+/* Chat vocal : bord droit, entre le fil des kills et les munitions ------------- */
+
+.voice {
+  position: absolute;
+  top: 50%;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+.voice__row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: var(--panneau);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #eceee8;
+}
+.voice__row--me {
+  color: #7fe08a;
+  text-transform: uppercase;
+}

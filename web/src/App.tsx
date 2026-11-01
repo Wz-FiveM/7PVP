@@ -16,6 +16,7 @@ import { InteractionMenu } from './components/interaction/InteractionMenu';
 import { Hud } from './components/hud/Hud';
 import { Speedometer } from './components/hud/Speedometer';
 import { Toasts } from './components/hud/Toasts';
+import { VoiceIndicator } from './components/hud/VoiceIndicator';
 import { Lobby } from './components/lobby/Lobby';
 import { Menu } from './components/menu/Menu';
 import { PauseMenu } from './components/pause/PauseMenu';
@@ -72,6 +73,7 @@ export function App() {
       {inFreeroam && <UiGuard name="gungame"><Gungame /></UiGuard>}
       {/* Toujours monté : le serveur peut ouvrir le menu juste après le changement de mode */}
       <UiGuard name="cod"><Cod visible={inCod} /></UiGuard>
+      <UiGuard name="voice"><VoiceIndicator /></UiGuard>
       {(inPvp || inFreeroam || inCod) && !state.menu.open && !state.freeroam.menuOpen && (
         <UiGuard name="chat" onCrash={actions.closeChat}><Chat /></UiGuard>
       )}

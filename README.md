@@ -65,6 +65,19 @@ Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dan
 4. **OneSync doit être activé** : les PNJ et les armes sont gérés côté serveur.
 5. La table `pvp_players` est créée automatiquement au démarrage (voir `sql/7pvp.sql`).
 
+## Chat vocal
+
+Voix intégrée à FiveM, sans ressource en plus (`config/voice.lua`, `server/modules/voice`, `client/modules/voice`). Les joueurs parlent avec la touche de GTA (N par défaut), à condition d'avoir activé le chat vocal dans les options du jeu.
+
+| Où | Qui t'entend |
+|---|---|
+| PvP, Freeroam, Mêlée générale, Course aux armes | Les joueurs à proximité |
+| Parties Call of Duty en équipes | Ton équipe seulement, à toute distance |
+| Battle Royale, Résurgence | Ton escouade à toute distance, les autres joueurs à proximité |
+| Lobby, menu Call of Duty | Personne |
+
+`voice_useNativeAudio` est activé par la ressource, sauf si `server.cfg` choisit un autre mode audio : aucune ligne à ajouter.
+
 ## Mise à jour du VPS
 
 Sur le VPS (hôte SSH `seven`), la resource `/opt/7pvp/server-data/resources/7PVP` est un clone de ce dépôt GitHub, branche `main`. Le serveur tourne avec le service systemd `7pvp`, txAdmin sur le port 40121.

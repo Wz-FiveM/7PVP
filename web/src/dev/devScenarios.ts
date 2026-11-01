@@ -391,6 +391,7 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'Zone safe', run: () => sendNui({ action: 'zone', data: mockInit.zone }) },
   { label: 'Zone PvE', run: () => sendNui({ action: 'zone', data: { id: 'port', label: 'Port de Los Santos', type: 'pve' } }) },
   { label: 'Zone PvP', run: () => sendNui({ action: 'zone', data: { label: 'Zone PvP', type: 'pvp' } }) },
+  { label: 'Voix : escouade', run: () => sendNui({ action: 'voice', data: { talking: true, proximity: true, team: true, speakers: ['Wezor', 'Kilian'] } }) },
   { label: 'Blessé', run: () => sendNui({ action: 'vitals', data: { ...mockVitals, health: 28, armor: 0 } }) },
   { label: 'Pleine forme', run: () => sendNui({ action: 'vitals', data: { ...mockVitals, health: 100, armor: 100 } }) },
   {

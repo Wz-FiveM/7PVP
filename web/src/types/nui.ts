@@ -16,6 +16,7 @@ export type NuiMessage =
   | { action: 'vitals'; data: Vitals }
   | { action: 'hotbar'; data: { visible: boolean } }
   | { action: 'minimap'; data: MinimapAnchor }
+  | { action: 'voice'; data: { talking: boolean; proximity: boolean; team: boolean; speakers: string[] } }
   | { action: 'lobby'; data: { open: boolean; modes?: LobbyMode[] } }
   /** mode de jeu en cours, `false` au lobby */
   | { action: 'mode'; data: { mode: string | false } }
