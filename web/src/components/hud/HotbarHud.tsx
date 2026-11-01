@@ -1,5 +1,5 @@
 import { useGame } from '../../store/GameContext';
-import { entriesOf } from '../../utils/inventory';
+import { entriesOf, shortcutItem } from '../../utils/inventory';
 import { ItemIcon } from '../inventory/ItemIcon';
 import { Brackets } from '../ui/Brackets';
 
@@ -9,20 +9,16 @@ export function HotbarHud() {
   const { player, config, vitals, hotbarVisible } = state;
   if (!player || !hotbarVisible) return null;
 
-  // Une arme au conteneur protégé ne se sort pas : seul le sac compte pour elle
   const owned = new Map<string, number>();
   for (const stacks of [player.inventory.bag, player.inventory.protected]) {
-    for (const [name, count] of entriesOf(stacks)) {
-      if (stacks === player.inventory.protected && config.items[name]?.type === 'weapon') continue;
-      owned.set(name, (owned.get(name) ?? 0) + count);
-    }
+    for (const [name, count] of entriesOf(stacks)) owned.set(name, (owned.get(name) ?? 0) + count);
   }
 
   return (
     <div className="hotbar">
       {Array.from({ length: config.shortcutSlots }, (_, i) => {
         const slot = i + 1;
-        const name = player.inventory.shortcuts[i] || null;
+        const name = shortcutItem(player.inventory, config, i);
         const item = name ? config.items[name] : undefined;
         const count = name ? owned.get(name) ?? 0 : 0;
         const active = Boolean(name) && name === vitals.weapon;

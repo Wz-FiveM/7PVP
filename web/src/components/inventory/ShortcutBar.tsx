@@ -1,5 +1,6 @@
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
+import { shortcutItem } from '../../utils/inventory';
 import { SectionTitle } from '../menu/SectionTitle';
 import { useDrag } from './DragProvider';
 import { DropZone } from './DropZone';
@@ -11,7 +12,6 @@ export function ShortcutBar() {
   const { state, actions } = useGame();
   const { drag, begin } = useDrag();
   const { config, player } = state;
-  const shortcuts = player?.inventory.shortcuts ?? [];
 
   return (
     <section className="container">
@@ -19,7 +19,7 @@ export function ShortcutBar() {
       <div className="tile-grid">
         {Array.from({ length: config.shortcutSlots }, (_, i) => {
           const slot = i + 1;
-          const name = shortcuts[i] || null;
+          const name = player ? shortcutItem(player.inventory, config, i) : null;
           const item = name ? config.items[name] : undefined;
           const isDragged = drag?.source.kind === 'shortcut' && drag.source.slot === slot;
 

@@ -12,7 +12,7 @@ import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack, StashId } from '../types/game';
 import {
-  CARRIED, capacityOf, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, itemLabel,
+  CARRIED, capacityOf, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, isWeaponInBag, itemLabel,
   moveLabel, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
@@ -133,7 +133,10 @@ export function InventoryPage() {
     }
     if (source.kind === 'shortcut' && source.slot === target.slot) return false;
     if (source.kind === 'container' && isStash(source.container)) return false;
-    return isShortcutItem(config.items[source.item]?.type);
+    // Arme au conteneur protégé : son raccourci serait caché, on la remet d'abord dans le sac
+    const type = config.items[source.item]?.type;
+    if (type === 'weapon' && !isWeaponInBag(player.inventory, source.item)) return false;
+    return isShortcutItem(type);
   };
 
   const handleDrop = (source: DragSource, target: DropTarget | null) => {
