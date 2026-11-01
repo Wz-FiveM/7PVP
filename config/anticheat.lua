@@ -20,6 +20,8 @@ Config.AntiCheat = {
         teleport = { label = 'Téléportation / vitesse impossible', action = 'log', strikes = 1 },
         spam = { label = 'Requêtes en rafale', action = 'kick', strikes = 2 },
         heartbeat = { label = 'Script client arrêté', action = 'kick', strikes = 1 },
+        -- Le kill n'est pas compté. Alerte seulement : un kill rare peut échapper au contrôle (pompe à essence...)
+        kill = { label = 'Kill annoncé sans touche', action = 'log', strikes = 1 },
     },
 
     -- Dégâts d'une touche au-delà desquels une alerte part (le sniper fait ~100). Les tirs à la tête

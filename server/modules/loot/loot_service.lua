@@ -306,7 +306,7 @@ end
 ---@param to any 'bag' | 'protected'
 ---@return table { ok, message? }
 function LootService.take(source, id, name, count, to)
-    id, count = tonumber(id), math.floor(tonumber(count) or 0)
+    id, count = tonumber(id), Utils.toCount(count)
     local player = PlayerService.get(source)
     local bag = id and LootService.bags[id]
     if not player or player.dead or not bag or not bag.browse then

@@ -46,6 +46,8 @@ local CodChallenges = PVP.use('CodChallenges')
 local CodParty = PVP.use('CodParty')
 local CodService = PVP.use('CodService')
 local PlayerService = PVP.use('PlayerService')
+local AntiCheatService = PVP.use('AntiCheatService')
+local KillProof = PVP.use('KillProof')
 local LiveService = PVP.use('LiveService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
@@ -512,15 +514,21 @@ end
 function CodMatch:resolveKiller(source, killerId)
     local victim = self.stats[source]
     killerId = tonumber(killerId)
+    local announced = false
     if killerId and self:areEnemies(source, killerId) then
         local killerPed, victimPed = GetPlayerPed(killerId), GetPlayerPed(source)
         if killerPed ~= 0 and victimPed ~= 0
             and #(GetEntityCoords(killerPed) - GetEntityCoords(victimPed)) <= Config.Cod.killRange then
-            return killerId, false
+            announced = true
+            local proof = KillProof.confirm(source, killerId)
+            if proof and self.stats[killerId] then return killerId, false, proof.weapon end
         end
     end
     if victim.strikeBy and self.stats[victim.strikeBy] and GetGameTimer() - victim.strikeAt <= CodMatch.STRIKE_WINDOW then
         return victim.strikeBy, true
+    end
+    if announced and AntiCheatService.watched(source) then
+        AntiCheatService.flag(source, 'kill', ('Call of Duty, tueur annoncé : ID %d'):format(killerId))
     end
     return nil, false
 end
@@ -611,13 +619,19 @@ function CodMatch:onDied(source, killerId, weapon, headshot)
     CodStreaks.sendState(self, source)
 
     local running = self.phase == 'running'
-    local killer, byStreak = nil, false
-    if running then killer, byStreak = self:resolveKiller(source, killerId) end
+    local killer, byStreak, provenWeapon = nil, false, nil
+    if running then killer, byStreak, provenWeapon = self:resolveKiller(source, killerId) end
+    -- La vérification du kill peut durer : le joueur a pu partir ou la partie finir entre-temps
+    if not self.stats[source] then return end
+    if running and self.phase ~= 'running' then
+        running, killer, byStreak = false, nil, false
+    end
     local weaponLabel, weaponId, streakId
     if byStreak and victim.strikeLabel then
         weaponLabel, streakId = victim.strikeLabel, CodStreaks.idFromLabel(victim.strikeLabel)
     elseif killer then
-        weaponLabel, weaponId = CodMatch.weaponLabel(weapon)
+        -- L'arme vue par le serveur plutôt que celle annoncée par la victime (progression des armes)
+        weaponLabel, weaponId = CodMatch.weaponLabel(provenWeapon or weapon)
     end
     if killer then
         self:rewardKill(killer, source, headshot == true)

@@ -17,6 +17,7 @@ local PlayerService = PVP.use('PlayerService')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
+local Utils = PVP.use('Utils')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -121,8 +122,8 @@ function MarketService.sell(source, data)
     if type(data) ~= 'table' then return { ok = false } end
 
     local item, container = data.item, data.container
-    local count = math.floor(tonumber(data.count) or 0)
-    local price = math.floor(tonumber(data.price) or 0)
+    local count = Utils.toCount(data.count)
+    local price = Utils.toCount(data.price)
     if not Items.exists(item) or Config.Market.blocked[item] then
         return { ok = false, message = Locale.t('Cet objet ne peut pas être vendu.') }
     end

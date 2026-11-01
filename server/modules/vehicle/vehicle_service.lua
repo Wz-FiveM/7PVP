@@ -115,15 +115,16 @@ function VehicleService.onSpawned(source, name, netId)
     pending.checking = true
     local entity = VehicleService.waitEntity(netId)
     pending.checking = nil
+    local item = Items.get(name)
     -- Joueur parti ou véhicule déjà rangé pendant l'attente (l'objet a été rendu par release)
     if VehicleService.active[source] ~= pending or not PlayerService.get(source) then
-        if entity then DeleteEntity(entity) end
+        if VehicleService.isOfItem(entity, item) then DeleteEntity(entity) end
         return
     end
 
-    local item = Items.get(name)
-    if not entity or GetEntityModel(entity) ~= GetHashKey(item.model) then
-        if entity then DeleteEntity(entity) end
+    -- Le net id vient du client : jamais le véhicule d'un autre, ni une autre entité du monde
+    if not VehicleService.isOfItem(entity, item) or NetworkGetEntityOwner(entity) ~= source or VehicleService.ownerOf(entity) then
+        AntiCheatService.discardVehicle(source)
         VehicleService.active[source] = nil
         player.inventory:unreserve(name)
         VehicleService.refund(player, name)
@@ -131,8 +132,16 @@ function VehicleService.onSpawned(source, name, netId)
         player:notify(Locale.t('Le véhicule n\'a pas pu apparaître : objet rendu.'), 'error')
         return player:sync()
     end
+    AntiCheatService.keepVehicle(source)
     pending.netId = tonumber(netId)
     Entity(entity).state:set(VehicleService.ITEM_STATE, name, true)
+end
+
+---@param entity integer|nil
+---@param item table entrée de Config.Items
+---@return boolean
+function VehicleService.isOfItem(entity, item)
+    return entity ~= nil and GetEntityType(entity) == 2 and GetEntityModel(entity) == GetHashKey(item.model)
 end
 
 ---Attend que le serveur connaisse l'entité créée par le client.

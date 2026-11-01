@@ -19,11 +19,12 @@ function InventoryService.init()
     Callback.register(Events.callbacks.unlockStash, InventoryService.unlockStash)
 end
 
+---L'inventaire n'existe qu'en PvP : ses objets ne servent pas en Call of Duty ni en Freeroam.
 ---@param source integer
 ---@return PvpPlayer|nil
 function InventoryService.getActivePlayer(source)
     local player = PlayerService.get(source)
-    if not player or player.dead then return nil end
+    if not player or player.dead or player.mode ~= 'pvp' then return nil end
     return player
 end
 

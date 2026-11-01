@@ -7,6 +7,7 @@ local Zones = PVP.use('Zones')
 local ModeRegistry = PVP.use('ModeRegistry')
 local PveWorldService = PVP.use('PveWorldService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local KillProof = PVP.use('KillProof')
 local Events = PVP.use('Events')
 
 PveService.TICK_INTERVAL = 1500
@@ -113,7 +114,9 @@ end
 ---@param netId integer
 ---@param killerId any
 function PveService.onNpcDied(source, netId, killerId)
-    local ped = NetworkGetEntityFromNetworkId(netId)
+    if not AntiCheatService.allow(source, 'hit') then return end
+    netId = tonumber(netId)
+    local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
     if ped == 0 or not DoesEntityExist(ped) then return end
 
     local zone = PveService.getZoneOf(ped)
@@ -121,6 +124,8 @@ function PveService.onNpcDied(source, netId, killerId)
 
     killerId = tonumber(killerId)
     if NetworkGetEntityOwner(ped) ~= source and killerId ~= source then return end
+    -- Un zombie encore vivant ne se déclare pas mort, même par son tueur
+    if not KillProof.awaitDeath(ped) then return end
 
     local killer = killerId and PlayerService.get(killerId)
     if killer and not CombatService.isWithinKillRange(killer:getCoords(), GetEntityCoords(ped)) then

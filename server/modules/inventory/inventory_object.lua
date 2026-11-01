@@ -197,7 +197,7 @@ end
 ---@param count integer
 ---@return integer quantité réellement ajoutée
 function InventoryObject:add(container, name, count)
-    count = math.floor(tonumber(count) or 0)
+    count = Utils.toCount(count)
     if count <= 0 then return 0 end
 
     local added = math.min(count, self:maxFit(container, name))
@@ -212,7 +212,7 @@ end
 ---@param count integer
 ---@return integer quantité réellement retirée
 function InventoryObject:removeFrom(container, name, count)
-    count = math.floor(tonumber(count) or 0)
+    count = Utils.toCount(count)
     local current = self:countIn(container, name)
     local removed = math.min(count, current)
     if removed <= 0 then return 0 end
@@ -238,7 +238,7 @@ end
 ---@param count integer
 ---@return boolean ok, string|nil message d'erreur
 function InventoryObject:move(from, to, name, count)
-    count = math.floor(tonumber(count) or 0)
+    count = Utils.toCount(count)
     if not Items.isContainer(from) or not Items.isContainer(to) or from == to then
         return false, Locale.t('Déplacement invalide.')
     end

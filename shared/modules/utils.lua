@@ -14,6 +14,15 @@ function Utils.pick(list)
     return list[math.random(#list)]
 end
 
+---Quantité venue du réseau : un entier, 0 si ce n'est pas un nombre fini (NaN passe sinon tous les contrôles).
+---@param value any
+---@return integer
+function Utils.toCount(value)
+    local number = tonumber(value)
+    if not number or number ~= number or number == math.huge or number == -math.huge then return 0 end
+    return math.floor(number)
+end
+
 ---@param tbl table
 ---@return integer
 function Utils.count(tbl)

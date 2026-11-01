@@ -8,6 +8,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local CombatTagService = PVP.use('CombatTagService')
 local BountyService = PVP.use('BountyService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
 local ContractService = PVP.use('ContractService')
 local DiscordService = PVP.use('DiscordService')
@@ -83,6 +84,7 @@ function CombatService.onHitReport(source, attackerId, hit)
     if not victim or not attacker or attacker == victim then return end
     if not attacker.mode or attacker.mode ~= victim.mode then return end
     if not CombatService.isWithinKillRange(attacker:getCoords(), victim:getCoords()) then return end
+    if not KillProof.canReportHit(attacker.source, victim.source) then return end
 
     local health = CombatService.clampDamage(hit.health, CombatService.MAX_HIT_HEALTH)
     local armor = CombatService.clampDamage(hit.armor, CombatService.MAX_HIT_ARMOR)
@@ -112,6 +114,8 @@ function CombatService.onPlayerDied(source, killerId, cause)
     CombatService.dropVictimLoot(victim)
 
     local killer = CombatService.resolveKiller(victim, killerId)
+    -- Parti pendant la vérification du kill : profil déjà sauvegardé, rien à lui envoyer
+    if PlayerService.get(source) ~= victim then return end
     local recap = CombatService.buildRecap(victim, killer, type(cause) == 'table' and cause or {})
     if killer then
         CombatService.rewardPlayerKill(killer, victim)
@@ -142,18 +146,27 @@ function CombatService.dropVictimLoot(victim, coords)
     })
 end
 
+---Tueur annoncé par la victime, s'il est dans le même monde et que le serveur a vu ce kill.
+---Peut attendre la vie synchronisée de la victime (voir KillProof.confirm).
 ---@param victim PvpPlayer
 ---@param killerId any
 ---@return PvpPlayer|nil
 function CombatService.resolveKiller(victim, killerId)
     killerId = tonumber(killerId)
-    if not killerId or killerId == victim.source then return nil end
+    if not killerId or killerId == victim.source or victim.mode ~= 'pvp' then return nil end
 
     local killer = PlayerService.get(killerId)
-    if not killer or not CombatService.isWithinKillRange(killer:getCoords(), victim:getCoords()) then
+    if not killer or killer.mode ~= victim.mode or GetPlayerRoutingBucket(killerId) ~= GetPlayerRoutingBucket(victim.source)
+        or not CombatService.isWithinKillRange(killer:getCoords(), victim:getCoords()) then
         return nil
     end
-    return killer
+    if not KillProof.confirm(victim.source, killerId) then
+        if AntiCheatService.watched(victim.source) then
+            AntiCheatService.flag(victim.source, 'kill', ('tueur annoncé : %s (ID %d)'):format(killer.name, killerId))
+        end
+        return nil
+    end
+    return PlayerService.get(killerId) == killer and killer or nil
 end
 
 ---@param a vector3

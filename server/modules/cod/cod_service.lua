@@ -92,7 +92,7 @@ function CodService.init()
     end)
     RegisterNetEvent(Events.server.codWzVehicleSpawned, function(netId)
         local match = CodService.warzoneOf(source)
-        if match then CodWarzone.vehicleSpawned(match, netId) end
+        if match then CodWarzone.vehicleSpawned(match, source, netId) end
     end)
     Callback.register(Events.callbacks.codWzBuy, function(player, station, item)
         local match = CodService.warzoneOf(player)

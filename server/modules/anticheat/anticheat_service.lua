@@ -6,6 +6,7 @@
 ---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible hors zone safe
 ---  teleport  : déplacement impossible entre deux relevés de position
 ---  spam      : requêtes réseau en rafale ; heartbeat : script client arrêté
+---  kill      : tueur annoncé par la victime sans que le serveur ait vu ce kill (voir KillProof)
 ---Chaque détection est journalisée (console + Discord) ; la sanction tombe au-delà d'un nombre
 ---d'alertes. Les admins ne sont jamais contrôlés.
 ---@class AntiCheatServiceModule
@@ -34,6 +35,8 @@ AntiCheatService.loadedAt = {} -- [source] = os.time() du chargement du profil
 AntiCheatService.lastSafeAt = {} -- [source] = os.time() de la dernière fois vu en zone safe
 -- Véhicule qu'un joueur a le droit de créer (objet véhicule utilisé) : [source] = { model, expires }
 AntiCheatService.allowedVehicles = {}
+-- Véhicule créé avec cette autorisation, tant que le client ne l'a pas fait accepter : [source] = entité
+AntiCheatService.createdVehicles = {}
 AntiCheatService.VEHICLE_ALLOW_TIME = 10000
 -- Type de population d'une entité créée par un script (CreateVehicle) : POPTYPE_MISSION
 AntiCheatService.POPTYPE_MISSION = 7
@@ -137,7 +140,7 @@ function AntiCheatService.forget(source)
     for _, map in ipairs({
         AntiCheatService.strikes, AntiCheatService.rates, AntiCheatService.positions,
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
-        AntiCheatService.allowedVehicles, AntiCheatService.lastSafeAt,
+        AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.lastSafeAt,
     }) do
         map[source] = nil
     end
@@ -296,7 +299,10 @@ function AntiCheatService.onEntityCreating(entity)
     if GetEntityType(entity) ~= 2 then return end
     local owner = NetworkGetEntityOwner(entity)
     if not owner or owner <= 0 or not AntiCheatService.watched(owner, true) then return end
-    if AntiCheatService.consumeVehicleAllowance(owner, GetEntityModel(entity)) then return end
+    if AntiCheatService.consumeVehicleAllowance(owner, GetEntityModel(entity)) then
+        AntiCheatService.createdVehicles[owner] = entity
+        return
+    end
 
     CancelEvent()
     if GetEntityPopulationType(entity) ~= AntiCheatService.POPTYPE_MISSION then return end
@@ -328,6 +334,21 @@ function AntiCheatService.consumeVehicleAllowance(source, model)
     end
     AntiCheatService.allowedVehicles[source] = nil
     return true
+end
+
+---Le véhicule créé a été accepté par VehicleService.
+---@param source integer
+function AntiCheatService.keepVehicle(source)
+    AntiCheatService.createdVehicles[source] = nil
+end
+
+---Objet rendu au joueur : l'autorisation tombe, et le véhicule déjà créé ne reste pas en jeu.
+---@param source integer
+function AntiCheatService.discardVehicle(source)
+    AntiCheatService.allowedVehicles[source] = nil
+    local entity = AntiCheatService.createdVehicles[source]
+    AntiCheatService.createdVehicles[source] = nil
+    if entity and DoesEntityExist(entity) then DeleteEntity(entity) end
 end
 
 ---Déplacements impossibles (téléportation, vitesse) des joueurs PvP vivants.

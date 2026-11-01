@@ -16,6 +16,7 @@ local CodRules = PVP.use('CodRules')
 local CodStreaks = PVP.use('CodStreaks')
 local CodProfileService = PVP.use('CodProfileService')
 local CodParty = PVP.use('CodParty')
+local VehicleService = PVP.use('VehicleService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -836,15 +837,27 @@ function CodWarzone.claimVehicle(match, source, id)
     if not vehicle or vehicle.claimed then return end
     if not CodWarzone.isNear(match, source, vehicle.x, vehicle.y, Config.CodWarzone.vehicles.claimRange + 50.0) then return end
     vehicle.claimed = true
+    vehicle.claimedBy = source
     TriggerClientEvent(Events.client.codWz, source, { type = 'vehicleSpawn', id = vehicle.id, model = vehicle.model, x = vehicle.x, y = vehicle.y })
     match:broadcast(Events.client.codWz, { type = 'vehicleClaimed', id = vehicle.id })
 end
 
+---Le net id vient du client : seulement un véhicule qu'il a créé, pour un véhicule qu'il a réclamé.
+---Le serveur supprimera cette entité en fin de partie.
 ---@param match table
+---@param source integer
 ---@param netId any
-function CodWarzone.vehicleSpawned(match, netId)
-    netId = tonumber(netId)
-    if netId then match.wz.entities[#match.wz.entities + 1] = netId end
+function CodWarzone.vehicleSpawned(match, source, netId)
+    local entity = VehicleService.waitEntity(netId)
+    if not entity or GetEntityType(entity) ~= 2 or NetworkGetEntityOwner(entity) ~= source then return end
+    local model = GetEntityModel(entity) & 0xFFFFFFFF
+    for _, vehicle in ipairs(match.wz.vehicles) do
+        if vehicle.claimedBy == source and not vehicle.spawned and (GetHashKey(vehicle.model) & 0xFFFFFFFF) == model then
+            vehicle.spawned = true
+            match.wz.entities[#match.wz.entities + 1] = tonumber(netId)
+            return
+        end
+    end
 end
 
 ---Fin de partie : les véhicules restent sinon dans le bucket, sans joueur pour les retirer.
