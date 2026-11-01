@@ -62,7 +62,7 @@ function Loadout.apply()
     local attachments = type(inventory.attachments) == 'table' and inventory.attachments or {}
     for name, item in pairs(Config.Items) do
         if item.type == 'weapon' then
-            local owned = Items.countOwned(inventory, name) > 0
+            local owned = Items.countUsable(inventory, name) > 0
             Loadout.syncWeapon(ped, item, owned)
             if owned then Loadout.syncAttachments(ped, name, item, attachments[name] or {}) end
         end
@@ -70,7 +70,7 @@ function Loadout.apply()
 
     Loadout.expected = {}
     for ammoName, hash in pairs(Loadout.ammoWeapon) do
-        local total = math.max(0, Items.countOwned(inventory, ammoName) - Loadout.unconfirmed(ammoName))
+        local total = math.max(0, Items.countUsable(inventory, ammoName) - Loadout.unconfirmed(ammoName))
         SetPedAmmo(ped, hash, total)
         Loadout.expected[ammoName] = total
     end

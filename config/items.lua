@@ -224,7 +224,7 @@ Config.Attachments = {
 
 -- Conteneurs de l'inventaire
 -- bag       : perdu à la mort (tombe dans un sac de butin)
--- protected : conservé à la mort
+-- protected : conservé à la mort ; une arme rangée ici ne se sort plus (il faut la remettre dans le sac)
 -- stash*    : coffres personnels, conservés, accessibles seulement près du banquier (safeOnly, config/npcs.lua).
 --             Leur contenu ne compte pas comme porté (armes, munitions, argent à dépenser).
 --             order : rang de l'onglet ; price : coffre à acheter ($ portés) auprès du banquier, une fois pour toutes

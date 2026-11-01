@@ -9,9 +9,13 @@ export function HotbarHud() {
   const { player, config, vitals, hotbarVisible } = state;
   if (!player || !hotbarVisible) return null;
 
+  // Une arme au conteneur protégé ne se sort pas : seul le sac compte pour elle
   const owned = new Map<string, number>();
   for (const stacks of [player.inventory.bag, player.inventory.protected]) {
-    for (const [name, count] of entriesOf(stacks)) owned.set(name, (owned.get(name) ?? 0) + count);
+    for (const [name, count] of entriesOf(stacks)) {
+      if (stacks === player.inventory.protected && config.items[name]?.type === 'weapon') continue;
+      owned.set(name, (owned.get(name) ?? 0) + count);
+    }
   }
 
   return (

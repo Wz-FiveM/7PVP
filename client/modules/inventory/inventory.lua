@@ -7,6 +7,7 @@ local Callback = PVP.use('Callback')
 local Nui = PVP.use('Nui')
 local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 function Inventory.init()
     RegisterNetEvent(Events.client.applyItem, function(name)
@@ -30,11 +31,21 @@ function Inventory.use(name)
     end
 end
 
+---Une arme ne sort que du sac : on prévient le joueur si elle est au conteneur protégé.
+---@param name string objet de type weapon, déjà porté
+---@return boolean
+function Inventory.canHold(name)
+    if Items.countUsable(State.player.inventory, name) > 0 then return true end
+    Nui.notify(Locale.t('Mets cette arme dans ton sac pour l\'équiper.'), 'error')
+    return false
+end
+
 ---Sort une arme possédée.
 ---@param name string
 function Inventory.equip(name)
     local item = Items.get(name)
     if not item or item.type ~= 'weapon' or Inventory.count(name) <= 0 or not State.isAlive() then return end
+    if not Inventory.canHold(name) then return end
     SetCurrentPedWeapon(PlayerPedId(), GetHashKey(item.weapon), true)
 end
 

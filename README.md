@@ -42,7 +42,7 @@ Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dan
 ## Inventaire
 
 - **Tout est objet** : armes (x1), munitions par calibre (9mm, 5.56mm…), soins, argent. Catalogue dans `config/items.lua`.
-- **Deux conteneurs avec limite de poids** (`Config.Containers`) : le **sac** (perdu à la mort) et le **conteneur protégé** (conservé).
+- **Deux conteneurs avec limite de poids** (`Config.Containers`) : le **sac** (perdu à la mort) et le **conteneur protégé** (conservé). Une arme ne se tient en main que depuis le sac : au conteneur protégé, elle est à l'abri mais ne sert pas.
 - **Munitions partagées** : toutes les armes d'un même calibre puisent dans le même objet de munitions. Les balles tirées sont décomptées de l'inventaire (le sac d'abord, puis le conteneur protégé).
 - **Raccourcis** : 7 emplacements (touches `1` à `7`) pour sortir une arme ou utiliser un soin.
 - **Interface** : glisser-déposer entre conteneurs et vers les raccourcis, double-clic pour utiliser, clic droit pour déplacer ou jeter (avec choix de la quantité).

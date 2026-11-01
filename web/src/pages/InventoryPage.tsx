@@ -198,7 +198,8 @@ export function InventoryPage() {
     const carried = !isStash(container);
     if (trade && carried) list.push({ label: t('Proposer à l\'échange'), onSelect: () => requestOffer(stack.name) });
     if (carried && stack.item.type === 'weapon') {
-      list.push({ label: t('Équiper'), onSelect: () => actions.equip(stack.name) });
+      // Une arme ne sort que du sac : au conteneur protégé, elle est seulement à l'abri
+      if (container === 'bag') list.push({ label: t('Équiper'), onSelect: () => actions.equip(stack.name) });
       list.push(...attachmentActions(stack.name));
     }
     if (carried && stack.item.type === 'consumable') {

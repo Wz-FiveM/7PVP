@@ -80,6 +80,16 @@ function Items.countOwned(inventory, name)
     return (inventory.bag[name] or 0) + (inventory.protected[name] or 0)
 end
 
+---Quantité utilisable en jeu : une arme ne se tient en main que depuis le sac
+---(au conteneur protégé, elle est à l'abri mais ne sert pas).
+---@param inventory { bag: table, protected: table }
+---@param name string
+---@return integer
+function Items.countUsable(inventory, name)
+    if Items.isType(name, 'weapon') then return inventory.bag[name] or 0 end
+    return Items.countOwned(inventory, name)
+end
+
 ---@param items table<string, integer>
 ---@return string ex: "2x Bandage, Pistolet, $120"
 function Items.describe(items)
