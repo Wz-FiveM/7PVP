@@ -30,6 +30,8 @@ Pve.chasing = {} -- [ped] = { target = ped du joueur, at = ms } poursuite en cou
 Pve.lastAttack = {} -- [ped] = ms du dernier vomissement lancé par ce client
 Pve.decorated = {} -- [ped] = true quand les blessures visuelles sont appliquées
 Pve.stunned = {} -- [ped] = ms de fin de l'étourdissement (compétences de classe)
+Pve.playerFireBlocked = false -- le jeu refuse les tirs sur les autres joueurs (monde zombies)
+Pve.playerFirePed = 0 -- personnage sur lequel ce refus est appliqué
 
 function Pve.init()
     Pve.setupRelationships()
@@ -52,9 +54,22 @@ function Pve.loop()
     Pve.loadAssets()
     while true do
         Wait(Pve.SCAN_INTERVAL)
+        Pve.updatePlayerFire()
         Pve.scan()
         Pve.cleanup()
     end
+end
+
+---Monde zombies : le jeu refuse lui-même le tir sur un autre joueur, les zombies restent hostiles.
+---Le serveur annule aussi ces touches (PveWorldService), mais une touche annulée seule fait tomber
+---la cible chez le tireur alors qu'elle reste en vie chez elle.
+function Pve.updatePlayerFire()
+    local blocked = LocalPlayer.state.pveWorld == true
+    local ped = PlayerPedId()
+    if blocked == Pve.playerFireBlocked and (not blocked or ped == Pve.playerFirePed) then return end
+    Pve.playerFireBlocked, Pve.playerFirePed = blocked, ped
+    SetCanAttackFriendly(ped, not blocked, false)
+    NetworkSetFriendlyFireOption(not blocked)
 end
 
 ---Démarche et animation, chargées une fois pour toutes.

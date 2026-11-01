@@ -35,10 +35,10 @@ function PveWorldService.init()
     CreateThread(PveWorldService.loop)
 end
 
----@param source integer
+---@param source integer|string le jeu envoie en texte le tireur de weaponDamageEvent
 ---@return boolean
 function PveWorldService.isInside(source)
-    return PveWorldService.inside[source] == true
+    return PveWorldService.inside[tonumber(source)] == true
 end
 
 ---@return integer bucket du monde PvP
