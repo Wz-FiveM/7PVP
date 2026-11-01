@@ -2,7 +2,7 @@
 -- le client d'un tricheur ne peut pas le désactiver. Les admins ne sont jamais contrôlés.
 --
 -- Chaque détection donne une alerte. Quand un joueur en cumule `strikes` du même type en moins
--- de `Config.AntiCheat.strikeWindow` secondes, la sanction `action` s'applique :
+-- de `window` secondes (sinon `Config.AntiCheat.strikeWindow`), la sanction `action` s'applique :
 --   'log'  : journal du serveur + salon Discord « sanctions » seulement
 --   'kick' : expulsion
 --   'ban'  : bannissement enregistré en base (`banDays` jours, 0 = définitif)
@@ -18,7 +18,8 @@ Config.AntiCheat = {
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },
         godmode = { label = 'Invincibilité', action = 'log', strikes = 1 },
         teleport = { label = 'Téléportation / vitesse impossible', action = 'log', strikes = 1 },
-        spam = { label = 'Requêtes en rafale', action = 'kick', strikes = 2 },
+        -- Une alerte par seconde de dépassement : seul un envoi en boucle tient 5 s sur 10, pas un pic de combat.
+        spam = { label = 'Requêtes en rafale', action = 'kick', strikes = 5, window = 10 },
         heartbeat = { label = 'Script client arrêté', action = 'kick', strikes = 1 },
         -- Le kill n'est pas compté. Alerte seulement : un kill rare peut échapper au contrôle (pompe à essence...)
         kill = { label = 'Kill annoncé sans touche', action = 'log', strikes = 1 },
@@ -40,6 +41,7 @@ Config.AntiCheat = {
     rateLimits = {
         callback = 25, -- menus, inventaire, achats...
         hit = 40, -- touches signalées (hitmarker, zombies)
+        npcDeath = 40, -- morts de zombies : à part, un pic de touches ne doit pas faire perdre un kill
         loot = 10, -- ramassage de butin
         ui = 2, -- erreurs d'interface signalées (journal)
     },

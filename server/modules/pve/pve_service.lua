@@ -114,7 +114,7 @@ end
 ---@param netId integer
 ---@param killerId any
 function PveService.onNpcDied(source, netId, killerId)
-    if not AntiCheatService.allow(source, 'hit') then return end
+    if not AntiCheatService.allow(source, 'npcDeath') then return end
     netId = tonumber(netId)
     local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
     if ped == 0 or not DoesEntityExist(ped) then return end

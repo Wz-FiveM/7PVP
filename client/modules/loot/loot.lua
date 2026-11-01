@@ -146,22 +146,41 @@ function Loot.renderLoop()
     while true do
         local needsFrame = false
         local pos = GetEntityCoords(PlayerPedId())
+        local nearestId, nearestDistance = nil, math.huge
 
         for id, bag in pairs(Loot.bags) do
-            if Loot.renderBag(id, bag, pos) then
+            local visible, distance = Loot.renderBag(bag, pos)
+            if visible then
                 needsFrame = true
             end
+            if distance and distance < nearestDistance then
+                nearestId, nearestDistance = id, distance
+            end
         end
+
+        if nearestId then Loot.promptPickup(nearestId) end
 
         Wait(needsFrame and 0 or 500)
     end
 end
 
+---Une pression ne fouille que le butin le plus proche : sur un tas de corps, une requête par
+---butin à portée ferait passer le joueur pour un tricheur (Config.AntiCheat.rateLimits.loot).
 ---@param id integer
+function Loot.promptPickup(id)
+    local bag = Loot.bags[id]
+    HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
+        Locale.resolve(bag.label) or (bag.netId and Locale.t('Fouiller le corps') or Locale.t('Ramasser le butin')))
+    if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
+        Loot.interact(id)
+    end
+end
+
 ---@param bag ClientLootBag
 ---@param pos vector3 position du joueur
----@return boolean true si le sac doit être dessiné à chaque frame
-function Loot.renderBag(id, bag, pos)
+---@return boolean visible true si le sac doit être dessiné à chaque frame
+---@return number|nil distance distance du sac s'il est à portée de ramassage
+function Loot.renderBag(bag, pos)
     local coords = Loot.getCoords(bag)
     local dist = #(pos - coords)
 
@@ -180,14 +199,7 @@ function Loot.renderBag(id, bag, pos)
 
     -- On fouille une caisse depuis son bord : portée un peu plus grande
     local reach = bag.solid and Config.LootPickupDistance + 1.0 or Config.LootPickupDistance
-    if dist < reach and State.isAlive() then
-        HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
-            Locale.resolve(bag.label) or (bag.netId and Locale.t('Fouiller le corps') or Locale.t('Ramasser le butin')))
-        if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
-            Loot.interact(id)
-        end
-    end
-    return true
+    return true, dist < reach and State.isAlive() and dist or nil
 end
 
 -- ---------------------------------------------------------------------------

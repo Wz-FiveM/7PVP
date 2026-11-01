@@ -173,7 +173,7 @@ Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans 
 | Vie / armure | Au-dessus de 200 PV ou 100 d'armure | Kick à la 3e |
 | Invincibilité | Joueur invincible hors zone safe | Journal |
 | Téléportation | Plus de 60 m à plus de 120 m/s entre deux relevés (sauf réapparition, action d'admin) | Journal |
-| Requêtes en rafale | Menus, touches ou ramassages envoyés en boucle (ignorés au-delà de la limite) | Kick à la 2e |
+| Requêtes en rafale | Menus, touches ou ramassages envoyés en boucle (ignorés au-delà de la limite) | Kick après 5 s de dépassement sur 10 s |
 | Script client arrêté | Plus de signal du client depuis 90 s (« resource stopper ») | Kick |
 | Kill annoncé sans touche | La victime désigne un tueur alors que le serveur n'a vu ni touche récente, ni explosion proche, ni véhicule qui l'écrase (kill non compté, voir `server/modules/combat/kill_proof.lua`) | Journal |
 

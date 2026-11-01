@@ -22,6 +22,12 @@ Hits.pendingDamage = nil
 Hits.pendingAttacker = nil
 -- Vie et gilet connus des zombies dont ce client est propriétaire : [ped] = { health, armor }
 Hits.zombieHealth = {}
+-- Les touches des autres joueurs sur nos zombies partent regroupées (ms) : chaque plomb d'un
+-- fusil à pompe peut arriver dans sa propre image, et toutes comptent contre notre limite de requêtes
+Hits.ZOMBIE_REPORT_INTERVAL = 100
+Hits.lastZombieReport = 0
+-- Touches à envoyer : ['ped:tireur'] = { attackerId, netId, hit }
+Hits.zombieReports = {}
 
 function Hits.init()
     AddEventHandler('gameEventTriggered', function(name, args)
@@ -50,6 +56,7 @@ function Hits.trackLoop()
         Wait(0)
         Hits.measure()
         Hits.flush()
+        Hits.flushZombieReports()
     end
 end
 
@@ -202,8 +209,34 @@ function Hits.onZombieDamaged(ped, attacker, fatal)
         -- C'est nous qui avons tiré : pas besoin de passer par le serveur
         Nui.send('hit', hit)
     else
-        TriggerServerEvent(Events.server.npcHitReport, GetPlayerServerId(NetworkGetPlayerIndexFromPed(attacker)),
-            NetworkGetNetworkIdFromEntity(ped), hit)
+        Hits.queueZombieReport(ped, GetPlayerServerId(NetworkGetPlayerIndexFromPed(attacker)), hit)
+    end
+end
+
+---Ajoute une touche à celles déjà en attente pour ce zombie et ce tireur.
+---@param ped integer
+---@param attackerId integer server id du tireur
+---@param hit { damage: integer, armor: integer, headshot: boolean, fatal: boolean }
+function Hits.queueZombieReport(ped, attackerId, hit)
+    local key = ('%d:%d'):format(ped, attackerId)
+    local report = Hits.zombieReports[key]
+    if not report then
+        Hits.zombieReports[key] = { attackerId = attackerId, netId = NetworkGetNetworkIdFromEntity(ped), hit = hit }
+        return
+    end
+    report.hit.damage = report.hit.damage + hit.damage
+    report.hit.armor = report.hit.armor + hit.armor
+    report.hit.headshot = report.hit.headshot or hit.headshot
+    report.hit.fatal = report.hit.fatal or hit.fatal
+end
+
+function Hits.flushZombieReports()
+    local now = GetGameTimer()
+    if now - Hits.lastZombieReport < Hits.ZOMBIE_REPORT_INTERVAL then return end
+    Hits.lastZombieReport = now
+    for key, report in pairs(Hits.zombieReports) do
+        TriggerServerEvent(Events.server.npcHitReport, report.attackerId, report.netId, report.hit)
+        Hits.zombieReports[key] = nil
     end
 end
 
