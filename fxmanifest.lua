@@ -205,6 +205,7 @@ client_scripts {
     'client/modules/teleport/teleport.lua',
     'client/modules/vehicle/vehicles.lua',
     'client/modules/vehicle/roof.lua',
+    'client/modules/vehicle/crash.lua',
     'client/modules/loot/loot.lua',
     'client/modules/pve/pve.lua',
     'client/modules/pve/zombie_gear.lua',

@@ -29,6 +29,13 @@ Config.VehicleRoof = {
     anim = { dict = 'move_m@generic', walk = 'walk', run = 'run' }, -- animations de marche sur le toit
 }
 
+-- En PvP uniquement : pas de dégâts de choc à bord d'un véhicule, et un joueur qui tombe de sa moto
+-- ou saute en marche reste debout, sans ragdoll. Les balles, le feu et les explosions blessent normalement.
+Config.VehicleCrash = {
+    enabled = true,
+    exitGrace = 1500, -- ms de protection après avoir quitté le véhicule (le choc arrive juste après l'éjection)
+}
+
 Config.VehicleList = {
     -- Deux-roues et quads
     { model = 'bmx', label = 'BMX' },

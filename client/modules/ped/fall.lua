@@ -75,12 +75,13 @@ end
 
 ---@param ped integer
 function Fall.land(ped)
-    Fall.active = false
     -- Coupe la pose et la roulade d'atterrissage : le joueur se retrouve debout
     StopAnimTask(ped, Config.Fall.animDict, Config.Fall.animName, 8.0)
     ClearPedTasks(ped)
     RemoveAnimDict(Config.Fall.animDict)
     Wait(Fall.LAND_GRACE)
+    -- Actif jusqu'au bout : VehicleCrash et Classes ne doivent pas rendre le ragdoll pendant ce délai
+    Fall.active = false
     Fall.unprotect(ped)
 end
 
