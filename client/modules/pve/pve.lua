@@ -17,6 +17,10 @@ Pve.RETASK_INTERVAL = 2000 -- relance la poursuite pour suivre une cible qui bou
 Pve.ASSET_TIMEOUT = 3000
 Pve.HEAD_BONE = 31086 -- SKEL_Head
 Pve.SCREEN_EFFECT_TIME = 1200
+-- Causes de chute bloquées (SET_RAGDOLL_BLOCKING_FLAGS) : balles 1, choc d'un joueur 16, obstacle 64,
+-- bousculades 8192 + 16384 + 32768. Un zombie à terre est presque impossible à viser ; les explosions,
+-- les véhicules et l'étourdissement des classes le font encore tomber.
+Pve.RAGDOLL_BLOCKING_FLAGS = 57425
 
 Pve.npcGroup = 0
 Pve.configured = {} -- [ped] = true quand le comportement zombie a été appliqué sur ce client
@@ -90,7 +94,8 @@ function Pve.cleanup()
     ZombieGear.cleanup()
 end
 
----Sang et blessures : purement visuel, appliqué par chaque client qui voit le zombie.
+---Sang et blessures, et pas de chute sous les balles : appliqué par chaque client qui voit le
+---zombie, la copie locale d'un zombie piloté par un autre joueur réagit aussi aux tirs.
 ---@param ped integer
 function Pve.decorate(ped)
     if Pve.decorated[ped] then return end
@@ -98,6 +103,7 @@ function Pve.decorate(ped)
     for _, pack in ipairs(Config.Zombie.damagePacks) do
         ApplyPedDamagePack(ped, pack, 0.0, 1.0)
     end
+    SetRagdollBlockingFlags(ped, Pve.RAGDOLL_BLOCKING_FLAGS)
 end
 
 ---@param ped integer
