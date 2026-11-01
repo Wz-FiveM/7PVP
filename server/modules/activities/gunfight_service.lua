@@ -18,6 +18,7 @@
 local GunfightService = PVP.define('GunfightService')
 local ActivityService = PVP.use('ActivityService')
 local ActivityRating = PVP.use('ActivityRating')
+local LiveService = PVP.use('LiveService')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
 local PlayerService = PVP.use('PlayerService')
@@ -317,6 +318,11 @@ function GunfightService.endMatch(match, winner, reason)
     match.phase = 'ended'
     GunfightService.matches[match.id] = nil
     local elo = GunfightService.applyElo(match, winner)
+    local a, b = match.players[1], match.players[2]
+    LiveService.activityResult(match.mode, {
+        { names = { match.identities[a] and match.identities[a].name or '?' }, score = match.scores[a], elo = { elo[a] or false } },
+        { names = { match.identities[b] and match.identities[b].name or '?' }, score = match.scores[b], elo = { elo[b] or false } },
+    }, winner == a and 1 or (winner == b and 2 or nil))
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for _, source in ipairs(match.players) do

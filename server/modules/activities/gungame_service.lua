@@ -27,6 +27,7 @@
 local GungameService = PVP.define('GungameService')
 local ActivityService = PVP.use('ActivityService')
 local ActivityRating = PVP.use('ActivityRating')
+local LiveService = PVP.use('LiveService')
 local ChaseService = PVP.use('ChaseService')
 local CvcService = PVP.use('CvcService')
 local GunfightService = PVP.use('GunfightService')
@@ -525,6 +526,7 @@ function GungameService.endMatch(match, reason)
     local winner = ranking[1] and not match.stats[ranking[1]].left and ranking[1] or nil
     local top = GungameService.top(match, ranking)
     local elo = GungameService.applyElo(match, ranking)
+    LiveService.gungameResult(match, ranking, winner, elo)
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for place, source in ipairs(ranking) do

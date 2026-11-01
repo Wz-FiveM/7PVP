@@ -201,18 +201,18 @@ function DiscordService.killfeed(killerName, victimName, reason, recap)
 
     if reason == 'disconnect' then
         description = killerName
-            and ('💨 **%s** s\'est déconnecté en combat · kill pour **%s**'):format(victim, killer)
-            or ('💨 **%s** s\'est déconnecté en combat'):format(victim)
+            and ('💨 **%s** ➜ 🚪 combat logout · 🔫 **%s**'):format(victim, killer)
+            or ('💨 **%s** ➜ 🚪 combat logout'):format(victim)
         color = DiscordService.COLORS.critique
     elseif killerName then
         local details = {}
         if recap and recap.weapon then details[#details + 1] = recap.weapon end
         if recap and recap.distance then details[#details + 1] = ('%d m'):format(recap.distance) end
-        description = ('🔫 **%s** a tué **%s**'):format(killer, victim)
+        description = ('🔫 **%s** ➜ ☠️ **%s**'):format(killer, victim)
         if #details > 0 then description = description .. '\n' .. table.concat(details, ' · ') end
         color = DiscordService.COLORS.hazard
     elseif Config.Discord.KillfeedDeaths then
-        local cause = recap and (recap.zombie and 'tué par un zombie' or recap.weapon and ('mort (%s)'):format(recap.weapon)) or 'mort'
+        local cause = recap and (recap.zombie and '🧟' or recap.weapon) or ''
         description = ('☠️ **%s** %s'):format(victim, cause)
     else
         return

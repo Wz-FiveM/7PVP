@@ -6,6 +6,9 @@ Config.Discord = {}
 -- Convars lues : 7pvp_discord_killfeed, _sanctions, _connexions, _admin, _chat (une absente = salon désactivé)
 Config.Discord.ConvarPrefix = '7pvp_discord_'
 
+-- Données en direct pour le bot (joueurs, parties, classements) : jeton de la convar
+-- 7pvp_discord_live_token, généré par le setup du bot dans bot/data/webhooks.cfg (voir LiveService).
+
 -- Avatars Discord des joueurs (cartes d'équipe, menu pause) : token du bot (bot/.env, DISCORD_TOKEN).
 -- Dans server.cfg, avec `set` (jamais `setr`, qui l'enverrait aux joueurs) :
 --   set 7pvp_discord_bot_token "le_token"

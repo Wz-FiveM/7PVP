@@ -20,6 +20,7 @@
 local CvcService = PVP.define('CvcService')
 local ActivityService = PVP.use('ActivityService')
 local ActivityRating = PVP.use('ActivityRating')
+local LiveService = PVP.use('LiveService')
 local PlayerService = PVP.use('PlayerService')
 local GungameService = PVP.use('GungameService')
 local ModeRegistry = PVP.use('ModeRegistry')
@@ -376,6 +377,7 @@ function CvcService.endMatch(match, winner, reason)
     -- ELO par équipe : tous les joueurs du départ comptent, ceux partis en cours de route perdent
     local scoreA = winner == nil and 0.5 or (winner == 1 and 1 or 0)
     local elo = ActivityRating.safeApply(CvcService.ID, match.roster[1], match.roster[2], scoreA)
+    LiveService.activityResult(CvcService.ID, CvcService.resultSides(match, elo), winner)
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for team = 1, 2 do
@@ -395,6 +397,23 @@ function CvcService.endMatch(match, winner, reason)
         end
     end
     Logger.info('[cvc] partie n°%d terminée (%d - %d)', match.id, match.scores[1], match.scores[2])
+end
+
+---Les deux équipes de départ pour le résultat publié sur Discord.
+---@param match CvcMatch
+---@param elo table<string, table> changements d'ELO par identifiant
+---@return table[]
+function CvcService.resultSides(match, elo)
+    local sides = {}
+    for team = 1, 2 do
+        local side = { names = {}, score = match.scores[team], elo = {} }
+        for index, identity in ipairs(match.roster[team]) do
+            side.names[index] = identity.name
+            side.elo[index] = elo[identity.identifier] or false
+        end
+        sides[team] = side
+    end
+    return sides
 end
 
 ---Tirs entre deux joueurs : nil si ce n'est pas une affaire du CVC, sinon autorisé ou non

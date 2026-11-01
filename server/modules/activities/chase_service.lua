@@ -22,6 +22,7 @@
 ---@class ChaseServiceModule
 local ChaseService = PVP.define('ChaseService')
 local ActivityRating = PVP.use('ActivityRating')
+local LiveService = PVP.use('LiveService')
 local ActivityService = PVP.use('ActivityService')
 local PlayerService = PVP.use('PlayerService')
 local GungameService = PVP.use('GungameService')
@@ -513,6 +514,13 @@ function ChaseService.endMatch(match, winner, reason, leaver)
     match.phase = 'ended'
     ChaseService.matches[match.id] = nil
     local elo = played and ChaseService.applyElo(match, winner) or {}
+    if played then
+        local a, b = match.players[1], match.players[2]
+        LiveService.activityResult(ChaseService.ID, {
+            { names = { match.identities[a] and match.identities[a].name or '?' }, score = match.scores[a], elo = { elo[a] or false } },
+            { names = { match.identities[b] and match.identities[b].name or '?' }, score = match.scores[b], elo = { elo[b] or false } },
+        }, winner == a and 1 or (winner == b and 2 or nil))
+    end
 
     local freeroam = ModeRegistry.getConfig('freeroam')
     for _, source in ipairs(match.players) do

@@ -46,6 +46,7 @@ local CodChallenges = PVP.use('CodChallenges')
 local CodParty = PVP.use('CodParty')
 local CodService = PVP.use('CodService')
 local PlayerService = PVP.use('PlayerService')
+local LiveService = PVP.use('LiveService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -918,6 +919,7 @@ function CodMatch:finish(winner, reason, noKillcam)
         if winner ~= nil and self:sideKey(source) == winner then self:track(source, 'wins') end
     end
     local board = self:board()
+    LiveService.codResult(self, winner, board)
     local podium = self:podium(board, winner)
     local podiumSeconds = podium and Config.Cod.podium.seconds or 0
     local results = {}

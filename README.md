@@ -348,7 +348,8 @@ Le jeu est traduit en français (langue d'origine), anglais, espagnol, allemand,
 
 ## Discord
 
-- **Bot** (`D:\7PVP\bot`, hors de la ressource) : programme Node.js qui crée le serveur Discord de 7PVP (rôles, salons, permissions, règlement, webhooks), puis gère l'accès par le règlement, les rôles, les tickets, le statut du serveur en direct et les logs. Mise en place dans son `README.md`.
+- **Bot** (`D:\7PVP\bot`, hors de la ressource) : programme Node.js qui crée le serveur Discord de 7PVP (rôles, salons, permissions, règlement, webhooks), puis gère, en 6 langues, l'entrée par la langue et le règlement, les rôles, les tickets, le direct (joueurs, parties, événements), les classements et l'ELO, les résultats, `/stats` et les logs. Mise en place dans son `README.md`.
+- **Données en direct** (`server/modules/discord/live_service.lua`) : le bot lit `/7PVP/live`, `/7PVP/boards` et `/7PVP/player` avec le jeton de la convar `7pvp_discord_live_token` (générée dans `bot/data/webhooks.cfg`, lue au démarrage du serveur). Sans jeton, rien n'est exposé.
 - **Logs du jeu** (`server/modules/discord/discord_service.lua`) : killfeed, connexions, actions du panneau admin et `setadmin`, kicks (salon sanctions) et chat sont envoyés par webhooks. Les URLs sont des convars serveur (`7pvp_discord_killfeed`, `_sanctions`, `_connexions`, `_admin`, `_chat`) générées par le bot dans `bot/data/webhooks.cfg`, chargé par `exec bot/data/webhooks.cfg` dans `server.cfg`. Sans convar, le salon est ignoré. Réglages : `config/discord.lua`.
 
 ## Ajouter une zone PvE

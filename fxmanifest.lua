@@ -130,6 +130,7 @@ server_scripts {
     'server/modules/cases/case_service.lua',
     'server/modules/leaderboard/leaderboard_service.lua',
     'server/modules/presence/presence_service.lua',
+    'server/modules/discord/live_service.lua',
     'server/api/exports.lua',
     'server/main.lua',
 }
