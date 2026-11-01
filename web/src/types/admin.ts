@@ -10,7 +10,7 @@ export interface AdminPlayer {
 }
 
 /** Options personnelles de l'admin qui s'activent / se coupent */
-export type AdminToggle = 'noclip' | 'god' | 'invisible';
+export type AdminToggle = 'noclip' | 'god' | 'invisible' | 'gamertags';
 
 /** Options personnelles de l'admin */
 export interface AdminSelf extends Record<AdminToggle, boolean> {
@@ -22,7 +22,7 @@ export type AdminAction =
   | 'giveItem' | 'giveMoney' | 'heal' | 'revive' | 'kill' | 'freeze'
   | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick' | 'spectate' | 'spectateStop'
   | 'announce' | 'clearLoot' | 'airdrop' | 'horde'
-  | 'noclip' | 'god' | 'invisible' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle' | 'gotoPoint';
+  | 'noclip' | 'god' | 'invisible' | 'gamertags' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle' | 'gotoPoint';
 
 export interface AdminActionPayload {
   action: AdminAction;

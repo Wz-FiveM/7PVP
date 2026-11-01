@@ -16,6 +16,9 @@ Config.Admin.NoclipSpeed = 12.0
 Config.Admin.NoclipFastMultiplier = 4.0
 Config.Admin.NoclipSlowMultiplier = 0.25
 
+-- Gamertags : distance d'affichage en mètres
+Config.Admin.GamertagDistance = 300.0
+
 -- Limites des dons
 Config.Admin.MaxGiveCount = 10000
 Config.Admin.MaxGiveMoney = 10000000

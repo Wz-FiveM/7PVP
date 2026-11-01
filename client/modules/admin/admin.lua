@@ -6,6 +6,7 @@ local Admin = PVP.define('Admin')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Noclip = PVP.use('Noclip')
+local Gamertags = PVP.use('Gamertags')
 local Spectate = PVP.use('Spectate')
 local Loadout = PVP.use('Loadout')
 local PedUtils = PVP.use('PedUtils')
@@ -23,6 +24,7 @@ Admin.LOCAL_ACTIONS = {
     noclip = 'toggleNoclip',
     god = 'toggleGod',
     invisible = 'toggleInvisible',
+    gamertags = 'toggleGamertags',
     tpWaypoint = 'teleportToWaypoint',
     spawnVehicle = 'spawnVehicle',
     deleteVehicle = 'deleteVehicle',
@@ -49,6 +51,7 @@ Admin.COMMANDS = {
 function Admin.init()
     RegisterNetEvent(Events.client.adminStatus, function(isAdmin)
         Admin.isAdmin = isAdmin == true
+        if not Admin.isAdmin and Gamertags.active then Gamertags.set(false) end
     end)
     RegisterNetEvent(Events.client.adminCommand, function(command, payload)
         Admin.onCommand(command, payload)
@@ -158,6 +161,7 @@ function Admin.selfState()
         noclip = State.noclip == true,
         god = State.godmode == true,
         invisible = State.invisible == true,
+        gamertags = Gamertags.active,
         spectating = Spectate.current(),
     }
 end
@@ -221,6 +225,11 @@ function Admin.toggleInvisible()
     State.invisible = not State.invisible
     Noclip.applyPedState()
     return { ok = true, message = State.invisible and Locale.t('Tu es invisible.') or Locale.t('Tu es visible.') }
+end
+
+function Admin.toggleGamertags()
+    Gamertags.set(not Gamertags.active)
+    return { ok = true, message = Gamertags.active and Locale.t('Gamertags affichés.') or Locale.t('Gamertags masqués.') }
 end
 
 ---/tpm, réservé aux admins en jeu (pas au lobby ni dans le créateur).

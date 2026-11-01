@@ -8,6 +8,7 @@ const TOGGLES: { key: AdminToggle; label: string; hint: string }[] = [
   { key: 'noclip', label: 'Noclip', hint: 'F11 · Z/Q/S/D, Espace / Ctrl, Maj rapide, Alt lent' },
   { key: 'god', label: 'Invincible', hint: 'Aucun dégât, même hors zone safe' },
   { key: 'invisible', label: 'Invisible', hint: 'Les autres joueurs ne te voient plus' },
+  { key: 'gamertags', label: 'Gamertags', hint: 'ID, nom et vie des joueurs au-dessus de leur tête' },
 ];
 
 /** Options personnelles de l'admin. */

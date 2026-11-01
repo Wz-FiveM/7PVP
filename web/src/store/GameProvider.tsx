@@ -265,7 +265,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const result = await adminApi.action(payload);
         if (result?.message) notify(result.message, result.ok ? 'success' : 'error');
         if (result?.self) dispatch({ type: 'admin', open: true, self: result.self });
-        if (isEnvBrowser() && (payload.action === 'noclip' || payload.action === 'god' || payload.action === 'invisible')) {
+        if (isEnvBrowser() && (payload.action === 'noclip' || payload.action === 'god' || payload.action === 'invisible' || payload.action === 'gamertags')) {
           dispatch({ type: 'admin/toggle', key: payload.action });
         }
         return result?.ok ?? false;

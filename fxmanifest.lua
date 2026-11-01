@@ -165,6 +165,7 @@ client_scripts {
     'client/modules/lobby/lobby.lua',
     'client/modules/chat/chat.lua',
     'client/modules/admin/noclip.lua',
+    'client/modules/admin/gamertags.lua',
     'client/modules/admin/admin.lua',
     'client/modules/admin/spectate.lua',
     'client/modules/spawn/spawn.lua',
