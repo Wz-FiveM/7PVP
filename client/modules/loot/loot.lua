@@ -169,6 +169,8 @@ end
 ---@param id integer
 function Loot.promptPickup(id)
     local bag = Loot.bags[id]
+    -- Retiré pendant le chargement du modèle d'un autre butin (Loot.createObject attend)
+    if not bag then return end
     HelpNotify.show(HelpNotify.controlKey(Loot.CONTROL_PICKUP),
         Locale.resolve(bag.label) or (bag.netId and Locale.t('Fouiller le corps') or Locale.t('Ramasser le butin')))
     if IsControlJustReleased(0, Loot.CONTROL_PICKUP) then
