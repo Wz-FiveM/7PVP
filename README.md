@@ -328,6 +328,7 @@ npm run dev     # développement dans le navigateur avec des données factices +
 npm run build   # compile dans web/build/ (chargé par FiveM)
 ```
 
+- `npm run build` obfusque le JS de `src/` (réglage léger dans `vite.config.ts`). Le CSS, le HTML, React et les traductions restent lisibles, et rien n'est chiffré : la vraie protection reste côté serveur.
 - Lua -> React : `Nui.send(action, data)`. Les messages sont typés dans `src/types/nui.ts`.
 - React -> Lua : `gameApi` (`src/api/gameApi.ts`), qui appelle les `RegisterNUICallback` de `client/modules/nui/nui.lua`.
 
