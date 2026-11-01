@@ -30,6 +30,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Zombies spéciaux** | Rôdeur, Coureur (rapide), Colosse (très résistant, ne tombe pas), Cracheur (vomit à 10 m), Casqué (casque blindé : la tête ne tue pas d'un coup avant que le casque saute), Bonbonne (bouteille de gaz dans le dos qui explose à sa mort), SWAT (gilet pare-balles), Anti-émeute (bouclier qui arrête les balles), Toxique (masque à gaz, nuage toxique à sa mort ; l'Antizin protège). Les équipés sont plus fréquents la nuit. | `Config.ZombieTypes`, `Config.ZombieGear` |
 | **Hordes** | Toutes les 30 min, une zone PvE occupée est envahie 5 min ; les survivants dans la zone sont récompensés. | `Config.Hordes` |
 | **Fabrication** | Matériaux récupérés sur les zombies -> munitions, soins, accessoires (zone safe, niveau requis). | `config/crafting.lua` |
+| **Classes** | Mode PvP : Assaut, Médecin, Éclaireur, Ingénieur, Mercenaire, Logisticien, à choisir dans le menu en zone safe, hors combat. Chacune a ses passifs et une compétence (`G`). Les bonus de dégâts changent selon le monde : zombies ou PvP. | `config/classes.lua` |
 | **Contrats quotidiens** | 3 contrats par jour (les mêmes pour tous), récompense versée à l'objectif. | `config/contracts.lua` |
 | **Déblocages par niveau** | Les armes et accessoires de la boutique demandent un niveau minimum. | `level` dans `config/shop.lua` |
 | **Zones de contrôle** | Reste seul (ou avec ton groupe) dans le cercle pour capturer ; la zone rapporte de l'argent à ton camp. | `config/control.lua` |
@@ -102,6 +103,7 @@ Directement sur le VPS : `bash /opt/7pvp/server-data/resources/7PVP/tools/update
 | `Alt` (maintenu) | Menu d'interaction : curseur, la cible survolée est entourée, clic pour ouvrir son menu. Toi (ID, niveau, équipe), un joueur (inviter, exclure, prime, échanger), un butin (fouiller), un PNJ (parler), un véhicule (monter) |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
 | `E` | Ramasser un sac de butin / fouiller un corps de zombie ou un largage |
+| `G` | Compétence de classe (PvP) ; en Call of Duty, utiliser une série |
 | `/inviter ID` | Inviter un joueur dans son groupe (`/accepter`, `/refuser`, `/quittergroupe`) |
 | `/trade ID` | Proposer un échange (sans ID : le joueur le plus proche) ; `/trade accepter`, `/trade refuser`, `/trade annuler` |
 | `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |

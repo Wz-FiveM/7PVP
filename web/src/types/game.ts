@@ -1,3 +1,5 @@
+import type { IconName } from '../components/icons/Icon';
+
 export type ZoneType = 'safe' | 'pve' | 'pvp';
 export type ToastKind = 'info' | 'success' | 'error';
 export type ItemType = 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material' | 'vehicle' | 'case';
@@ -49,12 +51,41 @@ export interface PlayerState {
   deaths: number;
   npcKills: number;
   inventory: Inventory;
+  /** capacité du sac avec le passif de classe, en kg */
+  bagCapacity?: number;
+  playerClass?: PlayerClassState;
   /** kills de joueurs depuis la dernière mort */
   streak: number;
   /** prime sur sa tête ($), 0 = aucune */
   bounty: number;
   contracts?: ContractsState;
   season?: SeasonStats;
+}
+
+/** Classe du joueur ; délais en secondes au moment de la synchro */
+export interface PlayerClassState {
+  /** absent tant qu'aucune classe n'est choisie */
+  id?: string;
+  cooldown: number;
+  changeIn: number;
+}
+
+/** Classe du mode PvP (config/classes.lua) */
+export interface ClassDefinition {
+  id: string;
+  label: string;
+  icon: IconName;
+  summary: string;
+  role: string;
+  passives: string[];
+  signature: string[];
+  craftCost?: number;
+  ability: { id: string; label: string; description: string; cooldown: number };
+}
+
+export interface ClassesConfig {
+  keyLabel: string;
+  list: ClassDefinition[];
 }
 
 export interface ItemDefinition {
@@ -125,6 +156,7 @@ export interface GameConfig {
   /** accessoire -> { arme -> composant GTA } */
   attachments?: Record<string, Record<string, string>>;
   recipes?: Recipe[];
+  classes?: ClassesConfig;
   cases?: CaseDefinition[];
   caseRarities?: Record<string, CaseRarity>;
   shopPoints?: ShopPointsConfig;

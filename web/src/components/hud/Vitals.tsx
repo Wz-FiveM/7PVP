@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { MinimapAnchor } from '../../types/game';
-import { weightOf } from '../../utils/inventory';
+import { capacityOf, weightOf } from '../../utils/inventory';
 import { SegmentBar } from '../ui/SegmentBar';
 
 /**
@@ -41,7 +41,7 @@ export function Vitals() {
         <SegmentBar value={vitals.armor} max={100} segments={10} color="var(--armure)" height={6} />
       </div>
       <span className="mono muted vitals__weight">
-        {t('SAC {weight} / {capacity} KG', { weight: bagWeight.toFixed(1), capacity: config.containers.bag.capacity.toFixed(1) })}
+        {t('SAC {weight} / {capacity} KG', { weight: bagWeight.toFixed(1), capacity: capacityOf(config, player, 'bag').toFixed(1) })}
       </span>
     </div>
   );

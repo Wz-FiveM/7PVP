@@ -2,6 +2,7 @@ import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel } from '../components/ui/Panel';
 import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
+import { ingredientCost } from '../utils/classes';
 import { entriesOf, itemLabel } from '../utils/inventory';
 import './pages.css';
 
@@ -28,7 +29,7 @@ export function CraftingPage() {
           const result = config.items[recipe.result.item];
           if (!result) return null;
           const locked = player.level < (recipe.level ?? 1);
-          const ingredients = Object.entries(recipe.ingredients);
+          const ingredients = Object.entries(recipe.ingredients).map(([name, count]) => [name, ingredientCost(config, player, count)] as const);
           const ready = ingredients.every(([name, count]) => (owned.get(name) ?? 0) >= count);
           return (
             <Panel key={recipe.id} className={locked ? 'recipe recipe--locked' : 'recipe'}>

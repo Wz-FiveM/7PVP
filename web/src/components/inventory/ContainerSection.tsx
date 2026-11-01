@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react';
 import { formatNumber, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { ContainerId, ItemStack, ItemStacks } from '../../types/game';
-import { entriesOf, fittedAttachments, isStash, stacksOf, weightOf } from '../../utils/inventory';
+import { capacityOf, entriesOf, fittedAttachments, isStash, stacksOf, weightOf } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 import { SectionTitle } from '../menu/SectionTitle';
 import { SegmentBar } from '../ui/SegmentBar';
@@ -47,9 +47,10 @@ export function ContainerSection({
   const t = useT();
   const { state } = useGame();
   const { drag, begin } = useDrag();
-  const { config } = state;
+  const { config, player } = state;
   const definition = config.containers[id];
   if (!definition) return null;
+  const capacity = capacityOf(config, player, id);
 
   const weight = weightOf(stacks, config);
   const kind = isStash(id) ? 'stash' : id;
@@ -67,11 +68,11 @@ export function ContainerSection({
             ? <span className="chip chip--outline">{t(style.note)}</span>
             : <span className="muted container__note">{t(style.note)}</span>
         }
-        aside={`${weight.toFixed(1)}KG / ${definition.capacity.toFixed(0)}KG`}
+        aside={`${weight.toFixed(1)}KG / ${capacity.toFixed(0)}KG`}
       />
       <SegmentBar
         value={weight}
-        max={definition.capacity}
+        max={capacity}
         segments={style.segments}
         color={style.color}
         warnFrom={0.9}

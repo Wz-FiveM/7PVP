@@ -116,6 +116,10 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.craft, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('classSelect', function(data, cb)
+        cb(Callback.await(Events.callbacks.classSelect, data.id) or { ok = false })
+    end)
+
     RegisterNUICallback('attachment', function(data, cb)
         cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
     end)
@@ -160,6 +164,7 @@ function Nui.buildInitPayload()
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,
             recipes = Config.Recipes,
+            classes = { keyLabel = Config.Classes.keyLabel, list = Config.Classes.list },
             cases = Config.Cases,
             caseRarities = Config.CaseRarities,
             shopPoints = {

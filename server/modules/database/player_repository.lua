@@ -10,6 +10,7 @@ PlayerRepository.MIGRATIONS = {
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS contracts LONGTEXT NULL AFTER is_admin',
     -- Argent des ventes de la place de marché à récupérer (modifié seulement par MarketRepository)
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS market_balance INT NOT NULL DEFAULT 0 AFTER contracts',
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS class_id VARCHAR(16) NULL AFTER market_balance',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,
@@ -69,11 +70,11 @@ end
 ---@param player PvpPlayer
 function PlayerRepository.save(player)
     MySQL.update(
-        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ? WHERE identifier = ?',
+        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ?, class_id = ? WHERE identifier = ?',
         {
             player.name, player.xp, player.kills, player.deaths, player.npcKills,
             player.inventory:encode(), player.appearance and json.encode(player.appearance) or nil,
-            json.encode(player.contracts), player.identifier,
+            json.encode(player.contracts), player.classId, player.identifier,
         }
     )
     PlayerRepository.saveSeason(player)

@@ -6,6 +6,7 @@ const CONTROLS: [string, string][] = [
   ['TAB', 'Ouvrir / fermer le menu'],
   ['1 – 7', 'Raccourcis : sortir une arme ou utiliser un soin'],
   ['E', 'Ramasser un sac de butin, fouiller un corps ou un largage'],
+  ['G', 'Utiliser la compétence de ta classe'],
   ['ÉCHAP', 'Fermer le menu / menu pause en jeu'],
   ['/inviter ID', 'Inviter un joueur dans ton équipe'],
   ['/trade ID', 'Proposer un échange (sans ID : le joueur le plus proche) · /trade accepter, refuser, annuler'],

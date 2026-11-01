@@ -7,6 +7,7 @@ local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
 local VehicleService = PVP.use('VehicleService')
+local ClassService = PVP.use('ClassService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -95,6 +96,7 @@ function InventoryService.use(source, name)
 
     -- La vie et l'armure du ped sont gérées par le client
     TriggerClientEvent(Events.client.applyItem, source, name)
+    ClassService.onItemUsed(player, name)
     player:sync()
     return { ok = true, message = Locale.t('%s utilisé', Locale.t(Items.label(name))) }
 end

@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import type { IconName } from '../components/icons/Icon';
 import { CasesPage } from './CasesPage';
+import { ClassesPage } from './ClassesPage';
 import { HelpPage } from './HelpPage';
 import { ContractsPage } from './ContractsPage';
 import { CraftingPage } from './CraftingPage';
@@ -11,7 +12,7 @@ import { LeaderboardPage } from './LeaderboardPage';
 import { ProfilePage } from './ProfilePage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'inventory' | 'group' | 'crafting' | 'contracts' | 'market' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
+export type PageId = 'inventory' | 'class' | 'group' | 'crafting' | 'contracts' | 'market' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -25,6 +26,7 @@ export interface PageDefinition {
 /** Pages du menu, dans l'ordre de la barre latérale. */
 export const PAGES: PageDefinition[] = [
   { id: 'inventory', label: 'Inventaire', icon: 'inventory', component: InventoryPage },
+  { id: 'class', label: 'Classe', icon: 'crosshair', component: ClassesPage },
   { id: 'group', label: 'Équipe', icon: 'group', component: GroupPage },
   { id: 'crafting', label: 'Fabrication', icon: 'craft', component: CraftingPage, npcOnly: true },
   { id: 'contracts', label: 'Contrats', icon: 'contract', component: ContractsPage, npcOnly: true },

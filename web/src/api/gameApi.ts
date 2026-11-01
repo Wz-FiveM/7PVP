@@ -47,6 +47,8 @@ export const gameApi = {
 
   craft: (id: string) => fetchNui<ActionResult>('craft', { id }, MOCK_OK),
 
+  selectClass: (id: string) => fetchNui<ActionResult>('classSelect', { id }, MOCK_OK),
+
   /** Fixe (`attach: true`) ou retire un accessoire d'une arme */
   attachment: (weapon: string, attachment: string, attach: boolean) =>
     fetchNui<ActionResult>('attachment', { weapon, attachment, attach }, MOCK_OK),

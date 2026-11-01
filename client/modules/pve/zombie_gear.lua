@@ -7,6 +7,7 @@ local ZombieGear = PVP.define('ZombieGear')
 local PedUtils = PVP.use('PedUtils')
 local State = PVP.use('State')
 local Effects = PVP.use('Effects')
+local Classes = PVP.use('Classes')
 local Events = PVP.use('Events')
 
 ZombieGear.DROPPED_LIFETIME = 10000 -- ms avant suppression d'une pièce tombée au sol
@@ -209,7 +210,7 @@ function ZombieGear.breatheGasCloud(coords, cloud)
             and State.isAlive() and not State.isInSafeZone() and not State.godmode
             and not Effects.isActive('antizin')
         if inside then
-            ApplyDamageToPed(ped, cloud.damage, true, 0)
+            ApplyDamageToPed(ped, Classes.zombieDamage(cloud.damage), true, 0)
         end
         if inside ~= choking then
             choking = inside

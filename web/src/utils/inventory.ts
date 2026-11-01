@@ -1,5 +1,5 @@
 import { t } from '../i18n';
-import type { ContainerId, GameConfig, Inventory, ItemStack, ItemStacks, ItemType, StashId } from '../types/game';
+import type { ContainerId, GameConfig, Inventory, ItemStack, ItemStacks, ItemType, PlayerState, StashId } from '../types/game';
 
 const TYPE_ORDER: Record<ItemType, number> = { weapon: 0, attachment: 1, ammo: 2, consumable: 3, vehicle: 4, case: 5, material: 6, money: 7 };
 
@@ -13,6 +13,12 @@ export function stashIds(config: GameConfig): StashId[] {
   return Object.keys(config.containers)
     .filter(isStash)
     .sort((a, b) => (config.containers[a]?.order ?? 0) - (config.containers[b]?.order ?? 0));
+}
+
+/** Capacité d'un conteneur en kg : celle du sac dépend de la classe du joueur. */
+export function capacityOf(config: GameConfig, player: PlayerState | null, id: ContainerId): number {
+  if (id === 'bag' && player?.bagCapacity) return player.bagCapacity;
+  return config.containers[id]?.capacity ?? 0;
 }
 
 /** Coffre ouvert d'office ou déjà acheté. */

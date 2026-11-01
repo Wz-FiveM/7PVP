@@ -8,6 +8,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local PveWorldService = PVP.use('PveWorldService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
+local ClassService = PVP.use('ClassService')
 local Events = PVP.use('Events')
 
 PveService.TICK_INTERVAL = 1500
@@ -90,7 +91,7 @@ function PveService.onZombieAttack(source, netId, targetId)
     if now - (PveService.lastAttack[ped] or 0) < cooldown then return end
     PveService.lastAttack[ped] = now
 
-    local damage = math.floor(Config.Zombie.damage * zombieType.damage + 0.5)
+    local damage = ClassService.zombieDamage(target, math.floor(Config.Zombie.damage * zombieType.damage + 0.5))
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
         if PveWorldService.isInside(id) and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveService.VOMIT_BROADCAST_RANGE then
             TriggerClientEvent(Events.client.zombieVomit, id, netId, target.source, damage)

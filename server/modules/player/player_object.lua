@@ -26,6 +26,7 @@
 ---@field streak integer kills de joueurs depuis la dernière mort
 ---@field bounty integer prime sur sa tête ($), 0 = aucune
 ---@field combatLog { taken: table<integer, table>, dealt: table<integer, table> } dégâts de la vie en cours, par joueur
+---@field classId string|nil classe du mode PvP (Config.Classes)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -34,6 +35,7 @@ local Progression = PVP.use('Progression')
 local Zones = PVP.use('Zones')
 local ContractService = PVP.use('ContractService')
 local SeasonService = PVP.use('SeasonService')
+local ClassService = PVP.use('ClassService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -44,7 +46,7 @@ PlayerObject.__index = PlayerObject
 ---@param row table ligne de la table pvp_players
 ---@return PvpPlayer
 function PlayerObject.new(source, identifier, row)
-    return setmetatable({
+    local player = setmetatable({
         source = source,
         identifier = identifier,
         name = GetPlayerName(source),
@@ -69,7 +71,10 @@ function PlayerObject.new(source, identifier, row)
         streak = 0,
         bounty = 0,
         combatLog = { taken = {}, dealt = {} },
+        classId = ClassService.sanitize(row.class_id),
     }, PlayerObject)
+    ClassService.applyInventory(player)
+    return player
 end
 
 -- ---------------------------------------------------------------------------
@@ -124,6 +129,8 @@ function PlayerObject:serialize()
         deaths = self.deaths,
         npcKills = self.npcKills,
         inventory = self.inventory:serialize(),
+        bagCapacity = self.inventory:getCapacity('bag'),
+        playerClass = ClassService.describe(self),
         ammoSeq = self.ammoSeq,
         streak = self.streak,
         bounty = self.bounty,

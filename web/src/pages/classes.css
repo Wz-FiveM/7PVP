@@ -1,0 +1,66 @@
+/* Choix de la classe ------------------------------------------------------------------- */
+
+.classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+  gap: 0.75rem;
+}
+.class-card .panel__body {
+  height: 100%;
+  gap: 0.375rem;
+}
+.class-card--selected {
+  box-shadow: inset 0 0 0 0.125rem var(--signal);
+}
+.class-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.class-card__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--acier);
+}
+.class-card--selected .class-card__icon {
+  color: var(--signal);
+}
+.class-card__title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.class-card__name {
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.class-card__role {
+  font-size: 0.75rem;
+}
+.class-card__summary,
+.class-card__ability,
+.class-card__signature {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.class-card__section {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+.class-card__list {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+.class-card__select {
+  align-self: flex-start;
+  margin-top: auto;
+}

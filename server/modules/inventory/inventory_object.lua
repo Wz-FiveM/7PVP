@@ -31,6 +31,8 @@ function InventoryObject.new(data)
         unlocked = InventoryObject.sanitizeUnlocked(data.unlocked),
         -- Objets sortis mais pas perdus (véhicule sorti) : leur raccourci est gardé (non sauvegardé)
         reserved = {},
+        -- Capacité en plus par conteneur (passif de classe, non sauvegardé)
+        capacityBonus = {},
     }
     -- Sac, conteneur protégé et coffres (Config.Containers)
     for id in pairs(Config.Containers) do
@@ -151,7 +153,14 @@ end
 ---@param container string
 ---@return number
 function InventoryObject:getCapacity(container)
-    return Config.Containers[container].capacity
+    return Config.Containers[container].capacity + (self.capacityBonus[container] or 0)
+end
+
+---Un sac redevenu trop lourd garde ses objets : il ne peut seulement plus rien recevoir.
+---@param container string
+---@param bonus number kg
+function InventoryObject:setCapacityBonus(container, bonus)
+    self.capacityBonus[container] = bonus
 end
 
 ---@param container string

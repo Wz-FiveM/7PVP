@@ -140,6 +140,7 @@ Events.client = {
     tradeState = '7pvp:client:tradeState',
     spectate = '7pvp:client:spectate',
     freeroamSettings = '7pvp:client:freeroamSettings',
+    classEffect = '7pvp:client:classEffect',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -172,6 +173,8 @@ Events.callbacks = {
     attachment = 'inventory:attachment',
     unlockStash = 'inventory:unlockStash',
     craft = 'crafting:craft',
+    classSelect = 'class:select',
+    classUse = 'class:use',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',
     marketSell = 'market:sell',

@@ -4,6 +4,7 @@
 local CraftingService = PVP.define('CraftingService')
 local PlayerService = PVP.use('PlayerService')
 local ContractService = PVP.use('ContractService')
+local ClassService = PVP.use('ClassService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local SafeNpcs = PVP.use('SafeNpcs')
@@ -36,7 +37,7 @@ function CraftingService.craft(source, recipeId)
 
     local inventory = player.inventory
     for item, count in pairs(recipe.ingredients) do
-        if inventory:count(item) < count then
+        if inventory:count(item) < ClassService.ingredientCost(player, count) then
             return { ok = false, message = Locale.t('Il te manque : %s', Locale.t(Items.label(item))) }
         end
     end
@@ -45,7 +46,7 @@ function CraftingService.craft(source, recipeId)
     end
 
     for item, count in pairs(recipe.ingredients) do
-        inventory:remove(item, count)
+        inventory:remove(item, ClassService.ingredientCost(player, count))
     end
     player:giveItem(recipe.result.item, recipe.result.count)
     ContractService.track(player, 'craft', 1)

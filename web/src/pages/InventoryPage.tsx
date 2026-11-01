@@ -12,7 +12,7 @@ import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack, StashId } from '../types/game';
 import {
-  CARRIED, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, itemLabel,
+  CARRIED, capacityOf, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, itemLabel,
   moveLabel, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
@@ -82,7 +82,7 @@ export function InventoryPage() {
   /** Alt + clic ou double-clic dans le butin : ce qui tient part dans le sac. */
   const quickTake = (stack: ItemStack) => {
     const bag = config.containers.bag;
-    const free = bag.capacity - weightOf(player.inventory.bag ?? [], config);
+    const free = capacityOf(config, player, 'bag') - weightOf(player.inventory.bag ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
     const count = Math.min(stack.count, fit);
     if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t(bag.label) }), 'error');
@@ -246,7 +246,7 @@ export function InventoryPage() {
     const to: ContainerId | null = isStash(from) ? 'bag' : atBanker ? openStash : from === 'bag' ? 'protected' : 'bag';
     if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t(config.containers[activeStash]?.label ?? 'Coffre') }), 'error');
     const target = config.containers[to];
-    const free = target.capacity - weightOf(player.inventory[to] ?? [], config);
+    const free = capacityOf(config, player, to) - weightOf(player.inventory[to] ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
     const count = Math.min(stack.count, fit);
     if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t(target.label) }), 'error');

@@ -25,6 +25,7 @@ Pve.wandering = {} -- [ped] = true quand le zombie erre sans cible
 Pve.chasing = {} -- [ped] = { target = ped du joueur, at = ms } poursuite en cours
 Pve.lastAttack = {} -- [ped] = ms du dernier vomissement lancé par ce client
 Pve.decorated = {} -- [ped] = true quand les blessures visuelles sont appliquées
+Pve.stunned = {} -- [ped] = ms de fin de l'étourdissement (compétences de classe)
 
 function Pve.init()
     Pve.setupRelationships()
@@ -80,7 +81,7 @@ function Pve.scan()
 end
 
 function Pve.cleanup()
-    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated }) do
+    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned }) do
         for ped in pairs(tracked) do
             if not DoesEntityExist(ped) then tracked[ped] = nil end
         end
@@ -114,8 +115,51 @@ function Pve.updatePed(ped, zone)
     -- Vie suivie ici pour afficher les dégâts infligés au tireur (hitmarker)
     Hits.watchZombie(ped)
 
-    if Pve.isAttacking(ped) then return end
+    if Pve.isAttacking(ped) or Pve.isStunned(ped) then return end
     Pve.updateBehaviour(ped, zone)
+end
+
+---@param ped integer
+---@return boolean
+function Pve.isStunned(ped)
+    return (Pve.stunned[ped] or 0) > GetGameTimer()
+end
+
+---Étourdit les zombies vivants de la zone dont ce client est propriétaire (les autres clients font de même
+---pour les leurs). Ceux qui ne tombent pas (colosse) restent simplement immobiles.
+---@param coords vector3
+---@param radius number
+---@param duration integer ms
+---@param push number force qui repousse le zombie depuis le centre, 0.0 = aucune
+function Pve.stunArea(coords, radius, duration, push)
+    local myId = PlayerId()
+    for _, ped in ipairs(GetGamePool('CPed')) do
+        if NetworkGetEntityIsNetworked(ped) and not IsPedAPlayer(ped) and Entity(ped).state.pvpNpc
+            and NetworkGetEntityOwner(ped) == myId and not IsPedDeadOrDying(ped, true) and not Pve.isStunned(ped) then
+            local offset = GetEntityCoords(ped) - coords
+            if #offset <= radius then Pve.stun(ped, offset, duration, push) end
+        end
+    end
+end
+
+---@param ped integer
+---@param offset vector3 position du zombie par rapport au centre
+---@param duration integer ms
+---@param push number
+function Pve.stun(ped, offset, duration, push)
+    Pve.stunned[ped] = GetGameTimer() + duration
+    Pve.chasing[ped] = nil
+    Pve.wandering[ped] = nil
+    ClearPedTasks(ped)
+    if not CanPedRagdoll(ped) then
+        TaskStandStill(ped, duration)
+        return
+    end
+    SetPedToRagdoll(ped, duration, duration, 0, false, false, false)
+    if push > 0.0 and #offset.xy > 0.0 then
+        local direction = offset.xy / #offset.xy * push
+        ApplyForceToEntity(ped, 1, direction.x, direction.y, push * 0.25, 0.0, 0.0, 0.0, 0, false, true, true, false, true)
+    end
 end
 
 ---@param ped integer

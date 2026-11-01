@@ -747,3 +747,51 @@
   font-size: 0.9375rem;
   font-weight: 700;
 }
+
+/* Compétence de classe (au-dessus des effets et des munitions) */
+.class-ability {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 12.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-shadow: var(--ombre-texte);
+}
+.class-ability__name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.class-ability__tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  color: var(--signal);
+  background: var(--panneau);
+  box-shadow: var(--ombre);
+}
+.class-ability__veil {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(11, 13, 14, 0.7);
+}
+.class-ability__key {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.1875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--os, #e9ece6);
+}
+.class-ability--waiting .class-ability__tile {
+  color: var(--brume, #8c969b);
+}
+.class-ability--waiting .class-ability__name {
+  opacity: 0.6;
+}
