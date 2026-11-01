@@ -23,8 +23,10 @@ AntiCheatService.WATCH_INTERVAL = 1000
 AntiCheatService.VITALS_INTERVAL = 2000
 AntiCheatService.HEARTBEAT_CHECK = 15000
 
--- Armes toujours permises (mains nues, véhicule) : hashs non signés
-AntiCheatService.ALWAYS_ALLOWED = { 'WEAPON_UNARMED', 'WEAPON_RUN_OVER_BY_CAR', 'WEAPON_RAMMED_BY_CAR', 'WEAPON_FALL' }
+-- Armes toujours permises (mains nues, véhicule) : hashs non signés.
+-- WEAPON_EXPLOSION : souffle d'une explosion permise (véhicule ou pompe touchés par balle, arme possédée) ;
+-- les explosions interdites sont contrôlées par onExplosion.
+AntiCheatService.ALWAYS_ALLOWED = { 'WEAPON_UNARMED', 'WEAPON_RUN_OVER_BY_CAR', 'WEAPON_RAMMED_BY_CAR', 'WEAPON_FALL', 'WEAPON_EXPLOSION' }
 
 AntiCheatService.strikes = {} -- [source][détection] = { horodatages }
 AntiCheatService.rates = {} -- [source][clé] = { second, count }
@@ -111,7 +113,7 @@ end
 
 ---Limite de requêtes par seconde : false (requête à ignorer) au-delà de Config.AntiCheat.rateLimits[key].
 ---@param source integer
----@param key string callback, hit, loot
+---@param key string callback, hit, npcDeath, loot
 ---@return boolean
 function AntiCheatService.allow(source, key)
     local limit = Config.AntiCheat.rateLimits[key]
@@ -159,10 +161,11 @@ function AntiCheatService.flag(source, detection, details)
     if not rule or not player then return end
 
     local now = os.time()
+    local window = rule.window or Config.AntiCheat.strikeWindow
     local list = {}
     local previous = AntiCheatService.strikes[source] and AntiCheatService.strikes[source][detection] or {}
     for _, at in ipairs(previous) do
-        if now - at < Config.AntiCheat.strikeWindow then list[#list + 1] = at end
+        if now - at < window then list[#list + 1] = at end
     end
     list[#list + 1] = now
     AntiCheatService.strikes[source] = AntiCheatService.strikes[source] or {}
