@@ -5,6 +5,7 @@ import { FreeroamTab } from './FreeroamTab';
 import { LootTab } from './LootTab';
 import { PlayersTab } from './PlayersTab';
 import { PositionsTab } from './PositionsTab';
+import { ResaleTab } from './ResaleTab';
 import { SelfTab } from './SelfTab';
 import { ServerTab } from './ServerTab';
 import './admin.css';
@@ -18,6 +19,7 @@ const TABS: { id: string; label: string; component: ComponentType; wide?: boolea
   { id: 'self', label: 'Moi', component: SelfTab },
   { id: 'server', label: 'Serveur', component: ServerTab },
   { id: 'loot', label: 'Butin', component: LootTab, wide: true },
+  { id: 'resale', label: 'Revente', component: ResaleTab, wide: true },
   { id: 'freeroam', label: 'Freeroam', component: FreeroamTab, wide: true },
   { id: 'positions', label: 'Positions', component: PositionsTab, wide: true, flush: true },
 ];

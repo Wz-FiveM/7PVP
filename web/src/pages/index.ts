@@ -10,9 +10,10 @@ import { InventoryPage } from './InventoryPage';
 import { MarketPage } from './MarketPage';
 import { LeaderboardPage } from './LeaderboardPage';
 import { ProfilePage } from './ProfilePage';
+import { ResalePage } from './ResalePage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'inventory' | 'class' | 'group' | 'crafting' | 'contracts' | 'market' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
+export type PageId = 'inventory' | 'class' | 'group' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -31,6 +32,7 @@ export const PAGES: PageDefinition[] = [
   { id: 'crafting', label: 'Fabrication', icon: 'craft', component: CraftingPage, npcOnly: true },
   { id: 'contracts', label: 'Contrats', icon: 'contract', component: ContractsPage, npcOnly: true },
   { id: 'market', label: 'Place de marché', icon: 'shop', component: MarketPage, npcOnly: true },
+  { id: 'resale', label: 'Revente', icon: 'money', component: ResalePage, npcOnly: true },
   { id: 'profile', label: 'Profil', icon: 'profile', component: ProfilePage },
   { id: 'leaderboard', label: 'Top joueurs', icon: 'leaderboard', component: LeaderboardPage },
   { id: 'shop', label: 'Boutique', icon: 'shop', component: ShopPage },

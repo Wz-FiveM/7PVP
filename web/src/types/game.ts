@@ -647,6 +647,12 @@ export interface NearServices {
   crafting?: boolean;
   contracts?: boolean;
   market?: boolean;
+  resale?: boolean;
+}
+
+/** Prix du receleur : objet -> prix par unité (seulement les objets repris) */
+export interface ResaleState {
+  prices: Record<string, number>;
 }
 
 /** Notification d'aide (client/modules/nui/help_notify.lua) */

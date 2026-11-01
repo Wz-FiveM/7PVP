@@ -85,6 +85,26 @@ export interface LootAdminData {
   items: { name: string; label: string; type: string }[];
 }
 
+/** Prix de revente d'un objet (server/modules/resale/resale_service.lua) */
+export interface ResaleAdminItem {
+  name: string;
+  label: string;
+  type: string;
+  /** prix par unité payé par le receleur, 0 : pas repris */
+  price: number;
+  /** valeur de config/resale.lua */
+  default: number;
+  /** prix d'achat par unité à l'armurier, `false` s'il n'y est pas vendu */
+  shop: number | false;
+}
+
+export interface ResaleAdminData {
+  ok: boolean;
+  message?: string;
+  items: ResaleAdminItem[];
+  maxPrice: number;
+}
+
 /** Véhicule d'une liste du Freeroam (server/modules/freeroam/freeroam_config_service.lua) */
 export interface FreeroamVehicle {
   model: string;

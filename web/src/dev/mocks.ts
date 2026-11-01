@@ -1,4 +1,4 @@
-import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData } from '../types/admin';
+import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -171,7 +171,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
   ],
   codMapsRemoved: [{ id: 'construction', label: 'Le Chantier' }],
 };
-import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState } from '../types/game';
+import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState, ResaleState } from '../types/game';
 
 /** Ouverture de caisse hors jeu : même tirage pondéré que CaseService.roll côté serveur */
 export function mockCaseReel(definition: CaseDefinition, length = 56): CaseReelEntry[] {
@@ -615,6 +615,39 @@ export const mockMarket: MarketState = {
     { id: 10, item: 'medkit', count: 3, price: 900, sellerName: 'Kilo', mine: false },
     { id: 9, item: 'att_suppressor', count: 1, price: 2100, sellerName: 'Alpha', mine: false },
     { id: 8, item: 'mat_scrap', count: 20, price: 300, sellerName: 'Dev', mine: true },
+  ],
+};
+
+export const mockResale: ResaleState = {
+  prices: {
+    weapon_pistol: 200,
+    weapon_carbinerifle: 2750,
+    ammo_9mm: 1,
+    ammo_556: 2,
+    medkit: 175,
+    bandage: 50,
+    armor: 400,
+    mat_scrap: 8,
+    mat_cloth: 5,
+    vehicle_panto: 300,
+  },
+};
+
+/** Onglet « Revente » du panneau admin (hors jeu) */
+export const mockResaleAdmin: ResaleAdminData = {
+  ok: true,
+  maxPrice: 1000000,
+  items: [
+    { name: 'ammo_556', label: 'Munitions de fusil', type: 'ammo', price: 2, default: 2, shop: 4.17 },
+    { name: 'ammo_9mm', label: 'Munitions de pistolet', type: 'ammo', price: 1, default: 1, shop: 1.67 },
+    { name: 'bandage', label: 'Bandage', type: 'consumable', price: 50, default: 50, shop: 100 },
+    { name: 'case_street', label: 'Caisse de rue', type: 'case', price: 375, default: 375, shop: 750 },
+    { name: 'mat_scrap', label: 'Ferraille', type: 'material', price: 8, default: 8, shop: false },
+    { name: 'medkit', label: 'Trousse de soins', type: 'consumable', price: 175, default: 175, shop: 350 },
+    { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon', price: 3000, default: 2750, shop: 5500 },
+    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', price: 450, default: 200, shop: 400 },
+    { name: 'att_scope', label: 'Lunette', type: 'attachment', price: 750, default: 750, shop: 1500 },
+    { name: 'vehicle_panto', label: 'Panto', type: 'vehicle', price: 300, default: 300, shop: false },
   ],
 };
 

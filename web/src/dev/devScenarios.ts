@@ -458,6 +458,10 @@ export const DEV_ACTIONS: DevAction[] = [
     run: () => sendNui({ action: 'menu', data: { open: true, inSafe: true, near: { market: true }, page: 'market' } }),
   },
   {
+    label: 'Receleur',
+    run: () => sendNui({ action: 'menu', data: { open: true, inSafe: true, near: { resale: true }, page: 'resale' } }),
+  },
+  {
     label: 'Téléportation (F1)',
     run: () =>
       sendNui({

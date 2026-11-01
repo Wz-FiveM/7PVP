@@ -1,5 +1,5 @@
 import { fetchNui } from './nui';
-import { mockAdminPlayers, mockFreeroamAdmin, mockLootAdmin } from '../dev/mocks';
+import { mockAdminPlayers, mockFreeroamAdmin, mockLootAdmin, mockResaleAdmin } from '../dev/mocks';
 import type {
   AdminActionPayload,
   AdminActionResult,
@@ -10,6 +10,7 @@ import type {
   LootAdminData,
   LootTableData,
   MapPoint,
+  ResaleAdminData,
 } from '../types/admin';
 
 /** Requêtes du panneau admin (voir client/modules/admin/admin.lua). */
@@ -30,6 +31,16 @@ export const adminApi = {
 
   lootZones: (zones: Record<string, string>) =>
     fetchNui<AdminActionResult>('adminLootZones', { zones }, { ok: true, message: 'Zones enregistrées (simulé)' }),
+
+  /** Onglet « Revente » : prix du receleur */
+  resale: () => fetchNui<ResaleAdminData>('adminResale', {}, mockResaleAdmin),
+
+  /** `prices` : seulement les prix modifiés */
+  resaleSave: (prices: Record<string, number>) =>
+    fetchNui<AdminActionResult>('adminResaleSave', { prices }, { ok: true, message: 'Prix enregistrés (simulé)' }),
+
+  resaleReset: () =>
+    fetchNui<AdminActionResult>('adminResaleReset', {}, { ok: true, message: 'Prix remis par défaut (simulé)' }),
 
   /** Onglets « Freeroam » et « Positions » : véhicules et positions des modes de jeu, courses poursuite en cours */
   freeroam: () => fetchNui<FreeroamAdminData>('adminFreeroam', {}, mockFreeroamAdmin),

@@ -1,0 +1,46 @@
+/* Revente au receleur : une ligne par objet porté repris */
+
+.resale {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.resale__note {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.resale__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  list-style: none;
+}
+.resale-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.resale-row__info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.resale-row__name {
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.resale-row__stock {
+  font-size: 0.75rem;
+}
+.resale-row__count {
+  flex: none;
+  width: 6rem;
+}
+.resale-row__sell {
+  flex: none;
+  min-width: 11rem;
+}

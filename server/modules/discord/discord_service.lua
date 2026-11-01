@@ -20,6 +20,7 @@ DiscordService.COLORS = {
 
 DiscordService.ADMIN_LABELS = {
     lootConfig = 'Butin modifié',
+    resaleConfig = 'Prix de revente modifiés',
     freeroamConfig = 'Réglages du Freeroam modifiés',
     spectate = 'Mode spectateur',
     spectateStop = 'Fin du mode spectateur',

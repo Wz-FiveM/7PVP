@@ -112,6 +112,14 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.marketCollect) or { ok = false })
     end)
 
+    -- Revente au receleur : prix et vente vérifiés par le serveur
+    RegisterNUICallback('resaleList', function(_, cb)
+        cb(Callback.await(Events.callbacks.resaleList) or { prices = {} })
+    end)
+    RegisterNUICallback('resaleSell', function(data, cb)
+        cb(Callback.await(Events.callbacks.resaleSell, data) or { ok = false })
+    end)
+
     RegisterNUICallback('craft', function(data, cb)
         cb(Callback.await(Events.callbacks.craft, data.id) or { ok = false })
     end)
