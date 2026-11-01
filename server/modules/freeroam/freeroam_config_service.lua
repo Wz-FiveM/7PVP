@@ -2,7 +2,9 @@
 ---  véhicules : vote de la course poursuite, menu Freeroam (Tab), convoi du CVC, moto du 1VS1 Bike ;
 ---  positions : PNJ des modes de jeu (et tableau du classement), départs de la course poursuite,
 ---              points de départ des équipes du CVC dans chaque arène, des deux joueurs des 1VS1,
----              points d'apparition du Gungame.
+---              points d'apparition du Gungame ;
+---  mode PvP : zones safe, zones zombies et zones de contrôle (voir PvpPositions), PNJ de service,
+---             points de chute des largages.
 ---Les changements s'appliquent tout de suite et sont enregistrés en base (pvp_freeroam_settings) :
 ---ils remplacent les fichiers de config/ au démarrage. « Valeurs par défaut » revient au fichier.
 ---Chaque réglage passe par une valeur « simple » (tables et nombres, sans vecteurs) : c'est elle
@@ -14,6 +16,7 @@ local ChaseService = PVP.use('ChaseService')
 local CodService = PVP.use('CodService')
 local CodMapService = PVP.use('CodMapService')
 local FreeroamPositions = PVP.use('FreeroamPositions')
+local PvpPositions = PVP.use('PvpPositions')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
@@ -36,10 +39,11 @@ FreeroamConfigService.KINDS = {
     pair = { get = 'getPoints', set = 'setPoints', validate = 'validatePair' }, -- exactement deux { x, y, z, w }
     arenas = { get = 'getArenas', set = 'setArenas', validate = 'validateArenas' }, -- { label, spawns }[]
     places = { get = 'getPlaces', set = 'setPlaces', validate = 'validatePlaces' }, -- { key, label, coords }[]
+    zones = { get = 'getZones', set = 'setZones', validate = 'validateZones' }, -- { id, label, center, radius (, spawns) }[]
 }
 
 -- Réglages modifiables, dans l'ordre du panneau (label et hint traduits à l'envoi au panneau).
---  group    : section du panneau ('vehicles', 'positions' ou 'cod')
+--  group    : section du panneau ('vehicles', 'pvp', 'positions' ou 'cod')
 --  path     : emplacement dans Config (Config[path[1]][path[2]]), pour les sortes qui en ont besoin
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
 --  sync     : lu par les clients (renvoyé à tous à chaque changement)
@@ -47,6 +51,8 @@ FreeroamConfigService.KINDS = {
 --  map      : carte Call of Duty (id), sous laquelle la liste est rangée ; min : points nécessaires
 --  empty    : la liste peut rester vide
 --  point    : nom d'un point de la liste (« Drapeau 1 ») ; letters : numérotés A, B, C
+--  flat     : points sans direction (vector3)
+--  pvp      : emplacements « places » du mode PvP (PvpPositions) plutôt que du Freeroam
 FreeroamConfigService.SETTINGS = {
     {
         name = 'chaseVehicles',
@@ -81,6 +87,51 @@ FreeroamConfigService.SETTINGS = {
         label = '1VS1 Bike',
         hint = 'Moto des deux joueurs, recréée à chaque manche.',
         path = { 'Bike', 'vehicle' },
+    },
+    {
+        name = 'pvpSafeZones',
+        group = 'pvp',
+        kind = 'zones',
+        label = 'Zones safe',
+        point = 'Apparition',
+        hint = 'Centre et rayon de chaque zone safe, et points où l\'on apparaît (réapparition, téléportation F1), dans ta direction. Garde les apparitions et les PNJ dans le cercle.',
+        sync = true,
+    },
+    {
+        name = 'pvpNpcs',
+        group = 'pvp',
+        kind = 'places',
+        pvp = true,
+        label = 'PNJ de service',
+        short = 'PNJ',
+        hint = 'Banquier, armurier, tailleur... de chaque zone safe. Place-toi à l\'endroit voulu : le PNJ regardera dans la même direction que toi. Les PNJ doivent rester dans la zone safe.',
+        sync = true,
+    },
+    {
+        name = 'pvpPveZones',
+        group = 'pvp',
+        kind = 'zones',
+        label = 'Zones zombies',
+        point = 'Apparition',
+        hint = 'Centre et rayon de chaque zone zombies, et points où ils apparaissent. Les zombies déjà là restent jusqu\'à leur mort ou au départ des joueurs.',
+        sync = true,
+    },
+    {
+        name = 'pvpControlZones',
+        group = 'pvp',
+        kind = 'zones',
+        label = 'Zones de contrôle',
+        hint = 'Centre et rayon de chaque zone à capturer. Une zone déplacée garde son propriétaire.',
+    },
+    {
+        name = 'airdropLocations',
+        group = 'pvp',
+        kind = 'points',
+        flat = true,
+        label = 'Largages',
+        point = 'Point de chute',
+        hint = 'Une caisse tombe sur un de ces points, tiré au sort. Choisis des endroits dégagés : la hauteur est recalée sur le sol.',
+        path = { 'Airdrops', 'locations' },
     },
     {
         name = 'places',
@@ -152,6 +203,8 @@ FreeroamConfigService.MAX_POINTS = 30
 FreeroamConfigService.MAX_MODEL = 32
 FreeroamConfigService.MAX_LABEL = 40
 FreeroamConfigService.MAX_COORD = 10000.0 -- la carte tient dans ±10 km
+FreeroamConfigService.MIN_RADIUS = 10.0 -- rayon d'une zone du mode PvP (mètres)
+FreeroamConfigService.MAX_RADIUS = 1000.0
 FreeroamConfigService.DEFAULT_CATEGORY = 'Autres'
 
 ---@type table<string, any> valeurs simples des fichiers de config au démarrage (« valeurs par défaut »)
@@ -337,7 +390,10 @@ end
 
 function FreeroamConfigService.setPoints(setting, value)
     local list = {}
-    for _, point in ipairs(value) do list[#list + 1] = FreeroamConfigService.toVector(point) end
+    for _, point in ipairs(value) do
+        local coords = FreeroamConfigService.toVector(point)
+        list[#list + 1] = setting.flat and coords.xyz or coords
+    end
     FreeroamConfigService.setPath(setting, list)
 end
 
@@ -363,10 +419,16 @@ function FreeroamConfigService.setArenas(_, value)
     end
 end
 
----PNJ des modes de jeu et tableau du classement (voir FreeroamPositions).
-function FreeroamConfigService.getPlaces()
+---@param setting table
+---@return table[] emplacements d'un réglage « places »
+function FreeroamConfigService.placesOf(setting)
+    return setting.pvp and PvpPositions.npcs() or FreeroamPositions.list()
+end
+
+---PNJ des modes de jeu et tableau du classement (voir FreeroamPositions), PNJ de service du PvP (voir PvpPositions).
+function FreeroamConfigService.getPlaces(setting)
     local list = {}
-    for _, place in ipairs(FreeroamPositions.list()) do
+    for _, place in ipairs(FreeroamConfigService.placesOf(setting)) do
         list[#list + 1] = { key = place.key, label = place.label, coords = FreeroamConfigService.toPoint(place.coords) }
     end
     return list
@@ -376,6 +438,25 @@ function FreeroamConfigService.setPlaces(_, value)
     for _, place in ipairs(value) do
         FreeroamPositions.set(place.key, FreeroamConfigService.toVector(place.coords))
     end
+end
+
+---Centre, rayon et points d'apparition des zones du mode PvP (voir PvpPositions).
+function FreeroamConfigService.getZones(setting)
+    local list = {}
+    for _, zone in ipairs(PvpPositions.zones(PvpPositions.ZONE_SETTINGS[setting.name])) do
+        local spawns = PvpPositions.spawnsOf(zone)
+        local entry = { id = zone.id, label = zone.label, center = FreeroamConfigService.toPoint(zone.coords), radius = zone.radius }
+        if spawns then
+            entry.spawns = {}
+            for _, spawn in ipairs(spawns) do entry.spawns[#entry.spawns + 1] = FreeroamConfigService.toPoint(spawn) end
+        end
+        list[#list + 1] = entry
+    end
+    return list
+end
+
+function FreeroamConfigService.setZones(setting, value)
+    PvpPositions.setZones(PvpPositions.ZONE_SETTINGS[setting.name], value)
 end
 
 -- ---------------------------------------------------------------------------
@@ -487,13 +568,40 @@ function FreeroamConfigService.validateArenas(data)
     return clean
 end
 
----Seulement les emplacements connus (FreeroamPositions.list) ; ceux qui manquent ne bougent pas.
+---Seulement les zones connues, chacune avec au moins un point d'apparition si elle en a ; celles qui manquent ne bougent pas.
 ---@param data any
+---@param setting table
 ---@return table[]|nil
-function FreeroamConfigService.validatePlaces(data)
+function FreeroamConfigService.validateZones(data, setting)
+    if type(data) ~= 'table' then return nil end
+    local received = {}
+    for _, entry in ipairs(data) do
+        if type(entry) == 'table' and type(entry.id) == 'string' then received[entry.id] = entry end
+    end
+    local clean = {}
+    for _, zone in ipairs(PvpPositions.zones(PvpPositions.ZONE_SETTINGS[setting.name])) do
+        local entry = received[zone.id]
+        if entry then
+            local center = FreeroamConfigService.point(entry.center)
+            local radius = FreeroamConfigService.number(entry.radius, FreeroamConfigService.MAX_RADIUS)
+            if not center or not radius or radius < FreeroamConfigService.MIN_RADIUS then return nil end
+            local spawns = PvpPositions.spawnsOf(zone) and FreeroamConfigService.validatePoints(entry.spawns)
+            if PvpPositions.spawnsOf(zone) and not spawns then return nil end
+            clean[#clean + 1] = { id = zone.id, label = zone.label, center = center, radius = radius, spawns = spawns or nil }
+        end
+    end
+    if #clean == 0 then return nil end
+    return clean
+end
+
+---Seulement les emplacements connus (FreeroamPositions.list ou PvpPositions.npcs) ; ceux qui manquent ne bougent pas.
+---@param data any
+---@param setting table
+---@return table[]|nil
+function FreeroamConfigService.validatePlaces(data, setting)
     if type(data) ~= 'table' then return nil end
     local known = {}
-    for _, place in ipairs(FreeroamPositions.list()) do known[place.key] = place.label end
+    for _, place in ipairs(FreeroamConfigService.placesOf(setting)) do known[place.key] = place.label end
     local clean = {}
     for _, place in ipairs(data) do
         local key = type(place) == 'table' and place.key
@@ -537,6 +645,7 @@ function FreeroamConfigService.getCallback(source)
             min = setting.min,
             point = setting.point and Locale.t(setting.point),
             letters = setting.letters == true,
+            flat = setting.flat == true,
             category = setting.category == true,
             value = FreeroamConfigService.get(setting),
             modified = FreeroamConfigService.modified[setting.name] == true,

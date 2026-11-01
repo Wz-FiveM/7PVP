@@ -4,6 +4,7 @@ local Zone = PVP.define('Zone')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Zones = PVP.use('Zones')
+local PvpPositions = PVP.use('PvpPositions')
 local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -30,6 +31,15 @@ function Zone.init()
     -- Noms des repères dans la nouvelle langue (un changement de mode en cours les refera de lui-même)
     AddEventHandler(Events.internal.languageChanged, function()
         if Zone.blipMode == State.mode then Zone.refreshBlips() end
+    end)
+    -- Zones du PvP déplacées par un admin (voir FreeroamConfigService) : repères et zone du joueur
+    -- refaits au prochain passage de Zone.watchLoop
+    RegisterNetEvent(Events.client.freeroamSettings, function(name, zones)
+        local kind = PvpPositions.ZONE_SETTINGS[name]
+        if kind and type(zones) == 'table' then
+            PvpPositions.setZones(kind, zones)
+            Zone.blipMode = false
+        end
     end)
     CreateThread(Zone.watchLoop)
     CreateThread(Zone.safeLoop)

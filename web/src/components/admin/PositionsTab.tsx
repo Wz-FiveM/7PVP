@@ -1,14 +1,18 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { t, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { CodMapData, CvcArenaSpawns, FreeroamAdminData, FreeroamPlace, FreeroamSetting, MapPoint } from '../../types/admin';
+import type { CodMapData, CvcArenaSpawns, FreeroamAdminData, FreeroamPlace, FreeroamSetting, MapPoint, PvpZone } from '../../types/admin';
 import { RowButtons } from './FreeroamTab';
 
 /** Rayon proposé pour une nouvelle carte Call of Duty (mètres), bornes de server/modules/cod/cod_map_service.lua */
 const DEFAULT_RADIUS = 80;
 const MIN_RADIUS = 20;
 const MAX_RADIUS = 500;
+
+/** Rayon d'une zone du mode PvP (mètres), bornes de server/modules/freeroam/freeroam_config_service.lua */
+const MIN_ZONE_RADIUS = 10;
+const MAX_ZONE_RADIUS = 1000;
 
 /** Équipes du CVC, dans l'ordre des départs (config/cvc.lua) */
 const TEAM_LABELS = ['Équipe Alpha', 'Équipe Bravo'];
@@ -30,8 +34,10 @@ const without = (drafts: Record<string, FreeroamSetting>, name: string) => {
   return next;
 };
 
-const formatPoint = (point: MapPoint) =>
-  `${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)} · ${Math.round(point.w)}°`;
+const formatPoint = (point: MapPoint, flat: boolean) => {
+  const coords = `${point.x.toFixed(1)}, ${point.y.toFixed(1)}, ${point.z.toFixed(1)}`;
+  return flat ? coords : `${coords} · ${Math.round(point.w)}°`;
+};
 
 /** Listes de la carte qui n'ont pas assez de points pour le vote (points enregistrés) */
 const missingLists = (lists: FreeroamSetting[]) =>
@@ -75,8 +81,9 @@ export function PositionsTab() {
     load();
   }, [load]);
 
+  const pvp = useMemo(() => settings?.filter((entry) => entry.group === 'pvp') ?? [], [settings]);
   const modes = useMemo(() => settings?.filter((entry) => entry.group === 'positions') ?? [], [settings]);
-  const cod = useMemo(() => settings?.filter((entry) => entry.group === 'cod') ?? [], [settings]);
+  const cod =useMemo(() => settings?.filter((entry) => entry.group === 'cod') ?? [], [settings]);
 
   if (!settings) return <p className="muted admin-pos__empty">{t('Chargement des positions…')}</p>;
   const setting = settings.find((entry) => entry.name === name) ?? settings[0];
@@ -116,18 +123,25 @@ export function PositionsTab() {
   return (
     <div className="admin-pos">
       <nav className="admin-pos__nav">
-        <span className="label admin-pos__nav-title">{t('Freeroam')}</span>
-        {modes.map((entry) => (
-          <NavItem
-            key={entry.name}
-            label={entry.short ?? entry.label}
-            active={!creating && entry === setting}
-            dirty={Boolean(drafts[entry.name])}
-            onClick={() => {
-              setCreating(false);
-              setName(entry.name);
-            }}
-          />
+        {[
+          { title: t('PvP'), entries: pvp },
+          { title: t('Freeroam'), entries: modes },
+        ].map((section) => (
+          <Fragment key={section.title}>
+            <span className="label admin-pos__nav-title">{section.title}</span>
+            {section.entries.map((entry) => (
+              <NavItem
+                key={entry.name}
+                label={entry.short ?? entry.label}
+                active={!creating && entry === setting}
+                dirty={Boolean(drafts[entry.name])}
+                onClick={() => {
+                  setCreating(false);
+                  setName(entry.name);
+                }}
+              />
+            ))}
+          </Fragment>
         ))}
         <span className="label admin-pos__nav-title">{t('Call of Duty')}</span>
         {codMaps.map((entry) => {
@@ -395,6 +409,7 @@ function PositionEditor({ setting, draft, onChange }: { setting: FreeroamSetting
           saved={setting.value as MapPoint[]}
           name={draft.point ?? t('Départ')}
           letters={draft.letters === true}
+          flat={draft.flat === true}
           onChange={(value) => onChange({ ...draft, value })}
         />
       );
@@ -404,6 +419,8 @@ function PositionEditor({ setting, draft, onChange }: { setting: FreeroamSetting
       return <ArenaList arenas={draft.value} saved={setting.value as CvcArenaSpawns[]} onChange={(value) => onChange({ ...draft, value })} />;
     case 'places':
       return <PlaceList places={draft.value} saved={setting.value as FreeroamPlace[]} onChange={(value) => onChange({ ...draft, value })} />;
+    case 'zones':
+      return <ZoneList zones={draft.value} saved={setting.value as PvpZone[]} name={draft.point ?? t('Apparition')} onChange={(value) => onChange({ ...draft, value })} />;
     default:
       return null;
   }
@@ -428,24 +445,26 @@ interface PointRowProps {
   /** valeur enregistrée : la ligne est marquée tant qu'elle en diffère */
   saved: MapPoint | undefined;
   onChange: (point: MapPoint) => void;
+  /** sans direction : le cap n'est pas affiché et ne compte pas */
+  flat?: boolean;
   /** boutons en plus, en fin de ligne */
   children?: ReactNode;
 }
 
 /** Une position : coordonnées, « Ma position » (la remplace par celle de l'admin) et « Y aller ». */
-function PointRow({ label, point, saved, onChange, children }: PointRowProps) {
+function PointRow({ label, point, saved, onChange, flat = false, children }: PointRowProps) {
   useT();
   const { actions } = useGame();
   const position = usePosition();
   const place = async () => {
     const next = await position();
-    if (next) onChange(next);
+    if (next) onChange(flat ? { ...next, w: 0 } : next);
   };
   return (
     <li className={same(point, saved) ? 'admin-point' : 'admin-point admin-point--changed'}>
       <span className="admin-point__text">
         <span className="admin-point__label">{label}</span>
-        <span className="mono muted admin-point__coords">{formatPoint(point)}</span>
+        <span className="mono muted admin-point__coords">{formatPoint(point, flat)}</span>
       </span>
       <button className="btn btn--small btn--primary" onClick={place}>{t('Ma position')}</button>
       <button className="btn btn--small" onClick={() => actions.adminAction({ action: 'gotoPoint', ...point })}>{t('Y aller')}</button>
@@ -461,15 +480,17 @@ interface PointListProps {
   name: string;
   /** numéroté A, B, C (drapeaux, sites de bombe) plutôt que 1, 2, 3 */
   letters: boolean;
+  /** points sans direction */
+  flat?: boolean;
   onChange: (points: MapPoint[]) => void;
 }
 
-function PointList({ points, saved, name, letters, onChange }: PointListProps) {
+function PointList({ points, saved, name, letters, flat = false, onChange }: PointListProps) {
   useT();
   const position = usePosition();
   const add = async () => {
     const point = await position();
-    if (point) onChange([...points, point]);
+    if (point) onChange([...points, flat ? { ...point, w: 0 } : point]);
   };
   return (
     <>
@@ -480,6 +501,7 @@ function PointList({ points, saved, name, letters, onChange }: PointListProps) {
             label={`${name} ${letters ? String.fromCharCode(65 + index) : index + 1}`}
             point={point}
             saved={saved[index]}
+            flat={flat}
             onChange={(next) => onChange(points.map((entry, i) => (i === index ? next : entry)))}
           >
             <RowButtons index={index} list={points} onChange={onChange} />
@@ -541,18 +563,60 @@ function ArenaList({ arenas, saved, onChange }: { arenas: CvcArenaSpawns[]; save
   );
 }
 
-/** PNJ d'un côté, tableaux du classement de l'autre (clé « <activité>/board », libellé « Genre · Activité ») */
-function PlaceList({ places, saved, onChange }: { places: FreeroamPlace[]; saved: FreeroamPlace[]; onChange: (places: FreeroamPlace[]) => void }) {
+/** Zones du mode PvP : centre, rayon et points d'apparition de chacune. */
+function ZoneList({ zones, saved, name, onChange }: { zones: PvpZone[]; saved: PvpZone[]; name: string; onChange: (zones: PvpZone[]) => void }) {
   useT();
-  const groups = [
-    { title: t('PNJ'), entries: places.filter((place) => !place.key.endsWith('/board')) },
-    { title: t('Tableau du classement'), entries: places.filter((place) => place.key.endsWith('/board')) },
-  ];
+  const setZone = (id: string, changes: Partial<PvpZone>) =>
+    onChange(zones.map((zone) => (zone.id === id ? { ...zone, ...changes } : zone)));
   return (
     <>
-      {groups.map((group) => group.entries.length > 0 && (
+      {zones.map((zone) => {
+        const before = saved.find((entry) => entry.id === zone.id);
+        return (
+          <div key={zone.id} className="admin-pos__group">
+            <div className="admin-pos__zone-head">
+              <span className="label">{t(zone.label)}</span>
+              <label className="admin-pos__radius">
+                <span className="label">{t('Rayon (m)')}</span>
+                <input
+                  className="admin-input admin-input--small mono"
+                  type="number"
+                  min={MIN_ZONE_RADIUS}
+                  max={MAX_ZONE_RADIUS}
+                  value={zone.radius || ''}
+                  onChange={(event) => setZone(zone.id, { radius: Number(event.target.value) })}
+                />
+              </label>
+            </div>
+            <ul className="admin-points">
+              <PointRow label={t('Centre')} point={zone.center} saved={before?.center} flat onChange={(center) => setZone(zone.id, { center })} />
+            </ul>
+            {zone.spawns && (
+              <PointList
+                points={zone.spawns}
+                saved={before?.spawns ?? []}
+                name={name}
+                letters={false}
+                onChange={(spawns) => setZone(zone.id, { spawns })}
+              />
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+/** Emplacements rangés par groupe, le début de leur libellé (« Groupe · Nom ») : PNJ et tableaux du classement, zones safe */
+function PlaceList({ places, saved, onChange }: { places: FreeroamPlace[]; saved: FreeroamPlace[]; onChange: (places: FreeroamPlace[]) => void }) {
+  useT();
+  const groupOf = (place: FreeroamPlace) => place.label.split(' · ')[0];
+  const groups = [...new Set(places.map(groupOf))].map((title) => ({ title, entries: places.filter((place) => groupOf(place) === title) }));
+  return (
+    <>
+      {groups.map((group) => (
         <div key={group.title} className="admin-pos__group">
-          <span className="label">{group.title}</span>
+          <span className="label">{t(group.title)}</span>
           <ul className="admin-points">
             {group.entries.map((place) => (
               <PointRow

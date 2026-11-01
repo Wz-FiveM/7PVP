@@ -114,10 +114,19 @@ export interface FreeroamPlace {
   coords: MapPoint;
 }
 
+/** Zone du mode PvP : centre, rayon et, pour les zones safe et zombies, points d'apparition (shared/modules/pvp_positions.lua) */
+export interface PvpZone {
+  id: string;
+  label: string;
+  center: MapPoint;
+  radius: number;
+  spawns?: MapPoint[];
+}
+
 /** Réglage des onglets « Freeroam » et « Positions » (server/modules/freeroam/freeroam_config_service.lua) */
 export type FreeroamSetting = {
   name: string;
-  group: 'vehicles' | 'positions' | 'cod';
+  group: 'vehicles' | 'pvp' | 'positions' | 'cod';
   label: string;
   hint: string;
   /** différent du fichier de config */
@@ -132,6 +141,8 @@ export type FreeroamSetting = {
   point?: string;
   /** points numérotés A, B, C plutôt que 1, 2, 3 */
   letters?: boolean;
+  /** points sans direction */
+  flat?: boolean;
 } & (
   | { kind: 'vehicles'; category: boolean; value: FreeroamVehicle[] }
   | { kind: 'model'; category: false; value: string }
@@ -139,6 +150,7 @@ export type FreeroamSetting = {
   | { kind: 'pair'; category: false; value: [MapPoint, MapPoint] }
   | { kind: 'arenas'; category: false; value: CvcArenaSpawns[] }
   | { kind: 'places'; category: false; value: FreeroamPlace[] }
+  | { kind: 'zones'; category: false; value: PvpZone[] }
 );
 
 /** Carte Call of Duty (server/modules/cod/cod_map_service.lua) */

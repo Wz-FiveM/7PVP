@@ -31,9 +31,9 @@ function Npcs.init()
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then Npcs.deleteAll() end
     end)
-    -- PNJ des modes de jeu (et tableaux du classement) déplacés par un admin (voir FreeroamConfigService)
+    -- PNJ des modes de jeu (et tableaux du classement), PNJ de service du PvP, déplacés par un admin (voir FreeroamConfigService)
     RegisterNetEvent(Events.client.freeroamSettings, function(name, places)
-        if name == 'places' and type(places) == 'table' then Npcs.applyPlaces(places) end
+        if (name == 'places' or name == 'pvpNpcs') and type(places) == 'table' then Npcs.applyPlaces(places) end
     end)
     -- Repères refaits dans la nouvelle langue au prochain passage de Npcs.loop
     AddEventHandler(Events.internal.languageChanged, function()

@@ -43,13 +43,20 @@ end
 function Control.refreshBlips()
     for _, zone in ipairs(Control.zones) do
         local blips = Control.blips[zone.id]
+        -- Zone déplacée par un admin : repères et hauteur du sol à refaire
+        if blips and (blips.coords ~= zone.coords or blips.radius ~= zone.radius) then
+            RemoveBlip(blips.area)
+            RemoveBlip(blips.icon)
+            Control.ground[zone.id] = nil
+            blips = nil
+        end
         if not blips then
             local area = AddBlipForRadius(zone.coords.x, zone.coords.y, zone.coords.z, zone.radius)
             SetBlipAlpha(area, 110)
             local icon = AddBlipForCoord(zone.coords.x, zone.coords.y, zone.coords.z)
             SetBlipSprite(icon, Config.ControlZones.blip.sprite)
             SetBlipAsShortRange(icon, true)
-            blips = { area = area, icon = icon }
+            blips = { area = area, icon = icon, coords = zone.coords, radius = zone.radius }
             Control.blips[zone.id] = blips
         end
         local color = Control.colorOf(zone)

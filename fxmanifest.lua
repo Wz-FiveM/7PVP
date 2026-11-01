@@ -57,6 +57,7 @@ shared_scripts {
     'shared/modules/classes.lua',
     'shared/modules/zones.lua',
     'shared/modules/freeroam_positions.lua',
+    'shared/modules/pvp_positions.lua',
     'shared/modules/appearance.lua',
 }
 

@@ -679,6 +679,18 @@
   flex: none;
   align-self: flex-start;
 }
+/* Zone du mode PvP : nom et rayon */
+.admin-pos__zone-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.admin-pos__radius {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
 .admin-pos__foot {
   display: flex;
   align-items: center;

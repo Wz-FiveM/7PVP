@@ -51,6 +51,55 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
     { name: 'cvcVehicle', group: 'vehicles', label: 'CVC', kind: 'model', category: false, modified: false, hint: 'Véhicule du convoi de chaque équipe.', value: 'granger' },
     { name: 'bikeVehicle', group: 'vehicles', label: '1VS1 Bike', kind: 'model', category: false, modified: false, hint: 'Moto des deux joueurs, recréée à chaque manche.', value: 'bati' },
     {
+      name: 'pvpSafeZones', group: 'pvp', label: 'Zones safe', point: 'Apparition', kind: 'zones', category: false, modified: false,
+      hint: 'Centre et rayon de chaque zone safe, et points où l\'on apparaît (réapparition, téléportation F1), dans ta direction. Garde les apparitions et les PNJ dans le cercle.',
+      value: [
+        {
+          id: 'legion', label: 'Zone safe - Legion Square', center: { x: 195.2, y: -933.8, z: 30.7, w: 0 }, radius: 80,
+          spawns: [{ x: 195.2, y: -933.8, z: 30.7, w: 144 }, { x: 210, y: -920, z: 30.7, w: 160 }],
+        },
+        {
+          id: 'sandy', label: 'Zone safe - Sandy Shores', center: { x: 1853.2, y: 3686.6, z: 34.3, w: 0 }, radius: 70,
+          spawns: [{ x: 1853.2, y: 3686.6, z: 34.3, w: 210 }],
+        },
+      ],
+    },
+    {
+      name: 'pvpNpcs', group: 'pvp', label: 'PNJ de service', short: 'PNJ', kind: 'places', category: false, modified: false,
+      hint: 'Banquier, armurier, tailleur... de chaque zone safe. Place-toi à l\'endroit voulu : le PNJ regardera dans la même direction que toi. Les PNJ doivent rester dans la zone safe.',
+      value: [
+        { key: 'legion/stash', label: 'Zone safe - Legion Square · Banquier', coords: { x: 186.8, y: -941.6, z: 30.1, w: 340 } },
+        { key: 'legion/shop', label: 'Zone safe - Legion Square · Armurier', coords: { x: 202.6, y: -925.5, z: 30.7, w: 150 } },
+        { key: 'sandy/stash', label: 'Zone safe - Sandy Shores · Banquier', coords: { x: 1849, y: 3680, z: 34.3, w: 300 } },
+      ],
+    },
+    {
+      name: 'pvpPveZones', group: 'pvp', label: 'Zones zombies', point: 'Apparition', kind: 'zones', category: false, modified: false,
+      hint: 'Centre et rayon de chaque zone zombies, et points où ils apparaissent. Les zombies déjà là restent jusqu\'à leur mort ou au départ des joueurs.',
+      value: [
+        {
+          id: 'port', label: 'Port de Los Santos', center: { x: 1050, y: -3100, z: 5.9, w: 0 }, radius: 140,
+          spawns: [{ x: 1020, y: -3080, z: 5.9, w: 0 }, { x: 1060, y: -3120, z: 5.9, w: 90 }],
+        },
+      ],
+    },
+    {
+      name: 'pvpControlZones', group: 'pvp', label: 'Zones de contrôle', kind: 'zones', category: false, modified: false,
+      hint: 'Centre et rayon de chaque zone à capturer. Une zone déplacée garde son propriétaire.',
+      value: [
+        { id: 'quarry', label: 'Carrière de Davis', center: { x: 2950, y: 2790, z: 41, w: 0 }, radius: 45 },
+        { id: 'refinery', label: 'Raffinerie de Murrieta', center: { x: 1450, y: -2150, z: 60, w: 0 }, radius: 40 },
+      ],
+    },
+    {
+      name: 'airdropLocations', group: 'pvp', label: 'Largages', point: 'Point de chute', flat: true, kind: 'points', category: false, modified: false,
+      hint: 'Une caisse tombe sur un de ces points, tiré au sort. Choisis des endroits dégagés : la hauteur est recalée sur le sol.',
+      value: [
+        { x: 501, y: 5604, z: 797.9, w: 0 },
+        { x: -150, y: 6350, z: 31.5, w: 0 },
+      ],
+    },
+    {
       name: 'places', group: 'positions', label: 'PNJ et tableau', kind: 'places', category: false, modified: false,
       hint: 'PNJ des modes de jeu et tableau du classement. Place-toi à l\'endroit voulu : le PNJ (ou l\'écran) regardera dans la même direction que toi.',
       value: [
