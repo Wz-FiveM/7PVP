@@ -239,11 +239,11 @@ Config.Containers = {
 -- Nombre d'emplacements de raccourcis (touches 1 à N)
 Config.ShortcutSlots = 7
 
--- Inventaire d'un nouveau joueur
+-- Inventaire d'un nouveau joueur (donné une seule fois, à sa toute première apparition)
 Config.NewPlayerKit = {
     bag = { money = 500, weapon_pistol = 1, ammo_9mm = 48, bandage = 2 },
     protected = {},
 }
 
--- Contenu du sac donné à chaque respawn (le conteneur protégé est conservé)
-Config.RespawnKit = { weapon_pistol = 1, ammo_9mm = 24, bandage = 1 }
+-- Contenu du sac donné à chaque respawn : rien (le conteneur protégé est conservé)
+Config.RespawnKit = {}
