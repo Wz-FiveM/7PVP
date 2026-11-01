@@ -9,6 +9,7 @@ local Callback = PVP.use('Callback')
 local Effects = PVP.use('Effects')
 local Pve = PVP.use('Pve')
 local Group = PVP.use('Group')
+local Fall = PVP.use('Fall')
 local Clock = PVP.use('Clock')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
@@ -34,10 +35,19 @@ Classes.HANDLERS = {
     heal = 'onHeal',
     mark = 'onMark',
     contract = 'onContract',
+    frenzy = 'onFrenzy',
+    blast = 'onBlast',
 }
+-- Groupes d'armes que les classes peuvent viser (weaponGroups dans config/classes.lua)
+Classes.WEAPON_GROUPS = { 'GROUP_MELEE', 'GROUP_UNARMED', 'GROUP_SHOTGUN', 'GROUP_SNIPER', 'GROUP_HEAVY', 'GROUP_THROWN' }
 
-Classes.applied = false -- réglage de dégâts en place ('classe:monde'), false = aucun
+Classes.applied = false -- réglage de dégâts en place, false = aucun
 Classes.busy = false
+Classes.ragdollBlocked = false
+Classes.frenzyUntil = 0 -- ms de fin de la Frénésie
+Classes.frenzyMelee = 1.0
+---@type table<integer, string> hash non signé -> nom du groupe d'armes
+Classes.weaponGroups = {}
 Classes.contractBlip = nil
 ---@type table<integer, integer> ped -> repère du radar
 Classes.radarBlips = {}
@@ -51,7 +61,11 @@ function Classes.init()
     RegisterNetEvent(Events.client.classEffect, function(data)
         Classes.onEffect(data)
     end)
+    for _, name in ipairs(Classes.WEAPON_GROUPS) do
+        Classes.weaponGroups[GetHashKey(name) & 0xFFFFFFFF] = name
+    end
     CreateThread(Classes.passiveLoop)
+    CreateThread(Classes.speedLoop)
     CreateThread(Classes.radarLoop)
 end
 
@@ -77,25 +91,89 @@ function Classes.passiveLoop()
     while true do
         Wait(Classes.PASSIVE_INTERVAL)
         Classes.updateModifiers()
+        Classes.updateKnockback(State.inPvp() and Classes.current())
     end
 end
 
 ---Les natifs ne visent pas une cible : c'est le monde du joueur qui sépare les zombies des joueurs,
----car il n'y a pas de PvP dans le monde zombies.
+---car il n'y a pas de PvP dans le monde zombies. Ils ne connaissent pas non plus la portée ni le
+---nombre de cibles : les dégâts à distance et de zone dépendent de l'arme en main.
 function Classes.updateModifiers()
     local class = State.inPvp() and Classes.current()
-    local world = LocalPlayer.state.pveWorld == true and 'pve' or 'pvp'
-    local wanted = class and class.modifiers and ('%s:%s'):format(class.id, world) or false
+    local inPve = LocalPlayer.state.pveWorld == true
+    local group = class and Classes.weaponGroup(PlayerPedId())
+    local frenzy = class and Classes.frenzyUntil > GetGameTimer() and Classes.frenzyMelee or 1.0
+    local wanted = class and ('%s:%s:%s:%s'):format(class.id, inPve, group, frenzy) or false
     if wanted == Classes.applied then return end
     Classes.applied = wanted
+    -- En Call of Duty, ces réglages appartiennent aux atouts du mode
+    if State.mode == 'cod' then return end
 
     local player = PlayerId()
-    local modifiers = wanted and class.modifiers[world] or {}
-    SetPlayerWeaponDefenseModifier(player, modifiers.defense or 1.0)
-    -- En Call of Duty, ces deux réglages appartiennent aux atouts du mode
-    if State.mode ~= 'cod' then
-        SetPlayerWeaponDamageModifier(player, modifiers.damage or 1.0)
-        SetPlayerMeleeWeaponDamageModifier(player, modifiers.melee or 1.0)
+    SetPlayerWeaponDamageModifier(player, class and Classes.weaponDamage(class, inPve, group) or 1.0)
+    SetPlayerMeleeWeaponDamageModifier(player, class and Classes.meleeDamage(class, inPve) * frenzy or 1.0)
+end
+
+---@param ped integer
+---@return string|nil groupe de l'arme en main, seulement parmi Classes.WEAPON_GROUPS
+function Classes.weaponGroup(ped)
+    return Classes.weaponGroups[GetWeapontypeGroup(GetSelectedPedWeapon(ped)) & 0xFFFFFFFF]
+end
+
+---@param class table
+---@param inPve boolean
+---@param group string|nil
+---@return number multiplicateur de l'arme en main
+function Classes.weaponDamage(class, inPve, group)
+    -- Le corps à corps a son propre réglage : ne pas l'appliquer deux fois
+    if group == 'GROUP_MELEE' or group == 'GROUP_UNARMED' then return 1.0 end
+    local damage = class.weaponGroups and class.weaponGroups[group] or class.damage or 1.0
+    return damage * (not inPve and class.playerDamage or 1.0)
+end
+
+---@param class table
+---@param inPve boolean
+---@return number multiplicateur du corps à corps
+function Classes.meleeDamage(class, inPve)
+    return (class.melee or class.damage or 1.0) * (not inPve and class.playerDamage or 1.0)
+end
+
+---@return integer santé GTA maximale du joueur local, selon sa classe en mode PvP
+function Classes.maxHealth()
+    return ClassDefs.maxHealth(State.inPvp() and Classes.current() or nil)
+end
+
+---@param amount integer soin d'un consommable
+---@return integer soin après le passif de classe
+function Classes.healAmount(amount)
+    local class = State.inPvp() and Classes.current()
+    if not class or not class.healBonus then return amount end
+    return math.floor(amount * class.healBonus + 0.5)
+end
+
+---Un ped sans ragdoll fige le véhicule où il monte : la protection ne vaut qu'à pied, et Fall garde la main en chute.
+---@param class table|false|nil
+function Classes.updateKnockback(class)
+    if class and class.noKnockback and State.isAlive() and not Fall.active then
+        local ped = PlayerPedId()
+        SetPedCanRagdoll(ped, Fall.inVehicle(ped))
+        Classes.ragdollBlocked = true
+    elseif Classes.ragdollBlocked then
+        Classes.ragdollBlocked = false
+        if not Fall.active then SetPedCanRagdoll(PlayerPedId(), true) end
+    end
+end
+
+---La vitesse doit être imposée à chaque image, et seulement pour une classe qui la change.
+function Classes.speedLoop()
+    while true do
+        local class = State.inPvp() and State.isAlive() and Classes.current()
+        if class and class.speed and class.speed ~= 100 then
+            SetPedMoveRateOverride(PlayerPedId(), class.speed / 100)
+            Wait(0)
+        else
+            Wait(Classes.PASSIVE_INTERVAL)
+        end
     end
 end
 
@@ -187,7 +265,7 @@ function Classes.useAbility()
     CreateThread(function()
         local class = Classes.current()
         local ability = class and class.ability
-        local payload = ability and ability.id == 'mark' and Classes.aimedTarget(ability.range) or nil
+        local payload = ability and ability.aimed and Classes.aimedTarget(ability.range) or nil
         local result = Callback.await(Events.callbacks.classUse, payload)
         Classes.busy = false
         if not result then return end
@@ -295,6 +373,20 @@ function Classes.onSmoke(data)
         Wait(data.duration * 1000)
         StopParticleFxLooped(effect, false)
     end)
+end
+
+---@param data table
+function Classes.onFrenzy(data)
+    Classes.frenzyUntil = GetGameTimer() + data.duration * 1000
+    Classes.frenzyMelee = data.melee
+    Classes.updateModifiers()
+end
+
+---Charge explosive : l'explosion porte le nom du lanceur, pour lui compter les zombies tués.
+---@param data table
+function Classes.onBlast(data)
+    local explosion = data.explosion
+    AddOwnedExplosion(PlayerPedId(), data.x, data.y, data.z, explosion.type, explosion.damage, true, false, explosion.shake)
 end
 
 ---@param data table

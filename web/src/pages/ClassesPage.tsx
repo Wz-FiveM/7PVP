@@ -40,6 +40,15 @@ export function ClassesPage() {
               </header>
               <p className="class-card__summary">{t(entry.summary)}</p>
 
+              <dl className="class-card__stats">
+                <div><dt className="mono muted">{t('PV')}</dt><dd>{entry.health ?? 100}</dd></div>
+                <div><dt className="mono muted">{t('VITESSE')}</dt><dd>{entry.speed ?? 100}</dd></div>
+                <div>
+                  <dt className="mono muted">{t('DÉGÂTS')}</dt>
+                  <dd>{entry.damageLabel ? t(entry.damageLabel) : Math.round((entry.damage ?? 1) * 100)}</dd>
+                </div>
+              </dl>
+
               <h3 className="mono muted class-card__section">{t('PASSIF')}</h3>
               <ul className="class-card__list">
                 {entry.passives.map((passive) => <li key={passive}>{t(passive)}</li>)}

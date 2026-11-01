@@ -79,6 +79,14 @@ export interface ClassDefinition {
   role: string;
   passives: string[];
   signature: string[];
+  /** points de vie, base 100 */
+  health?: number;
+  /** vitesse à pied en %, base 100 */
+  speed?: number;
+  /** multiplicateur des dégâts, base 1 */
+  damage?: number;
+  /** dégâts affichés quand un seul nombre ne suffit pas */
+  damageLabel?: string;
   craftCost?: number;
   ability: { id: string; label: string; description: string; cooldown: number };
 }

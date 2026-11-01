@@ -24,7 +24,8 @@ export type IconName =
   | 'moon'
   | 'trade'
   | 'gem'
-  | 'mic';
+  | 'mic'
+  | 'bomb';
 
 /** Icônes au trait (viewBox 24x24), dans le style de la D.A Frontline. */
 const PATHS: Record<IconName, string> = {
@@ -58,6 +59,7 @@ const PATHS: Record<IconName, string> = {
   trade: 'M3 8h16M15 4l4 4-4 4M21 16H5M9 12l-4 4 4 4',
   gem: 'M6 3h12l4 6-10 12L2 9zM2 9h20M9 3l3 6 3-6M12 21L9 9M12 21l3-12',
   mic: 'M9 6a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3M8 21h8',
+  bomb: 'M10 8a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM14 9l3-3M16 3v2M19 4l-2 1M20 7h-2',
 };
 
 interface IconProps {

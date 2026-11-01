@@ -363,54 +363,154 @@ export const mockInit: InitPayload = {
       keyLabel: 'G',
       list: [
         {
-          id: 'assault', label: 'Assaut', icon: 'knife',
-          summary: 'Tank de mêlée : encaisse les hordes en première ligne.',
+          id: 'tank',
+          label: 'Tank',
+          icon: 'armor',
+          summary: 'Mur vivant : encaisse en première ligne et tient les positions.',
           role: 'Première ligne, capture de zone',
-          passives: ['Dégâts des zombies réduits de 30 %', 'Corps à corps : +50 % en zone zombies, +10 % contre les joueurs'],
-          signature: ['weapon_machete', 'weapon_bat', 'weapon_pumpshotgun'],
-          ability: { id: 'roar', label: 'Rugissement', description: 'Renverse et étourdit les zombies autour de toi (zone zombies).', cooldown: 45 },
+          passives: [
+            'Dégâts des zombies réduits de 30 %',
+            'Corps à corps : +30 %',
+            'Ne peut pas être renversé à pied'
+          ],
+          signature: [ 'weapon_bat', 'weapon_pumpshotgun', 'heavy_kevlar' ],
+          health: 170,
+          speed: 85,
+          damage: 0.8,
+          ability: {
+            id: 'roar',
+            label: 'Rugissement',
+            description: 'Renverse et étourdit les zombies autour de toi (zone zombies).',
+            cooldown: 45
+          }
         },
         {
-          id: 'medic', label: 'Médecin', icon: 'bandage',
-          summary: 'Soutien : soigne son équipe et la protège des infections.',
-          role: 'Soutien à protéger, très recherché en groupe',
-          passives: ['Tes soins profitent à moitié aux coéquipiers à moins de 10 m'],
-          signature: ['weapon_pistol', 'weapon_combatpistol', 'medkit'],
-          ability: { id: 'antidote', label: 'Antidote', description: 'Immunise ton équipe proche contre le vomi et les gaz pendant 45 s.', cooldown: 120 },
+          id: 'assault',
+          label: 'Assaut',
+          icon: 'knife',
+          summary: 'Spécialiste de la mêlée : le plus dangereux au contact.',
+          role: 'Percée, combat rapproché',
+          passives: [ 'Corps à corps : +20 %', 'Armes à feu : dégâts normaux' ],
+          signature: [ 'weapon_machete', 'weapon_battleaxe', 'weapon_sawnoffshotgun' ],
+          health: 110,
+          damageLabel: '120 mêlée',
+          ability: {
+            id: 'frenzy',
+            label: 'Frénésie',
+            description: 'Corps à corps : +30 % pendant 10 s.',
+            cooldown: 45
+          }
         },
         {
-          id: 'scout', label: 'Éclaireur', icon: 'crosshair',
-          summary: 'Détection et tir de précision : voit le danger avant les autres.',
-          role: 'Repérage, élimination à distance',
-          passives: ['Radar : zombies et ennemis à moins de 60 m sur la minimap, hors zones safe'],
-          signature: ['weapon_sniperrifle', 'weapon_marksmanrifle', 'att_suppressor'],
-          ability: { id: 'mark', label: 'Marquage', description: 'Marque ce que tu vises pour ton équipe pendant 15 s. La nuit, active aussi la vision nocturne.', cooldown: 30 },
+          id: 'demolisher',
+          label: 'Démolisseur',
+          icon: 'bomb',
+          summary: 'Dégâts de zone : redoutable contre un groupe, faible en duel.',
+          role: 'Nettoyage de hordes, assaut de position',
+          passives: [ 'Fusils à pompe, armes lourdes et explosifs : +40 %', 'Autres armes et corps à corps : -30 %' ],
+          signature: [ 'weapon_grenadelauncher', 'weapon_grenade', 'weapon_pumpshotgun' ],
+          speed: 95,
+          damage: 0.7,
+          damageLabel: '140 zone / 70',
+          ability: {
+            id: 'blast',
+            label: 'Charge explosive',
+            description: "Fait exploser le point que tu vises, jusqu'à 40 m (zone zombies). Attention à ton équipe.",
+            cooldown: 60
+          }
         },
         {
-          id: 'engineer', label: 'Ingénieur', icon: 'craft',
-          summary: 'Fabrication et défense : fait plus avec moins de matériaux.',
-          role: 'Défense, contrôle de zone',
-          passives: ['Fabrication : ingrédients réduits de 25 %'],
-          signature: ['weapon_wrench', 'weapon_hammer', 'weapon_microsmg'],
-          craftCost: 0.75,
-          ability: { id: 'trap', label: 'Piège électrique', description: 'Pose à tes pieds un piège qui bloque les zombies pendant 25 s (zone zombies).', cooldown: 75 },
-        },
-        {
-          id: 'mercenary', label: 'Mercenaire', icon: 'contract',
+          id: 'mercenary',
+          label: 'Mercenaire',
+          icon: 'contract',
           summary: 'Chasseur de primes : spécialiste du combat entre joueurs.',
           role: 'Agressif, chasse et contestation',
-          passives: ['Contre les joueurs : dégâts +7 %, dégâts reçus -7 %'],
-          signature: ['weapon_pistol50', 'weapon_assaultrifle', 'weapon_carbinerifle'],
-          ability: { id: 'contract', label: 'Contrat', description: 'Suit pendant 30 s le joueur le plus recherché, sinon le plus proche. Il en est prévenu.', cooldown: 180 },
+          passives: [ 'Contre les joueurs : dégâts +25 %' ],
+          signature: [ 'weapon_pistol50', 'weapon_assaultrifle', 'weapon_carbinerifle' ],
+          health: 90,
+          speed: 105,
+          damageLabel: '100 (+25 % PvP)',
+          ability: {
+            id: 'contract',
+            label: 'Contrat',
+            description: 'Suit pendant 30 s le joueur le plus recherché, sinon le plus proche. Il en est prévenu.',
+            cooldown: 180
+          }
         },
         {
-          id: 'logistician', label: 'Logisticien', icon: 'inventory',
+          id: 'scout',
+          label: 'Éclaireur',
+          icon: 'crosshair',
+          summary: 'Détection et tir de précision : fragile, mais voit le danger avant les autres.',
+          role: 'Repérage, élimination à distance',
+          passives: [
+            'Radar : zombies et ennemis à moins de 60 m sur la minimap, hors zones safe',
+            'Fusils de précision : +30 %, autres armes : -20 %'
+          ],
+          signature: [ 'weapon_sniperrifle', 'weapon_marksmanrifle', 'att_suppressor' ],
+          health: 85,
+          speed: 110,
+          damage: 0.8,
+          damageLabel: '130 précision / 80',
+          ability: {
+            id: 'mark',
+            label: 'Marquage',
+            description: 'Marque ce que tu vises pour ton équipe pendant 15 s. La nuit, active aussi la vision nocturne.',
+            cooldown: 30
+          }
+        },
+        {
+          id: 'medic',
+          label: 'Médecin',
+          icon: 'bandage',
+          summary: 'Soutien : soigne son équipe et la protège des infections.',
+          role: 'Soutien à protéger, très recherché en groupe',
+          passives: [ 'Soins consommés : +50 %', 'Tes soins profitent à moitié aux coéquipiers à moins de 10 m' ],
+          signature: [ 'weapon_pistol', 'weapon_combatpistol', 'medkit' ],
+          health: 95,
+          damage: 0.7,
+          ability: {
+            id: 'antidote',
+            label: 'Antidote',
+            description: 'Immunise ton équipe proche contre le vomi et les gaz pendant 45 s.',
+            cooldown: 120
+          }
+        },
+        {
+          id: 'engineer',
+          label: 'Ingénieur',
+          icon: 'craft',
+          summary: 'Fabrication et défense : fait plus avec moins de matériaux.',
+          role: 'Défense, contrôle de zone',
+          passives: [ "Fabrication : ingrédients réduits d'un tiers", 'Piège électrique : 50 % plus long' ],
+          signature: [ 'weapon_wrench', 'weapon_hammer', 'weapon_microsmg' ],
+          speed: 95,
+          damage: 0.8,
+          craftCost: 0.66666666666667,
+          ability: {
+            id: 'trap',
+            label: 'Piège électrique',
+            description: 'Pose à tes pieds un piège qui bloque les zombies pendant 38 s (zone zombies).',
+            cooldown: 75
+          }
+        },
+        {
+          id: 'logistician',
+          label: 'Logisticien',
+          icon: 'inventory',
           summary: 'Ravitailleur : transporte plus et couvre les replis.',
           role: 'Transport du butin, couverture du groupe',
-          passives: ['Sac : 15 kg de capacité en plus'],
-          signature: ['weapon_combatpistol', 'weapon_smokegrenade', 'repairkit'],
-          ability: { id: 'smoke', label: 'Écran de fumée', description: 'Fumée épaisse à tes pieds pendant 20 s pour couvrir un repli.', cooldown: 90 },
-        },
+          passives: [ 'Sac : 20 kg de capacité en plus' ],
+          signature: [ 'weapon_combatpistol', 'weapon_smokegrenade', 'repairkit' ],
+          health: 90,
+          damage: 0.75,
+          ability: {
+            id: 'smoke',
+            label: 'Écran de fumée',
+            description: 'Fumée épaisse à tes pieds pendant 20 s pour couvrir un repli.',
+            cooldown: 90
+          }
+        }
       ],
     },
     cases: [

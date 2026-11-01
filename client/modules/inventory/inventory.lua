@@ -6,6 +6,7 @@ local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
 local Nui = PVP.use('Nui')
 local Effects = PVP.use('Effects')
+local Classes = PVP.use('Classes')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -56,7 +57,7 @@ function Inventory.applyItem(name)
 
     local ped = PlayerPedId()
     if item.heal then
-        SetEntityHealth(ped, math.min(GetEntityMaxHealth(ped), GetEntityHealth(ped) + item.heal))
+        SetEntityHealth(ped, math.min(GetEntityMaxHealth(ped), GetEntityHealth(ped) + Classes.healAmount(item.heal)))
     end
     if item.armor then
         SetPedArmour(ped, math.min(100, GetPedArmour(ped) + item.armor))

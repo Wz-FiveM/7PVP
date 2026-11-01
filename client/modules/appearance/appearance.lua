@@ -4,11 +4,11 @@ local Appearance = PVP.define('Appearance')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local PedUtils = PVP.use('PedUtils')
 local Logger = PVP.use('Logger')
+local Classes = PVP.use('Classes')
 
 Appearance.palettes = nil
 -- À l'arrivée en jeu, le chargement peut prendre bien plus que les 5 s par défaut
 Appearance.MODEL_TIMEOUT = 30000
-Appearance.MAX_HEALTH = 200 -- 100 points de vie (100 = mort), pour les deux sexes
 Appearance.HEALTH_CHECK_INTERVAL = 500
 ---@type integer|nil modèle porté à la place du personnage du joueur (mode Call of Duty)
 Appearance.forcedModel = nil
@@ -28,14 +28,15 @@ function Appearance.init()
     end)
 end
 
----Un ped qui était plein reste plein avec sa nouvelle vie max.
+---Un ped qui était plein reste plein avec sa nouvelle vie max, et ne garde jamais plus que ce maximum.
 ---@param ped integer
 function Appearance.ensureMaxHealth(ped)
+    local wanted = Classes.maxHealth()
     local maxHealth = GetEntityMaxHealth(ped)
-    if maxHealth == Appearance.MAX_HEALTH then return end
-    local full = GetEntityHealth(ped) >= maxHealth
-    SetPedMaxHealth(ped, Appearance.MAX_HEALTH)
-    if full then SetEntityHealth(ped, Appearance.MAX_HEALTH) end
+    if maxHealth == wanted then return end
+    local health = GetEntityHealth(ped)
+    SetPedMaxHealth(ped, wanted)
+    if health >= maxHealth or health > wanted then SetEntityHealth(ped, wanted) end
 end
 
 ---Change le modèle du joueur si le sexe ne correspond pas. Le ped change alors :

@@ -15,6 +15,7 @@ local PlayerService = PVP.use('PlayerService')
 local AdminService = PVP.use('AdminService')
 local BanRepository = PVP.use('BanRepository')
 local DiscordService = PVP.use('DiscordService')
+local ClassService = PVP.use('ClassService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -401,7 +402,7 @@ end
 function AntiCheatService.checkVitals(source, player)
     local ped = GetPlayerPed(source)
     local health, armor = GetEntityHealth(ped), GetPedArmour(ped)
-    if health > Config.AntiCheat.maxHealth or armor > Config.AntiCheat.maxArmor then
+    if health > math.max(Config.AntiCheat.maxHealth, ClassService.healthLimit(player)) or armor > Config.AntiCheat.maxArmor then
         AntiCheatService.flag(source, 'health', ('vie %d, armure %d'):format(health, armor))
     end
     local now = os.time()

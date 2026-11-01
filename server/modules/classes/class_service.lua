@@ -1,5 +1,5 @@
 ---Classes du mode PvP (Config.Classes) : choix en zone safe, passifs côté serveur (dégâts des zombies,
----fabrication, sac, soins partagés) et compétences. Le serveur vérifie chaque compétence et envoie ses
+---fabrication, sac, soins partagés, vie max permise) et compétences. Le serveur vérifie chaque compétence et envoie ses
 ---effets aux clients concernés (client/modules/classes/classes.lua). Les délais survivent à une
 ---reconnexion : ils sont gardés par licence, en mémoire.
 ---@class ClassServiceModule
@@ -26,9 +26,13 @@ ClassService.HANDLERS = {
     trap = 'useTrap',
     contract = 'useContract',
     smoke = 'useSmoke',
+    frenzy = 'useFrenzy',
+    blast = 'useBlast',
 }
+-- Secondes laissées au client pour appliquer la vie max d'une nouvelle classe, avant le contrôle de l'anticheat
+ClassService.HEALTH_GRACE = 10
 
----@type table<string, { ability: integer, change: integer }> licence -> fin des délais (os.time)
+---@type table<string, { ability: integer, change: integer, healthGrace: integer }> licence -> fin des délais (os.time)
 ClassService.timers = {}
 ---@type table<integer, { target: integer, endsAt: integer }> contrats en cours, par chasseur
 ClassService.contracts = {}
@@ -58,14 +62,21 @@ function ClassService.of(player)
 end
 
 ---@param identifier string
----@return { ability: integer, change: integer }
+---@return { ability: integer, change: integer, healthGrace: integer }
 function ClassService.timersOf(identifier)
     local timers = ClassService.timers[identifier]
     if not timers then
-        timers = { ability = 0, change = 0 }
+        timers = { ability = 0, change = 0, healthGrace = 0 }
         ClassService.timers[identifier] = timers
     end
     return timers
+end
+
+---@param player PvpPlayer
+---@return integer santé GTA la plus haute permise à ce joueur (anticheat)
+function ClassService.healthLimit(player)
+    if os.time() < ClassService.timersOf(player.identifier).healthGrace then return ClassDefs.highestHealth end
+    return ClassDefs.maxHealth(ClassService.of(player))
 end
 
 ---@param player PvpPlayer
@@ -151,6 +162,7 @@ function ClassService.select(source, id)
 
     player.classId = id
     timers.change = now + Config.Classes.changeCooldown
+    timers.healthGrace = now + ClassService.HEALTH_GRACE
     ClassService.applyInventory(player)
     player:sync()
     return { ok = true, message = Locale.t('Classe choisie : %s', Locale.t(class.label)) }
@@ -266,6 +278,31 @@ function ClassService.useAntidote(player, ability)
     for _, id in ipairs(ClassService.allies(player, ability.radius, true)) do
         TriggerClientEvent(Events.client.classEffect, id, { type = 'antizin', duration = ability.duration })
     end
+    return true
+end
+
+---@param player PvpPlayer
+---@param ability table
+---@return boolean
+function ClassService.useFrenzy(player, ability)
+    TriggerClientEvent(Events.client.classEffect, player.source, { type = 'frenzy', duration = ability.duration, melee = ability.melee })
+    return true
+end
+
+---Le point visé vient du client : seule sa distance au lanceur est vérifiée.
+---@param player PvpPlayer
+---@param ability table
+---@param data any { x, y, z }
+---@return boolean, string|nil
+function ClassService.useBlast(player, ability, data)
+    local x, y, z = type(data) == 'table' and tonumber(data.x), type(data) == 'table' and tonumber(data.y), type(data) == 'table' and tonumber(data.z)
+    if not x or not y or not z then return false, Locale.t('Vise le point à faire exploser.') end
+
+    local distance = #(player:getCoords() - vector3(x, y, z))
+    if distance > ability.range + 5.0 then return false, Locale.t('Vise le point à faire exploser.') end
+    if distance < ability.minRange then return false, Locale.t('Trop près : vise plus loin.') end
+
+    TriggerClientEvent(Events.client.classEffect, player.source, { type = 'blast', x = x, y = y, z = z, explosion = ability.explosion })
     return true
 end
 
