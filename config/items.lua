@@ -241,7 +241,7 @@ Config.ShortcutSlots = 7
 
 -- Inventaire d'un nouveau joueur (donné une seule fois, à sa toute première apparition)
 Config.NewPlayerKit = {
-    bag = { money = 500, weapon_pistol = 1, ammo_9mm = 48, bandage = 2 },
+    bag = { money = 500, weapon_pistol = 1, ammo_9mm = 48, bandage = 2, vehicle_panto = 1 },
     protected = {},
 }
 

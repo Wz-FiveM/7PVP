@@ -58,6 +58,7 @@ Config.VehicleList = {
     { model = 'issi2', label = 'Issi' },
     { model = 'issi6', label = 'Issi Apocalypse' },
     { model = 'brioso2', label = 'Brioso 300' },
+    { model = 'panto', label = 'Panto' },
     { model = 'pigalle', label = 'Pigalle' },
     { model = 'btype3', label = 'Roosevelt Valor' },
     { model = 'ztype', label = 'Z-Type' },
