@@ -57,10 +57,11 @@ function KillProof.recordPed(attacker, ped, weapon)
 end
 
 ---Une touche sur un véhicule compte pour ses occupants : il peut exploser avec eux dedans.
----@param sender integer
+---@param sender integer|string le jeu l'envoie en texte, les preuves sont indexées par nombre
 ---@param data table hitGlobalId ou hitGlobalIds (selon la version du serveur), weaponType
 function KillProof.onWeaponDamage(sender, data)
-    if type(data) ~= 'table' then return end
+    sender = tonumber(sender)
+    if not sender or type(data) ~= 'table' then return end
     for _, netId in ipairs(data.hitGlobalIds or { data.hitGlobalId }) do
         local entity = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
         if entity ~= 0 and DoesEntityExist(entity) then
@@ -77,10 +78,11 @@ function KillProof.onWeaponDamage(sender, data)
     end
 end
 
----@param sender integer
+---@param sender integer|string le jeu l'envoie en texte, les preuves sont indexées par nombre
 ---@param data table posX, posY, posZ
 function KillProof.onExplosion(sender, data)
-    if type(data) ~= 'table' or not tonumber(data.posX) or not tonumber(data.posY) or not tonumber(data.posZ) then return end
+    sender = tonumber(sender)
+    if not sender or type(data) ~= 'table' or not tonumber(data.posX) or not tonumber(data.posY) or not tonumber(data.posZ) then return end
     local now = GetGameTimer()
     local kept = {}
     for _, explosion in ipairs(KillProof.explosions[sender] or {}) do

@@ -262,9 +262,10 @@ function GroupService.disband(group)
     GroupService.groups[group.id] = nil
 end
 
----@param sender integer
+---@param sender integer|string le jeu l'envoie en texte, les groupes sont indexés par nombre
 ---@param data table hitGlobalId ou hitGlobalIds
 function GroupService.onWeaponDamage(sender, data)
+    sender = tonumber(sender)
     if not GroupService.memberOf[sender] or type(data) ~= 'table' then return end
     -- Un groupe survit au changement de mode : en Call of Duty, seules les équipes de la partie comptent
     local attacker = PlayerService.get(sender)
