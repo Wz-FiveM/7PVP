@@ -1,5 +1,5 @@
 ---Zones de contrôle côté client : repères sur la carte (couleur selon le propriétaire),
----cercle au sol et barre de capture dans le HUD quand on est dedans.
+---dôme sur la zone et barre de capture dans le HUD quand on est dedans.
 ---Territoires (zone.crew) : le camp du joueur est son crew, et le menu Crew en affiche la liste.
 ---@class ControlModule
 local Control = PVP.define('Control')
@@ -10,7 +10,11 @@ local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
-Control.DRAW_DISTANCE = 150.0
+Control.DRAW_DISTANCE = 300.0 -- m depuis le bord de la zone
+Control.DOME_MARKER = 28 -- sphère : son échelle est le rayon, pas le diamètre
+Control.DOME_ALPHA = 55
+Control.RING_HEIGHT = 5.0
+Control.RING_ALPHA = 150
 
 ---@type table[] état reçu du serveur
 Control.zones = {}
@@ -104,7 +108,7 @@ function Control.refreshBlips()
         end
         if not blips then
             local area = AddBlipForRadius(zone.coords.x, zone.coords.y, zone.coords.z, zone.radius)
-            SetBlipAlpha(area, 110)
+            SetBlipAlpha(area, 160)
             local icon = AddBlipForCoord(zone.coords.x, zone.coords.y, zone.coords.z)
             SetBlipSprite(icon, zone.crew and Config.ControlZones.territories.sprite or Config.ControlZones.blip.sprite)
             SetBlipAsShortRange(icon, true)
@@ -129,9 +133,9 @@ function Control.loop()
             local inside = false
             for _, zone in ipairs(Control.zones) do
                 local dist = #(pos.xy - zone.coords.xy)
-                if dist < Control.DRAW_DISTANCE then
+                if dist < zone.radius + Control.DRAW_DISTANCE then
                     needsFrame = true
-                    Control.drawCircle(zone)
+                    Control.drawDome(zone)
                 end
                 if dist <= zone.radius then inside = zone.id end
             end
@@ -147,20 +151,22 @@ function Control.loop()
     end
 end
 
----Cercle au sol, recalé sur la hauteur du terrain.
+---Dôme et anneau au sol, recalés sur la hauteur du terrain : le bas de la sphère reste sous terre.
 ---@param zone table
-function Control.drawCircle(zone)
+function Control.drawDome(zone)
     if not Control.ground[zone.id] then
         local found, ground = GetGroundZFor_3dCoord(zone.coords.x, zone.coords.y, zone.coords.z + 50.0, false)
         if found then Control.ground[zone.id] = ground end
     end
     local z = Control.ground[zone.id] or zone.coords.z
-    local r, g, b = 160, 160, 160
+    local r, g, b = 235, 235, 235
     if zone.owner then
-        if zone.owner == Control.myTeam(zone) then r, g, b = 181, 242, 61 else r, g, b = 255, 107, 26 end
+        if zone.owner == Control.myTeam(zone) then r, g, b = 181, 242, 61 else r, g, b = 255, 40, 30 end
     end
-    DrawMarker(1, zone.coords.x, zone.coords.y, z - 1.0, 0, 0, 0, 0, 0, 0, zone.radius * 2, zone.radius * 2, 1.5,
-        r, g, b, 60, false, false, 2, false, nil, nil, false)
+    DrawMarker(Control.DOME_MARKER, zone.coords.x, zone.coords.y, z, 0, 0, 0, 0, 0, 0, zone.radius, zone.radius, zone.radius,
+        r, g, b, Control.DOME_ALPHA, false, false, 2, false, nil, nil, false)
+    DrawMarker(1, zone.coords.x, zone.coords.y, z - 1.0, 0, 0, 0, 0, 0, 0, zone.radius * 2, zone.radius * 2, Control.RING_HEIGHT,
+        r, g, b, Control.RING_ALPHA, false, false, 2, false, nil, nil, false)
 end
 
 ---Zone où se trouve le joueur, avec l'état de la capture (le HUD affiche la barre).
