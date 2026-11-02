@@ -309,6 +309,7 @@ export const mockCreator: CreatorPayload = {
 export const mockInit: InitPayload = {
   config: {
     xpPerLevel: 1000,
+    bountyPlayer: { min: 500, max: 50000, maxOnHead: 200000, fee: 0.1, delay: 30 },
     crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24, maxTerritories: 2, territoryInterval: 300, stashCapacity: 500, captureScore: 10 },
     nameColors: {
       maxLetters: 32,

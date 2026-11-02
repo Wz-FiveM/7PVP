@@ -61,6 +61,14 @@ Config.Bounty = {
     perKill = 250,
     announceEvery = 2, -- annonce dans le chat tous les N kills au-delà du seuil
     blip = { sprite = 303, color = 1 },
+    -- Primes posées par les joueurs : payées d'avance, gardées en base jusqu'à la mort de la cible
+    player = {
+        min = 500,
+        max = 50000,
+        maxOnHead = 200000, -- total des primes posées sur une même tête
+        fee = 0.10, -- frais en plus, perdus : retire de l'argent du jeu
+        delay = 30, -- secondes entre deux primes d'un même joueur
+    },
 }
 
 -- Groupes (escouades) en PvP : pas de tir allié, coéquipiers sur la minimap et dans le HUD

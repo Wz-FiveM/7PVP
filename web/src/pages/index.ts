@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { IconName } from '../components/icons/Icon';
+import { BountiesPage } from './BountiesPage';
 import { CasesPage } from './CasesPage';
 import { ClassesPage } from './ClassesPage';
 import { HelpPage } from './HelpPage';
@@ -14,7 +15,7 @@ import { ProfilePage } from './ProfilePage';
 import { ResalePage } from './ResalePage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'inventory' | 'class' | 'group' | 'crew' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
+export type PageId = 'inventory' | 'class' | 'group' | 'crew' | 'bounties' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -31,6 +32,7 @@ export const PAGES: PageDefinition[] = [
   { id: 'class', label: 'Classe', icon: 'crosshair', component: ClassesPage },
   { id: 'group', label: 'Équipe', icon: 'group', component: GroupPage },
   { id: 'crew', label: 'Crew', icon: 'flag', component: CrewPage },
+  { id: 'bounties', label: 'Primes', icon: 'crosshair', component: BountiesPage },
   { id: 'crafting', label: 'Fabrication', icon: 'craft', component: CraftingPage, npcOnly: true },
   { id: 'contracts', label: 'Contrats', icon: 'contract', component: ContractsPage, npcOnly: true },
   { id: 'market', label: 'Place de marché', icon: 'shop', component: MarketPage, npcOnly: true },

@@ -241,6 +241,34 @@
 .group-member__vitals .mono {
   font-size: 0.625rem;
 }
+.bounty-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.bounty-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bounty-form .field {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+.bounty-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bounty-list__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
 .group-form {
   display: flex;
   gap: 0.5rem;

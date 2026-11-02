@@ -166,6 +166,8 @@ export interface ContractsState {
 }
 
 export interface GameConfig {
+  /** Config.Bounty.player : primes posées par les joueurs */
+  bountyPlayer?: { min: number; max: number; maxOnHead: number; fee: number; delay: number };
   shop: ShopEntry[];
   items: Record<string, ItemDefinition>;
   containers: Record<ContainerId, ContainerDefinition>;

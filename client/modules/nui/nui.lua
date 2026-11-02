@@ -204,6 +204,7 @@ function Nui.buildInitPayload()
             shortcutSlots = Config.ShortcutSlots,
             xpPerLevel = Config.XpPerLevel,
             groupMaxSize = Config.Groups.maxSize,
+            bountyPlayer = Config.Bounty.player,
             crew = {
                 maxMembers = Config.Crews.maxMembers,
                 createPrice = Config.Crews.createPrice,

@@ -7,6 +7,7 @@ local PlayerRepository = PVP.use('PlayerRepository')
 local CombatTagService = PVP.use('CombatTagService')
 local GroupService = PVP.use('GroupService')
 local VehicleService = PVP.use('VehicleService')
+local BountyService = PVP.use('BountyService')
 local Locale = PVP.use('Locale')
 
 PvpMode.ID = 'pvp'
@@ -17,6 +18,7 @@ end
 
 ---@param player PvpPlayer
 function PvpMode.enter(player)
+    BountyService.setListed(player, true)
     SpawnService.spawn(player)
 end
 
@@ -40,5 +42,6 @@ end
 function PvpMode.leave(player)
     GroupService.leave(player.source)
     VehicleService.release(player)
+    BountyService.setListed(player, false)
     PlayerRepository.save(player)
 end

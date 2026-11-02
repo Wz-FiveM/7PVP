@@ -4,6 +4,7 @@
 local Bounty = PVP.define('Bounty')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
+local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -21,6 +22,19 @@ function Bounty.init()
         Bounty.refresh()
     end)
     CreateThread(Bounty.loop)
+
+    RegisterCommand('prime', function(_, args)
+        CreateThread(function()
+            local result = Callback.await(Events.callbacks.bountyPlace, { target = tonumber(args[1]), amount = tonumber(args[2]) })
+            if result and result.message then Nui.notify(result.message, result.ok and 'success' or 'error') end
+        end)
+    end, false)
+    RegisterNUICallback('bountyPlace', function(data, cb)
+        cb(Callback.await(Events.callbacks.bountyPlace, { target = tonumber(data.target), amount = tonumber(data.amount) }) or { ok = false })
+    end)
+    RegisterNUICallback('bountyTargets', function(_, cb)
+        cb(Callback.await(Events.callbacks.bountyTargets) or { list = {} })
+    end)
 end
 
 function Bounty.loop()

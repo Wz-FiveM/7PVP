@@ -46,6 +46,7 @@ local NameColors = PVP.use('NameColors')
 local KillfeedBackgroundService = PVP.use('KillfeedBackgroundService')
 local LoadoutSetService = PVP.use('LoadoutSetService')
 local RivalryService = PVP.use('RivalryService')
+local BountyService = PVP.use('BountyService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -167,7 +168,7 @@ function PlayerObject:serialize()
         playerClass = ClassService.describe(self),
         ammoSeq = self.ammoSeq,
         streak = self.streak,
-        bounty = self.bounty,
+        bounty = self.bounty + BountyService.placedOn(self),
         contracts = ContractService.serialize(self),
         loadoutSets = self.loadoutSets,
         season = self.season and {
