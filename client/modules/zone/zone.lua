@@ -43,6 +43,7 @@ function Zone.init()
     end)
     CreateThread(Zone.watchLoop)
     CreateThread(Zone.safeLoop)
+    CreateThread(Zone.pveLoop)
 end
 
 ---Repères des zones du mode en cours (refaits quand on change de mode).
@@ -167,6 +168,43 @@ function Zone.preventCarKill()
         if #(GetEntityCoords(vehicle) - coords) <= Zone.CAR_KILL_RADIUS then
             SetEntityNoCollisionEntity(vehicle, ped, true)
             SetEntityNoCollisionEntity(ped, vehicle, true)
+        end
+    end
+end
+
+-- Monde zombies : en dessous de cette vitesse (m/s), un véhicule sans conducteur reste solide
+-- (on peut y grimper pour fuir les zombies)
+Zone.CAR_KILL_MIN_SPEED = 1.0
+
+function Zone.pveLoop()
+    while true do
+        if LocalPlayer.state.pveWorld == true then
+            Zone.preventPveCarKill()
+            Wait(0)
+        else
+            Wait(250)
+        end
+    end
+end
+
+---Monde zombies, sans PvP : un véhicule en marche traverse les joueurs à pied (les zombies, eux, se font
+---toujours écraser). Le choc ne passe pas par le serveur, c'est le client de la victime qui l'encaisse.
+---Réglé aussi pour les autres joueurs : sans ça, le conducteur bute sur une cible qui ne bouge pas chez elle.
+function Zone.preventPveCarKill()
+    local peds = {}
+    for _, player in ipairs(GetActivePlayers()) do
+        local ped = GetPlayerPed(player)
+        if not IsPedInAnyVehicle(ped, false) then peds[#peds + 1] = ped end
+    end
+    for _, vehicle in ipairs(GetGamePool('CVehicle')) do
+        if GetEntitySpeed(vehicle) >= Zone.CAR_KILL_MIN_SPEED or IsPedAPlayer(GetPedInVehicleSeat(vehicle, -1)) then
+            local coords = GetEntityCoords(vehicle)
+            for _, ped in ipairs(peds) do
+                if #(GetEntityCoords(ped) - coords) <= Zone.CAR_KILL_RADIUS then
+                    SetEntityNoCollisionEntity(vehicle, ped, true)
+                    SetEntityNoCollisionEntity(ped, vehicle, true)
+                end
+            end
         end
     end
 end

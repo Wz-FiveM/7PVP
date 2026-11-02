@@ -19,6 +19,7 @@ local Items = PVP.use('Items')
 local ContractService = PVP.use('ContractService')
 local ConflictService = PVP.use('ConflictService')
 local DungeonService = PVP.use('DungeonService')
+local PveWorldService = PVP.use('PveWorldService')
 local CrewStatsService = PVP.use('CrewStatsService')
 local DiscordService = PVP.use('DiscordService')
 local Events = PVP.use('Events')
@@ -190,13 +191,14 @@ function CombatService.dropVictimLoot(victim, coords)
 end
 
 ---Tueur annoncé par la victime, s'il est dans le même monde et que le serveur a vu ce kill.
+---Jamais dans le monde zombies, sans PvP : ce qui passe encore (explosion, véhicule) ne rapporte rien.
 ---Peut attendre la vie synchronisée de la victime (voir KillProof.confirm).
 ---@param victim PvpPlayer
 ---@param killerId any
 ---@return PvpPlayer|nil
 function CombatService.resolveKiller(victim, killerId)
     killerId = tonumber(killerId)
-    if not killerId or killerId == victim.source or victim.mode ~= 'pvp' then return nil end
+    if not killerId or killerId == victim.source or victim.mode ~= 'pvp' or PveWorldService.isInside(victim.source) then return nil end
 
     local killer = PlayerService.get(killerId)
     if not killer or killer.mode ~= victim.mode or GetPlayerRoutingBucket(killerId) ~= GetPlayerRoutingBucket(victim.source)
