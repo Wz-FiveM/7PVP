@@ -7,6 +7,7 @@ local Hud = PVP.define('Hud')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Items = PVP.use('Items')
+local Loadout = PVP.use('Loadout')
 
 Hud.INTERVAL = 200
 Hud.MINIMAP_INTERVAL = 1000
@@ -137,7 +138,7 @@ function Hud.collect()
     if item and item.ammo then
         local _, clip = GetAmmoInClip(ped, hash)
         data.clip = clip
-        data.reserve = math.max(0, GetAmmoInPedWeapon(ped, hash) - clip)
+        data.reserve = math.max(0, GetAmmoInPedWeapon(ped, hash) - clip) + Loadout.surplusOf(item.ammo)
     end
     return data
 end

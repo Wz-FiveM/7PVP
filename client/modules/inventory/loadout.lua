@@ -14,6 +14,7 @@ Loadout.TRACK_INTERVAL = 250
 Loadout.FLUSH_INTERVAL = 2000
 
 Loadout.expected = {} -- [objet munitions] = munitions attendues dans le pool GTA
+Loadout.surplus = {} -- [objet munitions] = munitions de l'inventaire au-delà du plafond du pool GTA
 Loadout.ammoWeapon = {} -- [objet munitions] = hash d'une arme possédée de ce calibre
 Loadout.pending = {} -- munitions tirées pas encore envoyées
 Loadout.batches = {} -- lots envoyés pas encore confirmés : { seq, used }
@@ -69,11 +70,23 @@ function Loadout.apply()
     end
 
     Loadout.expected = {}
+    Loadout.surplus = {}
     for ammoName, hash in pairs(Loadout.ammoWeapon) do
         local total = math.max(0, Items.countUsable(inventory, ammoName) - Loadout.unconfirmed(ammoName))
         SetPedAmmo(ped, hash, total)
-        Loadout.expected[ammoName] = total
+        -- GTA plafonne le pool (250 balles de fusil...) : le reste attend dans l'inventaire,
+        -- il ne doit surtout pas être compté comme tiré. Chaque synchro remplit à nouveau le pool.
+        local loaded = math.min(total, GetAmmoInPedWeapon(ped, hash))
+        Loadout.expected[ammoName] = loaded
+        Loadout.surplus[ammoName] = total - loaded
     end
+end
+
+---Munitions possédées qui ne tiennent pas dans le pool GTA (à ajouter à la réserve affichée).
+---@param ammoName string
+---@return integer
+function Loadout.surplusOf(ammoName)
+    return State.inPvp() and Loadout.surplus[ammoName] or 0
 end
 
 ---@param ped integer
@@ -159,4 +172,5 @@ function Loadout.onDeath()
     Loadout.track()
     Loadout.flush()
     Loadout.expected = {}
+    Loadout.surplus = {}
 end
