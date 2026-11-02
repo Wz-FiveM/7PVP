@@ -17,6 +17,7 @@ local HordeService = PVP.use('HordeService')
 local ConflictService = PVP.use('ConflictService')
 local DungeonService = PVP.use('DungeonService')
 local SpectateService = PVP.use('SpectateService')
+local KillMessageService = PVP.use('KillMessageService')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
@@ -36,6 +37,7 @@ AdminService.ACTIONS = {
     bringPlayer = { method = 'bringPlayer', target = true },
     sendToLobby = { method = 'sendToLobby', target = true },
     kick = { method = 'kick', target = true },
+    clearKillMessage = { method = 'clearKillMessage', target = true },
     spectate = { method = 'spectate', target = true },
     spectateStop = { method = 'spectateStop', target = false },
     announce = { method = 'announce', target = false },
@@ -338,6 +340,14 @@ function AdminService.sendToLobby(_, target)
     LobbyService.open(target)
     target:notify(Locale.t('Un admin t\'a renvoyé au lobby.'), 'info')
     return true, Locale.t('%s renvoyé au lobby.', target.name)
+end
+
+---@param target PvpPlayer
+function AdminService.clearKillMessage(_, target)
+    local previous = KillMessageService.clear(target)
+    if not previous then return false, Locale.t('%s n\'a aucun message de kill à effacer.', target.name) end
+    target:notify(Locale.t('Un admin a effacé ton message de kill.'), 'info')
+    return true, Locale.t('Message de kill de %s effacé : « %s »', target.name, previous)
 end
 
 ---@param target PvpPlayer

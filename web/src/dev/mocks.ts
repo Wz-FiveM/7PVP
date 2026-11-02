@@ -451,6 +451,7 @@ export const mockInit: InitPayload = {
       { id: 'or', label: 'Or', price: 750, css: 'linear-gradient(90deg, rgba(190, 140, 30, 0.65), rgba(95, 65, 15, 0.5))' },
       { id: 'carbone', label: 'Carbone', price: 750, css: 'repeating-linear-gradient(135deg, rgba(55, 58, 62, 0.65) 0 0.25rem, rgba(15, 16, 18, 0.65) 0.25rem 0.5rem)' },
     ],
+    killMessage: { price: 500, maxLength: 60 },
     shortcutSlots: 7,
     containers: {
       bag: { label: 'Mon sac', capacity: 50 },

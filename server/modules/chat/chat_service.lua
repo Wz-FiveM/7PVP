@@ -39,15 +39,17 @@ end
 
 ---Nettoie un message : texte uniquement, sans caractères de contrôle, longueur limitée.
 ---@param text any
+---@param maxLength? integer longueur en caractères (défaut : celle du chat)
 ---@return string|nil
-function ChatService.sanitize(text)
+function ChatService.sanitize(text, maxLength)
     if type(text) ~= 'string' then return nil end
     text = text:gsub('%c', ' '):gsub('^%s+', ''):gsub('%s+$', '')
     if text == '' or not utf8.len(text) then return nil end
 
     -- Coupe en caractères (UTF-8), pas en octets, pour ne pas casser un accent
-    if utf8.len(text) > Config.Chat.maxLength then
-        text = text:sub(1, utf8.offset(text, Config.Chat.maxLength + 1) - 1)
+    maxLength = maxLength or Config.Chat.maxLength
+    if utf8.len(text) > maxLength then
+        text = text:sub(1, utf8.offset(text, maxLength + 1) - 1)
     end
     return text
 end

@@ -20,7 +20,7 @@ export interface AdminSelf extends Record<AdminToggle, boolean> {
 
 export type AdminAction =
   | 'giveItem' | 'giveMoney' | 'heal' | 'revive' | 'kill' | 'freeze'
-  | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick' | 'spectate' | 'spectateStop'
+  | 'gotoPlayer' | 'bringPlayer' | 'sendToLobby' | 'kick' | 'clearKillMessage' | 'spectate' | 'spectateStop'
   | 'announce' | 'clearLoot' | 'airdrop' | 'blackMarket' | 'convoy' | 'horde' | 'conflict' | 'conflictEnd' | 'dungeonSkip' | 'dungeonStop'
   | 'noclip' | 'god' | 'invisible' | 'gamertags' | 'tpWaypoint' | 'spawnVehicle' | 'deleteVehicle' | 'gotoPoint';
 

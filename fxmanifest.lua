@@ -89,6 +89,7 @@ server_scripts {
     'server/modules/player/player_service.lua',
     'server/modules/player/name_color_service.lua',
     'server/modules/player/killfeed_background_service.lua',
+    'server/modules/player/kill_message_service.lua',
     'server/modules/player/achievement_service.lua',
     'server/modules/player/tutorial_service.lua',
     'server/modules/connection/connection_service.lua',

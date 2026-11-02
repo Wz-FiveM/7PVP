@@ -31,6 +31,8 @@
 ---@field nameColor string|nil couleurs du nom en PvP, un code par lettre (voir NameColors)
 ---@field killfeedBackground string|nil fond choisi pour ses lignes du killfeed (KillfeedBackgroundService)
 ---@field killfeedOwned table<string, boolean> fonds du killfeed achetés
+---@field killMessage string|nil texte montré à ses victimes (KillMessageService)
+---@field killMessageOwned boolean droit au message de kill acheté
 ---@field loadoutSets (table<string, integer>|false)[] sets d'équipement (LoadoutSetService)
 ---@field achievements PvpAchievements hauts faits et titre choisi (AchievementService)
 ---@field seasonTitles table<string, string>|nil titres de saison possédés : id -> texte (SeasonRewardService)
@@ -166,6 +168,8 @@ function PlayerObject:serialize()
         nameColor = self.nameColor,
         killfeedBackground = self.killfeedBackground,
         killfeedOwned = KillfeedBackgroundService.ownedList(self),
+        killMessage = self.killMessage,
+        killMessageOwned = self.killMessageOwned,
         avatar = self.avatar,
         money = self:getMoney(),
         shopPoints = self.shopPoints or 0,

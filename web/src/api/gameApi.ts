@@ -65,6 +65,12 @@ export const gameApi = {
   /** Achat d'un fond du killfeed en points boutique, équipé aussitôt */
   buyKillfeedBackground: (id: string) => fetchNui<ActionResult>('killfeedBackgroundBuy', { id }, MOCK_OK),
 
+  /** Achat du message de kill en points boutique, avec son premier texte */
+  buyKillMessage: (text: string) => fetchNui<ActionResult>('killMessageBuy', { text }, MOCK_OK),
+
+  /** Chaîne vide pour ne plus afficher de message */
+  saveKillMessage: (text: string) => fetchNui<ActionResult>('killMessageSave', { text }, MOCK_OK),
+
   blackMarketList: () => fetchNui<BlackMarketState>('blackMarketList', {}, {
     open: true,
     near: true,

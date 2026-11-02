@@ -114,6 +114,7 @@ function PlayerActions({ player, items, onRun }: PlayerActionsProps) {
         <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: true })}>{t('Geler')}</button>
         <button className="btn btn--small cut-s" onClick={() => onRun('freeze', { state: false })}>{t('Dégeler')}</button>
         <button className="btn btn--small btn--danger cut-s" onClick={() => onRun('kill')}>{t('Tuer')}</button>
+        <button className="btn btn--small cut-s" onClick={() => onRun('clearKillMessage')}>{t('Effacer le message de kill')}</button>
       </div>
 
       <span className="label">{t('Position')}</span>

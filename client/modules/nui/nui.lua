@@ -156,6 +156,14 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.killfeedBackgroundSelect, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('killMessageBuy', function(data, cb)
+        cb(Callback.await(Events.callbacks.killMessageBuy, data.text) or { ok = false })
+    end)
+
+    RegisterNUICallback('killMessageSave', function(data, cb)
+        cb(Callback.await(Events.callbacks.killMessageSave, data.text) or { ok = false })
+    end)
+
     RegisterNUICallback('tutorialSkip', function(_, cb)
         cb(Callback.await(Events.callbacks.tutorialSkip) or { ok = false })
     end)
@@ -252,6 +260,7 @@ function Nui.buildInitPayload()
             seasonRewardsMinKills = Config.SeasonRewards.minKills,
             achievementStats = Config.AchievementStats,
             killfeedBackgrounds = Config.KillfeedBackgrounds,
+            killMessage = Config.KillMessage,
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,
             recipes = Config.Recipes,

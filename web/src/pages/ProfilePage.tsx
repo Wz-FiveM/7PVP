@@ -174,6 +174,75 @@ function KillfeedBackgroundPicker({ name, colors }: { name: string; colors?: str
   );
 }
 
+/**
+ * Message de kill, en PvP : acheté une fois avec son premier texte, puis modifiable sans payer.
+ * Le serveur nettoie le texte et décide du paiement.
+ */
+function KillMessageEditor({ name }: { name: string }) {
+  const t = useT();
+  const { state, actions } = useGame();
+  const { player } = state;
+  const config = state.config.killMessage;
+  const saved = player?.killMessage ?? '';
+  const [draft, setDraft] = useState(saved);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setDraft(saved), [saved]);
+
+  if (!player || !config) return null;
+  const text = draft.trim();
+  const short = state.config.shopPoints?.short ? t(state.config.shopPoints.short) : undefined;
+
+  const run = (action: Promise<ActionResult>) => {
+    setBusy(true);
+    action.then((result) => {
+      setBusy(false);
+      if (result?.message) actions.notify(result.message, result.ok ? 'success' : 'error');
+    });
+  };
+
+  return (
+    <div className="name-colors">
+      <span className="label">{t('Message de kill')}</span>
+      <div className="kill-message-preview">
+        <span className="disp death__killer">
+          {t('Tué par')} <span>{name}</span>
+        </span>
+        {text && <p className="death__message">« {text} »</p>}
+      </div>
+      <input
+        className="field"
+        value={draft}
+        maxLength={config.maxLength}
+        placeholder={t('Ton message')}
+        aria-label={t('Message de kill')}
+        onChange={(event) => setDraft(event.target.value)}
+      />
+      <div className="name-colors__actions killfeed-preview__actions">
+        <span className="mono muted">{Array.from(draft).length} / {config.maxLength}</span>
+        {player.killMessageOwned ? (
+          <button
+            className="btn btn--primary btn--small cut-s"
+            disabled={busy || text === saved}
+            onClick={() => run(gameApi.saveKillMessage(text))}
+          >
+            {t('Enregistrer')}
+          </button>
+        ) : (
+          <button
+            className="btn btn--primary btn--small cut-s"
+            disabled={busy || !text || (player.shopPoints ?? 0) < config.price}
+            onClick={() => run(gameApi.buyKillMessage(text))}
+          >
+            {t('Acheter : {price}', { price: formatPoints(config.price, short) })}
+          </button>
+        )}
+      </div>
+      <span className="muted name-colors__hint">{t('Ton message s\'affiche sur l\'écran de mort des joueurs que tu élimines en PvP. Acheté une fois, il se change ensuite sans payer.')}</span>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const t = useT();
   const { state } = useGame();
@@ -224,6 +293,7 @@ export function ProfilePage() {
         </span>
         {pvp && <NameColorEditor name={player.name} />}
         {pvp && <KillfeedBackgroundPicker name={displayName} colors={nameColors} />}
+        {pvp && <KillMessageEditor name={displayName} />}
       </Panel>
 
       <div className="stat-grid">

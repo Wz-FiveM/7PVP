@@ -48,6 +48,10 @@ export interface PlayerState {
   killfeedBackground?: string;
   /** fonds du killfeed achetés */
   killfeedOwned?: string[];
+  /** texte montré à ses victimes sur l'écran de mort, absent = aucun */
+  killMessage?: string;
+  /** droit au message de kill acheté */
+  killMessageOwned?: boolean;
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
   money: number;
@@ -248,6 +252,7 @@ export interface GameConfig {
   crew?: CrewConfig;
   nameColors?: NameColorsConfig;
   killfeedBackgrounds?: KillfeedBackground[];
+  killMessage?: { price: number; maxLength: number };
   /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
@@ -791,6 +796,8 @@ export interface DeathRecap {
   distance?: number;
   killerHealth?: number;
   killerArmor?: number;
+  /** message écrit par le tueur, jamais traduit */
+  killerMessage?: string;
   /** dégâts qu'il t'a infligés / que tu lui as infligés */
   taken?: DamageSummary;
   dealt?: DamageSummary;

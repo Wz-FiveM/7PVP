@@ -35,6 +35,7 @@ DiscordService.ADMIN_LABELS = {
     bringPlayer = 'Joueur ramené',
     sendToLobby = 'Renvoi au lobby',
     kick = 'Expulsion',
+    clearKillMessage = 'Message de kill effacé',
     announce = 'Annonce',
     clearLoot = 'Nettoyage du butin',
     airdrop = 'Largage',

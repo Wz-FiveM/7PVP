@@ -7,6 +7,7 @@ local LootService = PVP.use('LootService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local CombatTagService = PVP.use('CombatTagService')
 local BountyService = PVP.use('BountyService')
+local KillMessageService = PVP.use('KillMessageService')
 local RivalryService = PVP.use('RivalryService')
 local GroupService = PVP.use('GroupService')
 local AchievementService = PVP.use('AchievementService')
@@ -306,6 +307,7 @@ function CombatService.buildRecap(victim, killer, cause)
     recap.distance = math.floor(#(killer:getCoords() - victim:getCoords()) + 0.5)
     recap.killerHealth = math.max(0, GetEntityHealth(ped) - 100)
     recap.killerArmor = GetPedArmour(ped)
+    recap.killerMessage = KillMessageService.shownBy(killer)
     recap.taken = { damage = taken.damage or 0, hits = taken.hits or 0, headshots = taken.headshots or 0 }
     recap.dealt = { damage = dealt.damage or 0, hits = dealt.hits or 0, headshots = dealt.headshots or 0 }
     return recap

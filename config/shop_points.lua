@@ -13,6 +13,13 @@ Config.ShopPoints = {
     maxPerCommand = 1000000, -- garde-fou : montant maximum d'un addpoints / removepoints
 }
 
+-- Message de kill (menu Profil, en PvP) : acheté pour toujours, le texte se change sans payer.
+-- Le message du tueur s'affiche sur l'écran de mort de sa victime.
+Config.KillMessage = {
+    price = 500, -- points, plus de 0
+    maxLength = 60, -- caractères, 80 au plus (taille de la colonne)
+}
+
 -- Fonds du killfeed (menu Profil, en PvP) : achetés pour toujours en points boutique.
 -- Le fond du tueur s'affiche sur la ligne de son kill, pour tous les joueurs du mode.
 -- id : gardé en base (16 caractères au plus). price : prix en points, plus de 0.

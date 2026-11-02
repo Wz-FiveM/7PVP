@@ -42,6 +42,7 @@ function DeathRecapPanel({ recap }: { recap: DeathRecap }) {
       <span className="disp death__killer">
         {t('Tué par')} <span>{recap.killer}</span>
       </span>
+      {recap.killerMessage && <p className="death__message">« {recap.killerMessage} »</p>}
       <div className="death__facts mono">
         {recap.weapon && <span>{t('ARME : {weapon}', { weapon: t(recap.weapon).toUpperCase() })}</span>}
         {recap.distance !== undefined && <span>{t('DISTANCE : {distance} M', { distance: recap.distance })}</span>}

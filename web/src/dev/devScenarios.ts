@@ -441,6 +441,14 @@ export const DEV_ACTIONS: DevAction[] = [
         data: { ...mockInit.player!, shopPoints: 50, killfeedOwned: ['nuit', 'neon'], killfeedBackground: 'neon' },
       }),
   },
+  {
+    label: 'Profil : message de kill acheté',
+    run: () =>
+      sendNui({
+        action: 'sync',
+        data: { ...mockInit.player!, killMessageOwned: true, killMessage: 'Reviens quand tu sauras viser.' },
+      }),
+  },
   { label: 'Raccourcis (TAB)', run: () => sendNui({ action: 'hotbar', data: { visible: true } }) },
   { label: 'Cacher raccourcis', run: () => sendNui({ action: 'hotbar', data: { visible: false } }) },
   { label: 'Zone safe', run: () => sendNui({ action: 'zone', data: mockInit.zone }) },
@@ -481,6 +489,21 @@ export const DEV_ACTIONS: DevAction[] = [
           seconds: 8,
           recap: {
             killer: 'Bravo', killerId: 7, weapon: 'Carabine', distance: 42, killerHealth: 37, killerArmor: 0,
+            taken: { damage: 148, hits: 6, headshots: 1 }, dealt: { damage: 63, hits: 4, headshots: 0 },
+          },
+        },
+      }),
+  },
+  {
+    label: 'Mort (récap + message du tueur)',
+    run: () =>
+      sendNui({
+        action: 'death',
+        data: {
+          seconds: 8,
+          recap: {
+            killer: 'Bravo', killerId: 7, weapon: 'Carabine', distance: 42, killerHealth: 37, killerArmor: 0,
+            killerMessage: 'Reviens quand tu sauras viser.',
             taken: { damage: 148, hits: 6, headshots: 1 }, dealt: { damage: 63, hits: 4, headshots: 0 },
           },
         },
