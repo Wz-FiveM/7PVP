@@ -314,6 +314,34 @@
 .crew-form .btn {
   align-self: flex-start;
 }
+.crew-territories {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.crew-territory {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+}
+.crew-territory__name {
+  font-weight: 600;
+}
+.crew-territory__owner {
+  color: var(--brume-hi);
+}
+.crew-territory--mine .crew-territory__owner {
+  color: var(--toxine);
+}
+.crew-territory__income {
+  font-size: 0.75rem;
+  color: var(--brume);
+}
 
 /* Fabrication ------------------------------------------------------------------------ */
 

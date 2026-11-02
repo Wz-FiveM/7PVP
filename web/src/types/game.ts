@@ -403,6 +403,18 @@ export interface CrewConfig {
   maxMembers: number;
   createPrice: number;
   nameMaxLength: number;
+  /** Config.ControlZones.territories : maximum par crew, secondes entre deux versements */
+  maxTerritories: number;
+  territoryInterval: number;
+}
+
+/** Territoire affiché dans le menu Crew (client/modules/control/control.lua) */
+export interface TerritoryInfo {
+  id: string;
+  label: string;
+  ownerLabel: string | false;
+  mine: boolean;
+  income: number;
 }
 
 /** Crew du joueur, envoyé par server/modules/crew/crew_service.lua */
@@ -677,6 +689,14 @@ export interface ControlZoneHud {
   /** 0 à 100 */
   progress: number;
   contested: boolean;
+  /** territoire de crew : les champs qui suivent n'ont de sens qu'avec lui */
+  territory?: boolean;
+  /** protégé après une prise : aucune capture possible */
+  protected?: boolean;
+  /** le joueur n'a pas de crew */
+  noCrew?: boolean;
+  /** son crew a déjà le maximum de territoires */
+  atLimit?: boolean;
 }
 
 /** Zone de conflit où se trouve le joueur (client/modules/conflict/conflict.lua) */

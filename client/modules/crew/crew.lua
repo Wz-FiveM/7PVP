@@ -5,6 +5,7 @@ local Crew = PVP.define('Crew')
 local Nui = PVP.use('Nui')
 local State = PVP.use('State')
 local Gamertags = PVP.use('Gamertags')
+local Control = PVP.use('Control')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -86,6 +87,7 @@ function Crew.onSync(data)
     Crew.data = data or false
     Gamertags.setCrew(Crew.data and Crew.data.tag or nil)
     Nui.send('crew', { crew = Crew.data })
+    Control.refresh()
 end
 
 ---@param invite { tag: string, name: string, fromName: string }

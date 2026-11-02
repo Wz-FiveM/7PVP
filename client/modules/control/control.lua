@@ -1,9 +1,11 @@
 ---Zones de contrôle côté client : repères sur la carte (couleur selon le propriétaire),
 ---cercle au sol et barre de capture dans le HUD quand on est dedans.
+---Territoires (zone.crew) : le camp du joueur est son crew, et le menu Crew en affiche la liste.
 ---@class ControlModule
 local Control = PVP.define('Control')
 local State = PVP.use('State')
 local Group = PVP.use('Group')
+local Crew = PVP.use('Crew')
 local Nui = PVP.use('Nui')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -16,19 +18,31 @@ Control.zones = {}
 Control.blips = {}
 Control.ground = {} -- id -> hauteur du sol trouvée
 Control.insideId = false
+Control.lastTerritories = ''
 
 function Control.init()
     RegisterNetEvent(Events.client.controlZones, function(list)
         Control.zones = type(list) == 'table' and list or {}
-        Control.refreshBlips()
-        Control.sendHud()
+        Control.refresh()
     end)
     CreateThread(Control.loop)
 end
 
----@return string camp du joueur local (même format que le serveur)
-function Control.myTeam()
-    if Group.data then return 'g:' .. Group.data.id end
+---État reçu, ou crew du joueur qui change (voir Crew.onSync) : le camp peut ne plus être le même.
+function Control.refresh()
+    Control.refreshBlips()
+    Control.sendHud()
+    Control.sendTerritories()
+end
+
+---@param zone table
+---@return string camp du joueur local dans cette zone (même format que le serveur)
+function Control.myTeam(zone)
+    if zone.crew then
+        if Crew.data then return 'c:' .. Crew.data.tag end
+    elseif Group.data then
+        return 'g:' .. Group.data.id
+    end
     return 'p:' .. GetPlayerServerId(PlayerId())
 end
 
@@ -37,7 +51,45 @@ end
 function Control.colorOf(zone)
     local colors = Config.ControlZones.blip
     if not zone.owner then return colors.neutral end
-    return zone.owner == Control.myTeam() and colors.mine or colors.enemy
+    return zone.owner == Control.myTeam(zone) and colors.mine or colors.enemy
+end
+
+---@return table[] territoires pour le menu Crew
+function Control.territoryList()
+    local list = {}
+    for _, zone in ipairs(Control.zones) do
+        if zone.crew then
+            list[#list + 1] = {
+                id = zone.id,
+                label = zone.label,
+                ownerLabel = zone.ownerLabel,
+                mine = zone.owner == Control.myTeam(zone),
+                income = zone.income,
+            }
+        end
+    end
+    return list
+end
+
+---Le menu n'a besoin que des propriétaires : rien à envoyer pendant une capture.
+function Control.sendTerritories()
+    local list = Control.territoryList()
+    local key = json.encode(list)
+    if key == Control.lastTerritories then return end
+    Control.lastTerritories = key
+    Nui.send('territories', { territories = list })
+end
+
+---@param zone table territoire
+---@return boolean le crew du joueur est au maximum et ne tient pas déjà ce territoire
+function Control.atTerritoryLimit(zone)
+    local team = Control.myTeam(zone)
+    if not Crew.data or zone.owner == team then return false end
+    local count = 0
+    for _, other in ipairs(Control.zones) do
+        if other.crew and other.owner == team then count = count + 1 end
+    end
+    return count >= Config.ControlZones.territories.maxPerCrew
 end
 
 function Control.refreshBlips()
@@ -54,7 +106,7 @@ function Control.refreshBlips()
             local area = AddBlipForRadius(zone.coords.x, zone.coords.y, zone.coords.z, zone.radius)
             SetBlipAlpha(area, 110)
             local icon = AddBlipForCoord(zone.coords.x, zone.coords.y, zone.coords.z)
-            SetBlipSprite(icon, Config.ControlZones.blip.sprite)
+            SetBlipSprite(icon, zone.crew and Config.ControlZones.territories.sprite or Config.ControlZones.blip.sprite)
             SetBlipAsShortRange(icon, true)
             blips = { area = area, icon = icon, coords = zone.coords, radius = zone.radius }
             Control.blips[zone.id] = blips
@@ -62,7 +114,7 @@ function Control.refreshBlips()
         local color = Control.colorOf(zone)
         SetBlipColour(blips.area, color)
         SetBlipColour(blips.icon, color)
-        local label = Locale.t(zone.label)
+        local label = zone.crew and Locale.t('Territoire : %s', Locale.t(zone.label)) or Locale.t(zone.label)
         BeginTextCommandSetBlipName('STRING')
         AddTextComponentSubstringPlayerName(zone.ownerLabel and ('%s (%s)'):format(label, Locale.resolve(zone.ownerLabel)) or label)
         EndTextCommandSetBlipName(blips.icon)
@@ -105,7 +157,7 @@ function Control.drawCircle(zone)
     local z = Control.ground[zone.id] or zone.coords.z
     local r, g, b = 160, 160, 160
     if zone.owner then
-        if zone.owner == Control.myTeam() then r, g, b = 181, 242, 61 else r, g, b = 255, 107, 26 end
+        if zone.owner == Control.myTeam(zone) then r, g, b = 181, 242, 61 else r, g, b = 255, 107, 26 end
     end
     DrawMarker(1, zone.coords.x, zone.coords.y, z - 1.0, 0, 0, 0, 0, 0, 0, zone.radius * 2, zone.radius * 2, 1.5,
         r, g, b, 60, false, false, 2, false, nil, nil, false)
@@ -116,7 +168,7 @@ function Control.sendHud()
     local current = false
     for _, zone in ipairs(Control.zones) do
         if zone.id == Control.insideId then
-            local team = Control.myTeam()
+            local team = Control.myTeam(zone)
             current = {
                 label = zone.label,
                 ownerLabel = zone.ownerLabel,
@@ -125,6 +177,10 @@ function Control.sendHud()
                 enemyCapturing = zone.capturer ~= false and zone.capturer ~= team,
                 progress = zone.progress,
                 contested = zone.contested,
+                territory = zone.crew,
+                protected = zone.protected,
+                noCrew = zone.crew and not Crew.data,
+                atLimit = zone.crew and Control.atTerritoryLimit(zone),
             }
         end
     end

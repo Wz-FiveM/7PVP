@@ -4,6 +4,7 @@ import type {
   GameConfig,
   CrewData,
   CrewInvite,
+  TerritoryInfo,
   GroupData,
   GroupInvite,
   GroupVital,
@@ -69,6 +70,8 @@ export interface GameState {
   /** Crew du joueur et invitation reçue */
   crew: CrewData | null;
   crewInvite: CrewInvite | null;
+  /** Territoires de crews (menu Crew) */
+  territories: TerritoryInfo[];
   /** Menu pause (Échap) */
   pause: { open: boolean; info: PauseInfo | null };
   toasts: Toast[];
@@ -121,6 +124,7 @@ export type GameAction =
   | { type: 'group/vitals'; vitals: GroupVital[] }
   | { type: 'crew'; crew: CrewData | null }
   | { type: 'crew/invite'; invite: CrewInvite | null }
+  | { type: 'territories'; territories: TerritoryInfo[] }
   | { type: 'pause'; open: boolean; info?: PauseInfo }
   | { type: 'toast/add'; toast: Toast }
   | { type: 'toast/remove'; id: number }
@@ -171,6 +175,7 @@ export const initialState: GameState = {
   groupVitals: [],
   crew: null,
   crewInvite: null,
+  territories: [],
   pause: { open: false, info: null },
   toasts: [],
   killfeed: [],
@@ -195,6 +200,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         config: action.payload.config,
         player: action.payload.player ?? state.player,
         crew: action.payload.crew || state.crew,
+        territories: action.payload.territories ?? state.territories,
         zone: action.payload.zone,
         mode: action.payload.mode === undefined ? state.mode : action.payload.mode || null,
         lobby: action.payload.lobby ?? state.lobby,
@@ -288,6 +294,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, crew: action.crew, crewInvite: action.crew ? null : state.crewInvite };
     case 'crew/invite':
       return { ...state, crewInvite: action.invite };
+    case 'territories':
+      return { ...state, territories: action.territories };
     case 'combat':
       return { ...state, combatUntil: action.seconds > 0 ? Date.now() + action.seconds * 1000 : 0 };
     case 'toast/add':

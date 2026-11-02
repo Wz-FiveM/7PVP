@@ -10,8 +10,9 @@ import './pages.css';
 export function CrewPage() {
   const t = useT();
   const { state, actions } = useGame();
-  const { crew, crewInvite, player } = state;
+  const { crew, crewInvite, player, territories } = state;
   const config = state.config.crew;
+  const territoryMinutes = Math.round((config?.territoryInterval ?? 300) / 60);
   const [tag, setTag] = useState('');
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
@@ -147,6 +148,23 @@ export function CrewPage() {
         </Panel>
       )}
 
+      {territories.length > 0 && (
+        <Panel className="group-panel">
+          <span className="label">{t('Territoires')}</span>
+          <ul className="crew-territories">
+            {territories.map((territory) => (
+              <li key={territory.id} className={territory.mine ? 'crew-territory crew-territory--mine' : 'crew-territory'}>
+                <span className="crew-territory__name">{t(territory.label)}</span>
+                <span className="crew-territory__owner">{territory.ownerLabel || t('Libre')}</span>
+                <span className="mono crew-territory__income">
+                  {t('${amount} / {minutes} min', { amount: formatNumber(territory.income), minutes: territoryMinutes })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
       <Panel className="group-rules">
         <span className="label">{t('Règles')}</span>
         <ul className="group-rules__list">
@@ -154,6 +172,7 @@ export function CrewPage() {
           <li>{t('Jusqu\'à {count} membres. Un crew reste d\'une session à l\'autre, même hors ligne.', { count: config?.maxMembers ?? 20 })}</li>
           <li>{t('Tu vois le gamertag des membres de ton crew au-dessus de leur tête.')}</li>
           <li>{t('Le tir allié reste actif dans un crew : forme une équipe pour le couper.')}</li>
+          <li>{t('Un territoire capturé paie chaque membre connecté en PvP, et reste au crew d\'une session à l\'autre. {count} territoires au plus par crew.', { count: config?.maxTerritories ?? 2 })}</li>
           <li>{t('Chat : /crewinviter ID, /crewaccepter, /crewrefuser, /crewquitter.')}</li>
         </ul>
       </Panel>

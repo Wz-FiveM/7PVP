@@ -19,6 +19,7 @@ local PlayerService = PVP.use('PlayerService')
 local GroupService = PVP.use('GroupService')
 local AdminService = PVP.use('AdminService')
 local DiscordService = PVP.use('DiscordService')
+local ControlService = PVP.use('ControlService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -69,6 +70,7 @@ function CrewService.load()
         if crew then CrewService.attach(crew, row.identifier, row.name) end
     end
     Logger.info('Crews chargés : %d', #crews)
+    ControlService.restoreTerritories(CrewRepository.loadTerritories())
 
     -- Joueurs arrivés avant la fin du chargement (redémarrage de la ressource)
     for _, player in pairs(PlayerService.all()) do
@@ -294,6 +296,7 @@ function CrewService.leave(source)
     if #crew.members == 0 then
         CrewService.crews[crew.tag] = nil
         CrewRepository.delete(crew.tag)
+        ControlService.releaseCrew(crew.tag)
         return { ok = true, message = Locale.t('Tu as quitté le crew : il est dissous.') }
     end
 
@@ -414,6 +417,7 @@ function CrewService.dissolve(crew)
         CrewService.removeMember(crew, crew.members[1].identifier)
     end
     CrewRepository.delete(crew.tag)
+    ControlService.releaseCrew(crew.tag)
 end
 
 ---@param source integer

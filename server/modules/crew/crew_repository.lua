@@ -19,6 +19,13 @@ CrewRepository.SCHEMAS = {
         PRIMARY KEY (identifier),
         KEY idx_crew (crew_tag)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
+    [[CREATE TABLE IF NOT EXISTS pvp_crew_territories (
+        zone_id VARCHAR(32) NOT NULL,
+        crew_tag CHAR(3) NOT NULL,
+        protected_until INT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (zone_id),
+        KEY idx_crew (crew_tag)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
 }
 
 ---Crée les tables si besoin et renvoie tous les crews et leurs membres.
@@ -65,6 +72,20 @@ end
 
 ---@param tag string
 function CrewRepository.delete(tag)
+    MySQL.update('DELETE FROM pvp_crew_territories WHERE crew_tag = ?', { tag })
     MySQL.update('DELETE FROM pvp_crew_members WHERE crew_tag = ?', { tag })
     MySQL.update('DELETE FROM pvp_crews WHERE tag = ?', { tag })
+end
+
+---À appeler après loadAll, qui crée la table.
+---@return table[] territoires { zone_id, crew_tag, protected_until }
+function CrewRepository.loadTerritories()
+    return MySQL.query.await('SELECT zone_id, crew_tag, protected_until FROM pvp_crew_territories') or {}
+end
+
+---@param zoneId string
+---@param tag string
+---@param protectedUntil integer os.time() de la fin de la protection
+function CrewRepository.setTerritory(zoneId, tag, protectedUntil)
+    MySQL.insert('REPLACE INTO pvp_crew_territories (zone_id, crew_tag, protected_until) VALUES (?, ?, ?)', { zoneId, tag, protectedUntil })
 end

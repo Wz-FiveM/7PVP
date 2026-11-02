@@ -13,6 +13,7 @@ local SafeNpcs = PVP.use('SafeNpcs')
 local Loot = PVP.use('Loot')
 local Trade = PVP.use('Trade')
 local Crew = PVP.use('Crew')
+local Control = PVP.use('Control')
 local Lobby = PVP.use('Lobby')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -194,6 +195,8 @@ function Nui.buildInitPayload()
                 maxMembers = Config.Crews.maxMembers,
                 createPrice = Config.Crews.createPrice,
                 nameMaxLength = Config.Crews.nameMaxLength,
+                maxTerritories = Config.ControlZones.territories.maxPerCrew,
+                territoryInterval = Config.ControlZones.territories.incomeInterval,
             },
             nameColors = Config.NameColors,
             killfeedBackgrounds = Config.KillfeedBackgrounds,
@@ -211,6 +214,7 @@ function Nui.buildInitPayload()
         },
         player = State.player,
         crew = Crew.data,
+        territories = Control.territoryList(),
         zone = Zones.toInfo(State.zone),
         -- Un message « mode » envoyé avant que la page soit prête serait perdu
         mode = State.mode or false,

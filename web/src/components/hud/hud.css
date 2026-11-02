@@ -183,6 +183,22 @@
   font-size: 0.625rem;
   color: var(--brume-hi);
 }
+.control-bar__hint {
+  font-size: 0.6875rem;
+  color: var(--brume-hi);
+}
+/* Titre et nom du crew sont plus longs : le statut passe dessous s'il ne tient pas */
+.control-bar--territory {
+  width: 24rem;
+}
+.control-bar--territory .control-bar__head {
+  flex-wrap: wrap;
+  gap: 0 0.75rem;
+}
+.control-bar--territory .control-bar__label,
+.control-bar--territory .control-bar__status {
+  white-space: nowrap;
+}
 
 /* Horde en cours */
 .horde-banner {

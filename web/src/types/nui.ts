@@ -4,7 +4,7 @@ import type { VehicleCustomPayload } from './vehicleCustom';
 import type { WeaponCustomPayload } from './weaponCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -47,6 +47,7 @@ export type NuiMessage =
   | { action: 'crew'; data: { crew: CrewData | false } }
   /** invitation reçue, `false` une fois traitée */
   | { action: 'crewInvite'; data: CrewInvite | false }
+  | { action: 'territories'; data: { territories: TerritoryInfo[] } }
   /** échange en cours entre joueurs (à droite de l'inventaire), `false` quand il se termine */
   | { action: 'trade'; data: { trade: TradeData | false } }
   | { action: 'groupVitals'; data: GroupVital[] }
@@ -151,6 +152,7 @@ export interface InitPayload {
   player?: PlayerState;
   /** crew du joueur, `false` sans crew */
   crew?: CrewData | false;
+  territories?: TerritoryInfo[];
   zone: ZoneInfo;
   /** mode en cours, `false` au lobby */
   mode?: string | false;

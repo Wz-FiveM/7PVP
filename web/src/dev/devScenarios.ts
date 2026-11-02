@@ -503,6 +503,14 @@ export const DEV_ACTIONS: DevAction[] = [
       }),
   },
   {
+    label: 'Territoire',
+    run: () =>
+      sendNui({
+        action: 'controlZone',
+        data: { zone: { label: 'Casino Diamond', ownerLabel: '[RXN] Rixe Nord', mine: false, capturing: false, enemyCapturing: false, progress: 0, contested: false, territory: true, protected: true } },
+      }),
+  },
+  {
     label: 'Zone de conflit',
     run: () =>
       sendNui({
@@ -918,6 +926,21 @@ export const DEV_ACTIONS: DevAction[] = [
               { key: 3, name: 'Kilo', id: false, leader: false },
             ],
           },
+        },
+      }),
+  },
+  {
+    label: 'Territoires',
+    run: () =>
+      sendNui({
+        action: 'territories',
+        data: {
+          territories: [
+            { id: 'casino', label: 'Casino Diamond', ownerLabel: '[MGZ] Magazine', mine: true, income: 500 },
+            { id: 'del_perro', label: 'Jetée de Del Perro', ownerLabel: '[RXN] Rixe Nord', mine: false, income: 500 },
+            { id: 'sawmill', label: 'Scierie de Paleto', ownerLabel: false, mine: false, income: 500 },
+            { id: 'zancudo', label: 'Fort Zancudo', ownerLabel: false, mine: false, income: 500 },
+          ],
         },
       }),
   },
