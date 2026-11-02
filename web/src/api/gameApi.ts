@@ -76,6 +76,8 @@ export const gameApi = {
     ],
   }),
 
+  insuranceBuy: (item: string) => fetchNui<ActionResult>('insuranceBuy', { item }, MOCK_OK),
+
   blackMarketBuy: (index: number) => fetchNui<ActionResult>('blackMarketBuy', { index }, MOCK_OK),
 
   seasonPassClaim: (tier: number, premium: boolean) => fetchNui<ActionResult>('seasonPassClaim', { tier, premium }, MOCK_OK),

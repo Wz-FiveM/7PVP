@@ -11,6 +11,7 @@ local RivalryService = PVP.use('RivalryService')
 local GroupService = PVP.use('GroupService')
 local AchievementService = PVP.use('AchievementService')
 local ReportService = PVP.use('ReportService')
+local InsuranceService = PVP.use('InsuranceService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
@@ -162,7 +163,9 @@ end
 ---@param victim PvpPlayer
 ---@param coords? vector3 position du sac (défaut : position du joueur)
 function CombatService.dropVictimLoot(victim, coords)
-    LootService.drop(coords or victim:getCoords(), victim:takeBag(), {
+    local items = victim:takeBag()
+    LootService.drop(coords or victim:getCoords(), items, {
+        insured = InsuranceService.onDeath(victim, items),
         bucket = GetPlayerRoutingBucket(victim.source),
         -- Ouvert comme un coffre : on glisse dans son sac ce qu'on veut garder
         browse = true,

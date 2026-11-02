@@ -628,6 +628,7 @@ export const mockInit: InitPayload = {
     achievements: { stats: { playerKill: 72, headshots: 9 }, done: { kills_50: true }, title: 'kills_50', seasonTitles: [{ id: '2026-10:top3', label: 'Podium de saison' }] },
     title: 'Chasseur',
     seasonPass: { points: 310, tier: 1, premium: false, claimed: { f1: true } },
+    insurance: { policies: ['weapon_pistol'], prices: { weapon_carbinerifle: 2500 }, max: 3 },
     loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
     xp: 2450,
     level: 3,

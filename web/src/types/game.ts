@@ -77,6 +77,8 @@ export interface PlayerState {
   title?: string;
   /** sets d'équipement : `false` pour un emplacement vide */
   loadoutSets?: (ItemStacks | false)[];
+  /** Armes assurées, et prix pour assurer les armes portées ou au coffre */
+  insurance?: { policies: string[]; prices: Record<string, number>; max: number };
 }
 
 /** Classe du joueur ; délais en secondes au moment de la synchro */

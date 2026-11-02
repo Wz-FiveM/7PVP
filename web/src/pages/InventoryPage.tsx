@@ -4,6 +4,7 @@ import { ContextMenu, type ContextMenuAction } from '../components/inventory/Con
 import { CrewStashSection } from '../components/inventory/CrewStashSection';
 import type { DragSource, DropTarget } from '../components/inventory/drag';
 import { DragProvider } from '../components/inventory/DragProvider';
+import { InsuranceSection } from '../components/inventory/InsuranceSection';
 import { LoadoutSetsSection } from '../components/inventory/LoadoutSetsSection';
 import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
@@ -409,7 +410,10 @@ export function InventoryPage() {
             <div className="inventory__column inventory__column--stash">
               <StashTabs active={tab} onChange={setActiveTab} />
               {tab === 'sets' ? (
-                <LoadoutSetsSection />
+                <>
+                  <LoadoutSetsSection />
+                  <InsuranceSection />
+                </>
               ) : crewStash ? (
                 <CrewStashSection
                   crew={crewStash}

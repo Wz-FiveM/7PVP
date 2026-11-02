@@ -12,6 +12,7 @@
 ---@field browse boolean|nil s'ouvre comme un inventaire : on prend les objets un par un (largage, butin d'un joueur)
 ---@field title string|nil nom affiché dans l'inventaire (browse)
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
+---@field insured { identifier: string, items: table<string, boolean> }|nil armes assurées : reviennent si elles restent (InsuranceService)
 ---@field bucket integer bucket de routage où il est tombé (monde PvP ou monde zombies) : seuls ses joueurs le voient
 
 ---@class LootDropOptions
@@ -28,6 +29,7 @@
 ---@class LootServiceModule
 local LootService = PVP.define('LootService')
 local PlayerService = PVP.use('PlayerService')
+local InsuranceService = PVP.use('InsuranceService')
 local Items = PVP.use('Items')
 local Utils = PVP.use('Utils')
 local ContractService = PVP.use('ContractService')
@@ -129,6 +131,7 @@ function LootService.drop(coords, items, options)
         browse = options.browse == true,
         title = options.title,
         lootedBy = {},
+        insured = options.insured,
         bucket = options.bucket or 0,
     }
     TriggerClientEvent(Events.client.lootAdd, -1, id, LootService.describe(LootService.bags[id]))
@@ -146,6 +149,7 @@ function LootService.remove(id)
         TriggerClientEvent(Events.client.lootContents, source, id, false)
     end
     LootService.viewers[id] = nil
+    if bag.insured then InsuranceService.onBagGone(bag) end
 
     -- Corps fouillé ou expiré : il disparaît avec son butin
     local entity = LootService.getEntity(bag)

@@ -35,6 +35,7 @@
 ---@field achievements PvpAchievements hauts faits et titre choisi (AchievementService)
 ---@field seasonTitles table<string, string>|nil titres de saison possédés : id -> texte (SeasonRewardService)
 ---@field seasonPass PvpSeasonPass|nil passe de saison (SeasonPassService)
+---@field insurance table<string, boolean>|nil armes assurées (InsuranceService)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -52,6 +53,7 @@ local RivalryService = PVP.use('RivalryService')
 local BountyService = PVP.use('BountyService')
 local AchievementService = PVP.use('AchievementService')
 local SeasonPassService = PVP.use('SeasonPassService')
+local InsuranceService = PVP.use('InsuranceService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -180,6 +182,7 @@ function PlayerObject:serialize()
         achievements = AchievementService.serialize(self),
         title = AchievementService.titleOf(self),
         seasonPass = SeasonPassService.serialize(self),
+        insurance = InsuranceService.serialize(self),
         season = self.season and {
             label = SeasonService.label(self.season.id),
             kills = self.season.kills,
