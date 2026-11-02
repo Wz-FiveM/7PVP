@@ -70,9 +70,9 @@ export const gameApi = {
     near: true,
     endsIn: 540,
     stock: [
-      { item: 'weapon_rpg', count: 1, price: 25000, left: 1 },
-      { item: 'drug_health', count: 3, price: 1000, left: 6 },
-      { item: 'antizin', count: 3, price: 700, left: 0 },
+      { item: 'weapon_carbinerifle', count: 1, price: 25000, left: 1 },
+      { item: 'bandage', count: 3, price: 1000, left: 6 },
+      { item: 'weapon_pistol', count: 1, price: 700, left: 0 },
     ],
   }),
 

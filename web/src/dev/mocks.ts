@@ -318,6 +318,13 @@ export const mockInit: InitPayload = {
       playerKill: { text: 'Tue {goal} joueurs' },
       headshots: { text: 'Fais {goal} kills en pleine tête' },
     },
+    tutorial: {
+      steps: [
+        { id: 'class', money: 100, label: 'Choisis une classe', hint: 'Menu (Verr. Maj) > Classe, en zone safe.' },
+        { id: 'npcKill', money: 100, label: 'Tue un zombie', hint: 'Dans une zone infestée, sur la carte.' },
+      ],
+      finalReward: { money: 1000, xp: 200 },
+    },
     seasonPass: {
       premiumPrice: 1000,
       pointsPerTier: 200,
@@ -629,6 +636,7 @@ export const mockInit: InitPayload = {
     title: 'Chasseur',
     seasonPass: { points: 310, tier: 1, premium: false, claimed: { f1: true } },
     insurance: { policies: ['weapon_pistol'], prices: { weapon_carbinerifle: 2500 }, max: 3 },
+    tutorial: { done: { class: true }, finished: false },
     loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
     xp: 2450,
     level: 3,

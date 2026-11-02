@@ -61,7 +61,7 @@ export function BlackMarketPage() {
                 </span>
                 <span className="resale-row__info">
                   <span className="disp resale-row__name">{offer.count} x {t(item.label)}</span>
-                  <span className="mono muted resale-row__stock">{t('{left} lots restants', { left: offer.left })}</span>
+                  <span className="mono muted resale-row__stock">{t('Lots restants : {left}', { left: offer.left })}</span>
                 </span>
                 <button
                   className="btn btn--primary btn--small resale-row__sell"
