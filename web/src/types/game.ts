@@ -58,6 +58,9 @@ export interface PlayerState {
   kills: number;
   deaths: number;
   npcKills: number;
+  assists?: number;
+  /** joueurs qui l'ont tué plusieurs fois de suite (Config.Rivalry) */
+  nemeses?: string[];
   inventory: Inventory;
   /** capacité du sac avec le passif de classe, en kg */
   bagCapacity?: number;

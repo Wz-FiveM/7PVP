@@ -32,6 +32,22 @@ Config.MaxKillDistance = 500.0
 -- Retourner au lobby est aussi bloqué pendant ce temps.
 Config.CombatTagDuration = 20
 
+-- Assistances : qui a fait assez de dégâts à la victime peu avant sa mort touche une part de la récompense du kill
+Config.Assists = {
+    minDamage = 40,
+    window = 30, -- secondes entre sa dernière touche et la mort
+    share = 0.5, -- part de Config.Rewards.playerKill
+}
+
+-- Némésis et vengeance : tuer son dernier tueur rapporte un bonus, un joueur qui te tue plusieurs fois de suite devient ta némésis
+Config.Rivalry = {
+    nemesisKills = 3, -- kills de suite par le même joueur
+    revengeWindow = 600, -- secondes pour se venger
+    revengeReward = { money = 150, xp = 50 },
+    nemesisReward = { money = 500, xp = 150 },
+    bonusDelay = 300, -- secondes entre deux bonus sur la même victime
+}
+
 -- Sets d'équipement : contenu du sac enregistré, ressorti des coffres en un clic chez le banquier
 Config.LoadoutSets = {
     slots = 3,

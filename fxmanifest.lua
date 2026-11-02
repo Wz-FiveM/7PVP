@@ -86,6 +86,7 @@ server_scripts {
     'server/modules/combat/combat_service.lua',
     'server/modules/combat/combat_tag_service.lua',
     'server/modules/combat/bounty_service.lua',
+    'server/modules/combat/rivalry_service.lua',
     'server/modules/contracts/contract_service.lua',
     'server/modules/crafting/crafting_service.lua',
     'server/modules/market/market_repository.lua',

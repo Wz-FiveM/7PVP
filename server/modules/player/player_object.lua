@@ -8,6 +8,7 @@
 ---@field kills integer
 ---@field deaths integer
 ---@field npcKills integer
+---@field assists integer assistances (Config.Assists)
 ---@field inventory PvpInventory
 ---@field ammoSeq integer dernier rapport de munitions traité
 ---@field appearance table|nil apparence du personnage (nil = pas encore créé)
@@ -44,6 +45,7 @@ local CrewService = PVP.use('CrewService')
 local NameColors = PVP.use('NameColors')
 local KillfeedBackgroundService = PVP.use('KillfeedBackgroundService')
 local LoadoutSetService = PVP.use('LoadoutSetService')
+local RivalryService = PVP.use('RivalryService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -62,6 +64,7 @@ function PlayerObject.new(source, identifier, row)
         kills = row.kills,
         deaths = row.deaths,
         npcKills = row.npc_kills,
+        assists = row.assists or 0,
         inventory = InventoryObject.decode(row.inventory),
         appearance = AppearanceSchema.decode(row.appearance),
         creating = false,
@@ -157,6 +160,8 @@ function PlayerObject:serialize()
         kills = self.kills,
         deaths = self.deaths,
         npcKills = self.npcKills,
+        assists = self.assists,
+        nemeses = RivalryService.nemeses(self),
         inventory = self.inventory:serialize(),
         bagCapacity = self.inventory:getCapacity('bag'),
         playerClass = ClassService.describe(self),

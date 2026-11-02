@@ -7,6 +7,8 @@ local LootService = PVP.use('LootService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local CombatTagService = PVP.use('CombatTagService')
 local BountyService = PVP.use('BountyService')
+local RivalryService = PVP.use('RivalryService')
+local GroupService = PVP.use('GroupService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
@@ -193,8 +195,30 @@ function CombatService.rewardPlayerKill(killer, victim, message)
     BountyService.onPlayerKill(killer, victim)
     ConflictService.onPlayerKill(killer, victim)
     CrewStatsService.onPlayerKill(killer, victim)
+    RivalryService.onPlayerKill(killer, victim)
+    CombatService.rewardAssists(killer, victim)
     ContractService.track(killer, 'playerKill', 1)
     killer:sync()
+end
+
+---Ceux qui ont fait assez de dégâts à la victime peu avant sa mort touchent une part du kill (Config.Assists).
+---@param killer PvpPlayer
+---@param victim PvpPlayer
+function CombatService.rewardAssists(killer, victim)
+    local settings, now = Config.Assists, GetGameTimer()
+    local money = math.floor(Config.Rewards.playerKill.money * settings.share)
+    local xp = math.floor(Config.Rewards.playerKill.xp * settings.share)
+    for source, entry in pairs(victim.combatLog.taken) do
+        local helper = source ~= killer.source and PlayerService.get(source)
+        if helper and helper.mode == 'pvp' and entry.damage >= settings.minDamage and now - entry.lastAt <= settings.window * 1000
+            and not GroupService.areAllies(source, victim.source) then
+            helper.assists = helper.assists + 1
+            helper:addMoney(money)
+            helper:addXp(xp)
+            helper:notify(Locale.t('Assistance sur %s (+$%d)', victim:displayName(), money), 'success')
+            helper:sync()
+        end
+    end
 end
 
 -- ---------------------------------------------------------------------------
@@ -219,6 +243,7 @@ function CombatService.addToLog(log, other, damage, headshot)
     local entry = log[other] or { damage = 0, hits = 0, headshots = 0 }
     entry.damage = entry.damage + damage
     entry.hits = entry.hits + 1
+    entry.lastAt = GetGameTimer()
     if headshot then entry.headshots = entry.headshots + 1 end
     log[other] = entry
 end

@@ -191,6 +191,7 @@ export function ProfilePage() {
     [t('Kills'), player.kills],
     [t('Morts'), player.deaths],
     ['K/D', formatKd(player.kills, player.deaths)],
+    [t('Assistances'), player.assists ?? 0],
     [t('Zombies tués'), player.npcKills],
     [t('Argent total'), formatMoney(player.money)],
     [
@@ -199,6 +200,7 @@ export function ProfilePage() {
     ],
     [t('XP totale'), formatNumber(player.xp)],
   ];
+  if (player.nemeses?.length) stats.push([t('Némésis'), player.nemeses.join(', ')]);
   if (season) {
     stats.push(
       [`${season.label} · ${t('kills')}`, season.kills],

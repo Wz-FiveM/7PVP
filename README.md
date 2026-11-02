@@ -31,6 +31,8 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Menu pause** | Échap / P : carte, paramètres GTA, inventaire, commandes, retour au lobby, quitter. | — |
 | **Récap de mort** | Tueur, arme, distance, dégâts échangés et vie restante du tueur ; la caméra suit le tueur jusqu'à la réapparition. | — |
 | **Séries et primes** | Dès 5 kills sans mourir, la tête du joueur est mise à prix (repère rouge) ; son tueur encaisse la prime. | `Config.Bounty` |
+| **Assistances** | Assez de dégâts sur un joueur peu avant sa mort (40 dégâts, 30 s) : une part de l'argent et de l'XP du kill. | `Config.Assists` |
+| **Némésis et vengeance** | Tuer son dernier tueur rapporte un bonus (10 min pour le faire). Un joueur qui te tue 3 fois de suite devient ta némésis : l'abattre rapporte davantage. Un seul bonus toutes les 5 min sur la même victime. | `Config.Rivalry` |
 | **Accessoires** | Silencieux, lunette, chargeur, lampe, poignée : clic droit sur une arme ou sur l'accessoire, ou chez le customiseur. Ils tombent avec l'arme. | `Config.Attachments` (`config/items.lua`) |
 | **Jour / nuit** | Heure commune calculée depuis l'heure réelle. La nuit : plus de zombies, plus rapides, plus résistants, plus de butin. | `Config.Time`, `Config.Night` |
 | **Zombies spéciaux** | Rôdeur, Coureur (rapide), Colosse (très résistant, ne tombe pas), Cracheur (vomit à 10 m), Casqué (casque blindé : la tête ne tue pas d'un coup avant que le casque saute), Bonbonne (bouteille de gaz dans le dos qui explose à sa mort), SWAT (gilet pare-balles), Anti-émeute (bouclier qui arrête les balles), Toxique (masque à gaz, nuage toxique à sa mort ; l'Antizin protège). Les équipés sont plus fréquents la nuit. | `Config.ZombieTypes`, `Config.ZombieGear` |
