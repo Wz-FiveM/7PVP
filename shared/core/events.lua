@@ -196,6 +196,7 @@ Events.callbacks = {
     blackMarketBuy = 'blackMarket:buy',
     reportPlayer = 'report:player',
     insuranceBuy = 'insurance:buy',
+    tutorialSkip = 'tutorial:skip',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',
     marketSell = 'market:sell',

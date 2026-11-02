@@ -13,6 +13,7 @@ export function AchievementsPage() {
   const { state, actions } = useGame();
   const { config, player } = state;
   const data = player?.achievements;
+  const tutorial = player?.tutorial;
   if (!data || !config.achievements) return null;
 
   const report = (result: ActionResult | undefined) => {
@@ -26,6 +27,28 @@ export function AchievementsPage() {
       <p className="mono muted contracts__reset">
         {t('{done} / {total} TERMINÉS · RÉCOMPENSE VERSÉE DÈS L\'OBJECTIF ATTEINT', { done: doneCount, total: list.length })}
       </p>
+      {tutorial && !tutorial.finished && config.tutorial && (
+        <Panel className="contract">
+          <div className="contract__head">
+            <span className="disp contract__label">{t('Premiers pas')}</span>
+            <span className="mono contract__reward">
+              {t('Tout terminer : {money} · {xp} XP', { money: formatMoney(config.tutorial.finalReward.money), xp: config.tutorial.finalReward.xp })}
+            </span>
+          </div>
+          <ul className="tutorial-steps">
+            {config.tutorial.steps.map((step) => (
+              <li key={step.id} className={tutorial.done?.[step.id] ? 'tutorial-step tutorial-step--done' : 'tutorial-step'}>
+                <span className="tutorial-step__label">{t(step.label)}</span>
+                <span className="muted tutorial-step__hint">{t(step.hint)}</span>
+                <span className="mono contract__reward">{formatMoney(step.money)}</span>
+              </li>
+            ))}
+          </ul>
+          <button className="btn btn--small cut-s" onClick={() => gameApi.tutorialSkip().then(report)}>
+            {t('Masquer les premiers pas')}
+          </button>
+        </Panel>
+      )}
       {data.seasonTitles.length > 0 && (
         <Panel className="contract">
           <span className="disp contract__label">{t('Titres de saison')}</span>

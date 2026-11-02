@@ -76,6 +76,8 @@ export const gameApi = {
     ],
   }),
 
+  tutorialSkip: () => fetchNui<ActionResult>('tutorialSkip', {}, MOCK_OK),
+
   insuranceBuy: (item: string) => fetchNui<ActionResult>('insuranceBuy', { item }, MOCK_OK),
 
   blackMarketBuy: (index: number) => fetchNui<ActionResult>('blackMarketBuy', { index }, MOCK_OK),

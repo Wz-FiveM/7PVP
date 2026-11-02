@@ -36,6 +36,7 @@
 ---@field seasonTitles table<string, string>|nil titres de saison possédés : id -> texte (SeasonRewardService)
 ---@field seasonPass PvpSeasonPass|nil passe de saison (SeasonPassService)
 ---@field insurance table<string, boolean>|nil armes assurées (InsuranceService)
+---@field tutorial PvpTutorial premiers pas (TutorialService)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -54,6 +55,7 @@ local BountyService = PVP.use('BountyService')
 local AchievementService = PVP.use('AchievementService')
 local SeasonPassService = PVP.use('SeasonPassService')
 local InsuranceService = PVP.use('InsuranceService')
+local TutorialService = PVP.use('TutorialService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -94,6 +96,7 @@ function PlayerObject.new(source, identifier, row)
         nameColor = NameColors.sanitize(row.name_color),
         killfeedOwned = {},
         loadoutSets = LoadoutSetService.decode(row.loadout_sets),
+        tutorial = TutorialService.decode(row.tutorial, row),
         achievements = AchievementService.decode(row.achievements, row),
     }, PlayerObject)
     ClassService.applyInventory(player)
@@ -183,6 +186,7 @@ function PlayerObject:serialize()
         title = AchievementService.titleOf(self),
         seasonPass = SeasonPassService.serialize(self),
         insurance = InsuranceService.serialize(self),
+        tutorial = self.tutorial,
         season = self.season and {
             label = SeasonService.label(self.season.id),
             kills = self.season.kills,

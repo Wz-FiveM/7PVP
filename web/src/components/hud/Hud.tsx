@@ -9,6 +9,7 @@ import { HotbarHud } from './HotbarHud';
 import { Killfeed } from './Killfeed';
 import { SquadPanel } from './SquadPanel';
 import { StatusPanel } from './StatusPanel';
+import { TutorialHint } from './TutorialHint';
 import { Vitals } from './Vitals';
 import { ZoneBanner } from './ZoneBanner';
 import './hud.css';
@@ -28,6 +29,7 @@ export function Hud() {
         <StatusPanel />
         <Killfeed />
         <BountyList />
+        <TutorialHint />
       </div>
       <Vitals />
       <HotbarHud />

@@ -10,6 +10,7 @@ local AchievementService = PVP.define('AchievementService')
 local PlayerService = PVP.use('PlayerService')
 local CrewService = PVP.use('CrewService')
 local SeasonPassService = PVP.use('SeasonPassService')
+local TutorialService = PVP.use('TutorialService')
 local Callback = PVP.use('Callback')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
@@ -62,6 +63,7 @@ function AchievementService.track(player, stat, amount)
     local stats = player.achievements.stats
     stats[stat] = definition.max and math.max(stats[stat] or 0, amount) or (stats[stat] or 0) + amount
     SeasonPassService.onStat(player, stat, amount)
+    TutorialService.onStat(player, stat)
 
     for _, entry in ipairs(AchievementService.byStat[stat] or {}) do
         if stats[stat] >= entry.goal and not player.achievements.done[entry.id] then

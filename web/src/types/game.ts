@@ -79,6 +79,7 @@ export interface PlayerState {
   loadoutSets?: (ItemStacks | false)[];
   /** Armes assurées, et prix pour assurer les armes portées ou au coffre */
   insurance?: { policies: string[]; prices: Record<string, number>; max: number };
+  tutorial?: { done: Record<string, boolean>; finished: boolean };
 }
 
 /** Classe du joueur ; délais en secondes au moment de la synchro */
@@ -198,6 +199,13 @@ export interface BlackMarketState {
   stock: { item: string; count: number; price: number; left: number }[];
 }
 
+export interface TutorialStep {
+  id: string;
+  label: string;
+  hint: string;
+  money: number;
+}
+
 export interface SeasonPassReward {
   money?: number;
   xp?: number;
@@ -214,6 +222,7 @@ export interface SeasonPassState {
 }
 
 export interface GameConfig {
+  tutorial?: { steps: TutorialStep[]; finalReward: { money: number; xp: number } };
   seasonPass?: { premiumPrice: number; pointsPerTier: number; tiers: { free: SeasonPassReward; premium: SeasonPassReward }[] };
   seasonRewards?: { from: number; to: number; points: number; title: string; id: string }[];
   seasonRewardsMinKills?: number;

@@ -12,6 +12,7 @@ local PlayerService = PVP.use('PlayerService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local TutorialService = PVP.use('TutorialService')
 
 ---@type table<integer, PvpGroup>
 GroupService.groups = {}
@@ -185,6 +186,7 @@ function GroupService.respond(source, accept)
     GroupService.memberOf[source] = group.id
     GroupService.notifyMembers(group, Locale.t('%s a rejoint l\'équipe.', player.name), source)
     GroupService.sync(group)
+    TutorialService.complete(player, 'team')
     return { ok = true, message = Locale.t('Tu as rejoint l\'équipe.') }
 end
 

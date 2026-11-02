@@ -19,6 +19,7 @@ PlayerRepository.MIGRATIONS = {
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS loadout_sets TEXT NULL AFTER killfeed_background',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS assists INT NOT NULL DEFAULT 0 AFTER loadout_sets',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS achievements TEXT NULL AFTER assists',
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS tutorial TEXT NULL AFTER achievements',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,
@@ -78,12 +79,12 @@ end
 ---@param player PvpPlayer
 function PlayerRepository.save(player)
     MySQL.update(
-        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ?, class_id = ?, name_color = ?, killfeed_background = ?, loadout_sets = ?, assists = ?, achievements = ? WHERE identifier = ?',
+        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ?, class_id = ?, name_color = ?, killfeed_background = ?, loadout_sets = ?, assists = ?, achievements = ?, tutorial = ? WHERE identifier = ?',
         {
             player.name, player.xp, player.kills, player.deaths, player.npcKills,
             player.inventory:encode(), player.appearance and json.encode(player.appearance) or nil,
             json.encode(player.contracts), player.classId, player.nameColor, player.killfeedBackground,
-            json.encode(player.loadoutSets), player.assists, json.encode(player.achievements), player.identifier,
+            json.encode(player.loadoutSets), player.assists, json.encode(player.achievements), json.encode(player.tutorial), player.identifier,
         }
     )
     PlayerRepository.saveSeason(player)

@@ -15,6 +15,7 @@ local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local TutorialService = PVP.use('TutorialService')
 
 ClassService.MODE = 'pvp'
 
@@ -165,6 +166,7 @@ function ClassService.select(source, id)
     timers.healthGrace = now + ClassService.HEALTH_GRACE
     ClassService.applyInventory(player)
     player:sync()
+    TutorialService.complete(player, 'class')
     return { ok = true, message = Locale.t('Classe choisie : %s', Locale.t(class.label)) }
 end
 

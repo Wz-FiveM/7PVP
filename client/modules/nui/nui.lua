@@ -155,6 +155,9 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.killfeedBackgroundSelect, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('tutorialSkip', function(_, cb)
+        cb(Callback.await(Events.callbacks.tutorialSkip) or { ok = false })
+    end)
     RegisterNUICallback('insuranceBuy', function(data, cb)
         cb(Callback.await(Events.callbacks.insuranceBuy, data.item) or { ok = false })
     end)
@@ -237,6 +240,7 @@ function Nui.buildInitPayload()
             },
             nameColors = Config.NameColors,
             achievements = Config.Achievements,
+            tutorial = { steps = Config.Tutorial.steps, finalReward = Config.Tutorial.finalReward },
             seasonPass = {
                 premiumPrice = Config.SeasonPass.premiumPrice,
                 pointsPerTier = Config.SeasonPass.pointsPerTier,

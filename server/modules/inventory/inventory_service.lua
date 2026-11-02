@@ -10,6 +10,7 @@ local VehicleService = PVP.use('VehicleService')
 local ClassService = PVP.use('ClassService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local TutorialService = PVP.use('TutorialService')
 
 function InventoryService.init()
     Callback.register(Events.callbacks.useItem, InventoryService.use)
@@ -129,7 +130,14 @@ function InventoryService.move(source, data)
     if not allowed then return { ok = false, message = denied } end
 
     local ok, message = player.inventory:move(data.from, data.to, data.item, data.count)
-    if ok then player:sync() end
+    if ok then
+        player:sync()
+        if data.to == 'protected' then
+            TutorialService.complete(player, 'protected')
+        elseif data.to ~= 'bag' then
+            TutorialService.complete(player, 'stash')
+        end
+    end
     return { ok = ok, message = message }
 end
 

@@ -14,6 +14,7 @@ local Utils = PVP.use('Utils')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local TutorialService = PVP.use('TutorialService')
 
 -- Prix cités dans le journal d'une modification
 ShopService.LOG_LIMIT = 5
@@ -109,6 +110,7 @@ function ShopService.buy(source, index)
     player:removeMoney(entry.price)
     player:giveItem(entry.item, entry.count)
     player:sync()
+    TutorialService.complete(player, 'shop')
     return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [entry.item] = entry.count })) }
 end
 
