@@ -26,7 +26,7 @@ end
 ---@return PvpPlayer|nil
 function InventoryService.getActivePlayer(source)
     local player = PlayerService.get(source)
-    if not player or player.dead or player.mode ~= 'pvp' then return nil end
+    if not player or player.dead or player.downed or player.mode ~= 'pvp' then return nil end
     return player
 end
 

@@ -36,6 +36,8 @@
 ---@field seasonTitles table<string, string>|nil titres de saison possédés : id -> texte (SeasonRewardService)
 ---@field seasonPass PvpSeasonPass|nil passe de saison (SeasonPassService)
 ---@field insurance table<string, boolean>|nil armes assurées (InsuranceService)
+---@field downed PvpDowned|nil à terre (DownedService)
+---@field downedAt integer|nil os.time() de la dernière fois à terre
 ---@field tutorial PvpTutorial premiers pas (TutorialService)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')

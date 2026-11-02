@@ -8,6 +8,8 @@ local Events = PVP.use('Events')
 State.player = nil -- dernière synchro serveur (argent, xp, inventaire...)
 State.spawned = false
 State.dead = false
+-- À terre (Downed) : ni vivant ni mort, le joueur ne peut plus rien faire
+State.downed = false
 State.zone = nil -- entrée de Config.Zones, nil = PvP libre, false = à recalculer
 State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
@@ -50,5 +52,5 @@ end
 
 ---@return boolean
 function State.isAlive()
-    return State.spawned and not State.dead
+    return State.spawned and not State.dead and not State.downed
 end

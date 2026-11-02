@@ -7,6 +7,7 @@ local Loadout = PVP.use('Loadout')
 local Freeroam = PVP.use('Freeroam')
 local Cod = PVP.use('Cod')
 local PedUtils = PVP.use('PedUtils')
+local Downed = PVP.use('Downed')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -23,7 +24,7 @@ end
 function Death.watchLoop()
     while true do
         Wait(Death.CHECK_INTERVAL)
-        if State.isAlive() then
+        if State.isAlive() or State.downed then
             Death.check()
         end
     end
@@ -32,6 +33,7 @@ end
 function Death.check()
     local ped = PlayerPedId()
     if not IsEntityDead(ped) then return end
+    if Downed.onDeath(ped, PedUtils.getKillerServerId(ped), Death.getCause(ped)) then return end
 
     Death.markPosition(GetEntityCoords(ped))
 

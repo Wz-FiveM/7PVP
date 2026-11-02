@@ -12,6 +12,7 @@ local GroupService = PVP.use('GroupService')
 local AchievementService = PVP.use('AchievementService')
 local ReportService = PVP.use('ReportService')
 local InsuranceService = PVP.use('InsuranceService')
+local DownedService = PVP.use('DownedService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
@@ -131,12 +132,24 @@ function CombatService.onPlayerDied(source, killerId, cause)
     victim.dead = true
     victim:incrementStat('deaths')
     CombatTagService.clear(victim)
+    local downed = DownedService.clear(victim)
 
     CombatService.dropVictimLoot(victim)
 
-    local killer = CombatService.resolveKiller(victim, killerId)
+    -- Le tueur qui l'a fait tomber est déjà validé : sa touche peut dater de plus longtemps que la preuve
+    local killer
+    if downed and downed.killer and downed.killer == killerId then
+        killer = DownedService.killerOf(downed)
+    else
+        killer = CombatService.resolveKiller(victim, killerId)
+    end
     -- Parti pendant la vérification du kill : profil déjà sauvegardé, rien à lui envoyer
     if PlayerService.get(source) ~= victim then return end
+    -- Mort à terre sans nouveau tueur : c'est celui qui l'a fait tomber
+    if downed and not killer then
+        killer = DownedService.killerOf(downed)
+        cause = downed.cause
+    end
     local recap = CombatService.buildRecap(victim, killer, type(cause) == 'table' and cause or {})
     if killer then
         if type(cause) == 'table' and cause.headshot == true then AchievementService.track(killer, 'headshots', 1) end
