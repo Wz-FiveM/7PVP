@@ -97,7 +97,7 @@ function Teleport.request(zoneId)
 end
 
 ---@param spawn vector4
----@param label string
+---@param label string|nil nom affiché à l'arrivée (rien : pas de message)
 function Teleport.arrive(spawn, label)
     Teleport.close()
     Nui.send('teleportChannel', { seconds = false })
@@ -106,6 +106,7 @@ function Teleport.arrive(spawn, label)
         while not IsScreenFadedOut() do Wait(0) end
 
         local ped = PlayerPedId()
+        local from = GetEntityCoords(ped)
         -- Sort du véhicule : seul le joueur est téléporté
         if IsPedInAnyVehicle(ped, false) then ClearPedTasksImmediately(ped) end
         FreezeEntityPosition(ped, true)
@@ -114,12 +115,14 @@ function Teleport.arrive(spawn, label)
 
         local timeout = GetGameTimer() + 5000
         while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < timeout do Wait(0) end
-        SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z), false, false, false)
+        local x, y, z, found = PedUtils.findSpot(spawn.x, spawn.y, spawn.z)
+        if not found then x, y, z = from.x, from.y, from.z end
+        SetEntityCoordsNoOffset(ped, x, y, z, false, false, false)
         SetEntityHeading(ped, spawn.w)
         FreezeEntityPosition(ped, State.noclip)
 
         Zone.update()
         DoScreenFadeIn(Teleport.FADE)
-        Nui.notify(Locale.t('Téléporté : %s.', Locale.t(label)), 'success')
+        if label then Nui.notify(Locale.t('Téléporté : %s.', Locale.t(label)), 'success') end
     end)
 end

@@ -147,7 +147,7 @@ FreeroamConfigService.SETTINGS = {
         label = 'Donjon : étapes',
         short = 'Donjon',
         point = 'Point',
-        hint = 'Le parcours, dans l\'ordre. Zombies : leurs points d\'apparition. Clé et C4 : les cachettes. Porte, mur, générateur : le premier point. Pose du C4 : la porte, puis les charges. Boss : le boss, puis ses renforts. Coffres de fin : un point par joueur. Le centre sert de point de reprise.',
+        hint = 'Le parcours, dans l\'ordre. Zombies : leurs points d\'apparition. Clé et C4 : les cachettes. Porte, mur, générateur : le premier point. Pose du C4 : la porte, puis les charges. Boss : le boss, puis ses renforts. Les coffres de fin apparaissent devant chaque joueur. Quand l\'étape ouvre une nouvelle salle, le centre est le point d\'arrivée et de reprise.',
     },
     {
         name = 'dungeonChests',

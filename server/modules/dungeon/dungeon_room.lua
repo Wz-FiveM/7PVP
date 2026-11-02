@@ -39,6 +39,12 @@ DungeonRoom.ARRIVAL_TIME = 6000
 DungeonRoom.MAX_WALL_HITS = 25
 DungeonRoom.WALL_RANGE = 150.0
 DungeonRoom.LEASH_INTERVAL = 6000
+-- Temps entre la fin d'une étape et le passage dans la salle suivante
+DungeonRoom.WARP_DELAY = 1500
+-- Plus bas que ça sous l'étape, un zombie est passé à travers le sol
+DungeonRoom.FALL_DEPTH = 15.0
+-- Distance du coffre de fin devant le joueur
+DungeonRoom.CHEST_OFFSET = 1.2
 
 ---@param id integer
 ---@param leader integer server id
@@ -90,11 +96,17 @@ function DungeonRoom:step(index)
     return Config.Dungeon.steps[index or self.stepIndex]
 end
 
----Point où l'on reprend : la salle de l'étape précédente.
+---Point où l'on reprend : l'arrivée dans la salle en cours (dernière étape `warp`).
 ---@return vector4
 function DungeonRoom:checkpoint()
-    local step = self:step(math.max(1, self.stepIndex - 1))
-    return vector4(step.coords.x, step.coords.y, step.coords.z, 0.0)
+    local step = self:step(1)
+    for index = math.max(1, self.stepIndex), 1, -1 do
+        if self:step(index).warp then
+            step = self:step(index)
+            break
+        end
+    end
+    return vector4(step.coords.x, step.coords.y, step.coords.z, step.heading or 0.0)
 end
 
 ---Le joueur parti, ce qui reste à tuer ne compte plus que pour les autres.
@@ -118,6 +130,7 @@ function DungeonRoom:start()
     self.status = 'running'
     self.endsAt = GetGameTimer() + Config.Dungeon.duration * 1000
     self.spawnAfter = GetGameTimer() + DungeonRoom.ARRIVAL_TIME
+    for _, entry in pairs(self.players) do entry.leashAt = self.spawnAfter end
     self:enterStep(1)
 end
 
@@ -137,6 +150,7 @@ function DungeonRoom:enterStep(index)
     for _, entry in pairs(self.players) do entry.kills = 0 end
 
     local step = self:step()
+    if step.warp and index > 1 then self:warpPlayers() end
     if step.type == 'fetch' then
         self.hidden = Utils.pick(step.spawns)
         self.revealAt = GetGameTimer() + Config.Dungeon.revealAfter * 1000
@@ -146,8 +160,6 @@ function DungeonRoom:enterStep(index)
     elseif step.type == 'plant' and #step.spawns < 2 then
         -- Toutes les charges retirées dans le panneau : l'étape ne doit pas bloquer le groupe
         return self:nextStep()
-    elseif step.type == 'boss' then
-        self:spawnBoss(step)
     elseif step.type == 'chest' then
         self:finish(step)
     end
@@ -156,6 +168,26 @@ end
 
 function DungeonRoom:nextStep()
     if self:step(self.stepIndex + 1) then self:enterStep(self.stepIndex + 1) end
+end
+
+---Le groupe passe dans la salle de l'étape : les étages ne sont pas reliés dans le jeu.
+---Ce qui reste de zombies n'y arriverait pas, et les suivants attendent que les joueurs soient là.
+function DungeonRoom:warpPlayers()
+    self:despawnPeds()
+    self.spawnAfter = GetGameTimer() + DungeonRoom.WARP_DELAY + DungeonRoom.ARRIVAL_TIME
+    for _, entry in pairs(self.players) do entry.leashAt = self.spawnAfter end
+    SetTimeout(DungeonRoom.WARP_DELAY, function()
+        if self.closed then return end
+        local point = self:checkpoint()
+        for source in pairs(self.players) do
+            local player = PlayerService.get(source)
+            -- Un joueur mort reprendra ici de lui-même
+            if player and not player.dead then
+                AntiCheatService.grace(source)
+                TriggerClientEvent(Events.client.teleport, source, point)
+            end
+        end
+    end)
 end
 
 ---Vie du mur selon le nombre de joueurs ; garde la part déjà détruite si quelqu'un part.
@@ -176,17 +208,14 @@ function DungeonRoom:finish(step)
     self.endsAt = GetGameTimer() + Config.Dungeon.exitDuration * 1000
     self:despawnPeds()
 
-    local index = 0
     for source in pairs(self.players) do
-        index = index + 1
         local player = PlayerService.get(source)
         if player then
             player:addMoney(reward.money)
             player:addXp(reward.xp)
             player:notify(Locale.t('Donjon terminé : +$%d, +%d XP', reward.money, reward.xp), 'success')
             player:sync()
-            local point = step.spawns[(index - 1) % #step.spawns + 1]
-            LootService.drop(point.xyz, LootService.roll(reward.loot), {
+            LootService.drop(self:chestPoint(player), LootService.roll(reward.loot), {
                 model = reward.model,
                 solid = true,
                 browse = true,
@@ -202,6 +231,15 @@ function DungeonRoom:finish(step)
     if leader then
         ChatService.announce('pvp', Locale.t('Le groupe de %s a terminé le donjon !', leader:displayName()))
     end
+end
+
+---Devant le joueur : là où il se tient, le sol existe forcément.
+---@param player PvpPlayer
+---@return vector3
+function DungeonRoom:chestPoint(player)
+    local coords = player:getCoords()
+    local heading = math.rad(GetEntityHeading(GetPlayerPed(player.source)))
+    return vector3(coords.x - math.sin(heading) * DungeonRoom.CHEST_OFFSET, coords.y + math.cos(heading) * DungeonRoom.CHEST_OFFSET, coords.z)
 end
 
 -- ---------------------------------------------------------------------------
@@ -357,12 +395,26 @@ function DungeonRoom:spawnBoss(step)
     self.bossMax = settings.health + settings.healthPerPlayer * (self:count() - 1)
     Entity(ped).state:set('dungeonBoss', self.bossMax, true)
     self.boss = ped
+    self:sync()
+end
+
+---@param ped integer
+---@param step table
+---@return boolean passé à travers le sol
+function DungeonRoom:hasFallen(ped, step)
+    return GetEntityCoords(ped).z < step.coords.z - DungeonRoom.FALL_DEPTH
 end
 
 ---@return integer zombies vivants
 function DungeonRoom:alive()
+    local step = self:step()
     for ped in pairs(self.peds) do
-        if not DoesEntityExist(ped) then self.peds[ped] = nil end
+        if not DoesEntityExist(ped) then
+            self.peds[ped] = nil
+        elseif step and self:hasFallen(ped, step) then
+            DeleteEntity(ped)
+            self.peds[ped] = nil
+        end
     end
     return Utils.count(self.peds)
 end
@@ -464,6 +516,12 @@ function DungeonRoom:tick()
     if step.type == 'kill' then
         self:spawnWave(step.spawns, 1, math.min(Config.Dungeon.maxAlive, self:killsLeft()))
     elseif step.type == 'boss' then
+        if self.boss and DoesEntityExist(self.boss) and self:hasFallen(self.boss, step) then
+            DeleteEntity(self.boss)
+            self.boss = nil
+        end
+        -- Créé une fois le groupe arrivé ; un modèle refusé fait passer à l'étape suivante
+        if not self.boss then return self:spawnBoss(step) end
         self:spawnWave(step.spawns, 2, Config.Dungeon.boss.adds)
         self:syncBossBar()
     elseif step.type == 'fetch' and not self.revealed and now >= self.revealAt then
@@ -485,7 +543,7 @@ function DungeonRoom:spawnWave(spawns, first, wanted)
     end
 end
 
----Le terrain peut être ouvert (le port par défaut) : qui s'éloigne trop est ramené au point de reprise.
+---Qui s'éloigne trop (chute sous la carte, passage dans le mur) est ramené au point de reprise.
 ---@param now integer
 ---@param step table
 function DungeonRoom:keepPlayersClose(now, step)

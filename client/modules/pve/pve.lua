@@ -125,6 +125,8 @@ function Pve.updatePed(ped, zone)
         return
     end
 
+    if Entity(ped).state.dungeonRoom then Dungeon.settlePed(ped) end
+
     if Entity(ped).state.dungeonBoss then
         Hits.watchZombie(ped)
         if not Pve.isStunned(ped) then Dungeon.driveBoss(ped) end

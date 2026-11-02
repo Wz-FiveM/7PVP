@@ -110,7 +110,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
     {
       name: 'dungeonChests', group: 'pvp', label: 'Donjon : coffres', short: 'Coffres du donjon', point: 'Coffre', flat: true, kind: 'points', category: false, modified: false,
       hint: 'Coffres personnels sur le parcours : les mêmes services que chez le banquier.',
-      value: [{ x: 1040, y: -3075, z: 5.9, w: 0 }, { x: 1065, y: -3110, z: 5.9, w: 0 }],
+      value: [{ x: 2550.5, y: -222, z: -60.32, w: 0 }, { x: 2539.5, y: -283, z: -58.72, w: 0 }],
     },
     {
       name: 'airdropLocations', group: 'pvp', label: 'Largages', point: 'Point de chute', flat: true, kind: 'points', category: false, modified: false,

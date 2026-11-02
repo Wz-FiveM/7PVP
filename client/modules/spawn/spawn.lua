@@ -45,6 +45,7 @@ function Spawn.spawnAt(spawn, appearance)
     while not IsScreenFadedOut() do Wait(0) end
     Death.stopSpectate()
 
+    local from = GetEntityCoords(PlayerPedId())
     State.appearance = appearance or State.appearance or AppearanceSchema.default('male')
     Appearance.ensureModel(State.appearance.sex)
     RequestCollisionAtCoord(spawn.x, spawn.y, spawn.z)
@@ -57,7 +58,9 @@ function Spawn.spawnAt(spawn, appearance)
 
     local timeout = GetGameTimer() + 5000
     while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < timeout do Wait(0) end
-    SetEntityCoordsNoOffset(ped, spawn.x, spawn.y, PedUtils.findGroundZ(spawn.x, spawn.y, spawn.z), false, false, false)
+    local x, y, z, found = PedUtils.findSpot(spawn.x, spawn.y, spawn.z)
+    if not found then x, y, z = from.x, from.y, from.z end
+    SetEntityCoordsNoOffset(ped, x, y, z, false, false, false)
     SetEntityHeading(ped, spawn.w)
 
     Spawn.resetPed(ped)

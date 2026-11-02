@@ -17,7 +17,13 @@ Dungeon.HOLD_SCENARIO = 'WORLD_HUMAN_WELDING'
 Dungeon.DRAW_DISTANCE = 60.0
 Dungeon.WALL_SEND_INTERVAL = 500
 Dungeon.WALL_SHOT_INTERVAL = 60 -- une balle compte une fois, même si le tir dure plusieurs images
-Dungeon.PLACE_DISTANCE = 80.0 -- le sol doit être chargé pour y poser un objet
+Dungeon.PLACE_DISTANCE = 40.0 -- les objets ne sont créés qu'à portée : le sol et la salle doivent être chargés
+Dungeon.PLACE_TRIES = 300
+Dungeon.SNAP_DISTANCE = 12.0 -- au-delà, un zombie n'est plus dans la salle prévue
+Dungeon.SNAP_HEIGHT = 3.0 -- ni au bon étage
+Dungeon.SNAP_NEAR_PLAYER = 10.0
+Dungeon.TORCH_RANGE = 10.0 -- courant coupé : le noir serait complet sous terre
+Dungeon.TORCH_INTENSITY = 1.5
 Dungeon.BOSS_RETASK = 2000
 
 ---@type table|false état reçu du serveur
@@ -33,6 +39,8 @@ Dungeon.endsAt = 0
 Dungeon.progress = false
 Dungeon.bossConfigured = {} -- [ped] = true quand ce client l'a armé
 Dungeon.bossTask = {} -- [ped] = dernier ordre de combat (ms)
+---@type integer[] intérieurs gardés chargés
+Dungeon.interiors = {}
 
 function Dungeon.init()
     RegisterNetEvent(Events.client.dungeonState, function(data)
@@ -79,6 +87,7 @@ function Dungeon.onState(data)
     if data.step then
         -- Les zombies sans cible errent autour de la salle en cours
         Config.Dungeon.zone.coords = data.step.coords
+        Dungeon.loadInteriors()
         Dungeon.syncProps(data.props)
         Dungeon.syncBlips(data)
         SetArtificialLightsState(data.dark == true)
@@ -92,8 +101,30 @@ function Dungeon.clear()
     Dungeon.state = false
     Dungeon.syncProps({})
     Dungeon.removeBlips()
+    Dungeon.releaseInteriors()
     SetArtificialLightsState(false)
     Nui.send('dungeon', { dungeon = false })
+end
+
+---Les salles du parcours restent chargées tant que le joueur est dans le donjon.
+function Dungeon.loadInteriors()
+    if #Dungeon.interiors > 0 then return end
+    for _, origin in ipairs(Config.Dungeon.interiors) do
+        local interior = GetInteriorAtCoords(origin.x, origin.y, origin.z)
+        if interior == 0 then
+            print(('[donjon] intérieur introuvable en %.1f, %.1f, %.1f'):format(origin.x, origin.y, origin.z))
+        else
+            Dungeon.interiors[#Dungeon.interiors + 1] = interior
+            DisableInterior(interior, false)
+            CapInterior(interior, false)
+            PinInteriorInMemory(interior)
+        end
+    end
+end
+
+function Dungeon.releaseInteriors()
+    for _, interior in ipairs(Dungeon.interiors) do UnpinInterior(interior) end
+    Dungeon.interiors = {}
 end
 
 ---@return boolean dans l'instance (la nuit y est imposée, voir ClockClient)
@@ -157,10 +188,7 @@ function Dungeon.syncProps(wanted)
     for _, data in ipairs(wanted) do
         keys[data.key] = true
         if not Dungeon.props[data.key] then
-            Dungeon.props[data.key] = { data = data, placed = false }
-            CreateThread(function()
-                Dungeon.createProp(data.key)
-            end)
+            Dungeon.props[data.key] = { data = data, requested = false, placed = false, tries = 0 }
         end
     end
     for key, prop in pairs(Dungeon.props) do
@@ -190,13 +218,21 @@ function Dungeon.createProp(key)
     SetModelAsNoLongerNeeded(model)
 end
 
----Les hauteurs viennent de la config : l'objet est posé sur le sol une fois celui-ci chargé.
+---Créé de loin, un objet resterait hors de la salle et invisible : il n'apparaît qu'à portée, puis
+---il est posé sur le sol une fois celui-ci chargé.
 ---@param pos vector3
 function Dungeon.placeProps(pos)
-    for _, prop in pairs(Dungeon.props) do
-        if prop.entity and not prop.placed and #(pos - prop.data.coords.xyz) < Dungeon.PLACE_DISTANCE then
-            prop.placed = true
-            PlaceObjectOnGroundProperly(prop.entity)
+    for key, prop in pairs(Dungeon.props) do
+        if not prop.placed and #(pos - prop.data.coords.xyz) < Dungeon.PLACE_DISTANCE then
+            if not prop.requested then
+                prop.requested = true
+                CreateThread(function()
+                    Dungeon.createProp(key)
+                end)
+            elseif prop.entity then
+                prop.tries = prop.tries + 1
+                prop.placed = PlaceObjectOnGroundProperly(prop.entity) or prop.tries >= Dungeon.PLACE_TRIES
+            end
         end
     end
 end
@@ -261,6 +297,9 @@ function Dungeon.frame(state)
     local ped = PlayerPedId()
     local pos = GetEntityCoords(ped)
     Dungeon.placeProps(pos)
+    if state.dark then
+        DrawLightWithRange(pos.x, pos.y, pos.z + 0.6, 255, 235, 205, Dungeon.TORCH_RANGE, Dungeon.TORCH_INTENSITY)
+    end
     Dungeon.drawTargets(state.step, pos)
     if state.step.type == 'destroy' then Dungeon.watchWall(state.step, ped) end
     if not State.isAlive() or State.menuOpen or IsNuiFocused() or Dungeon.holding then return end
@@ -382,6 +421,29 @@ function Dungeon.watchWall(step, ped)
         TriggerServerEvent(Events.server.dungeonWallHit, Dungeon.wallHits)
         Dungeon.wallHits = 0
     end
+end
+
+-- ---------------------------------------------------------------------------
+-- Zombies : posés une fois sur le sol de la salle par le client propriétaire
+-- ---------------------------------------------------------------------------
+
+---Le serveur ne connaît pas les murs : un point d'apparition peut tomber dans une cloison ou dans le
+---vide. Le zombie rejoint le point de marche le plus proche, ou à défaut les abords du joueur.
+---@param ped integer
+function Dungeon.settlePed(ped)
+    local state = Entity(ped).state
+    if state.dungeonSettled then return end
+    state:set('dungeonSettled', true, true)
+
+    local pos = GetEntityCoords(ped)
+    local safe, point = GetSafeCoordForPed(pos.x, pos.y, pos.z, true, 16)
+    if not safe or #(point - pos) > Dungeon.SNAP_DISTANCE or math.abs(point.z - pos.z) > Dungeon.SNAP_HEIGHT then
+        local player = GetEntityCoords(PlayerPedId())
+        local angle = math.random() * math.pi * 2
+        safe, point = GetSafeCoordForPed(player.x + math.cos(angle) * Dungeon.SNAP_NEAR_PLAYER,
+            player.y + math.sin(angle) * Dungeon.SNAP_NEAR_PLAYER, player.z, true, 16)
+    end
+    if safe then SetEntityCoords(ped, point.x, point.y, point.z, false, false, false, false) end
 end
 
 -- ---------------------------------------------------------------------------
