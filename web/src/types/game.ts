@@ -664,15 +664,10 @@ export interface ControlZoneHud {
 
 /** Zone de conflit où se trouve le joueur (client/modules/conflict/conflict.lua) */
 export interface ConflictHud {
-  label: string;
   /** secondes restantes */
   endsIn: number;
-  /** team leader, `false` tant que personne n'a de kill */
+  /** kill leader, `false` tant que personne n'a de kill */
   leader: { name: string; colors?: string; kills: number } | false;
-  /** le joueur est le team leader */
-  leading: boolean;
-  /** kills du joueur dans cette zone */
-  kills: number;
 }
 
 /** Menu du Freeroam (config/freeroam.lua) */

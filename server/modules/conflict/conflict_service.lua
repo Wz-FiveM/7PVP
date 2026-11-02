@@ -1,5 +1,5 @@
 ---Zones de conflit : de temps en temps, une zone apparaît sur la carte avec un compteur.
----Le joueur qui y fait le plus de kills est le team leader ; à la fin du compteur, il remporte
+---Le joueur qui y fait le plus de kills est le kill leader ; à la fin du compteur, il remporte
 ---l'argent, l'XP et le butin de Config.ConflictZones.reward.
 ---@class ConflictScore
 ---@field kills integer
@@ -36,7 +36,7 @@ ConflictService.lastSent = ''
 
 function ConflictService.init()
     RegisterNetEvent(Events.server.ready, function()
-        TriggerClientEvent(Events.client.conflictState, source, ConflictService.describeFor(source))
+        TriggerClientEvent(Events.client.conflictState, source, ConflictService.describe())
     end)
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
         if ConflictService.active then ConflictService.active.scores[playerSource] = nil end
@@ -127,7 +127,7 @@ function ConflictService.onPlayerKill(killer, victim)
     score.kills = score.kills + 1
     score.at = conflict.killCount
     conflict.scores[killer.source] = score
-    ConflictService.broadcast(true)
+    ConflictService.broadcast(false)
 end
 
 ---Meilleur score parmi les joueurs encore en PvP.
@@ -144,7 +144,7 @@ function ConflictService.leaderOf(conflict)
     return leader, best
 end
 
----Fin du compteur : le team leader remporte la zone.
+---Fin du compteur : le kill leader remporte la zone.
 ---@return boolean false : aucune zone en cours
 function ConflictService.finish()
     local conflict = ConflictService.active
@@ -205,21 +205,18 @@ function ConflictService.reward(player)
 end
 
 ---État envoyé aux clients : durée restante plutôt qu'une date (horloges différentes).
----@param source integer joueur qui reçoit l'état
 ---@return table|false
-function ConflictService.describeFor(source)
+function ConflictService.describe()
     local conflict = ConflictService.active
     if not conflict then return false end
     local leader, best = ConflictService.leaderOf(conflict)
-    local mine = conflict.scores[source]
     return {
         id = conflict.def.id,
         label = conflict.def.label,
         coords = conflict.def.coords,
         radius = conflict.def.radius,
         endsIn = math.max(0, math.ceil((conflict.endsAt - GetGameTimer()) / 1000)),
-        leader = leader and { id = leader.source, name = leader:displayName(), colors = leader:displayColors(), kills = best.kills } or false,
-        kills = mine and mine.kills or 0,
+        leader = leader and { name = leader:displayName(), colors = leader:displayColors(), kills = best.kills } or false,
     }
 end
 
@@ -233,7 +230,5 @@ function ConflictService.broadcast(force)
     local key = ('%s:%d:%.1f:%.1f:%.1f'):format(leader and leader:displayName() or '', best and best.kills or 0, coords.x, coords.y, conflict.def.radius)
     if not force and key == ConflictService.lastSent then return end
     ConflictService.lastSent = key
-    for source in pairs(PlayerService.all()) do
-        TriggerClientEvent(Events.client.conflictState, source, ConflictService.describeFor(source))
-    end
+    TriggerClientEvent(Events.client.conflictState, -1, ConflictService.describe())
 end

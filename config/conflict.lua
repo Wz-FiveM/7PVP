@@ -1,6 +1,6 @@
 -- Zones de conflit (PvP) : de temps en temps, une zone apparaît sur la carte avec un compteur.
 -- Un kill compte si le tueur et la victime sont dans le cercle. Le joueur qui a le plus de kills
--- est le team leader ; à la fin du compteur, il remporte l'argent, l'XP et le butin.
+-- est le kill leader ; à la fin du compteur, il remporte l'argent, l'XP et le butin.
 -- À égalité, le leader reste celui qui a atteint ce score le premier.
 -- Les hauteurs (z) servent au marqueur : le client le recale sur le sol.
 Config.ConflictZones = {

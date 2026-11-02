@@ -401,7 +401,7 @@ function AdminService.conflict(source)
     return true, Locale.t('Zone de conflit lancée.')
 end
 
----Termine tout de suite la zone en cours : le team leader reçoit sa récompense.
+---Termine tout de suite la zone en cours : le kill leader reçoit sa récompense.
 function AdminService.conflictEnd()
     if not ConflictService.finish() then return false, Locale.t('Aucune zone de conflit en cours.') end
     return true, Locale.t('Zone de conflit terminée.')

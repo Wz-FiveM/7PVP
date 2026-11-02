@@ -1,5 +1,5 @@
 ---Zones de conflit côté client : repères sur la carte, mur rouge autour de la zone et,
----quand on est dedans, team leader, kills et compteur en bas au milieu de l'écran.
+---quand on est dedans, kill leader, ses kills et compteur en bas au milieu de l'écran.
 ---@class ConflictModule
 local Conflict = PVP.define('Conflict')
 local State = PVP.use('State')
@@ -100,14 +100,10 @@ function Conflict.sendHud()
     if not zone or not Conflict.inside then
         return Nui.send('conflict', { conflict = false })
     end
-    local leader = zone.leader
     Nui.send('conflict', {
         conflict = {
-            label = zone.label,
             endsIn = math.max(0, math.ceil((Conflict.endsAt - GetGameTimer()) / 1000)),
-            leader = leader and { name = leader.name, colors = leader.colors, kills = leader.kills } or false,
-            leading = leader and leader.id == GetPlayerServerId(PlayerId()) or false,
-            kills = zone.kills,
+            leader = zone.leader,
         },
     })
 end

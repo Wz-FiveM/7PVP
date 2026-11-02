@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
+import { CodStreakIcon } from '../cod/CodStreakIcon';
 import { ColoredName } from '../ui/ColoredName';
 
-/** Zone de conflit où se trouve le joueur, en bas au milieu : team leader, ses kills et le compteur. */
+/** Zone de conflit où se trouve le joueur, en bas au milieu : kill leader, ses kills et le compteur. */
 export function ConflictBanner() {
   const t = useT();
   const { state } = useGame();
@@ -23,31 +24,19 @@ export function ConflictBanner() {
 
   return (
     <div className={state.hotbarVisible ? 'conflict-banner conflict-banner--raised' : 'conflict-banner'}>
-      <div className="conflict-banner__head">
-        <span className="disp conflict-banner__label">{t(conflict.label)}</span>
+      <div className="conflict-banner__row">
+        <span className="mono conflict-banner__tag">{t('KILL LEADER')}</span>
         <span className="mono conflict-banner__time">{time}</span>
       </div>
-      {leader ? (
-        <div className="conflict-banner__leader">
-          <span className="mono conflict-banner__tag">{t('TEAM LEADER')}</span>
-          <span className="conflict-banner__name">
-            <ColoredName text={leader.name} colors={leader.colors} />
-          </span>
-          <span className="mono conflict-banner__kills">
-            {leader.kills > 1 ? t('{kills} KILLS', { kills: leader.kills }) : t('{kills} KILL', { kills: leader.kills })}
-          </span>
-        </div>
-      ) : (
-        <div className="conflict-banner__leader">
-          <span className="mono conflict-banner__tag">{t('TEAM LEADER')}</span>
-          <span className="conflict-banner__empty">{t('Aucun kill pour l\'instant')}</span>
-        </div>
-      )}
-      {leader && (
-        <span className="mono conflict-banner__mine">
-          {conflict.leading ? t('Tu es en tête') : t('Tes kills : {kills}', { kills: conflict.kills })}
+      <div className="conflict-banner__row">
+        <span className="disp conflict-banner__name">
+          {leader ? <ColoredName text={leader.name} colors={leader.colors} /> : t('Aucun')}
         </span>
-      )}
+        <span className="conflict-banner__score">
+          <CodStreakIcon id="skull" />
+          <span className="disp conflict-banner__kills">{leader ? leader.kills : 0}</span>
+        </span>
+      </div>
     </div>
   );
 }

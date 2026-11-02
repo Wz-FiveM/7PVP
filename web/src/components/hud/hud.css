@@ -466,9 +466,9 @@
   left: 50%;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  width: 24rem;
-  padding: 0.375rem 0.75rem 0.5rem;
+  gap: 0.125rem;
+  width: 20rem;
+  padding: 0.4375rem 0.75rem 0.5rem;
   background: var(--panneau);
   box-shadow: inset 0 0.1875rem 0 var(--hazard), var(--ombre);
   transform: translateX(-50%);
@@ -476,53 +476,47 @@
 .conflict-banner--raised {
   bottom: 5.25rem;
 }
-.conflict-banner__head,
-.conflict-banner__leader {
+.conflict-banner__row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
 }
-.conflict-banner__label {
-  overflow: hidden;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.conflict-banner__time {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--hazard);
-}
-.conflict-banner__tag,
-.conflict-banner__mine {
-  flex-shrink: 0;
+.conflict-banner__tag {
   font-size: 0.625rem;
   color: var(--brume-hi);
 }
-.conflict-banner__name {
-  flex: 1;
-  overflow: hidden;
-  font-size: 1.125rem;
+.conflict-banner__time {
+  font-size: 0.75rem;
   font-weight: 700;
-  text-align: center;
+  color: var(--hazard);
+}
+.conflict-banner .conflict-banner__name {
+  overflow: hidden;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
   text-transform: none;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.conflict-banner__kills {
+.conflict-banner__score {
+  display: flex;
   flex-shrink: 0;
-  font-size: 0.875rem;
+  align-items: center;
+  gap: 0.3125rem;
+  color: var(--hazard);
+}
+.conflict-banner__score .cod-streak__icon {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+  opacity: 1;
+}
+.conflict-banner__kills {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--toxine);
-}
-.conflict-banner__empty {
-  font-size: 0.8125rem;
-  color: var(--brume-hi);
-}
-.conflict-banner__mine {
-  text-align: center;
+  line-height: 1.2;
 }
 
 /* Raccourcis (bas centre, visibles en maintenant TAB) ----------------------------- */

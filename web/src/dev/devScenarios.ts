@@ -471,12 +471,12 @@ export const DEV_ACTIONS: DevAction[] = [
     run: () =>
       sendNui({
         action: 'conflict',
-        data: { conflict: { label: 'Mirror Park', endsIn: 412, leader: { name: 'Bravo', kills: 5 }, leading: false, kills: 2 } },
+        data: { conflict: { endsIn: 412, leader: { name: 'LCS599.', kills: 31 } } },
       }),
   },
   {
     label: 'Zone de conflit (sans kill)',
-    run: () => sendNui({ action: 'conflict', data: { conflict: { label: 'Mirror Park', endsIn: 600, leader: false, leading: false, kills: 0 } } }),
+    run: () => sendNui({ action: 'conflict', data: { conflict: { endsIn: 600, leader: false } } }),
   },
   { label: 'Fin zone de conflit', run: () => sendNui({ action: 'conflict', data: { conflict: false } }) },
   { label: 'Fin horde', run: () => sendNui({ action: 'horde', data: { horde: false } }) },
