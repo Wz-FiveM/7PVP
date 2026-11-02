@@ -41,6 +41,10 @@ Dungeon.bossConfigured = {} -- [ped] = true quand ce client l'a armé
 Dungeon.bossTask = {} -- [ped] = dernier ordre de combat (ms)
 ---@type integer[] intérieurs gardés chargés
 Dungeon.interiors = {}
+---@type table<integer, integer> portes du décor ouvertes : [entité] = identifiant dans le système de portes
+Dungeon.openDoors = {}
+---@type table<integer, boolean> [modèle] = c'est une porte
+Dungeon.doorModels = {}
 
 function Dungeon.init()
     RegisterNetEvent(Events.client.dungeonState, function(data)
@@ -62,6 +66,7 @@ function Dungeon.init()
     end)
 
     CreateThread(Dungeon.loop)
+    CreateThread(Dungeon.doorLoop)
 end
 
 ---@param word string|nil
@@ -102,6 +107,7 @@ function Dungeon.clear()
     Dungeon.syncProps({})
     Dungeon.removeBlips()
     Dungeon.releaseInteriors()
+    Dungeon.closeDoors()
     SetArtificialLightsState(false)
     Nui.send('dungeon', { dungeon = false })
 end
@@ -420,6 +426,86 @@ function Dungeon.watchWall(step, ped)
         Dungeon.wallSentAt = now
         TriggerServerEvent(Events.server.dungeonWallHit, Dungeon.wallHits)
         Dungeon.wallHits = 0
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Portes du décor : fermées d'origine dans ces intérieurs, ouvertes pour ce client
+-- ---------------------------------------------------------------------------
+
+---Le jeu ne dit pas ce qui est une porte, et leurs modèles sont trop nombreux : on regarde la forme.
+---@param model integer
+---@return boolean
+function Dungeon.isDoorModel(model)
+    local known = Dungeon.doorModels[model]
+    if known ~= nil then return known end
+
+    local settings = Config.Dungeon.doors
+    local isDoor = false
+    local closed = false
+    for _, name in ipairs(settings.keepClosed) do
+        if GetHashKey(name) == model then closed = true end
+    end
+    if not closed then
+        local low, high = GetModelDimensions(model)
+        local size = high - low
+        local thickness = math.min(size.x, size.y)
+        local width = math.max(size.x, size.y)
+        isDoor = thickness <= settings.maxThickness
+            and width >= settings.width[1] and width <= settings.width[2]
+            and size.z >= settings.height[1] and size.z <= settings.height[2]
+    end
+    Dungeon.doorModels[model] = isDoor
+    return isDoor
+end
+
+---@param entity integer
+function Dungeon.openDoor(entity)
+    local coords = GetEntityCoords(entity)
+    local model = GetEntityModel(entity)
+    local door = GetHashKey(('dungeon_door_%d_%d_%d'):format(math.floor(coords.x * 10), math.floor(coords.y * 10), model))
+    AddDoorToSystem(door, model, coords.x, coords.y, coords.z, false, false, false)
+    DoorSystemSetDoorState(door, 0, false, true)
+    DoorSystemSetOpenRatio(door, 1.0, false, true)
+    -- Même si le système refuse la porte, on doit pouvoir passer
+    SetEntityCollision(entity, false, false)
+    Dungeon.openDoors[entity] = door
+end
+
+function Dungeon.scanDoors()
+    local mine = {}
+    for _, prop in pairs(Dungeon.props) do
+        if prop.entity then mine[prop.entity] = true end
+    end
+    local pos = GetEntityCoords(PlayerPedId())
+    for _, entity in ipairs(GetGamePool('CObject')) do
+        if not mine[entity] and not Dungeon.openDoors[entity]
+            and #(GetEntityCoords(entity) - pos) <= Config.Dungeon.doors.range
+            and Dungeon.isDoorModel(GetEntityModel(entity)) then
+            Dungeon.openDoor(entity)
+        end
+    end
+    for entity, door in pairs(Dungeon.openDoors) do
+        if not DoesEntityExist(entity) then
+            RemoveDoorFromSystem(door)
+            Dungeon.openDoors[entity] = nil
+        end
+    end
+end
+
+---Hors du donjon, le décor redevient celui du jeu.
+function Dungeon.closeDoors()
+    for entity, door in pairs(Dungeon.openDoors) do
+        RemoveDoorFromSystem(door)
+        if DoesEntityExist(entity) then SetEntityCollision(entity, true, true) end
+    end
+    Dungeon.openDoors = {}
+end
+
+function Dungeon.doorLoop()
+    while true do
+        if Dungeon.isInside() then Dungeon.scanDoors() end
+        Wait(Config.Dungeon.doors.interval)
     end
 end
 

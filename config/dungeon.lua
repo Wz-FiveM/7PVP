@@ -5,6 +5,7 @@
 -- Le parcours se joue dans les sous-sols du casino du braquage (intérieurs du DLC, sans IPL à charger).
 -- Ces étages ne sont pas reliés entre eux dans le jeu et leurs portes sont fermées d'origine : quand une
 -- étape a `warp`, le groupe passe dans la salle suivante avec un fondu, comme par un ascenseur.
+-- Dans une salle, les objectifs restent près du point d'arrivée : une porte du décor peut ne pas s'ouvrir.
 --
 -- Le parcours est une suite d'étapes (`steps`), jouées dans l'ordre et déplaçables en jeu (F10 > Positions) :
 --   id, label     identifiant et nom dans le panneau
@@ -48,6 +49,18 @@ Config.Dungeon = {
     chestModel = 'prop_ld_int_safe_01',
     blip = { sprite = 501, color = 1 },
     reward = { money = 5000, xp = 1500, loot = 'dungeon', model = 'prop_mil_crate_01' }, -- loot : table de config/loot.lua
+    -- Portes du décor ouvertes pendant le donjon : tout objet fin de cette taille, en mètres
+    doors = {
+        range = 30.0,
+        interval = 1500,
+        maxThickness = 0.5,
+        width = { 0.6, 6.0 },
+        height = { 1.8, 4.5 },
+        -- Derrière, il n'y a que le vide de la cage
+        keepClosed = {
+            'ch_prop_ch_liftdoor_l_01a', 'ch_prop_ch_liftdoor_r_01a', 'ch_prop_ch_bay_elev_door', 'ch_prop_ch_hatch_liftshaft_01a',
+        },
+    },
     -- Intérieurs gardés chargés pendant le donjon (origines : ch_dlc_casino_back, hotel, vault, tunnel)
     interiors = {
         vector3(2523.3608, -270.0, -59.7231),
@@ -84,36 +97,36 @@ Config.Dungeon = {
     },
     -- Coffres personnels sur le parcours : les mêmes que chez le banquier (hauteur recalée sur le sol)
     chests = {
-        vector3(2550.5, -222.0, -60.32), -- couloir des déchets
-        vector3(2539.5, -283.0, -58.72), -- salle de sécurité
-        vector3(2520.0, -265.5, -39.12), -- grand hall
-        vector3(2481.5, -264.5, -70.69), -- hall du coffre
+        vector3(2550.3, -220.0, -60.32), -- couloir des déchets
+        vector3(2536.0, -274.5, -58.72), -- salle de sécurité
+        vector3(2520.0, -263.5, -39.12), -- grand hall
+        vector3(2484.0, -264.5, -70.69), -- hall du coffre
     },
     -- Parcours par défaut. À ajuster en jeu dans F10 > Positions.
     steps = {
-        -- Sous-sol : le couloir des déchets, puis la cour des bennes
+        -- Sous-sol : le couloir des déchets
         {
             id = 'room_1', type = 'kill', count = 8, label = 'Sous-sol : zombies', warp = true, heading = 180.0,
             objective = 'Tue les zombies', hint = 'Le courant est coupé : reste près des autres.',
             coords = vector3(2548.0, -218.0, -60.32), radius = 35.0,
             spawns = {
-                vector4(2548.0, -226.0, -60.32, 0.0), vector4(2548.0, -238.0, -60.32, 0.0),
-                vector4(2546.5, -244.0, -60.32, 0.0), vector4(2545.0, -250.5, -60.32, 0.0),
+                vector4(2548.0, -226.0, -60.32, 0.0), vector4(2548.0, -231.0, -60.32, 0.0),
+                vector4(2545.5, -223.0, -60.32, 0.0), vector4(2550.0, -229.0, -60.32, 0.0),
             },
         },
         {
             id = 'key_1', type = 'fetch', item = 'p_car_keys_01', label = 'Sous-sol : clé',
             objective = 'Trouve la clé', hint = 'Elle est cachée quelque part dans la salle.',
-            coords = vector3(2545.0, -251.0, -60.32), radius = 15.0,
+            coords = vector3(2548.0, -222.0, -60.32), radius = 15.0,
             spawns = {
-                vector4(2546.5, -250.0, -60.32, 0.0), vector4(2541.5, -253.8, -60.32, 0.0), vector4(2545.0, -245.8, -60.32, 0.0),
+                vector4(2550.3, -216.0, -60.32, 0.0), vector4(2545.5, -220.0, -60.32, 0.0), vector4(2550.3, -226.5, -60.32, 0.0),
             },
         },
         {
             id = 'door_1', type = 'use', prop = 'ch_prop_ch_service_door_01a', label = 'Porte de service',
             objective = 'Utilise la clé sur la porte',
-            coords = vector3(2539.5, -254.2, -60.32), radius = 15.0,
-            spawns = { vector4(2538.5, -254.2, -60.32, 90.0) },
+            coords = vector3(2548.0, -229.0, -60.32), radius = 15.0,
+            spawns = { vector4(2548.0, -232.5, -60.32, 0.0) },
         },
         -- Salle de sécurité : les bureaux sombres
         {
@@ -128,8 +141,8 @@ Config.Dungeon = {
         {
             id = 'wall_1', type = 'destroy', health = 1500, healthPerPlayer = 750, prop = 'prop_fncply_01a', label = 'Mur de planches 1',
             objective = 'Détruis le mur', hint = 'Tire dessus jusqu\'à ce qu\'il cède.', barLabel = 'Mur',
-            coords = vector3(2531.0, -280.5, -58.72), radius = 15.0, hitRadius = 5.0,
-            spawns = { vector4(2530.0, -284.6, -58.72, 0.0) },
+            coords = vector3(2531.0, -278.0, -58.72), radius = 15.0, hitRadius = 5.0,
+            spawns = { vector4(2530.0, -283.0, -58.72, 0.0) },
         },
         -- Laverie : le générateur
         {
@@ -157,10 +170,10 @@ Config.Dungeon = {
         {
             id = 'room_4', type = 'kill', count = 16, label = 'Grand hall : zombies', warp = true, heading = 90.0,
             objective = 'Tue les zombies',
-            coords = vector3(2526.0, -264.0, -39.12), radius = 30.0,
+            coords = vector3(2517.0, -262.0, -39.12), radius = 30.0,
             spawns = {
-                vector4(2500.0, -262.0, -39.12, 0.0), vector4(2511.0, -265.0, -39.12, 0.0),
-                vector4(2520.0, -262.0, -39.12, 0.0), vector4(2504.0, -260.0, -39.12, 0.0),
+                vector4(2506.0, -262.0, -39.12, 0.0), vector4(2511.0, -265.0, -39.12, 0.0),
+                vector4(2522.0, -262.0, -39.12, 0.0), vector4(2510.0, -259.5, -39.12, 0.0),
             },
         },
         {
@@ -175,8 +188,8 @@ Config.Dungeon = {
         {
             id = 'door_2', type = 'use', prop = 'ch_prop_ch_glassdoor_01', label = 'Porte vitrée',
             objective = 'Utilise la clé sur la porte', hint = 'Tu vois déjà ce qui t\'attend derrière.',
-            coords = vector3(2499.0, -262.0, -39.12), radius = 15.0,
-            spawns = { vector4(2497.5, -262.0, -39.12, 90.0) },
+            coords = vector3(2507.5, -262.0, -39.12), radius = 15.0,
+            spawns = { vector4(2505.0, -262.0, -39.12, 90.0) },
         },
         -- Le long tunnel en arches
         {
@@ -194,7 +207,7 @@ Config.Dungeon = {
             objective = 'Trouve le C4', hint = 'Il est caché quelque part dans la salle.',
             coords = vector3(2509.0, -247.0, -55.12), radius = 25.0,
             spawns = {
-                vector4(2507.0, -231.5, -55.12, 0.0), vector4(2512.0, -244.5, -55.12, 0.0), vector4(2506.5, -249.5, -55.12, 0.0),
+                vector4(2509.5, -240.5, -55.12, 0.0), vector4(2512.0, -244.5, -55.12, 0.0), vector4(2506.5, -249.5, -55.12, 0.0),
             },
         },
         -- Le hall du coffre : le C4 sur la porte, le boss derrière
@@ -203,8 +216,8 @@ Config.Dungeon = {
             objective = 'Pose le C4 sur la porte', hint = 'Maintiens E sur chaque emplacement, puis éloigne-toi.',
             coords = vector3(2488.348, -267.3637, -70.69), radius = 25.0,
             spawns = {
-                vector4(2493.6, -278.5, -70.69, 90.0),
-                vector4(2491.6, -280.5, -70.69, 90.0), vector4(2491.6, -278.5, -70.69, 90.0), vector4(2491.6, -276.5, -70.69, 90.0),
+                vector4(2488.35, -271.5, -70.69, 0.0),
+                vector4(2486.5, -270.5, -70.69, 0.0), vector4(2488.35, -270.5, -70.69, 0.0), vector4(2490.2, -270.5, -70.69, 0.0),
             },
         },
         {
