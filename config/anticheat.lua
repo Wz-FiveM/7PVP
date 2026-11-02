@@ -31,6 +31,8 @@ Config.AntiCheat = {
     -- Vie maximum d'un joueur (200 dans GTA, dont 100 sous le seuil de mort) et armure maximum
     maxHealth = 200,
     maxArmor = 100,
+    -- Invincible hors zone safe : alerte après la durée du mode passif + cette marge, en s
+    godmodeMargin = 10,
     -- Vitesse horizontale maximum en PvP (m/s). Une voiture rapide fait ~60 m/s.
     maxSpeed = 120.0,
     -- Les déplacements plus courts ne comptent pas (chute, ragdoll, petit décalage réseau)

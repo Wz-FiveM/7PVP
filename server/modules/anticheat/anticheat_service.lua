@@ -3,7 +3,7 @@
 ---  damage    : dégâts d'une touche au-dessus du maximum (alerte seulement, la touche passe)
 ---  explosion : explosion d'arme (grenade, roquette...) en PvP
 ---  entity    : véhicule créé par un joueur en PvP
----  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible hors zone safe
+---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible et qui le reste hors zone safe
 ---  teleport  : déplacement impossible entre deux relevés de position
 ---  spam      : requêtes réseau en rafale ; heartbeat : script client arrêté
 ---  kill      : tueur annoncé par la victime sans que le serveur ait vu ce kill (voir KillProof)
@@ -35,7 +35,7 @@ AntiCheatService.positions = {} -- [source] = { coords, at }
 AntiCheatService.graceUntil = {} -- [source] = GetGameTimer()
 AntiCheatService.heartbeats = {} -- [source] = os.time() du dernier signal
 AntiCheatService.loadedAt = {} -- [source] = os.time() du chargement du profil
-AntiCheatService.lastSafeAt = {} -- [source] = os.time() de la dernière fois vu en zone safe
+AntiCheatService.invincibleSince = {} -- [source] = os.time() du premier relevé invincible hors zone safe
 -- Véhicule qu'un joueur a le droit de créer (objet véhicule utilisé) : [source] = { model, expires }
 AntiCheatService.allowedVehicles = {}
 -- Véhicule créé avec cette autorisation, tant que le client ne l'a pas fait accepter : [source] = entité
@@ -143,7 +143,7 @@ function AntiCheatService.forget(source)
     for _, map in ipairs({
         AntiCheatService.strikes, AntiCheatService.rates, AntiCheatService.positions,
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
-        AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.lastSafeAt,
+        AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.invincibleSince,
     }) do
         map[source] = nil
     end
@@ -392,6 +392,8 @@ function AntiCheatService.vitalsLoop()
         for source, player in pairs(PlayerService.all()) do
             if AntiCheatService.watched(source, true) and not player.dead then
                 AntiCheatService.checkVitals(source, player)
+            else
+                AntiCheatService.invincibleSince[source] = nil
             end
         end
     end
@@ -405,16 +407,31 @@ function AntiCheatService.checkVitals(source, player)
     if health > math.max(Config.AntiCheat.maxHealth, ClassService.healthLimit(player)) or armor > Config.AntiCheat.maxArmor then
         AntiCheatService.flag(source, 'health', ('vie %d, armure %d'):format(health, armor))
     end
-    local now = os.time()
-    if player:isInSafeZone() then
-        AntiCheatService.lastSafeAt[source] = now
+    AntiCheatService.checkInvincible(source, player)
+end
+
+---Seule une invincibilité qui dure est signalée. Le jeu en donne de courtes hors zone safe : mode passif
+---(Config.PassiveMode), même après une zone traversée entre deux relevés, et personnage du lobby tant que
+---l'apparition n'est pas finie (couverte par AntiCheatService.grace).
+---@param source integer
+---@param player PvpPlayer
+function AntiCheatService.checkInvincible(source, player)
+    if player:isInSafeZone() or GetGameTimer() < (AntiCheatService.graceUntil[source] or 0)
+        or not GetPlayerInvincible(source) then
+        AntiCheatService.invincibleSince[source] = nil
         return
     end
-    -- Mode passif à la sortie d'une zone safe (Config.PassiveMode) : encore invincible un moment
-    local passiveGrace = Config.PassiveMode.duration + AntiCheatService.VITALS_INTERVAL / 1000 + 1
-    if now - (AntiCheatService.lastSafeAt[source] or 0) <= passiveGrace then return end
-    if GetPlayerInvincible(source) then
-        AntiCheatService.flag(source, 'godmode', 'invincible hors zone safe')
+
+    local now = os.time()
+    local since = AntiCheatService.invincibleSince[source]
+    if not since then
+        AntiCheatService.invincibleSince[source] = now
+        return
+    end
+    local seconds = now - since
+    if seconds >= Config.PassiveMode.duration + Config.AntiCheat.godmodeMargin then
+        AntiCheatService.invincibleSince[source] = now
+        AntiCheatService.flag(source, 'godmode', ('invincible hors zone safe depuis %d s'):format(seconds))
     end
 end
 
