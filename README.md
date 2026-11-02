@@ -202,7 +202,10 @@ Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans 
 | Véhicule créé en PvP | Le mode n'en donne pas : véhicule apparu par un joueur (création annulée) | Kick à la 3e |
 | Vie / armure | Au-dessus de 200 PV ou 100 d'armure | Kick à la 3e |
 | Invincibilité | Joueur invincible hors zone safe | Journal |
-| Téléportation | Plus de 60 m à plus de 120 m/s entre deux relevés (sauf réapparition, action d'admin) | Journal |
+| Téléportation | Plus de 60 m à plus de 120 m/s entre deux relevés, ou à plus de 60 m/s à pied loin d'un véhicule (sauf réapparition, action d'admin). À pied, le joueur est ramené d'où il vient | Expulsion à la 3e alerte en 5 min |
+| Noclip | À pied, plus de 30 m/s sans tomber ou plus de 8 m/s de montée pendant 3 s, ou personnage figé qui se déplace | Expulsion à la 3e alerte en 5 min |
+| Collisions coupées | À pied, collisions coupées pendant 10 s | Journal |
+| Freecam | Caméra à plus de 40 m du personnage (150 m en véhicule) pendant 10 s | Journal |
 | Requêtes en rafale | Menus, touches ou ramassages envoyés en boucle (ignorés au-delà de la limite) | Kick après 5 s de dépassement sur 10 s |
 | Script client arrêté | Plus de signal du client depuis 90 s (« resource stopper ») | Kick |
 | Kill annoncé sans touche | La victime désigne un tueur alors que le serveur n'a vu ni touche récente, ni explosion proche, ni véhicule qui l'écrase (kill non compté, voir `server/modules/combat/kill_proof.lua`) | Journal |

@@ -24,7 +24,13 @@ Config.AntiCheat = {
         -- épargnent les joueurs honnêtes. Passer action à 'kick' pour sanctionner.
         immunity = { label = 'Touches sans aucun effet', action = 'log', strikes = 3 },
         aimbot = { label = 'Aimbot suspecté', action = 'log', strikes = 3 },
-        teleport = { label = 'Téléportation / vitesse impossible', action = 'log', strikes = 1 },
+        -- Un seul joueur signalé du 28/10 au 02/11 (51 alertes en une minute, à 150 m/s) : le seuil épargne les autres
+        teleport = { label = 'Téléportation / vitesse impossible', action = 'kick', strikes = 3 },
+        noclip = { label = 'Noclip', action = 'kick', strikes = 3 },
+        -- Lus dans l'état envoyé par le jeu et jamais vus sur de vrais joueurs : alerte seulement tant que le
+        -- journal n'a pas montré qu'ils épargnent les joueurs honnêtes. Passer action à 'kick' pour sanctionner.
+        collision = { label = 'Collisions coupées', action = 'log', strikes = 3 },
+        freecam = { label = 'Freecam', action = 'log', strikes = 3 },
         -- Une alerte par seconde de dépassement : seul un envoi en boucle tient 5 s sur 10, pas un pic de combat.
         spam = { label = 'Requêtes en rafale', action = 'kick', strikes = 5, window = 10 },
         heartbeat = { label = 'Script client arrêté', action = 'kick', strikes = 1 },
@@ -65,12 +71,34 @@ Config.AntiCheat = {
         offAimHits = 8,
         offAimRatio = 0.5,
     },
-    -- Vitesse horizontale maximum en PvP (m/s). Une voiture rapide fait ~60 m/s.
+    -- Vitesse maximum en PvP (m/s), toutes directions. Une voiture rapide fait ~60 m/s.
     maxSpeed = 120.0,
+    -- Vitesse horizontale d'un saut à pied, loin de tout véhicule (m/s). Le sprint fait ~8 m/s.
+    maxFootJumpSpeed = 60.0,
     -- Les déplacements plus courts ne comptent pas (chute, ragdoll, petit décalage réseau)
     minTeleportDistance = 60.0,
     -- Délai de grâce après une téléportation légitime (réapparition, admin, lobby), en s
     teleportGrace = 10,
+    -- Temps de coupure réseau (s) pris en compte quand la position d'un joueur en mouvement ne change plus
+    lagCredit = 15,
+    -- Après un véhicule, le personnage garde son élan : pas de contrôle à pied pendant ce délai, en s
+    vehicleExitGrace = 8,
+    -- Relevés (un par seconde) : un signal doit tenir `*Readings` relevés de suite pour donner une alerte
+    noclip = {
+        maxSpeed = 30.0, -- horizontale à pied, m/s
+        fallSpeed = 5.0, -- descend plus vite que ça (m/s) : chute ou parachute, la vitesse à pied ne compte pas
+        fastReadings = 3,
+        maxClimb = 8.0, -- montée à pied, m/s (échelle, escalier et pente restent en dessous)
+        climbReadings = 3,
+        frozenDistance = 3.0, -- personnage figé qui se déplace de plus que ça entre deux relevés, en m
+        frozenReadings = 2,
+        collisionReadings = 10,
+    },
+    freecam = {
+        distance = 40.0, -- à pied, en m
+        vehicleDistance = 150.0, -- en véhicule, en m
+        readings = 10,
+    },
     -- Requêtes réseau par seconde et par joueur avant d'être ignorées
     rateLimits = {
         callback = 25, -- menus, inventaire, achats...

@@ -7,7 +7,10 @@
 ---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible et qui le reste hors zone safe
 ---  immunity  : touches encaissées d'affilée sans perdre de vie (godmode que le serveur ne voit pas directement)
 ---  aimbot    : presque que des tirs à la tête, ou touches sur un joueur que la caméra ne regarde pas
----  teleport  : déplacement impossible entre deux relevés de position
+---  teleport  : déplacement impossible entre deux relevés de position (à pied, le joueur est ramené d'où il vient)
+---  noclip    : à pied, vol rapide, montée continue ou déplacement d'un personnage figé
+---  collision : à pied, collisions coupées et qui le restent
+---  freecam   : caméra envoyée par le jeu loin du personnage, et qui y reste
 ---  spam      : requêtes réseau en rafale ; heartbeat : script client arrêté
 ---  kill      : tueur annoncé par la victime sans que le serveur ait vu ce kill (voir KillProof)
 ---Chaque détection est journalisée (console + Discord) ; la sanction tombe au-delà d'un nombre
@@ -44,7 +47,9 @@ AntiCheatService.aimSamples = {} -- [source] = { { at, head, offAim }, ... } tou
 ---@type table<integer, string>|nil [hash non signé] = objet de l'arme, rempli au premier besoin
 AntiCheatService.weaponItems = nil
 AntiCheatService.rates = {} -- [source][clé] = { second, count }
-AntiCheatService.positions = {} -- [source] = { coords, at }
+AntiCheatService.positions = {} -- [source] = { coords, at, moving }
+AntiCheatService.streaks = {} -- [source][signal] = relevés de suite où le signal est présent
+AntiCheatService.vehicleAt = {} -- [source] = GetGameTimer() du dernier relevé en véhicule ou accroché à un véhicule
 AntiCheatService.graceUntil = {} -- [source] = GetGameTimer()
 AntiCheatService.heartbeats = {} -- [source] = os.time() du dernier signal
 AntiCheatService.loadedAt = {} -- [source] = os.time() du chargement du profil
@@ -123,6 +128,7 @@ end
 function AntiCheatService.grace(source, seconds)
     AntiCheatService.graceUntil[source] = GetGameTimer() + (seconds or Config.AntiCheat.teleportGrace) * 1000
     AntiCheatService.positions[source] = nil
+    AntiCheatService.streaks[source] = nil
 end
 
 ---Limite de requêtes par seconde : false (requête à ignorer) au-delà de Config.AntiCheat.rateLimits[key].
@@ -158,6 +164,7 @@ function AntiCheatService.forget(source)
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
         AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.invincibleSince,
         AntiCheatService.heldWeapons, AntiCheatService.immunity, AntiCheatService.aimSamples,
+        AntiCheatService.streaks, AntiCheatService.vehicleAt,
     }) do
         map[source] = nil
     end
@@ -516,7 +523,7 @@ function AntiCheatService.discardVehicle(source)
     if entity and DoesEntityExist(entity) then DeleteEntity(entity) end
 end
 
----Déplacements impossibles (téléportation, vitesse) des joueurs PvP vivants.
+---Déplacements impossibles (téléportation, vitesse, noclip) et caméra des joueurs PvP vivants.
 function AntiCheatService.watchLoop()
     while true do
         Wait(AntiCheatService.WATCH_INTERVAL)
@@ -526,23 +533,134 @@ function AntiCheatService.watchLoop()
                 AntiCheatService.checkMovement(source, now)
             else
                 AntiCheatService.positions[source] = nil
+                AntiCheatService.streaks[source] = nil
             end
         end
     end
 end
 
+---Compte les relevés de suite où un signal est présent : vrai quand il y en a assez, et le compte repart de zéro.
+---@param source integer
+---@param signal string
+---@param present boolean
+---@param readings integer
+---@return boolean
+function AntiCheatService.sustained(source, signal, present, readings)
+    local streaks = AntiCheatService.streaks[source] or {}
+    AntiCheatService.streaks[source] = streaks
+    local count = present and (streaks[signal] or 0) + 1 or 0
+    streaks[signal] = count < readings and count or 0
+    return count >= readings
+end
+
 ---@param source integer
 ---@param now integer
 function AntiCheatService.checkMovement(source, now)
-    local coords = GetEntityCoords(GetPlayerPed(source))
-    local last = AntiCheatService.positions[source]
-    AntiCheatService.positions[source] = { coords = coords, at = now }
-    if not last or now < (AntiCheatService.graceUntil[source] or 0) then return end
+    local ped = GetPlayerPed(source)
+    -- Personnage en cours de remplacement (résurrection, changement de modèle) : rien à comparer
+    if ped == 0 or not DoesEntityExist(ped) then
+        AntiCheatService.positions[source] = nil
+        return
+    end
 
-    local distance = #(coords.xy - last.coords.xy)
-    local speed = distance / math.max(0.001, (now - last.at) / 1000)
-    if distance > Config.AntiCheat.minTeleportDistance and speed > Config.AntiCheat.maxSpeed then
-        AntiCheatService.flag(source, 'teleport', ('%.0f m en %.1f s (%.0f m/s)'):format(distance, (now - last.at) / 1000, speed))
+    local coords = GetEntityCoords(ped)
+    local last = AntiCheatService.positions[source]
+    -- Position figée alors que le joueur bougeait : le réseau n'a rien transmis. Le temps continue de compter
+    -- depuis le dernier vrai relevé, sinon tout le trajet parcouru arrive d'un coup et ressemble à un saut.
+    if last and last.moving and #(coords - last.coords) < 0.01
+        and now - last.at < Config.AntiCheat.lagCredit * 1000 then
+        return
+    end
+
+    local current = { coords = coords, at = now, moving = #GetEntityVelocity(ped) > 1.0 }
+    AntiCheatService.positions[source] = current
+    if not last or now < (AntiCheatService.graceUntil[source] or 0) then
+        AntiCheatService.streaks[source] = nil
+        return
+    end
+
+    local vehicle = GetVehiclePedIsIn(ped, false)
+    -- Debout sur le toit d'un véhicule, le joueur est accroché et avance à sa vitesse (voir VehicleRoof)
+    local onFoot = vehicle == 0 and GetEntityAttachedTo(ped) == 0
+    if not onFoot then AntiCheatService.vehicleAt[source] = now end
+    -- Juste après un véhicule, le joueur garde son élan
+    local settled = onFoot and now - (AntiCheatService.vehicleAt[source] or 0) >= Config.AntiCheat.vehicleExitGrace * 1000
+
+    local elapsed = math.max(0.001, (now - last.at) / 1000)
+    AntiCheatService.checkJump(source, ped, current, last, elapsed, onFoot, settled, vehicle)
+    AntiCheatService.checkNoclip(source, ped, current, last, elapsed, settled)
+    AntiCheatService.checkFreecam(source, coords, vehicle)
+end
+
+---Saut de position entre deux relevés. À pied, le joueur est ramené d'où il vient : la téléportation ne lui sert à rien.
+---En véhicule, non : remettre le personnage en place le ferait descendre en pleine route.
+---@param source integer
+---@param ped integer
+---@param current table relevé en cours
+---@param last table relevé précédent
+---@param elapsed number secondes entre les deux
+---@param onFoot boolean
+---@param settled boolean à pied, et plus sous l'élan d'un véhicule
+---@param vehicle integer
+function AntiCheatService.checkJump(source, ped, current, last, elapsed, onFoot, settled, vehicle)
+    local settings = Config.AntiCheat
+    local distance = #(current.coords - last.coords)
+    local flat = #(current.coords.xy - last.coords.xy)
+    local jumped = distance > settings.minTeleportDistance and distance / elapsed > settings.maxSpeed
+        or settled and flat > settings.minTeleportDistance and flat / elapsed > settings.maxFootJumpSpeed
+    if not jumped then return end
+
+    local where = onFoot and 'à pied, ramené' or ('en véhicule, modèle %d'):format(AntiCheatService.unsigned(GetEntityModel(vehicle)))
+    if onFoot then
+        SetEntityCoords(ped, last.coords.x, last.coords.y, last.coords.z, false, false, false, false)
+        current.coords = last.coords
+    end
+    AntiCheatService.flag(source, 'teleport', ('%.0f m en %.1f s (%.0f m/s, %s)'):format(distance, elapsed, distance / elapsed, where))
+end
+
+---Ce qu'un personnage à pied ne peut pas faire. Le serveur ne connaît pas le sol : un joueur immobile en l'air,
+---ou qui vole lentement sans couper ses collisions, ne se voit pas ici.
+---@param source integer
+---@param ped integer
+---@param current table relevé en cours
+---@param last table relevé précédent
+---@param elapsed number secondes entre les deux
+---@param settled boolean à pied, et plus sous l'élan d'un véhicule
+function AntiCheatService.checkNoclip(source, ped, current, last, elapsed, settled)
+    local rules = Config.AntiCheat.noclip
+    local flat = #(current.coords.xy - last.coords.xy) / elapsed
+    local climb = (current.coords.z - last.coords.z) / elapsed
+    local moved = #(current.coords - last.coords)
+
+    -- En chute ou en parachute, le joueur va vite à l'horizontale : seul ce qui ne descend pas compte
+    if AntiCheatService.sustained(source, 'fast', settled and flat > rules.maxSpeed and climb > -rules.fallSpeed, rules.fastReadings) then
+        AntiCheatService.flag(source, 'noclip', ('%.0f m/s à pied sans tomber'):format(flat))
+    end
+    if AntiCheatService.sustained(source, 'climb', settled and climb > rules.maxClimb, rules.climbReadings) then
+        AntiCheatService.flag(source, 'noclip', ('monte à %.0f m/s à pied'):format(climb))
+    end
+    if AntiCheatService.sustained(source, 'frozen', settled and IsEntityPositionFrozen(ped) and moved > rules.frozenDistance, rules.frozenReadings) then
+        AntiCheatService.flag(source, 'noclip', ('personnage figé qui avance de %.0f m par relevé'):format(moved))
+    end
+    if AntiCheatService.sustained(source, 'collision', settled and GetEntityCollisionDisabled(ped), rules.collisionReadings) then
+        AntiCheatService.flag(source, 'collision', ('collisions coupées depuis %d relevés'):format(rules.collisionReadings))
+    end
+end
+
+---La caméra d'un joueur est envoyée par le jeu : une freecam la montre loin du personnage. Les caméras du PvP
+---(tenue, custom des véhicules et des armes) restent à quelques mètres. En véhicule, le seuil est plus haut :
+---la caméra cinématique de GTA peut filmer de loin.
+---@param source integer
+---@param coords vector3
+---@param vehicle integer
+function AntiCheatService.checkFreecam(source, coords, vehicle)
+    local rules = Config.AntiCheat.freecam
+    local distance = 0.0
+    if IsPlayerInFreeCamMode(source) then distance = #(GetPlayerFocusPos(source) - coords) end
+    local limit = vehicle ~= 0 and rules.vehicleDistance or rules.distance
+    if AntiCheatService.sustained(source, 'freecam', distance > limit, rules.readings) then
+        AntiCheatService.flag(source, 'freecam', ('caméra à %.0f m du personnage depuis %d relevés (%s)'):format(
+            distance, rules.readings, vehicle ~= 0 and 'en véhicule' or 'à pied'))
     end
 end
 
