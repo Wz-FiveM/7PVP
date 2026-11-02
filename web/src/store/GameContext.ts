@@ -22,6 +22,9 @@ export interface GameActions {
   unlockStash: (id: StashId) => Promise<void>;
   /** Prend des objets du butin ouvert (largage) et les range dans le sac ou le conteneur protégé */
   lootTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
+  /** Coffre du crew (chez le banquier) : déposer ce qu'on porte, retirer vers le sac ou le conteneur protégé */
+  crewStashPut: (item: string, count: number, from: ContainerId) => Promise<void>;
+  crewStashTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   /** Échange : quantité proposée d'un objet (0 = le retirer de l'offre) */
   tradeOffer: (item: string, count: number) => Promise<void>;

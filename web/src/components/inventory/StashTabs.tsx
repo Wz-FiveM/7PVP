@@ -5,16 +5,19 @@ import { formatMoney } from '../../utils/format';
 import { isUnlocked, stashIds } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 
+/** Onglet affiché chez le banquier : un coffre personnel ou celui du crew. */
+export type BankerTab = StashId | 'crew';
+
 interface StashTabsProps {
-  active: StashId;
-  onChange: (id: StashId) => void;
+  active: BankerTab;
+  onChange: (id: BankerTab) => void;
 }
 
 /** Onglets des coffres chez le banquier : les coffres payants pas encore achetés sont cadenassés. */
 export function StashTabs({ active, onChange }: StashTabsProps) {
   const t = useT();
   const { state } = useGame();
-  const { player, config } = state;
+  const { player, config, crew } = state;
   if (!player) return null;
 
   return (
@@ -32,6 +35,11 @@ export function StashTabs({ active, onChange }: StashTabsProps) {
           </button>
         );
       })}
+      {crew && (
+        <button className={`btn btn--small cut-s stash-tabs__tab${active === 'crew' ? ' btn--active' : ''}`} onClick={() => onChange('crew')}>
+          {t('Crew [{tag}]', { tag: crew.tag })}
+        </button>
+      )}
     </div>
   );
 }

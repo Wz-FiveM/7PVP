@@ -925,6 +925,12 @@ export const DEV_ACTIONS: DevAction[] = [
               { key: 2, name: 'Bravo', id: 7, leader: false },
               { key: 3, name: 'Kilo', id: false, leader: false },
             ],
+            stash: { weapon_carbinerifle: 2, ammo_556: 240, money: 15000, bandage: 12 },
+            stashLog: [
+              { name: 'Bravo', item: 'weapon_carbinerifle', count: 1, taken: true, at: 1793620800 },
+              { name: 'Dev', item: 'money', count: 15000, taken: false, at: 1793617200 },
+              { name: 'Kilo', item: 'bandage', count: 12, taken: false, at: 1793613600 },
+            ],
           },
         },
       }),

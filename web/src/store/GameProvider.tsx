@@ -4,6 +4,7 @@ import { gameApi } from '../api/gameApi';
 import { freeroamApi } from '../api/freeroamApi';
 import { interactionApi } from '../api/interactionApi';
 import { pauseApi } from '../api/pauseApi';
+import { crewApi } from '../api/crewApi';
 import { tradeApi } from '../api/tradeApi';
 import { isEnvBrowser } from '../api/nui';
 import { mockCaseReel, mockLobbyModes, mockVitals } from '../dev/mocks';
@@ -236,6 +237,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       equip: (name) => run(gameApi.equip(name)),
       moveItem: (item, from, to, count) => run(gameApi.moveItem(item, from, to, count)),
       lootTake: (item, count, to) => run(gameApi.lootTake(item, count, to)),
+      crewStashPut: (item, count, from) => run(crewApi.stashPut(item, count, from)),
+      crewStashTake: (item, count, to) => run(crewApi.stashTake(item, count, to)),
       craft: (id) => run(gameApi.craft(id)),
       selectClass: (id) => run(gameApi.selectClass(id)),
       attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),

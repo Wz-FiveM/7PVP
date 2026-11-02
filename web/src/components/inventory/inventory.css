@@ -73,6 +73,40 @@
 .stash-tabs__tab--locked:not(.btn--active) {
   color: var(--brume-hi);
 }
+.crew-stash-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.75rem;
+}
+.crew-stash-log__empty {
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.crew-stash-log__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 9rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.crew-stash-log__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  font-size: 0.75rem;
+}
+.crew-stash-log__date {
+  flex: none;
+  font-size: 0.6875rem;
+  color: var(--brume);
+}
+.crew-stash-log__text {
+  color: var(--brume-hi);
+}
 .stash-purchase {
   align-items: flex-start;
   padding: 0.875rem 0;

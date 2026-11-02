@@ -1,16 +1,17 @@
 import { useCallback, useState, type MouseEvent } from 'react';
 import { ContainerSection, type Selection } from '../components/inventory/ContainerSection';
 import { ContextMenu, type ContextMenuAction } from '../components/inventory/ContextMenu';
+import { CrewStashSection } from '../components/inventory/CrewStashSection';
 import type { DragSource, DropTarget } from '../components/inventory/drag';
 import { DragProvider } from '../components/inventory/DragProvider';
 import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
-import { StashPurchase, StashTabs } from '../components/inventory/StashTabs';
+import { StashPurchase, StashTabs, type BankerTab } from '../components/inventory/StashTabs';
 import { TradeSection } from '../components/inventory/TradeSection';
 import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
-import type { ContainerId, ItemStack, StashId } from '../types/game';
+import type { ContainerId, ItemStack } from '../types/game';
 import {
   CARRIED, capacityOf, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, isWeaponInBag, itemLabel,
   moveLabel, moveTargets,
@@ -21,8 +22,8 @@ import '../components/inventory/inventory.css';
 type TakeTarget = 'bag' | 'protected';
 
 interface PendingQuantity {
-  /** take : prendre dans le butin ouvert (largage) ; offer : proposer à l'échange */
-  mode: 'move' | 'drop' | 'take' | 'offer';
+  /** take : prendre dans le butin ouvert (largage) ; offer : proposer à l'échange ; crew* : coffre du crew */
+  mode: 'move' | 'drop' | 'take' | 'offer' | 'crewPut' | 'crewTake';
   item: string;
   container: ContainerId;
   /** destination d'un déplacement */
@@ -36,11 +37,13 @@ interface OpenContextMenu {
   x: number;
   y: number;
   stack: ItemStack;
-  /** 'loot' : objet du butin ouvert ; 'trade' : objet de son offre d'échange */
-  container: ContainerId | 'loot' | 'trade';
+  /** 'loot' : objet du butin ouvert ; 'trade' : objet de son offre d'échange ; 'crew' : objet du coffre du crew */
+  container: ContainerId | 'loot' | 'trade' | 'crew';
 }
 
-const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = { move: 'Déplacer', drop: 'Jeter', take: 'Prendre', offer: 'Proposer' };
+const QUANTITY_LABELS: Record<PendingQuantity['mode'], string> = {
+  move: 'Déplacer', drop: 'Jeter', take: 'Prendre', offer: 'Proposer', crewPut: 'Déposer', crewTake: 'Prendre',
+};
 
 export function InventoryPage() {
   const t = useT();
@@ -51,8 +54,9 @@ export function InventoryPage() {
   const [contextMenu, setContextMenu] = useState<OpenContextMenu | null>(null);
   const [lootSelection, setLootSelection] = useState<string | null>(null);
   const [tradeSelection, setTradeSelection] = useState<string | null>(null);
-  // Onglet du coffre affiché chez le banquier
-  const [activeStash, setActiveStash] = useState<StashId>('stash');
+  const [crewSelection, setCrewSelection] = useState<string | null>(null);
+  // Onglet affiché chez le banquier
+  const [activeTab, setActiveTab] = useState<BankerTab>('stash');
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
   const closeQuantity = useCallback(() => setQuantity(null), []);
@@ -60,8 +64,11 @@ export function InventoryPage() {
   if (!player) return null;
   // Le coffre ne s'ouvre (et ne s'affiche) qu'à côté du banquier
   const atBanker = Boolean(state.menu.near.stash);
+  // Exclu du crew pendant qu'il regardait son coffre : retour au premier coffre
+  const tab: BankerTab = activeTab === 'crew' && !state.crew ? 'stash' : activeTab;
+  const crewStash = atBanker && tab === 'crew' ? state.crew : null;
   // Coffre de l'onglet choisi, s'il est ouvert (acheté) : les objets y vont et en viennent
-  const openStash = atBanker && isUnlocked(player.inventory, config, activeStash) ? activeStash : null;
+  const openStash = atBanker && tab !== 'crew' && isUnlocked(player.inventory, config, tab) ? tab : null;
   // Butin ouvert (largage) : son contenu s'affiche à droite, à la place du coffre
   const loot = state.loot;
   // Échange en cours (/trade) : il prend la place du butin et du coffre
@@ -97,6 +104,27 @@ export function InventoryPage() {
     }
   };
 
+  /** Dépose directement s'il n'y a qu'un objet, sinon demande la quantité. */
+  const requestCrewPut = (item: string, from: ContainerId, count: number) => {
+    if (count === 1) actions.crewStashPut(item, 1, from);
+    else setQuantity({ mode: 'crewPut', item, container: from, max: count });
+  };
+
+  /** Retire directement s'il n'y a qu'un objet, sinon demande la quantité. */
+  const requestCrewTake = (item: string, count: number, to: TakeTarget) => {
+    if (count === 1) actions.crewStashTake(item, 1, to);
+    else setQuantity({ mode: 'crewTake', item, container: 'bag', to, max: count });
+  };
+
+  /** Alt + clic ou double-clic dans le coffre du crew : ce qui tient part dans le sac. */
+  const quickCrewTake = (stack: ItemStack) => {
+    const free = capacityOf(config, player, 'bag') - weightOf(player.inventory.bag ?? [], config);
+    const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
+    const count = Math.min(stack.count, fit);
+    if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t(config.containers.bag.label) }), 'error');
+    actions.crewStashTake(stack.name, count, 'bag');
+  };
+
   /** Quantité déjà proposée à l'échange */
   const offeredOf = (item: string): number =>
     trade ? (entriesOf(trade.mine.items).find(([name]) => name === item)?.[1] ?? 0) : 0;
@@ -124,6 +152,9 @@ export function InventoryPage() {
     // Son offre d'échange reçoit ce qu'on porte ; ses objets lâchés ailleurs sont retirés de l'offre
     if (target.kind === 'trade') return source.kind === 'trade' || (source.kind === 'container' && !isStash(source.container));
     if (source.kind === 'trade') return false;
+    // Coffre du crew : reçoit ce qu'on porte, et ne rend qu'au sac ou au conteneur protégé
+    if (target.kind === 'crew') return source.kind === 'container' && !isStash(source.container);
+    if (source.kind === 'crew') return target.kind === 'container' && !isStash(target.container);
     // Objet du butin : seulement vers le sac ou le conteneur protégé
     if (source.kind === 'loot') {
       return target.kind === 'container' && (target.container === 'bag' || target.container === 'protected');
@@ -153,6 +184,15 @@ export function InventoryPage() {
     }
     if (source.kind === 'trade') return;
 
+    if (target.kind === 'crew') {
+      if (source.kind === 'container') requestCrewPut(source.item, source.container, source.count);
+      return;
+    }
+    if (source.kind === 'crew') {
+      if (target.kind === 'container' && !isStash(target.container)) requestCrewTake(source.item, source.count, target.container);
+      return;
+    }
+
     if (target.kind === 'container') {
       if (source.kind === 'container') requestMove(source.item, source.container, target.container, source.count);
       if (source.kind === 'loot' && !isStash(target.container)) requestTake(source.item, source.count, target.container);
@@ -172,6 +212,10 @@ export function InventoryPage() {
       actions.tradeOffer(quantity.item, (quantity.base ?? 0) + count);
     } else if (quantity.mode === 'take' && (quantity.to === 'bag' || quantity.to === 'protected')) {
       actions.lootTake(quantity.item, count, quantity.to);
+    } else if (quantity.mode === 'crewPut') {
+      actions.crewStashPut(quantity.item, count, quantity.container);
+    } else if (quantity.mode === 'crewTake' && (quantity.to === 'bag' || quantity.to === 'protected')) {
+      actions.crewStashTake(quantity.item, count, quantity.to);
     } else if (quantity.mode === 'move' && quantity.to) {
       actions.moveItem(quantity.item, quantity.container, quantity.to, count);
     } else {
@@ -180,7 +224,13 @@ export function InventoryPage() {
     setQuantity(null);
   };
 
-  const contextActions = (stack: ItemStack, container: ContainerId | 'loot' | 'trade'): ContextMenuAction[] => {
+  const contextActions = (stack: ItemStack, container: ContainerId | 'loot' | 'trade' | 'crew'): ContextMenuAction[] => {
+    if (container === 'crew') {
+      return [
+        { label: t('Prendre : vers le sac'), onSelect: () => requestCrewTake(stack.name, stack.count, 'bag') },
+        { label: t('Prendre : vers le conteneur protégé'), onSelect: () => requestCrewTake(stack.name, stack.count, 'protected') },
+      ];
+    }
     if (container === 'trade') {
       return [
         {
@@ -217,6 +267,9 @@ export function InventoryPage() {
     for (const to of moveTargets(container, openStash)) {
       list.push({ label: moveLabel(to, config), onSelect: () => requestMove(stack.name, container, to, stack.count) });
     }
+    if (crewStash && carried) {
+      list.push({ label: t('Ranger : {container}', { container: t('Coffre du crew') }), onSelect: () => requestCrewPut(stack.name, container, stack.count) });
+    }
     list.push({ label: t('Jeter'), danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
     return list;
   };
@@ -241,14 +294,21 @@ export function InventoryPage() {
 
   /**
    * Alt + clic : toute la pile (ou ce qui tient) part dans « l'autre » conteneur.
-   * Chez le banquier : ce qu'on porte va au coffre de l'onglet choisi et le coffre revient dans le sac ;
+   * Chez le banquier : ce qu'on porte va au coffre de l'onglet choisi (celui du crew compris) et le coffre revient dans le sac ;
    * ailleurs : du sac vers le conteneur protégé, et inversement.
    */
   const quickMove = (stack: ItemStack, from: ContainerId) => {
     // Échange en cours : toute la pile part dans son offre
     if (trade && !isStash(from)) return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
+    if (crewStash && !isStash(from)) {
+      const free = (config.crew?.stashCapacity ?? 0) - weightOf(crewStash.stash, config);
+      const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
+      const count = Math.min(stack.count, fit);
+      if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t('Coffre du crew') }), 'error');
+      return actions.crewStashPut(stack.name, count, from);
+    }
     const to: ContainerId | null = isStash(from) ? 'bag' : atBanker ? openStash : from === 'bag' ? 'protected' : 'bag';
-    if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t(config.containers[activeStash]?.label ?? 'Coffre') }), 'error');
+    if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t(tab === 'crew' ? 'Coffre' : config.containers[tab]?.label ?? 'Coffre') }), 'error');
     const target = config.containers[to];
     const free = capacityOf(config, player, to) - weightOf(player.inventory[to] ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
@@ -332,8 +392,23 @@ export function InventoryPage() {
           <div className="inventory__split">
             {carriedColumn}
             <div className="inventory__column inventory__column--stash">
-              <StashTabs active={activeStash} onChange={setActiveStash} />
-              {openStash ? renderSection(openStash) : <StashPurchase id={activeStash} />}
+              <StashTabs active={tab} onChange={setActiveTab} />
+              {crewStash ? (
+                <CrewStashSection
+                  crew={crewStash}
+                  selected={crewSelection}
+                  onSelect={setCrewSelection}
+                  onQuickTake={quickCrewTake}
+                  onItemContextMenu={(event, stack) => {
+                    setCrewSelection(stack.name);
+                    setContextMenu({ x: event.clientX, y: event.clientY, stack, container: 'crew' });
+                  }}
+                />
+              ) : openStash ? (
+                renderSection(openStash)
+              ) : (
+                tab !== 'crew' && <StashPurchase id={tab} />
+              )}
             </div>
           </div>
         ) : (

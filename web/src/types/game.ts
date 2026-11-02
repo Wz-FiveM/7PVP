@@ -406,6 +406,33 @@ export interface CrewConfig {
   /** Config.ControlZones.territories : maximum par crew, secondes entre deux versements */
   maxTerritories: number;
   territoryInterval: number;
+  /** Config.Crews.stash.capacity, en kg */
+  stashCapacity: number;
+  /** Config.Crews.stats.captureScore : points par territoire pris */
+  captureScore: number;
+}
+
+/** Opération du journal du coffre de crew (server/modules/crew/crew_stash_service.lua) */
+export interface CrewStashEntry {
+  name: string;
+  item: string;
+  count: number;
+  taken: boolean;
+  /** os.time() */
+  at: number;
+}
+
+/** Ligne du classement des crews (server/modules/crew/crew_stats_service.lua) */
+export interface CrewBoardRow {
+  tag: string;
+  name: string;
+  members: number;
+  /** territoires tenus, `false` hors de la saison en cours */
+  territories: number | false;
+  score: number;
+  kills: number;
+  deaths: number;
+  captures: number;
 }
 
 /** Territoire affiché dans le menu Crew (client/modules/control/control.lua) */
@@ -424,6 +451,9 @@ export interface CrewData {
   name: string;
   /** key : numéro à renvoyer au serveur ; id : server id, `false` hors ligne */
   members: { key: number; name: string; id: number | false; leader: boolean }[];
+  /** coffre commun et son journal, du plus récent au plus ancien */
+  stash: ItemStacks;
+  stashLog: CrewStashEntry[];
 }
 
 export interface CrewInvite {

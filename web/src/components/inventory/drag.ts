@@ -8,17 +8,21 @@ export type DragSource =
   /** objet du butin ouvert (largage) */
   | { kind: 'loot'; item: string; count: number }
   /** objet de sa propre offre d'échange (lâché ailleurs : retiré de l'offre) */
-  | { kind: 'trade'; item: string; count: number };
+  | { kind: 'trade'; item: string; count: number }
+  /** objet du coffre du crew */
+  | { kind: 'crew'; item: string; count: number };
 
-/** Zone où l'on peut déposer : un conteneur, un emplacement de raccourci ou son offre d'échange. */
+/** Zone où l'on peut déposer : un conteneur, un emplacement de raccourci, son offre d'échange ou le coffre du crew. */
 export type DropTarget =
   | { kind: 'container'; container: ContainerId }
   | { kind: 'shortcut'; slot: number }
-  | { kind: 'trade' };
+  | { kind: 'trade' }
+  | { kind: 'crew' };
 
 /** Identifiant texte d'une cible, posé sur l'élément HTML (attribut data-drop). */
 export function targetKey(target: DropTarget): string {
   if (target.kind === 'trade') return 'trade:offer';
+  if (target.kind === 'crew') return 'crew:stash';
   return target.kind === 'container' ? `container:${target.container}` : `shortcut:${target.slot}`;
 }
 
@@ -30,5 +34,6 @@ export function parseTargetKey(key: string | undefined | null): DropTarget | nul
   }
   if (kind === 'shortcut' && Number(value) > 0) return { kind, slot: Number(value) };
   if (kind === 'trade') return { kind };
+  if (kind === 'crew') return { kind };
   return null;
 }

@@ -197,6 +197,8 @@ function Nui.buildInitPayload()
                 nameMaxLength = Config.Crews.nameMaxLength,
                 maxTerritories = Config.ControlZones.territories.maxPerCrew,
                 territoryInterval = Config.ControlZones.territories.incomeInterval,
+                stashCapacity = Config.Crews.stash.capacity,
+                captureScore = Config.Crews.stats.captureScore,
             },
             nameColors = Config.NameColors,
             killfeedBackgrounds = Config.KillfeedBackgrounds,

@@ -61,6 +61,15 @@ function Crew.init()
     RegisterNUICallback('crewDisband', function(_, cb)
         cb(Callback.await(Events.callbacks.crewDisband) or { ok = false })
     end)
+    RegisterNUICallback('crewStashPut', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewStashPut, { item = data.item, count = data.count, from = data.from }) or { ok = false })
+    end)
+    RegisterNUICallback('crewStashTake', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewStashTake, { item = data.item, count = data.count, to = data.to }) or { ok = false })
+    end)
+    RegisterNUICallback('crewLeaderboard', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewLeaderboard, data.scope) or { rows = {}, title = '' })
+    end)
 end
 
 ---Commande du chat : le résultat s'affiche en notification.

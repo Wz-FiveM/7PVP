@@ -18,6 +18,7 @@ local PlayerService = PVP.use('PlayerService')
 local GroupService = PVP.use('GroupService')
 local CrewService = PVP.use('CrewService')
 local CrewRepository = PVP.use('CrewRepository')
+local CrewStatsService = PVP.use('CrewStatsService')
 local ChatService = PVP.use('ChatService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -195,6 +196,7 @@ function ControlService.onTerritoryTaken(zone, previous)
     zone.protectedUntil = os.time() + Config.ControlZones.territories.protection
     zone.alertedAt = nil
     CrewRepository.setTerritory(zone.def.id, zone.owner:sub(3), zone.protectedUntil)
+    CrewStatsService.onCapture(zone.owner:sub(3))
 
     local label = Locale.t(zone.def.label)
     ChatService.announce('pvp', Locale.t('%s prend le territoire : %s', zone.ownerLabel, label))

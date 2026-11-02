@@ -173,6 +173,8 @@ export function CrewPage() {
           <li>{t('Tu vois le gamertag des membres de ton crew au-dessus de leur tête.')}</li>
           <li>{t('Le tir allié reste actif dans un crew : forme une équipe pour le couper.')}</li>
           <li>{t('Un territoire capturé paie chaque membre connecté en PvP, et reste au crew d\'une session à l\'autre. {count} territoires au plus par crew.', { count: config?.maxTerritories ?? 2 })}</li>
+          <li>{t('Coffre du crew chez le banquier : tous les membres y déposent et y retirent, le journal garde qui a fait quoi. Vide-le avant de dissoudre le crew.')}</li>
+          <li>{t('Classement des crews (menu Top joueurs) : 1 point par kill fait une fois dans le crew, {score} points par territoire pris.', { score: config?.captureScore ?? 10 })}</li>
           <li>{t('Chat : /crewinviter ID, /crewaccepter, /crewrefuser, /crewquitter.')}</li>
         </ul>
       </Panel>

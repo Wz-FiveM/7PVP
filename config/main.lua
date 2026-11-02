@@ -59,6 +59,17 @@ Config.Crews = {
     nameMaxLength = 24,
     inviteTimeout = 60, -- secondes pour accepter une invitation
     gamertagDistance = 150.0, -- portée des gamertags entre membres d'un même crew (mètres)
+    -- Coffre commun, chez le banquier : tout membre y dépose et y retire, le journal garde qui a fait quoi
+    stash = {
+        capacity = 500.0, -- kg
+        logSize = 15, -- opérations gardées dans le journal
+        blocked = {}, -- objets interdits au coffre, ex : { weapon_rpg = true }
+    },
+    -- Classement des crews (par saison) : seuls comptent les kills faits une fois dans le crew
+    stats = {
+        captureScore = 10, -- points par territoire pris (1 kill = 1 point)
+        sameVictimDelay = 60, -- secondes avant qu'un kill sur la même victime compte à nouveau
+    },
     -- Labels que personne ne peut prendre
     reservedTags = {
         ADM = true, MOD = true, DEV = true, GMS = true, STF = true, BOT = true,

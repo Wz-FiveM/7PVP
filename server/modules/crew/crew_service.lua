@@ -20,6 +20,7 @@ local GroupService = PVP.use('GroupService')
 local AdminService = PVP.use('AdminService')
 local DiscordService = PVP.use('DiscordService')
 local ControlService = PVP.use('ControlService')
+local CrewStashService = PVP.use('CrewStashService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -71,6 +72,7 @@ function CrewService.load()
     end
     Logger.info('Crews chargés : %d', #crews)
     ControlService.restoreTerritories(CrewRepository.loadTerritories())
+    CrewStashService.restore(CrewRepository.loadStashes())
 
     -- Joueurs arrivés avant la fin du chargement (redémarrage de la ressource)
     for _, player in pairs(PlayerService.all()) do
@@ -141,7 +143,8 @@ function CrewService.serialize(crew, gone)
             leader = member.identifier == crew.leader,
         }
     end
-    return { tag = crew.tag, name = crew.name, members = members }
+    local stash = CrewStashService.get(crew.tag)
+    return { tag = crew.tag, name = crew.name, members = members, stash = stash.items, stashLog = stash.log }
 end
 
 ---Renvoie le crew à jour à ses membres connectés.
@@ -290,6 +293,9 @@ function CrewService.leave(source)
     local player = PlayerService.get(source)
     local crew = CrewService.crewOf(source)
     if not player or not crew then return { ok = false, message = Locale.t('Tu n\'es dans aucun crew.') } end
+    if #crew.members == 1 and not CrewStashService.isEmpty(crew.tag) then
+        return { ok = false, message = Locale.t('Vide d\'abord le coffre du crew : son contenu serait perdu.') }
+    end
 
     local wasLeader = crew.leader == player.identifier
     CrewService.removeMember(crew, player.identifier)
@@ -297,6 +303,7 @@ function CrewService.leave(source)
         CrewService.crews[crew.tag] = nil
         CrewRepository.delete(crew.tag)
         ControlService.releaseCrew(crew.tag)
+        CrewStashService.remove(crew.tag)
         return { ok = true, message = Locale.t('Tu as quitté le crew : il est dissous.') }
     end
 
@@ -353,6 +360,9 @@ function CrewService.disband(source)
     local crew = CrewService.crewOf(source)
     if not player or not crew or crew.leader ~= player.identifier then
         return { ok = false, message = Locale.t('Seul le chef du crew peut le dissoudre.') }
+    end
+    if not CrewStashService.isEmpty(crew.tag) then
+        return { ok = false, message = Locale.t('Vide d\'abord le coffre du crew : son contenu serait perdu.') }
     end
 
     CrewService.dissolve(crew)
@@ -418,6 +428,7 @@ function CrewService.dissolve(crew)
     end
     CrewRepository.delete(crew.tag)
     ControlService.releaseCrew(crew.tag)
+    CrewStashService.remove(crew.tag)
 end
 
 ---@param source integer
