@@ -1,5 +1,6 @@
 import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
+import type { VehicleCustomPayload } from './vehicleCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
   CaseReelEntry, ChatMessageData, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
@@ -27,6 +28,7 @@ export type NuiMessage =
   | { action: 'noclipHeld'; data: { held: NoclipKeyId[] } }
   | { action: 'chatMessage'; data: ChatMessageData }
   | { action: 'creator'; data: CreatorPayload }
+  | { action: 'vehicleCustom'; data: VehicleCustomPayload }
   | { action: 'menu'; data: { open: boolean; inSafe: boolean; near?: NearServices; page?: string } }
   | { action: 'notify'; data: { text: string; kind: ToastKind } }
   | { action: 'locale'; data: LocalePayload }

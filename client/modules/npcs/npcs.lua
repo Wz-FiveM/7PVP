@@ -14,6 +14,7 @@ local Zones = PVP.use('Zones')
 local Activities = PVP.use('Activities')
 local FreeroamPositions = PVP.use('FreeroamPositions')
 local ActivityBoards = PVP.use('ActivityBoards')
+local VehicleCustom = PVP.use('VehicleCustom')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -158,6 +159,8 @@ function Npcs.interact(npc)
         Activities.open(npc.activity)
     elseif npc.role == 'clothing' then
         Creator.requestEdit()
+    elseif npc.role == Config.VehicleCustom.role then
+        VehicleCustom.talk()
     elseif role.page then
         Nui.setMenu(true, role.page)
     end

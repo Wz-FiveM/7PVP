@@ -16,6 +16,8 @@ Config.SafeNpcs = {
         contracts = { label = 'Recruteur', action = 'Voir les contrats', page = 'contracts', icon = 'contract', blip = { sprite = 498, color = 47 } },
         market = { label = 'Commissaire-priseur', action = 'Ouvrir la place de marché', page = 'market', icon = 'money', blip = { sprite = 52, color = 46 } },
         resale = { label = 'Receleur', action = 'Revendre des objets', page = 'resale', icon = 'money', blip = { sprite = 378, color = 25 } },
+        -- Custom des véhicules : au volant, sur le repère au sol devant lui (voir config/vehicle_custom.lua)
+        custom = { label = 'Mécanicien', action = 'Customiser un véhicule', icon = 'craft', blip = { sprite = 72, color = 17 } },
         -- Freeroam : lance un mode de jeu (Config.FreeroamActivities) ; nom, icône et repère viennent du mode
         activity = { label = 'Organisateur', action = 'Voir le mode de jeu', icon = 'flag', blip = { sprite = 280, color = 5 } },
     },
@@ -35,21 +37,25 @@ Config.SafeNpcs = {
         { zone = 'legion', role = 'contracts', model = 's_m_m_highsec_01', coords = vector4(196.6, -912.6, 30.7, 180.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'legion', role = 'market', model = 'a_m_y_business_02', coords = vector4(178.5, -948.0, 30.1, 30.0), scenario = 'WORLD_HUMAN_STAND_MOBILE' },
         { zone = 'legion', role = 'resale', model = 's_m_y_dealer_01', coords = vector4(193.5, -953.0, 30.1, 350.0), scenario = 'WORLD_HUMAN_SMOKING' },
+        { zone = 'legion', role = 'custom', model = 's_m_m_autoshop_02', coords = vector4(232.0, -925.0, 30.0, 90.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
 
-        -- Autres zones safe : coffre, boutique, tenue et revente (fabrication, contrats et marché à Legion)
+        -- Autres zones safe : coffre, boutique, tenue, revente et custom (fabrication, contrats et marché à Legion)
         { zone = 'airport', role = 'stash', model = 'cs_bankman', coords = vector4(-1042.0, -2725.0, 20.2, 150.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'airport', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(-1028.0, -2732.0, 20.2, 120.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'airport', role = 'clothing', model = 's_f_y_shop_mid', coords = vector4(-1048.0, -2738.0, 20.2, 240.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },
         { zone = 'airport', role = 'resale', model = 's_m_y_dealer_01', coords = vector4(-1025.0, -2742.0, 20.2, 60.0), scenario = 'WORLD_HUMAN_SMOKING' },
+        { zone = 'airport', role = 'custom', model = 's_m_m_autoshop_02', coords = vector4(-1015.0, -2725.0, 20.2, 240.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
 
         { zone = 'sandy', role = 'stash', model = 'cs_bankman', coords = vector4(1849.0, 3680.0, 34.3, 300.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'sandy', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(1861.0, 3684.0, 34.3, 120.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'sandy', role = 'clothing', model = 's_f_y_shop_mid', coords = vector4(1855.0, 3692.0, 34.3, 210.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },
         { zone = 'sandy', role = 'resale', model = 's_m_y_dealer_01', coords = vector4(1846.0, 3690.0, 34.3, 240.0), scenario = 'WORLD_HUMAN_SMOKING' },
+        { zone = 'sandy', role = 'custom', model = 's_m_m_autoshop_02', coords = vector4(1868.0, 3700.0, 33.6, 210.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
 
         { zone = 'paleto', role = 'stash', model = 'cs_bankman', coords = vector4(-444.0, 6008.0, 31.7, 45.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'paleto', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(-452.0, 6016.0, 31.7, 225.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'paleto', role = 'clothing', model = 's_f_y_shop_mid', coords = vector4(-441.0, 6016.0, 31.7, 135.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },
         { zone = 'paleto', role = 'resale', model = 's_m_y_dealer_01', coords = vector4(-455.0, 6007.0, 31.7, 315.0), scenario = 'WORLD_HUMAN_SMOKING' },
+        { zone = 'paleto', role = 'custom', model = 's_m_m_autoshop_02', coords = vector4(-472.0, 6021.0, 31.3, 225.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
     },
 }

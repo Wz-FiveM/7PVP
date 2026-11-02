@@ -2,6 +2,7 @@ import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
 import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile, mockCodProfilePrestige } from './codMocks';
 import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
+import { mockVehicleCustom } from './vehicleCustomMock';
 
 /**
  * Panneau de dev (npm run dev uniquement) : chaque bouton envoie de vrais messages NUI,
@@ -476,6 +477,10 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'Receleur',
     run: () => sendNui({ action: 'menu', data: { open: true, inSafe: true, near: { resale: true }, page: 'resale' } }),
+  },
+  {
+    label: 'Mécanicien (custom)',
+    run: () => sendNui({ action: 'vehicleCustom', data: mockVehicleCustom }),
   },
   {
     label: 'Téléportation (F1)',

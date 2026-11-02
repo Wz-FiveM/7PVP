@@ -7,6 +7,7 @@ local PedUtils = PVP.use('PedUtils')
 local Nui = PVP.use('Nui')
 local HelpNotify = PVP.use('HelpNotify')
 local Callback = PVP.use('Callback')
+local VehicleCustom = PVP.use('VehicleCustom')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -18,8 +19,8 @@ Vehicles.NETWORK_TIMEOUT = 2000 -- ms pour que le véhicule créé soit en rése
 Vehicles.current = nil
 
 function Vehicles.init()
-    RegisterNetEvent(Events.client.vehicleSpawn, function(name, model)
-        Vehicles.spawn(name, model)
+    RegisterNetEvent(Events.client.vehicleSpawn, function(name, model, custom)
+        Vehicles.spawn(name, model, custom)
     end)
     -- Son véhicule n'est plus à lui : refusé par le serveur (objet rendu, il ne doit pas rester
     -- en jeu) ou rangé par un autre joueur
@@ -67,7 +68,7 @@ end
 function Vehicles.helpLoop()
     while true do
         local vehicle = State.inPvp() and State.isAlive() and not IsNuiFocused() and Vehicles.storable()
-        if vehicle and not Vehicles.isMoving(vehicle) then
+        if vehicle and not Vehicles.isMoving(vehicle) and not VehicleCustom.atSpot then
             HelpNotify.show(Config.VehicleOptions.storeKey, Locale.t('Ranger le véhicule'))
             Wait(0)
         else
@@ -78,7 +79,8 @@ end
 
 ---@param name string objet véhicule
 ---@param model string modèle GTA
-function Vehicles.spawn(name, model)
+---@param custom table|nil custom enregistrée par le joueur pour ce modèle
+function Vehicles.spawn(name, model, custom)
     local hash = GetHashKey(model)
     if not IsModelInCdimage(hash) or not IsModelAVehicle(hash) or not PedUtils.loadModel(hash) then
         return TriggerServerEvent(Events.server.vehicleSpawned, name, false)
@@ -95,6 +97,7 @@ function Vehicles.spawn(name, model)
     SetEntityAsMissionEntity(vehicle, true, true)
     SetVehicleOnGroundProperly(vehicle)
     SetVehicleNumberPlateText(vehicle, Config.VehicleOptions.plate)
+    if custom then VehicleCustom.apply(vehicle, custom) end
     SetVehicleHasBeenOwnedByPlayer(vehicle, true)
     SetVehRadioStation(vehicle, 'OFF')
     SetPedIntoVehicle(ped, vehicle, -1)

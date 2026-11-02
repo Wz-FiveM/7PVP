@@ -7,6 +7,7 @@
 local VehicleService = PVP.define('VehicleService')
 local PlayerService = PVP.use('PlayerService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local VehicleCustomService = PVP.use('VehicleCustomService')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local Events = PVP.use('Events')
@@ -98,7 +99,7 @@ function VehicleService.deploy(player, name)
     -- Le véhicule est dehors, pas perdu : son raccourci reste en place
     player.inventory:reserve(name)
     AntiCheatService.allowVehicle(player.source, item.model)
-    TriggerClientEvent(Events.client.vehicleSpawn, player.source, name, item.model)
+    TriggerClientEvent(Events.client.vehicleSpawn, player.source, name, item.model, VehicleCustomService.get(player, item.model))
     player:sync()
     return { ok = true, message = Locale.t('%s sorti', Locale.t(item.label)) }
 end

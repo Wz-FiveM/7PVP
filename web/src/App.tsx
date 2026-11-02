@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActivityPanel } from './components/activity/ActivityPanel';
 import { Chase } from './components/activity/Chase';
 import { Cvc } from './components/activity/Cvc';
@@ -23,9 +24,11 @@ import { PauseMenu } from './components/pause/PauseMenu';
 import { Teleport } from './components/teleport/TeleportMenu';
 import { FreeroamHud } from './components/freeroam/FreeroamHud';
 import { FreeroamMenu } from './components/freeroam/FreeroamMenu';
+import { VehicleCustom } from './components/vehicle/VehicleCustom';
 import { activityApi } from './api/activityApi';
 import { isEnvBrowser } from './api/nui';
 import { teleportApi } from './api/teleportApi';
+import { vehicleCustomApi } from './api/vehicleCustomApi';
 import { UiGuard } from './components/ui/UiGuard';
 import { DevPanel } from './dev/DevPanel';
 import { useCreator } from './store/CreatorProvider';
@@ -37,6 +40,8 @@ export function App() {
   const creator = useCreator();
   const creating = creator.state?.open ?? false;
   const inLobby = state.lobby.open;
+  // Menu du mécanicien ouvert : le HUD et le chat laissent la place au véhicule
+  const [customizing, setCustomizing] = useState(false);
   // Le HUD, le menu et l'écran de mort appartiennent au mode PvP
   const inPvp = !creating && !inLobby && state.mode === 'pvp';
   const inFreeroam = !creating && !inLobby && state.mode === 'freeroam';
@@ -47,12 +52,12 @@ export function App() {
       {/* Chaque partie est isolée (UiGuard) : si l'une plante, le reste de l'interface continue */}
       {creating && <UiGuard name="creator"><CharacterCreator /></UiGuard>}
       {!creating && inLobby && <UiGuard name="lobby"><Lobby /></UiGuard>}
-      {inPvp && state.ready && !state.menu.open && !state.death.active && <UiGuard name="hud"><Hud /></UiGuard>}
+      {inPvp && state.ready && !state.menu.open && !state.death.active && !customizing && <UiGuard name="hud"><Hud /></UiGuard>}
       {!creating && !inLobby && state.mode && <UiGuard name="hits"><HitFeedback mode={state.mode} /></UiGuard>}
       {/* Monté hors du HUD : les effets survivent à l'ouverture du menu (masqués pendant ce temps) */}
       {inPvp && (
         <UiGuard name="effects">
-          <EffectsBar hidden={!state.ready || state.menu.open || state.death.active} />
+          <EffectsBar hidden={!state.ready || state.menu.open || state.death.active || customizing} />
         </UiGuard>
       )}
       {inPvp && state.menu.open && <UiGuard name="menu" onCrash={actions.closeMenu}><Menu /></UiGuard>}
@@ -63,7 +68,7 @@ export function App() {
           <FreeroamMenu />
         </UiGuard>
       )}
-      {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && !state.death.active && (
+      {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && !state.death.active && !customizing && (
         <UiGuard name="speedometer"><Speedometer /></UiGuard>
       )}
       {inFreeroam && <UiGuard name="activity" onCrash={activityApi.close}><ActivityPanel /></UiGuard>}
@@ -74,7 +79,7 @@ export function App() {
       {/* Toujours monté : le serveur peut ouvrir le menu juste après le changement de mode */}
       <UiGuard name="cod"><Cod visible={inCod} /></UiGuard>
       <UiGuard name="voice"><VoiceIndicator /></UiGuard>
-      {(inPvp || inFreeroam || inCod) && !state.menu.open && !state.freeroam.menuOpen && (
+      {(inPvp || inFreeroam || inCod) && !state.menu.open && !state.freeroam.menuOpen && !customizing && (
         <UiGuard name="chat" onCrash={actions.closeChat}><Chat /></UiGuard>
       )}
       {!creating && !inLobby && state.admin.open && <UiGuard name="admin" onCrash={actions.closeAdmin}><AdminPanel /></UiGuard>}
@@ -85,6 +90,16 @@ export function App() {
         <UiGuard name="interaction" onCrash={actions.closeInteraction}><InteractionMenu /></UiGuard>
       )}
       {inPvp && !state.death.active && <UiGuard name="teleport" onCrash={teleportApi.close}><Teleport /></UiGuard>}
+      {/* Toujours monté : Lua peut refermer le menu en quittant le mode (mort, changement de mode) */}
+      <UiGuard
+        name="vehicle-custom"
+        onCrash={() => {
+          vehicleCustomApi.cancel();
+          setCustomizing(false);
+        }}
+      >
+        <VehicleCustom onOpenChange={setCustomizing} />
+      </UiGuard>
       {/* En Call of Duty, le mode a son propre menu pause (voir Cod) */}
       {!creating && !inLobby && state.pause.open && state.pause.info?.mode !== 'cod' && (
         <UiGuard name="pause" onCrash={actions.closePause}><PauseMenu /></UiGuard>

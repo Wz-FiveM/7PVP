@@ -1,0 +1,18 @@
+/* Menu du mécanicien : même panneau que le créateur de personnage, véhicule visible à droite */
+
+.vehicle-custom .creator-tabs__tab {
+  padding: 0.75rem 0.25rem;
+  font-size: 0.6875rem;
+}
+
+.vehicle-custom__swatches {
+  grid-template-columns: repeat(13, minmax(0, 1fr));
+}
+.vehicle-custom__swatches .swatch {
+  box-shadow: inset 0 0 0 0.0625rem rgba(255, 255, 255, 0.12);
+}
+
+.vehicle-custom__note {
+  margin: 0;
+  font-size: 0.75rem;
+}
