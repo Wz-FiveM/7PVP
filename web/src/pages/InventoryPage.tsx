@@ -255,6 +255,7 @@ export function InventoryPage() {
       if (container === 'bag') list.push({ label: t('Équiper'), onSelect: () => actions.equip(stack.name) });
       list.push(...attachmentActions(stack.name));
     }
+    if (carried && stack.item.type === 'attachment') list.push(...fitActions(stack.name));
     if (carried && stack.item.type === 'consumable') {
       list.push({ label: t('Utiliser'), onSelect: () => actions.consumeItem(stack.name) });
     }
@@ -290,6 +291,18 @@ export function InventoryPage() {
       }
       return [];
     });
+  };
+
+  /** Clic droit sur un accessoire : le fixer sur une arme portée, ou dire pourquoi on ne peut pas. */
+  const fitActions = (attachment: string): ContextMenuAction[] => {
+    const weapons = Object.keys(config.attachments?.[attachment] ?? {}).filter(
+      (weapon) => carriedOf(weapon) > 0 && !fittedAttachments(player.inventory, weapon).includes(attachment),
+    );
+    if (weapons.length === 0) return [{ label: t('Aucune arme compatible sur toi'), disabled: true, onSelect: () => undefined }];
+    return weapons.map((weapon) => ({
+      label: t('Fixer sur : {item}', { item: itemLabel(config, weapon) }),
+      onSelect: () => actions.attachment(weapon, attachment, true),
+    }));
   };
 
   /**

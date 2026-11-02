@@ -273,6 +273,13 @@
 .context-menu__item--danger {
   color: var(--hazard);
 }
+.context-menu__item:disabled {
+  color: inherit;
+  text-shadow: none;
+  background: none;
+  opacity: 0.55;
+  cursor: default;
+}
 
 /* Fenêtre de quantité ------------------------------------------------------------- */
 

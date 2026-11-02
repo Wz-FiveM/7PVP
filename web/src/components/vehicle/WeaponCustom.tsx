@@ -3,8 +3,10 @@ import { isEnvBrowser } from '../../api/nui';
 import { weaponCustomApi } from '../../api/weaponCustomApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
 import { useT } from '../../i18n';
+import { useGame } from '../../store/GameContext';
 import type { NuiMessage } from '../../types/nui';
 import type { WeaponCustomChoice, WeaponCustomWeapon } from '../../types/weaponCustom';
+import { entriesOf, fittedAttachments, itemLabel } from '../../utils/inventory';
 import { Stepper } from '../creator/controls/Stepper';
 import { ItemIcon } from '../inventory/ItemIcon';
 import { Logo } from '../ui/Logo';
@@ -37,6 +39,7 @@ export function WeaponCustom({ onOpenChange }: { onOpenChange: (open: boolean) =
 
 function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]; onClose: () => void }) {
   const t = useT();
+  const { state, actions } = useGame();
   const [selected, setSelected] = useState(weapons[0].name);
   /** Choix en cours, par arme : rien n'est gardé avant « Enregistrer » */
   const [drafts, setDrafts] = useState<Record<string, WeaponCustomChoice>>({});
@@ -49,14 +52,18 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
   const weapon = weapons.find((entry) => entry.name === selected) ?? weapons[0];
   const choice = choiceOf(weapon);
 
-  const select = (next: WeaponCustomWeapon) => {
-    setSelected(next.name);
-    weaponCustomApi.preview(next.name, choiceOf(next));
-  };
+  const inventory = state.player?.inventory;
+  const fitted = inventory ? fittedAttachments(inventory, weapon.name) : [];
+  const owned = new Set(inventory ? [...entriesOf(inventory.bag), ...entriesOf(inventory.protected)].map(([name]) => name) : []);
+  const fittedKey = fitted.join();
+
+  // Le modèle d'essai suit l'arme choisie, sa custom et ses accessoires, dès qu'un des trois change
+  useEffect(() => {
+    weaponCustomApi.preview(weapon.name, { tint: choice.tint, finish: choice.finish }, fittedKey ? fittedKey.split(',') : []);
+  }, [weapon.name, choice.tint, choice.finish, fittedKey]);
 
   const change = (next: WeaponCustomChoice) => {
     setDrafts({ ...drafts, [weapon.name]: next });
-    weaponCustomApi.preview(weapon.name, next);
   };
 
   const cancel = useCallback(() => {
@@ -139,6 +146,36 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
             />
           )}
 
+          {weapon.attachments.length > 0 && (
+            <div className="ctl">
+              <span className="ctl__label">{t('Accessoires')}</span>
+              <ul className="weapon-custom__list">
+                {weapon.attachments.map((attachment) => {
+                  const isFitted = fitted.includes(attachment);
+                  const available = isFitted || owned.has(attachment);
+                  return (
+                    <li key={attachment}>
+                      <button
+                        className={isFitted ? 'weapon-custom__row weapon-custom__row--active' : 'weapon-custom__row'}
+                        disabled={!available}
+                        onClick={() => actions.attachment(weapon.name, attachment, !isFitted)}
+                      >
+                        <span className="weapon-custom__icon">
+                          <ItemIcon name={attachment} type="attachment" />
+                        </span>
+                        <span className="disp weapon-custom__name">{itemLabel(state.config, attachment)}</span>
+                        <span className={available ? 'mono weapon-custom__changed' : 'mono muted weapon-custom__state'}>
+                          {isFitted ? t('Retirer') : available ? t('Fixer') : t('Pas sur toi')}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="muted vehicle-custom__note">{t('Un accessoire se fixe tout de suite, sans passer par Enregistrer.')}</p>
+            </div>
+          )}
+
           <div className="ctl">
             <span className="ctl__label">{t('Armes dans ton sac')}</span>
             <ul className="weapon-custom__list">
@@ -146,7 +183,7 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
                 <li key={entry.name}>
                   <button
                     className={entry.name === weapon.name ? 'weapon-custom__row weapon-custom__row--active' : 'weapon-custom__row'}
-                    onClick={() => select(entry)}
+                    onClick={() => setSelected(entry.name)}
                   >
                     <span className="weapon-custom__icon">
                       <ItemIcon name={entry.name} type="weapon" />

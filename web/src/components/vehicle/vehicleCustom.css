@@ -47,6 +47,17 @@
   border-left-color: var(--signal);
   background: var(--acier-hi);
 }
+.weapon-custom__row:disabled {
+  background: var(--acier);
+  cursor: default;
+}
+.weapon-custom__row:disabled .weapon-custom__icon,
+.weapon-custom__row:disabled .weapon-custom__name {
+  opacity: 0.45;
+}
+.weapon-custom__state {
+  font-size: 0.6875rem;
+}
 .weapon-custom__icon {
   position: relative;
   flex: none;

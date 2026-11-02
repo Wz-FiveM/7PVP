@@ -2,7 +2,8 @@
 -- On lui parle avec E : il propose les armes portées dans le sac, à l'essai sur un modèle posé devant soi.
 -- La custom est gardée en base, par joueur et par modèle d'arme : toutes ses prochaines Carabines auront
 -- la même, qu'elles viennent de la boutique, d'un butin ou d'un échange. Elle ne se perd jamais à la mort.
--- Elle est gratuite et ne change que l'apparence : les accessoires (silencieux, lunette...) restent des objets.
+-- Elle est gratuite et ne change que l'apparence. Les accessoires (silencieux, lunette...) restent des objets :
+-- le menu les fixe aussi, tout de suite et sans « Enregistrer », comme le clic droit de l'inventaire.
 Config.WeaponCustom = {
     role = 'weaponcustom', -- rôle du PNJ dans Config.SafeNpcs
 

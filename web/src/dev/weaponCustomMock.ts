@@ -18,6 +18,7 @@ export const mockWeaponCustom: WeaponCustomPayload = {
     {
       name: 'weapon_carbinerifle', label: 'Carabine', tint: 2, finish: 'COMPONENT_CARBINERIFLE_VARMOD_LUXE', tints,
       finishes: [{ component: 'COMPONENT_CARBINERIFLE_VARMOD_LUXE', label: 'Luxe' }],
+      attachments: ['att_extclip', 'att_scope', 'att_suppressor'],
     },
     {
       name: 'weapon_assaultrifle_mk2', label: 'Fusil d\'assaut Mk II', tint: 0, finish: false,
@@ -32,14 +33,16 @@ export const mockWeaponCustom: WeaponCustomPayload = {
         { component: 'COMPONENT_ASSAULTRIFLE_MK2_CAMO', label: 'Numérique' },
         { component: 'COMPONENT_ASSAULTRIFLE_MK2_CAMO_04', label: 'Têtes de mort' },
       ],
+      attachments: ['att_extclip', 'att_flashlight', 'att_grip', 'att_scope', 'att_suppressor'],
     },
-    { name: 'weapon_pistol', label: 'Pistolet', tint: 0, finish: false, tints, finishes: [] },
+    { name: 'weapon_pistol', label: 'Pistolet', tint: 0, finish: false, tints, finishes: [], attachments: ['att_suppressor'] },
     {
       name: 'weapon_knuckle', label: 'Poing américain', tint: 0, finish: false, tints: [],
       finishes: [
         { component: 'COMPONENT_KNUCKLE_VARMOD_BALLAS', label: 'Ballas' },
         { component: 'COMPONENT_KNUCKLE_VARMOD_DIAMOND', label: 'Diamant' },
       ],
+      attachments: [],
     },
   ],
 };

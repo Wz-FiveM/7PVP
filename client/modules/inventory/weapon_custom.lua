@@ -27,6 +27,8 @@ WeaponCustom.object = nil
 WeaponCustom.shown = nil
 ---@type string|nil finition posée sur le modèle d'essai
 WeaponCustom.shownFinish = nil
+---@type table<string, boolean> accessoires posés sur le modèle d'essai (composant GTA)
+WeaponCustom.shownParts = {}
 -- Numéro de la dernière demande : une arme encore en chargement est abandonnée si le joueur en a choisi une autre
 WeaponCustom.request = 0
 WeaponCustom.spinning = true
@@ -41,7 +43,7 @@ function WeaponCustom.init()
 
     RegisterNUICallback('weaponCustomPreview', function(data, cb)
         cb({})
-        if type(data) == 'table' then WeaponCustom.preview(data.name, data.tint, data.finish) end
+        if type(data) == 'table' then WeaponCustom.preview(data.name, data.tint, data.finish, data.attachments) end
     end)
     RegisterNUICallback('weaponCustomRotate', function(data, cb)
         WeaponCustom.rotate(tonumber(data.delta) or 0)
@@ -108,6 +110,13 @@ function WeaponCustom.describe(name, item)
         end
     end
     if #tints == 0 and #finishes == 0 then return nil end
+    local attachments = {}
+    for attachment, weapons in pairs(Config.Attachments) do
+        if weapons[name] and DoesWeaponTakeWeaponComponent(hash, GetHashKey(weapons[name])) then
+            attachments[#attachments + 1] = attachment
+        end
+    end
+    table.sort(attachments)
     local custom = WeaponCustom.saved[name]
     return {
         name = name,
@@ -116,6 +125,7 @@ function WeaponCustom.describe(name, item)
         finish = custom and custom.finish or false,
         tints = tints,
         finishes = finishes,
+        attachments = attachments,
     }
 end
 
@@ -234,23 +244,82 @@ function WeaponCustom.deleteObject()
     WeaponCustom.object = nil
     WeaponCustom.shown = nil
     WeaponCustom.shownFinish = nil
+    WeaponCustom.shownParts = {}
     if object and DoesEntityExist(object) then DeleteObject(object) end
     if shown then RemoveWeaponAsset(GetHashKey(Config.Items[shown].weapon)) end
 end
 
----Essai demandé par le menu : arme choisie, teinte et finition.
+---Essai demandé par le menu : arme choisie, teinte, finition et accessoires fixés.
 ---@param name any
 ---@param tint any
 ---@param finish any
-function WeaponCustom.preview(name, tint, finish)
+---@param fitted any accessoires fixés sur cette arme
+function WeaponCustom.preview(name, tint, finish, fitted)
     local item = Config.Items[name]
     if not WeaponCustom.active or not item or item.type ~= 'weapon' then return end
     WeaponCustom.request = WeaponCustom.request + 1
     local request = WeaponCustom.request
+    local parts = WeaponCustom.partsOf(name, fitted)
     CreateThread(function()
-        if name ~= WeaponCustom.shown and not WeaponCustom.createObject(name, item, request) then return end
+        -- Un accessoire retiré repart d'un modèle neuf : un chargeur retiré laisserait l'arme sans chargeur
+        local stale = name ~= WeaponCustom.shown or WeaponCustom.losesPart(parts)
+        if stale and not WeaponCustom.createObject(name, item, request) then return end
         WeaponCustom.dress(item, tonumber(tint) or 0, finish or nil, request)
+        WeaponCustom.fit(parts, request)
     end)
+end
+
+---@param name string objet de l'arme
+---@param fitted any accessoires
+---@return table<string, boolean> composants GTA à poser
+function WeaponCustom.partsOf(name, fitted)
+    local parts = {}
+    for _, attachment in ipairs(type(fitted) == 'table' and fitted or {}) do
+        local weapons = Config.Attachments[attachment]
+        if weapons and weapons[name] then parts[weapons[name]] = true end
+    end
+    return parts
+end
+
+---@param parts table<string, boolean>
+---@return boolean true si un accessoire posé sur le modèle n'est plus voulu
+function WeaponCustom.losesPart(parts)
+    for component in pairs(WeaponCustom.shownParts) do
+        if not parts[component] then return true end
+    end
+    return false
+end
+
+---Pose les accessoires qui manquent sur le modèle d'essai.
+---@param parts table<string, boolean>
+---@param request integer
+function WeaponCustom.fit(parts, request)
+    local object = WeaponCustom.object
+    if not object or request ~= WeaponCustom.request then return end
+    for component in pairs(parts) do
+        if not WeaponCustom.shownParts[component] then
+            if not WeaponCustom.giveComponent(object, GetHashKey(component), request) then return end
+            WeaponCustom.shownParts[component] = true
+        end
+    end
+end
+
+---Charge le modèle d'un composant et le pose sur le modèle d'essai.
+---@param object integer
+---@param component integer hash du composant
+---@param request integer
+---@return boolean false si la demande a été remplacée entre-temps
+function WeaponCustom.giveComponent(object, component, request)
+    local model = GetWeaponComponentTypeModel(component)
+    if model ~= 0 then
+        RequestModel(model)
+        local timeout = GetGameTimer() + WeaponCustom.ASSET_TIMEOUT
+        while not HasModelLoaded(model) and GetGameTimer() < timeout and request == WeaponCustom.request do Wait(0) end
+    end
+    if request ~= WeaponCustom.request or WeaponCustom.object ~= object then return false end
+    GiveWeaponComponentToWeaponObject(object, component)
+    if model ~= 0 then SetModelAsNoLongerNeeded(model) end
+    return true
 end
 
 ---@param name string
@@ -259,6 +328,8 @@ end
 ---@return boolean true si le modèle est prêt
 function WeaponCustom.createObject(name, item, request)
     local hash = GetHashKey(item.weapon)
+    -- Même arme remise à neuf : elle garde son angle
+    local heading = name == WeaponCustom.shown and WeaponCustom.object and GetEntityHeading(WeaponCustom.object)
     WeaponCustom.deleteObject()
     RequestWeaponAsset(hash, 31, 0)
     local timeout = GetGameTimer() + WeaponCustom.ASSET_TIMEOUT
@@ -279,6 +350,7 @@ function WeaponCustom.createObject(name, item, request)
     local size = max - min
     target = WeaponCustom.aim(math.max(size.x, size.y, size.z) * 1.1 + 0.35)
     SetEntityCoordsNoOffset(object, target.x, target.y, target.z, false, false, false)
+    if heading then SetEntityHeading(object, heading) end
     return true
 end
 
@@ -301,17 +373,9 @@ function WeaponCustom.dress(item, tint, finish, request)
     end
     if type(finish) ~= 'string' then return end
 
-    local component = GetHashKey(finish)
-    local model = GetWeaponComponentTypeModel(component)
-    if model ~= 0 then
-        RequestModel(model)
-        local timeout = GetGameTimer() + WeaponCustom.ASSET_TIMEOUT
-        while not HasModelLoaded(model) and GetGameTimer() < timeout and request == WeaponCustom.request do Wait(0) end
+    if WeaponCustom.giveComponent(object, GetHashKey(finish), request) then
+        WeaponCustom.shownFinish = finish
     end
-    if request ~= WeaponCustom.request or WeaponCustom.object ~= object then return end
-    GiveWeaponComponentToWeaponObject(object, component)
-    WeaponCustom.shownFinish = finish
-    if model ~= 0 then SetModelAsNoLongerNeeded(model) end
 end
 
 ---L'arme tourne seule tant que le joueur n'y a pas touché, éclairée même la nuit.

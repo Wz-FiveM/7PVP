@@ -12,6 +12,8 @@ export interface WeaponCustomWeapon extends WeaponCustomChoice {
   label: string;
   tints: { id: number; label: string; hex: string }[];
   finishes: { component: string; label: string }[];
+  /** accessoires (objets) que cette arme accepte */
+  attachments: string[];
 }
 
 export type WeaponCustomPayload = { open: false } | { open: true; weapons: WeaponCustomWeapon[] };

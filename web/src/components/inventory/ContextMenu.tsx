@@ -4,6 +4,8 @@ export interface ContextMenuAction {
   label: string;
   onSelect: () => void;
   danger?: boolean;
+  /** Ligne d'information : affichée, mais on ne peut pas cliquer dessus */
+  disabled?: boolean;
 }
 
 interface ContextMenuProps {
@@ -25,6 +27,7 @@ export function ContextMenu({ x, y, actions, onClose }: ContextMenuProps) {
         <li key={action.label}>
           <button
             className={action.danger ? 'context-menu__item context-menu__item--danger' : 'context-menu__item'}
+            disabled={action.disabled}
             onClick={() => {
               onClose();
               action.onSelect();
