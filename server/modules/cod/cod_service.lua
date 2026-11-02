@@ -82,6 +82,10 @@ function CodService.init()
         local match = CodService.warzoneOf(source)
         if match then CodWarzone.take(match, source, id) end
     end)
+    RegisterNetEvent(Events.server.codWzDropOpen, function(id)
+        local match = CodService.warzoneOf(source)
+        if match then CodWarzone.openDrop(match, source, id) end
+    end)
     RegisterNetEvent(Events.server.codWzPlate, function()
         local match = CodService.warzoneOf(source)
         if match then CodWarzone.usePlate(match, source) end

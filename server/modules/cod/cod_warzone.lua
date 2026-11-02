@@ -83,6 +83,10 @@ function Rules.setup(match)
         vehicles = {},
         entities = {},
         stations = {},
+        drops = {},
+        nextDropId = 0,
+        dropPoints = {},
+        nextDrop = match.runAt + CodWarzone.modeOf(match).airdrop.first * 1000,
         phase = 1,
         state = 'wait',
         zone = { x = match.map.center.x, y = match.map.center.y, r = radius },
@@ -133,6 +137,7 @@ end
 function Rules.tick(match, now)
     CodWarzone.updateCircle(match, now)
     CodWarzone.updateGulag(match, now)
+    CodWarzone.updateDrops(match, now)
 end
 
 ---@param match table
@@ -627,14 +632,20 @@ function CodWarzone.rollLoot()
     local weights = {}
     for _, rarity in ipairs(settings.rarities) do weights[rarity.id] = rarity.weight end
     local rarityId = CodWarzone.weightedKey(weights)
-    local count = 0
-    for _, rarity in ipairs(settings.rarities) do
-        if rarity.id == rarityId then count = rarity.attachments end
-    end
     local lists = { Config.Cod.weapons.primary, Config.Cod.weapons.primary, Config.Cod.weapons.secondary }
     local list = lists[math.random(#lists)]
-    local weapon = list[math.random(#list)].id
-    return { kind = kind, item = weapon, rarity = rarityId, mods = CodWarzone.randomMods(weapon, count) }
+    return CodWarzone.weaponLoot(list[math.random(#list)].id, rarityId)
+end
+
+---@param weapon string
+---@param rarityId string
+---@return table butin : l'arme, avec les accessoires de sa rareté
+function CodWarzone.weaponLoot(weapon, rarityId)
+    local count = 0
+    for _, rarity in ipairs(Config.CodWarzone.loot.rarities) do
+        if rarity.id == rarityId then count = rarity.attachments end
+    end
+    return { kind = 'weapon', item = weapon, rarity = rarityId, mods = CodWarzone.randomMods(weapon, count) }
 end
 
 ---@param match table
@@ -687,7 +698,9 @@ end
 function Rules.onJoin(match, source)
     local loot = {}
     for _, entry in pairs(match.wz.loot) do loot[#loot + 1] = entry end
-    TriggerLatentClientEvent(Events.client.codWzWorld, source, 100000, { loot = loot, stations = match.wz.stations, vehicles = match.wz.vehicles })
+    local drops = {}
+    for _, drop in pairs(match.wz.drops) do drops[#drops + 1] = CodWarzone.describeDrop(drop) end
+    TriggerLatentClientEvent(Events.client.codWzWorld, source, 100000, { loot = loot, stations = match.wz.stations, vehicles = match.wz.vehicles, drops = drops })
     CodWarzone.sendState(match, source)
 end
 
@@ -731,6 +744,131 @@ function CodWarzone.take(match, source, id)
         CodWarzone.refreshClass(match, source)
     end
     CodWarzone.sendState(match, source)
+end
+
+-- ---------------------------------------------------------------------------
+-- Largages aériens
+-- ---------------------------------------------------------------------------
+
+---Un largage à intervalle régulier, tant que la zone n'est pas trop petite.
+---@param match table
+---@param now integer
+function CodWarzone.updateDrops(match, now)
+    local wz = match.wz
+    local rhythm = CodWarzone.modeOf(match).airdrop
+    if now < wz.nextDrop or wz.phase > rhythm.maxPhase then return end
+    wz.nextDrop = now + rhythm.every * 1000
+    CodWarzone.spawnDrop(match, now)
+end
+
+---Les points d'intérêt sont sur la terre ferme, ce que le serveur ne peut pas vérifier pour un point au hasard.
+---@param match table
+---@return table|nil point d'intérêt libre : dans la prochaine zone, sinon dans la zone actuelle
+function CodWarzone.dropPoint(match)
+    local wz = match.wz
+    local inTarget, inZone = {}, {}
+    local function isInside(point, circle)
+        local dx, dy = point[1] - circle.x, point[2] - circle.y
+        return dx * dx + dy * dy <= circle.r * circle.r
+    end
+    for _, point in ipairs(Config.CodWarzone.points) do
+        if not wz.dropPoints[point] then
+            if isInside(point, wz.target) then
+                inTarget[#inTarget + 1] = point
+            elseif isInside(point, wz.zone) then
+                inZone[#inZone + 1] = point
+            end
+        end
+    end
+    local pool = #inTarget > 0 and inTarget or inZone
+    return pool[math.random(math.max(1, #pool))]
+end
+
+---@param match table
+---@param now integer
+function CodWarzone.spawnDrop(match, now)
+    local wz = match.wz
+    local point = CodWarzone.dropPoint(match)
+    if not point then return end
+    wz.dropPoints[point] = true
+    wz.nextDropId = wz.nextDropId + 1
+
+    local settings = Config.CodWarzone.airdrop
+    local plane = Config.Airdrops.plane
+    local releaseAt = now + plane.approach / plane.speed * 1000
+    local landAt = releaseAt + settings.fallTime * 1000
+    local center = match.map.center
+    local drop = {
+        id = wz.nextDropId,
+        x = point[1],
+        y = point[2],
+        -- Le sol n'est connu que du client : il part du milieu de la carte et se recale en approchant
+        coords = vector3(point[1], point[2], center.z),
+        altitude = center.z + settings.height,
+        heading = math.random(0, 359) + 0.0,
+        releaseAt = releaseAt,
+        landAt = landAt,
+        unlockAt = landAt + settings.unlockDelay * 1000,
+    }
+    wz.drops[drop.id] = drop
+    match:broadcast(Events.client.codWz, { type = 'dropAdd', drop = CodWarzone.describeDrop(drop) })
+    match:broadcast(Events.client.codNotice, { text = Locale.t('Avion de largage en approche : suis son repère sur la carte.'), friendly = true })
+end
+
+---Données envoyées aux clients : durées restantes plutôt que des dates (horloges différentes).
+---@param drop table
+---@return table
+function CodWarzone.describeDrop(drop)
+    local settings = Config.CodWarzone.airdrop
+    local now = GetGameTimer()
+    return {
+        id = drop.id,
+        coords = drop.coords,
+        altitude = drop.altitude,
+        heading = drop.heading,
+        fallTime = settings.fallTime,
+        unlockDelay = settings.unlockDelay,
+        releaseIn = (drop.releaseAt - now) / 1000,
+        landIn = math.max(0, drop.landAt - now) / 1000,
+        unlockIn = math.max(0, drop.unlockAt - now) / 1000,
+    }
+end
+
+---@return table[] contenu d'une caisse, sans position
+function CodWarzone.dropContents()
+    local settings = Config.CodWarzone.airdrop
+    local contents = {}
+    local weapons = { table.unpack(Config.Cod.weapons.primary) }
+    for _ = 1, math.min(settings.weapons, #weapons) do
+        local weapon = table.remove(weapons, math.random(#weapons))
+        contents[#contents + 1] = CodWarzone.weaponLoot(weapon.id, settings.rarity)
+    end
+    contents[#contents + 1] = { kind = 'plates', amount = settings.plates }
+    contents[#contents + 1] = { kind = 'cash', amount = settings.cash[math.random(#settings.cash)] }
+    for _ = 1, settings.ammo do contents[#contents + 1] = { kind = 'ammo' } end
+    local equipment = Config.Cod.weapons.equipment
+    for _ = 1, settings.equipment do contents[#contents + 1] = { kind = 'equipment', item = equipment[math.random(#equipment)].id } end
+    return contents
+end
+
+---La caisse répand son contenu autour de celui qui l'ouvre : le premier arrivé se sert, les autres peuvent le disputer.
+---@param match table
+---@param source integer
+---@param id any
+function CodWarzone.openDrop(match, source, id)
+    local drop = match.wz.drops[tonumber(id)]
+    if not drop or GetGameTimer() < drop.unlockAt or not CodWarzone.isNear(match, source, drop.x, drop.y, Config.CodWarzone.takeRange) then return end
+    match.wz.drops[drop.id] = nil
+    match:broadcast(Events.client.codWz, { type = 'dropGone', id = drop.id })
+    match:broadcast(Events.client.codNotice, { text = Locale.t('Le largage aérien est ouvert !'), friendly = true })
+
+    local coords = GetEntityCoords(GetPlayerPed(source))
+    local spread = Config.CodWarzone.airdrop.spread
+    local contents = CodWarzone.dropContents()
+    for index, content in ipairs(contents) do
+        local angle = index / #contents * math.pi * 2
+        CodWarzone.addLoot(match, coords.x + math.cos(angle) * spread, coords.y + math.sin(angle) * spread, content, true)
+    end
 end
 
 ---Le pistolet de départ passe en seconde arme. Une arme de poing remplace la seconde arme, les autres la principale.

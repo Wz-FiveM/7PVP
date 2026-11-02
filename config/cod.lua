@@ -474,6 +474,7 @@ Config.Cod = {
         'L\'équipement se sort avec ses propres touches, comme les armes : 3 et 4 par défaut.',
         'En Warzone, garde ton argent pour les stations d\'achat : plaques, drone, colis d\'équipement et rachat de coéquipier.',
         'En Warzone, la touche X pose une plaque d\'armure : mets-la à l\'abri.',
+        'En Warzone, suis l\'avion de largage : sa caisse contient des armes légendaires, mais tout le monde la voit tomber.',
         'En Hardcore, la carte ne revient que pendant le balayage d\'un drone.',
         'En Élimination confirmée, un kill ne compte que si un allié ou toi ramassez la plaque de la victime.',
         'En Course aux armes, le couteau ne fait pas avancer mais renvoie ta victime à son arme précédente.',

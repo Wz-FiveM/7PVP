@@ -7,6 +7,12 @@
 ---@class ClientAirdrop
 ---@field id integer
 ---@field coords vector3 point d'atterrissage (z recalé sur le sol une fois chargé)
+---@field track vector3 point survolé par l'avion : ne bouge pas quand la caisse se recale
+---@field altitude number hauteur d'où part la caisse
+---@field fallTime number secondes de chute
+---@field unlockDelay number secondes entre l'atterrissage et l'ouverture
+---@field isShown fun(): boolean|nil le joueur voit ce largage (par défaut : en PvP)
+---@field locate fun(drop: ClientAirdrop, pos: vector3)|nil recalage sur le sol propre à ce largage
 ---@field dir vector3 direction de vol de l'avion
 ---@field heading number
 ---@field releaseAt integer GetGameTimer() du largage
@@ -54,14 +60,22 @@ function Airdrop.init()
     CreateThread(Airdrop.renderLoop)
 end
 
----@param data { id: integer, coords: vector3, heading: number, releaseIn: integer, landIn: integer, unlockIn: integer }
-function Airdrop.add(data)
+---Warzone (client/modules/cod/cod_warzone.lua) y passe ses propres largages : altitude, durées et `options` diffèrent.
+---@param data { id: integer|string, coords: vector3, heading: number, releaseIn: integer, landIn: integer, unlockIn: integer, altitude?: number, fallTime?: number, unlockDelay?: number }
+---@param options? { isShown: fun(): boolean, locate: fun(drop: ClientAirdrop, pos: vector3) }
+function Airdrop.add(data, options)
     Airdrop.remove(data.id)
     local now = GetGameTimer()
     local radians = math.rad(data.heading or 0.0)
     Airdrop.drops[data.id] = {
         id = data.id,
         coords = data.coords,
+        track = data.coords,
+        altitude = data.altitude or data.coords.z + Config.Airdrops.fallHeight,
+        fallTime = data.fallTime or Config.Airdrops.fallTime,
+        unlockDelay = data.unlockDelay or Config.Airdrops.unlockDelay,
+        isShown = options and options.isShown,
+        locate = options and options.locate,
         heading = data.heading or 0.0,
         -- Cap GTA : 0° = nord, sens inverse des aiguilles d'une montre
         dir = vector3(-math.sin(radians), math.cos(radians), 0.0),
@@ -78,12 +92,18 @@ end
 function Airdrop.remove(id)
     local drop = Airdrop.drops[id]
     if not drop then return end
-    for _, key in ipairs({ 'blip', 'planeBlip' }) do
-        if drop[key] and DoesBlipExist(drop[key]) then RemoveBlip(drop[key]) end
-    end
+    Airdrop.deleteBlips(drop)
     Airdrop.deletePlane(drop)
     Airdrop.deleteProps(drop)
     Airdrop.drops[id] = nil
+end
+
+---@param drop ClientAirdrop
+function Airdrop.deleteBlips(drop)
+    for _, key in ipairs({ 'blip', 'planeBlip' }) do
+        if drop[key] and DoesBlipExist(drop[key]) then RemoveBlip(drop[key]) end
+        drop[key] = nil
+    end
 end
 
 ---@param drop ClientAirdrop
@@ -102,15 +122,18 @@ end
 function Airdrop.renderLoop()
     while true do
         local needsFrame = false
-        if State.inPvp() then
-            local pos = GetEntityCoords(PlayerPedId())
-            local now = GetGameTimer()
-            for _, drop in pairs(Airdrop.drops) do
+        local inPvp = State.inPvp()
+        local pos = GetEntityCoords(PlayerPedId())
+        local now = GetGameTimer()
+        for _, drop in pairs(Airdrop.drops) do
+            local shown = inPvp
+            if drop.isShown then shown = drop.isShown() end
+            if shown then
                 if Airdrop.updatePlane(drop, pos, now) then needsFrame = true end
                 if now >= drop.releaseAt and Airdrop.render(drop, pos, now) then needsFrame = true end
-            end
-        else
-            for _, drop in pairs(Airdrop.drops) do
+            else
+                -- Les repères aussi : un largage du PvP n'a rien à faire sur la carte d'une Warzone
+                Airdrop.deleteBlips(drop)
                 Airdrop.deletePlane(drop)
                 Airdrop.deleteProps(drop)
             end
@@ -129,8 +152,7 @@ end
 ---@return vector3
 function Airdrop.planePosition(drop, now)
     local travelled = Config.Airdrops.plane.speed * (now - drop.releaseAt) / 1000
-    local altitude = drop.coords.z + Config.Airdrops.fallHeight + Airdrop.PLANE_CLEARANCE
-    return vector3(drop.coords.x + drop.dir.x * travelled, drop.coords.y + drop.dir.y * travelled, altitude)
+    return vector3(drop.track.x + drop.dir.x * travelled, drop.track.y + drop.dir.y * travelled, drop.altitude + Airdrop.PLANE_CLEARANCE)
 end
 
 ---Repère et avion pendant le vol ; au largage, le point de chute apparaît sur la carte.
@@ -238,11 +260,17 @@ function Airdrop.render(drop, pos, now)
         return false
     end
 
-    if not drop.grounded then Airdrop.findGround(drop) end
+    if not drop.grounded then
+        if drop.locate then drop.locate(drop, pos) else Airdrop.findGround(drop) end
+        -- Sol trouvé sous une caisse déjà posée : elle reprend sa place
+        if drop.grounded and drop.landed then Airdrop.deleteProps(drop) end
+    end
     if not drop.crate then Airdrop.createProps(drop) end
+    -- Retiré pendant le chargement des modèles
+    if not drop.crate then return false end
 
     local falling = now < drop.landAt
-    local height = falling and (drop.landAt - now) / (Config.Airdrops.fallTime * 1000) * Config.Airdrops.fallHeight or 0.0
+    local height = falling and (drop.landAt - now) / (drop.fallTime * 1000) * (drop.altitude - drop.coords.z) or 0.0
     local z = drop.coords.z + height
 
     if falling then
@@ -290,6 +318,7 @@ function Airdrop.createProps(drop)
     end
     SetModelAsNoLongerNeeded(crateModel)
     SetModelAsNoLongerNeeded(chuteModel)
+    if Airdrop.drops[drop.id] ~= drop then Airdrop.deleteProps(drop) end
 end
 
 ---Atterrissage : la caisse est posée à plat sur le sol et devient solide, le parachute disparaît.
@@ -328,11 +357,12 @@ function Airdrop.drawLabel(drop, coords, falling, now)
     local subtitle, progress
     if falling then
         subtitle = Locale.t('En chute')
-        progress = 1 - (drop.landAt - now) / (Config.Airdrops.fallTime * 1000)
+        progress = 1 - (drop.landAt - now) / (drop.fallTime * 1000)
     else
         local seconds = math.max(0, math.ceil((drop.unlockAt - now) / 1000))
-        subtitle = Locale.t('Ouverture dans %d s', seconds)
-        progress = 1 - (drop.unlockAt - now) / (Config.Airdrops.unlockDelay * 1000)
+        -- En Warzone, la caisse reste fermée jusqu'à ce qu'un joueur l'ouvre
+        subtitle = seconds > 0 and Locale.t('Ouverture dans %d s', seconds) or Locale.t('Prêt')
+        progress = 1 - (drop.unlockAt - now) / (drop.unlockDelay * 1000)
     end
     DuiLabels.draw('airdrop:' .. drop.id, coords, {
         title = Locale.t('Largage aérien'),

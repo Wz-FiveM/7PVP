@@ -36,6 +36,7 @@ Events.server = {
     codCrateTake = '7pvp:server:codCrateTake',
     codInsertion = '7pvp:server:codInsertion',
     codWzTake = '7pvp:server:codWzTake',
+    codWzDropOpen = '7pvp:server:codWzDropOpen',
     codWzPlate = '7pvp:server:codWzPlate',
     codWzVehicleClaim = '7pvp:server:codWzVehicleClaim',
     codWzVehicleSpawned = '7pvp:server:codWzVehicleSpawned',

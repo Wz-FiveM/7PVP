@@ -36,7 +36,25 @@ Config.CodWarzone = {
             { id = 'common', label = 'Commune', weight = 60, attachments = 0, color = { 220, 222, 216 } },
             { id = 'rare', label = 'Rare', weight = 30, attachments = 2, color = { 70, 150, 255 } },
             { id = 'epic', label = 'Épique', weight = 10, attachments = 4, color = { 190, 90, 255 } },
+            -- Jamais au sol : uniquement dans les largages
+            { id = 'legendary', label = 'Légendaire', weight = 0, attachments = 6, color = { 255, 180, 40 } },
         },
+    },
+
+    -- Largages aériens : l'avion et la caisse sont ceux de Config.Airdrops. Rythme propre à chaque liste de jeu (br, resurgence).
+    airdrop = {
+        height = 300.0, -- m au-dessus du milieu de la carte : la caisse tombe de là
+        fallTime = 30, -- secondes de chute en parachute
+        unlockDelay = 10, -- secondes entre l'atterrissage et l'ouverture
+        useRange = 3.5, -- m
+        spread = 2.5, -- m : la caisse ouverte répand son contenu autour de celui qui l'ouvre
+        -- Contenu d'une caisse
+        weapons = 2,
+        rarity = 'legendary',
+        plates = 3,
+        cash = { 1000, 1500, 2000 },
+        ammo = 1,
+        equipment = 1,
     },
 
     vehicles = {
@@ -69,6 +87,8 @@ Config.CodWarzone = {
 
     -- Phases de la zone. wait, shrink : secondes ; radius : part du rayon de la carte ; damage : par seconde hors zone
     br = {
+        -- first, every : secondes ; maxPhase : plus de largage au-delà de cette phase de la zone
+        airdrop = { first = 150, every = 180, maxPhase = 4 },
         phases = {
             { wait = 240, shrink = 120, radius = 0.55, damage = 2 },
             { wait = 150, shrink = 90, radius = 0.30, damage = 4 },
@@ -79,6 +99,7 @@ Config.CodWarzone = {
         },
     },
     resurgence = {
+        airdrop = { first = 60, every = 90, maxPhase = 3 },
         -- delay : secondes avant de réapparaître pendant cette phase
         phases = {
             { wait = 120, shrink = 60, radius = 0.6, damage = 3, delay = 20 },

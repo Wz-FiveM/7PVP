@@ -1,9 +1,11 @@
 ---Warzone côté client (server/modules/cod/cod_warzone.lua) : avion et parachute, mur et repères de la zone, caisses de
----butin, stations d'achat, véhicules, plaques d'armure, goulag. Le serveur décide de tout ce qui compte : ici, on affiche
----et on demande. Le butin et les véhicules sont calés sur la route la plus proche, que seul le client connaît.
+---butin, largages aériens (affichés par Airdrop), stations d'achat, véhicules, plaques d'armure, goulag. Le serveur décide
+---de tout ce qui compte : ici, on affiche et on demande. Le butin et les véhicules sont calés sur la route la plus proche,
+---que seul le client connaît.
 ---@class CodWarzoneClientModule
 local CodWarzone = PVP.define('CodWarzone')
 local Cod = PVP.use('Cod')
+local Airdrop = PVP.use('Airdrop')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local PedUtils = PVP.use('PedUtils')
@@ -28,7 +30,8 @@ CodWarzone.LOOT_NAMES = { cash = 'Argent', plates = 'Plaques d\'armure', ammo = 
 CodWarzone.loot = {}
 CodWarzone.stations = {}
 CodWarzone.vehicles = {}
-CodWarzone.visible = {} -- caisses et stations à portée d'affichage
+CodWarzone.drops = {} -- largages aériens : position et ouverture ; l'avion et la caisse sont dans Airdrop
+CodWarzone.visible = {} -- caisses, largages et stations à portée d'affichage
 CodWarzone.inGulag = false
 CodWarzone.falling = false
 CodWarzone.nextScan = 0
@@ -67,6 +70,8 @@ CodWarzone.HANDLERS = {
     state = function(data) Nui.send('codWz', data) end,
     lootAdd = function(data) CodWarzone.loot[data.loot.id] = data.loot end,
     lootGone = function(data) CodWarzone.removeLoot(data.id) end,
+    dropAdd = function(data) CodWarzone.addDrop(data.drop) end,
+    dropGone = function(data) CodWarzone.removeDrop(data.id) end,
     plate = function(data)
         local ped = PlayerPedId()
         SetPedArmour(ped, math.min(100, GetPedArmour(ped) + data.armor))
@@ -81,11 +86,12 @@ CodWarzone.HANDLERS = {
     vehicleSpawn = function(data) CreateThread(function() CodWarzone.spawnVehicle(data) end) end,
 }
 
----@param data { loot: table[], stations: table[], vehicles: table[] }
+---@param data { loot: table[], stations: table[], vehicles: table[], drops: table[] }
 function CodWarzone.setWorld(data)
     CodWarzone.clearWorld()
     for _, entry in ipairs(data.loot) do CodWarzone.loot[entry.id] = entry end
     for _, entry in ipairs(data.vehicles) do CodWarzone.vehicles[entry.id] = entry end
+    for _, entry in ipairs(data.drops) do CodWarzone.addDrop(entry) end
     for _, entry in ipairs(data.stations) do
         CodWarzone.stations[entry.id] = entry
         entry.blip = AddBlipForCoord(entry.x, entry.y, 0.0)
@@ -287,6 +293,12 @@ function CodWarzone.scan(now)
             visible[#visible + 1] = entry
         end
     end
+    for _, entry in pairs(CodWarzone.drops) do
+        local dx, dy = entry.x - coords.x, entry.y - coords.y
+        if now >= entry.unlockAt and dx * dx + dy * dy <= range * range and CodWarzone.resolve(entry, coords.z) then
+            visible[#visible + 1] = entry
+        end
+    end
     CodWarzone.visible = visible
 
     local claim = settings.vehicles.claimRange
@@ -327,9 +339,48 @@ function CodWarzone.removeLoot(id)
     if not entry then return end
     CodWarzone.hideCrate(entry)
     CodWarzone.loot[id] = nil
+    CodWarzone.forgetVisible(entry)
+end
+
+---@param entry table
+function CodWarzone.forgetVisible(entry)
     for index, shown in ipairs(CodWarzone.visible) do
         if shown == entry then table.remove(CodWarzone.visible, index) break end
     end
+end
+
+---L'avion, la caisse et le fumigène sont ceux du module Airdrop. Le point de chute se cale sur la route comme le butin :
+---il faut le même point pour la caisse affichée et pour la portée d'ouverture.
+---@param data table largage décrit par le serveur (CodWarzone.describeDrop)
+function CodWarzone.addDrop(data)
+    local entry = {
+        id = data.id,
+        key = 'wz' .. data.id,
+        drop = true,
+        x = data.coords.x,
+        y = data.coords.y,
+        unlockAt = GetGameTimer() + data.unlockIn * 1000,
+    }
+    CodWarzone.drops[entry.id] = entry
+    data.id = entry.key
+    Airdrop.add(data, {
+        isShown = function() return not CodWarzone.inGulag end,
+        locate = function(drop, pos)
+            if CodWarzone.resolve(entry, pos.z) then
+                drop.coords = vector3(entry.x, entry.y, entry.z)
+                drop.grounded = true
+            end
+        end,
+    })
+end
+
+---@param id integer
+function CodWarzone.removeDrop(id)
+    local entry = CodWarzone.drops[id]
+    if not entry then return end
+    Airdrop.remove(entry.key)
+    CodWarzone.drops[id] = nil
+    CodWarzone.forgetVisible(entry)
 end
 
 ---@param entry table
@@ -358,23 +409,37 @@ function CodWarzone.drawVisible(now)
     local coords = GetEntityCoords(PlayerPedId())
     local nearest, nearestDistance = nil, math.huge
     for _, entry in ipairs(CodWarzone.visible) do
-        local r, g, b = 255, 140, 40
-        if not entry.station then r, g, b = CodWarzone.lootColor(entry) end
-        DrawMarker(entry.station and 1 or 21, entry.x, entry.y, entry.z + (entry.station and -0.5 or 1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            entry.station and 3.0 or 0.5, entry.station and 3.0 or 0.5, entry.station and 1.0 or 0.5, r, g, b, entry.station and 80 or 220,
-            not entry.station, false, 2, not entry.station, nil, nil, false)
+        -- Le largage a déjà sa caisse, son fumigène et son étiquette (Airdrop)
+        if not entry.drop then
+            local r, g, b = 255, 140, 40
+            if not entry.station then r, g, b = CodWarzone.lootColor(entry) end
+            DrawMarker(entry.station and 1 or 21, entry.x, entry.y, entry.z + (entry.station and -0.5 or 1.0), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                entry.station and 3.0 or 0.5, entry.station and 3.0 or 0.5, entry.station and 1.0 or 0.5, r, g, b, entry.station and 80 or 220,
+                not entry.station, false, 2, not entry.station, nil, nil, false)
+        end
         local distance = #(coords - vector3(entry.x, entry.y, entry.z))
-        local reach = entry.station and Config.CodWarzone.stations.useRange or Config.CodWarzone.loot.pickRange
+        local reach = Config.CodWarzone.loot.pickRange
+        if entry.station then reach = Config.CodWarzone.stations.useRange end
+        if entry.drop then reach = Config.CodWarzone.airdrop.useRange end
         if distance <= reach and distance < nearestDistance then nearest, nearestDistance = entry, distance end
     end
     if not nearest or not State.isAlive() or IsNuiFocused() then return end
 
-    local text = nearest.station and Locale.t('Station d\'achat') or Locale.t('Ramasser : %s', CodWarzone.lootName(nearest))
+    local text
+    if nearest.station then
+        text = Locale.t('Station d\'achat')
+    elseif nearest.drop then
+        text = Locale.t('Fouiller le largage')
+    else
+        text = Locale.t('Ramasser : %s', CodWarzone.lootName(nearest))
+    end
     HelpNotify.show(HelpNotify.controlKey(CodWarzone.CONTROL_ACTION), text)
     if IsControlJustPressed(0, CodWarzone.CONTROL_ACTION) and now >= CodWarzone.nextTake then
         CodWarzone.nextTake = now + CodWarzone.TAKE_COOLDOWN
         if nearest.station then
             CodWarzone.openShop(nearest)
+        elseif nearest.drop then
+            TriggerServerEvent(Events.server.codWzDropOpen, nearest.id)
         else
             TriggerServerEvent(Events.server.codWzTake, nearest.id)
         end
@@ -449,7 +514,8 @@ function CodWarzone.clearWorld()
     for _, entry in pairs(CodWarzone.stations) do
         if entry.blip and DoesBlipExist(entry.blip) then RemoveBlip(entry.blip) end
     end
-    CodWarzone.loot, CodWarzone.stations, CodWarzone.vehicles, CodWarzone.visible = {}, {}, {}, {}
+    for _, entry in pairs(CodWarzone.drops) do Airdrop.remove(entry.key) end
+    CodWarzone.loot, CodWarzone.stations, CodWarzone.vehicles, CodWarzone.drops, CodWarzone.visible = {}, {}, {}, {}, {}
 end
 
 ---Retour au menu ou au lobby.
