@@ -15,6 +15,7 @@ local Activities = PVP.use('Activities')
 local FreeroamPositions = PVP.use('FreeroamPositions')
 local ActivityBoards = PVP.use('ActivityBoards')
 local VehicleCustom = PVP.use('VehicleCustom')
+local WeaponCustom = PVP.use('WeaponCustom')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -161,6 +162,8 @@ function Npcs.interact(npc)
         Creator.requestEdit()
     elseif npc.role == Config.VehicleCustom.role then
         VehicleCustom.talk()
+    elseif npc.role == Config.WeaponCustom.role then
+        CreateThread(function() WeaponCustom.open(npc) end)
     elseif role.page then
         Nui.setMenu(true, role.page)
     end

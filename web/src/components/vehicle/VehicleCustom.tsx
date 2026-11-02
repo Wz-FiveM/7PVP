@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { isEnvBrowser } from '../../api/nui';
 import { vehicleCustomApi } from '../../api/vehicleCustomApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
@@ -12,9 +12,9 @@ import type {
   VehicleCustomPalettes,
   VehicleCustomProps,
 } from '../../types/vehicleCustom';
-import { currentUiScale } from '../../utils/scale';
 import { Stepper } from '../creator/controls/Stepper';
 import { Logo } from '../ui/Logo';
+import { CustomStage } from './CustomStage';
 import '../creator/creator.css';
 import './vehicleCustom.css';
 
@@ -22,10 +22,6 @@ type TabId = 'colors' | 'body' | 'wheels' | 'extras' | 'performance';
 
 /** Pièces dont la liste change avec le type de jantes */
 const WHEEL_MODS = ['23', '24'];
-/** Degrés de rotation de la caméra par pixel de glissé */
-const DEGREES_PER_PIXEL = 0.4;
-/** Envoi de la rotation au jeu au plus toutes les X ms */
-const ROTATE_THROTTLE = 40;
 
 interface VehicleCustomData {
   label: string;
@@ -150,7 +146,7 @@ function VehicleCustomPanel({ data, onClose }: { data: VehicleCustomData; onClos
         </footer>
       </aside>
 
-      <VehicleStage />
+      <CustomStage hint={t('[GLISSER] TOURNER AUTOUR DU VÉHICULE')} onRotate={vehicleCustomApi.rotate} />
     </div>
   );
 }
@@ -334,57 +330,6 @@ function NeonColors({ label, colors, value, onChange }: { label: string; colors:
           />
         ))}
       </div>
-    </div>
-  );
-}
-
-/** Zone libre à droite : on y voit le véhicule et on tourne autour en glissant. */
-function VehicleStage() {
-  const t = useT();
-  const lastX = useRef<number | null>(null);
-  const pending = useRef(0);
-  const timer = useRef<number | null>(null);
-
-  const queueRotation = (delta: number) => {
-    pending.current += delta;
-    if (timer.current !== null) return;
-    timer.current = window.setTimeout(() => {
-      vehicleCustomApi.rotate(pending.current);
-      pending.current = 0;
-      timer.current = null;
-    }, ROTATE_THROTTLE);
-  };
-
-  const onMouseMove = (event: MouseEvent) => {
-    if (lastX.current === null) return;
-    // Même vitesse de rotation quelle que soit la résolution
-    queueRotation(((lastX.current - event.clientX) / currentUiScale()) * DEGREES_PER_PIXEL);
-    lastX.current = event.clientX;
-  };
-
-  const stopDrag = () => {
-    lastX.current = null;
-  };
-
-  return (
-    <div
-      className="creator-stage"
-      onMouseDown={(event) => {
-        lastX.current = event.clientX;
-      }}
-      onMouseMove={onMouseMove}
-      onMouseUp={stopDrag}
-      onMouseLeave={stopDrag}
-    >
-      <div className="creator-stage__bar" onMouseDown={(event) => event.stopPropagation()}>
-        <button className="btn btn--small cut-s" onClick={() => vehicleCustomApi.rotate(-45)} aria-label={t('Tourner à gauche')}>
-          ⟲
-        </button>
-        <button className="btn btn--small cut-s" onClick={() => vehicleCustomApi.rotate(45)} aria-label={t('Tourner à droite')}>
-          ⟳
-        </button>
-      </div>
-      <span className="mono creator-stage__hint">{t('[GLISSER] TOURNER AUTOUR DU VÉHICULE')}</span>
     </div>
   );
 }

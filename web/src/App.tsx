@@ -25,10 +25,12 @@ import { Teleport } from './components/teleport/TeleportMenu';
 import { FreeroamHud } from './components/freeroam/FreeroamHud';
 import { FreeroamMenu } from './components/freeroam/FreeroamMenu';
 import { VehicleCustom } from './components/vehicle/VehicleCustom';
+import { WeaponCustom } from './components/vehicle/WeaponCustom';
 import { activityApi } from './api/activityApi';
 import { isEnvBrowser } from './api/nui';
 import { teleportApi } from './api/teleportApi';
 import { vehicleCustomApi } from './api/vehicleCustomApi';
+import { weaponCustomApi } from './api/weaponCustomApi';
 import { UiGuard } from './components/ui/UiGuard';
 import { DevPanel } from './dev/DevPanel';
 import { useCreator } from './store/CreatorProvider';
@@ -40,7 +42,7 @@ export function App() {
   const creator = useCreator();
   const creating = creator.state?.open ?? false;
   const inLobby = state.lobby.open;
-  // Menu du mécanicien ouvert : le HUD et le chat laissent la place au véhicule
+  // Menu du mécanicien ou du customiseur ouvert : le HUD et le chat laissent la place au véhicule ou à l'arme
   const [customizing, setCustomizing] = useState(false);
   // Le HUD, le menu et l'écran de mort appartiennent au mode PvP
   const inPvp = !creating && !inLobby && state.mode === 'pvp';
@@ -99,6 +101,15 @@ export function App() {
         }}
       >
         <VehicleCustom onOpenChange={setCustomizing} />
+      </UiGuard>
+      <UiGuard
+        name="weapon-custom"
+        onCrash={() => {
+          weaponCustomApi.cancel();
+          setCustomizing(false);
+        }}
+      >
+        <WeaponCustom onOpenChange={setCustomizing} />
       </UiGuard>
       {/* En Call of Duty, le mode a son propre menu pause (voir Cod) */}
       {!creating && !inLobby && state.pause.open && state.pause.info?.mode !== 'cod' && (

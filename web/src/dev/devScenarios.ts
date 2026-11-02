@@ -3,6 +3,7 @@ import type { NuiMessage } from '../types/nui';
 import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile, mockCodProfilePrestige } from './codMocks';
 import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 import { mockVehicleCustom } from './vehicleCustomMock';
+import { mockWeaponCustom } from './weaponCustomMock';
 
 /**
  * Panneau de dev (npm run dev uniquement) : chaque bouton envoie de vrais messages NUI,
@@ -481,6 +482,10 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'Mécanicien (custom)',
     run: () => sendNui({ action: 'vehicleCustom', data: mockVehicleCustom }),
+  },
+  {
+    label: 'Customiseur (armes)',
+    run: () => sendNui({ action: 'weaponCustom', data: mockWeaponCustom }),
   },
   {
     label: 'Téléportation (F1)',

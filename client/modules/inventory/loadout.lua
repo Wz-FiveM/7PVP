@@ -8,6 +8,7 @@
 local Loadout = PVP.define('Loadout')
 local State = PVP.use('State')
 local Items = PVP.use('Items')
+local WeaponCustom = PVP.use('WeaponCustom')
 local Events = PVP.use('Events')
 
 Loadout.TRACK_INTERVAL = 250
@@ -65,7 +66,10 @@ function Loadout.apply()
         if item.type == 'weapon' then
             local owned = Items.countUsable(inventory, name) > 0
             Loadout.syncWeapon(ped, item, owned)
-            if owned then Loadout.syncAttachments(ped, name, item, attachments[name] or {}) end
+            if owned then
+                Loadout.syncAttachments(ped, name, item, attachments[name] or {})
+                WeaponCustom.applyTo(ped, name, item)
+            end
         end
     end
 
