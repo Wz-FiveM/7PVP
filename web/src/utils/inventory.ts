@@ -21,6 +21,14 @@ export function capacityOf(config: GameConfig, player: PlayerState | null, id: C
   return config.containers[id]?.capacity ?? 0;
 }
 
+/** Lots de `count` objets que le sac peut encore porter, arrondi comme côté serveur (InventoryObject:maxFit). */
+export function lotsThatFit(config: GameConfig, player: PlayerState | null, name: string, count: number): number {
+  const weight = config.items[name]?.weight ?? 0;
+  if (weight <= 0) return Infinity;
+  const free = capacityOf(config, player, 'bag') - weightOf(player?.inventory.bag ?? [], config);
+  return Math.max(0, Math.floor(Math.floor((free + 1e-6) / weight) / count));
+}
+
 /** Coffre ouvert d'office ou déjà acheté. */
 export function isUnlocked(inventory: Inventory, config: GameConfig, id: StashId): boolean {
   const unlocked = inventory.unlocked;

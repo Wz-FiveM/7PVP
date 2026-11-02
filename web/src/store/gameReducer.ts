@@ -148,6 +148,7 @@ export const initialState: GameState = {
   ready: false,
   config: {
     shop: [],
+    shopMaxQuantity: 1,
     items: {},
     containers: {
       bag: { label: 'Sac', capacity: 0 },

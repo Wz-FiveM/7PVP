@@ -87,11 +87,13 @@ end
 
 ---@param source integer
 ---@param index integer index (1-based) dans Config.Shop
+---@param quantity? integer nombre de lots (1 par défaut)
 ---@return { ok: boolean, message: string }
-function ShopService.buy(source, index)
+function ShopService.buy(source, index, quantity)
     local player = PlayerService.get(source)
     local entry = Config.Shop[tonumber(index)]
-    if not player or player.dead or not entry then
+    local lots = Utils.toCount(quantity or 1)
+    if not player or player.dead or not entry or lots < 1 or lots > Config.ShopMaxQuantity then
         return { ok = false, message = Locale.t('Achat impossible.') }
     end
     if not SafeNpcs.isNear(player:getCoords(), 'shop', Config.SafeNpcs.useDistance + 2.0) then
@@ -100,18 +102,19 @@ function ShopService.buy(source, index)
     if player:getLevel() < (entry.level or 1) then
         return { ok = false, message = Locale.t('Niveau %d requis.', entry.level) }
     end
-    if player:getMoney() < entry.price then
+    local total, received = entry.price * lots, entry.count * lots
+    if player:getMoney() < total then
         return { ok = false, message = Locale.t('Pas assez d\'argent.') }
     end
-    if player.inventory:maxFit('bag', entry.item) < entry.count then
+    if player.inventory:maxFit('bag', entry.item) < received then
         return { ok = false, message = Locale.t('Ton sac est trop lourd.') }
     end
 
-    player:removeMoney(entry.price)
-    player:giveItem(entry.item, entry.count)
+    player:removeMoney(total)
+    player:giveItem(entry.item, received)
     player:sync()
     TutorialService.complete(player, 'shop')
-    return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [entry.item] = entry.count })) }
+    return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [entry.item] = received })) }
 end
 
 -- ---------------------------------------------------------------------------

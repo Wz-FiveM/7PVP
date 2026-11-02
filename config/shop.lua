@@ -5,6 +5,7 @@
 -- Les prix se modifient dans le panneau admin F10 (onglet « Boutique ») : ce fichier ne donne que les
 -- valeurs par défaut.
 Config.ShopMaxPrice = 10000000 -- prix maximum accepté dans le panneau admin
+Config.ShopMaxQuantity = 999 -- lots achetés en une fois
 
 Config.Shop = {
     -- Armes blanches

@@ -4,14 +4,19 @@ import { useT } from '../../i18n';
 interface QuantityModalProps {
   title: string;
   max: number;
-  confirmLabel: string;
+  /** Quantité de départ, `max` par défaut */
+  initial?: number;
+  /** Une fonction pour un libellé qui suit la quantité (prix total...) */
+  confirmLabel: string | ((count: number) => string);
+  /** Ligne d'information sous le titre */
+  note?: string;
   onConfirm: (count: number) => void;
   onCancel: () => void;
 }
 
-export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }: QuantityModalProps) {
+export function QuantityModal({ title, max, initial, confirmLabel, note, onConfirm, onCancel }: QuantityModalProps) {
   const t = useT();
-  const [count, setCount] = useState(max);
+  const [count, setCount] = useState(initial ?? max);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -40,6 +45,7 @@ export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }:
     <div className="modal-backdrop" onMouseDown={onCancel}>
       <form className="modal cut" onSubmit={handleSubmit} onMouseDown={(event) => event.stopPropagation()}>
         <h2 className="modal__title">{title}</h2>
+        {note && <p className="modal__note">{note}</p>}
         <input
           type="range"
           min={1}
@@ -89,7 +95,7 @@ export function QuantityModal({ title, max, confirmLabel, onConfirm, onCancel }:
             {t('Annuler')}
           </button>
           <button type="submit" className="btn btn--primary cut-s">
-            {confirmLabel}
+            {typeof confirmLabel === 'function' ? confirmLabel(clamp(count)) : confirmLabel}
           </button>
         </div>
       </form>

@@ -479,6 +479,7 @@ export const mockInit: InitPayload = {
       case_street: { label: 'Caisse de rue', type: 'case', weight: 0.5 },
       case_elite: { label: 'Caisse d\'élite', type: 'case', weight: 0.5 },
     },
+    shopMaxQuantity: 999,
     shop: [
       { item: 'weapon_pistol', count: 1, price: 400 },
       { item: 'weapon_carbinerifle', count: 1, price: 5500 },

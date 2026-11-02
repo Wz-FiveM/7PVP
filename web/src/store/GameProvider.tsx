@@ -214,7 +214,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
         gameApi.close();
       },
-      buy: (index) => run(gameApi.buy(index)),
+      buy: (index, quantity) => run(gameApi.buy(index, quantity)),
       buyCase: (id) => run(gameApi.caseBuy(id)),
       openCase: async (id, withPoints = false) => {
         const definition = configRef.current.cases?.find((c) => c.id === id);

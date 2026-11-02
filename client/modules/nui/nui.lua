@@ -58,7 +58,7 @@ function Nui.init()
     end)
 
     RegisterNUICallback('buy', function(data, cb)
-        cb(Callback.await(Events.callbacks.buy, data.index) or { ok = false })
+        cb(Callback.await(Events.callbacks.buy, data.index, data.quantity) or { ok = false })
     end)
 
     -- Caisses : achat chez l'armurier, ouverture n'importe où hors combat (tirage côté serveur)
@@ -165,7 +165,7 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.blackMarketList) or { open = false, stock = {} })
     end)
     RegisterNUICallback('blackMarketBuy', function(data, cb)
-        cb(Callback.await(Events.callbacks.blackMarketBuy, data.index) or { ok = false })
+        cb(Callback.await(Events.callbacks.blackMarketBuy, data.index, data.quantity) or { ok = false })
     end)
     RegisterNUICallback('seasonPassClaim', function(data, cb)
         cb(Callback.await(Events.callbacks.seasonPassClaim, { tier = data.tier, premium = data.premium == true }) or { ok = false })
@@ -222,6 +222,7 @@ function Nui.buildInitPayload()
         locale = Language.payload(),
         config = {
             shop = Config.Shop,
+            shopMaxQuantity = Config.ShopMaxQuantity,
             items = Config.Items,
             containers = Config.Containers,
             shortcutSlots = Config.ShortcutSlots,

@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { gameApi } from '../api/gameApi';
+import { BuyModal } from '../components/inventory/BuyModal';
 import { ItemIcon } from '../components/inventory/ItemIcon';
 import { Panel, PanelHeader } from '../components/ui/Panel';
 import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
-import type { BlackMarketState } from '../types/game';
+import type { BlackMarketOffer, BlackMarketState } from '../types/game';
 import { formatMoney } from '../utils/format';
+import { lotsThatFit } from '../utils/inventory';
+import '../components/inventory/inventory.css';
 import './pages.css';
 import './resale.css';
 
@@ -18,6 +21,9 @@ export function BlackMarketPage() {
   const { config, player } = state;
   const [market, setMarket] = useState<BlackMarketState | null>(null);
   const [busy, setBusy] = useState(false);
+  /** Lot dont on choisit la quantité (index 1-based) */
+  const [buying, setBuying] = useState<number | null>(null);
+  const closeBuying = useCallback(() => setBuying(null), []);
 
   const refresh = useCallback(async () => {
     const result = await gameApi.blackMarketList();
@@ -30,9 +36,9 @@ export function BlackMarketPage() {
     return () => window.clearInterval(timer);
   }, [refresh]);
 
-  const buy = async (index: number) => {
+  const buy = async (index: number, lots: number) => {
     setBusy(true);
-    const result = await gameApi.blackMarketBuy(index);
+    const result = await gameApi.blackMarketBuy(index, lots);
     if (result?.message) actions.notify(result.message, result.ok ? 'success' : 'error');
     await refresh();
     setBusy(false);
@@ -42,6 +48,18 @@ export function BlackMarketPage() {
   if (!market.open) return <p className="muted market__empty">{t('Le marchand noir est parti.')}</p>;
 
   const money = player?.money ?? 0;
+  const pending = buying !== null ? market.stock[buying - 1] : null;
+
+  /** Lots restants que le joueur peut payer et porter */
+  const maxLots = (offer: BlackMarketOffer) =>
+    Math.min(offer.left, Math.floor(money / offer.price), lotsThatFit(config, player, offer.item, offer.count));
+
+  /** Achète directement s'il n'y a qu'un lot possible (le serveur explique un refus), sinon demande la quantité. */
+  const startBuy = (offer: BlackMarketOffer, index: number) => {
+    if (maxLots(offer) > 1) setBuying(index);
+    else buy(index, 1);
+  };
+
   return (
     <div className="resale">
       <p className="muted resale__note">
@@ -66,7 +84,7 @@ export function BlackMarketPage() {
                 <button
                   className="btn btn--primary btn--small resale-row__sell"
                   disabled={busy || !market.near || offer.left <= 0 || money < offer.price}
-                  onClick={() => buy(index + 1)}
+                  onClick={() => startBuy(offer, index + 1)}
                 >
                   {t('Acheter · {price}', { price: formatMoney(offer.price) })}
                 </button>
@@ -75,6 +93,19 @@ export function BlackMarketPage() {
           })}
         </ul>
       </Panel>
+      {pending && buying !== null && (
+        <BuyModal
+          item={pending.item}
+          count={pending.count}
+          price={pending.price}
+          max={maxLots(pending)}
+          onConfirm={(lots) => {
+            buy(buying, lots);
+            closeBuying();
+          }}
+          onCancel={closeBuying}
+        />
+      )}
     </div>
   );
 }

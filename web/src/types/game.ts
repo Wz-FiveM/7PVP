@@ -190,13 +190,20 @@ export interface AchievementsState {
   seasonTitles: { id: string; label: string }[];
 }
 
+export interface BlackMarketOffer {
+  item: string;
+  count: number;
+  price: number;
+  left: number;
+}
+
 export interface BlackMarketState {
   open: boolean;
   /** Le joueur est assez près pour acheter */
   near?: boolean;
   /** Secondes avant son départ */
   endsIn?: number;
-  stock: { item: string; count: number; price: number; left: number }[];
+  stock: BlackMarketOffer[];
 }
 
 export interface TutorialStep {
@@ -231,6 +238,8 @@ export interface GameConfig {
   /** Config.Bounty.player : primes posées par les joueurs */
   bountyPlayer?: { min: number; max: number; maxOnHead: number; fee: number; delay: number };
   shop: ShopEntry[];
+  /** Config.ShopMaxQuantity : lots achetés en une fois à l'armurier */
+  shopMaxQuantity: number;
   items: Record<string, ItemDefinition>;
   containers: Record<ContainerId, ContainerDefinition>;
   shortcutSlots: number;

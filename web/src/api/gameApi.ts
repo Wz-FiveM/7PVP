@@ -14,8 +14,8 @@ export const gameApi = {
   /** Langue de l'interface et des messages (gardée côté Lua, qui renvoie « locale ») */
   setLanguage: (lang: string) => fetchNui<ActionResult>('setLanguage', { lang }, { ok: true }),
 
-  /** `index` est 1-based, comme Config.Shop côté Lua */
-  buy: (index: number) => fetchNui<ActionResult>('buy', { index }, MOCK_OK),
+  /** `index` est 1-based, comme Config.Shop côté Lua ; `quantity` : nombre de lots */
+  buy: (index: number, quantity: number) => fetchNui<ActionResult>('buy', { index, quantity }, MOCK_OK),
 
   caseBuy: (id: string) => fetchNui<ActionResult>('caseBuy', { id }, MOCK_OK),
 
@@ -80,7 +80,7 @@ export const gameApi = {
 
   insuranceBuy: (item: string) => fetchNui<ActionResult>('insuranceBuy', { item }, MOCK_OK),
 
-  blackMarketBuy: (index: number) => fetchNui<ActionResult>('blackMarketBuy', { index }, MOCK_OK),
+  blackMarketBuy: (index: number, quantity: number) => fetchNui<ActionResult>('blackMarketBuy', { index, quantity }, MOCK_OK),
 
   seasonPassClaim: (tier: number, premium: boolean) => fetchNui<ActionResult>('seasonPassClaim', { tier, premium }, MOCK_OK),
 

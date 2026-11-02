@@ -6,7 +6,7 @@ import type { GameState } from './gameReducer';
 export interface GameActions {
   notify: (text: string, kind?: ToastKind) => void;
   closeMenu: () => void;
-  buy: (index: number) => Promise<void>;
+  buy: (index: number, quantity: number) => Promise<void>;
   /** Caisses : achat chez l'armurier, ouverture (lance la roulette), fermeture de la roulette ;
    *  `withPoints` : achetée avec des points boutique et ouverte aussitôt */
   buyCase: (id: string) => Promise<void>;

@@ -1,9 +1,12 @@
+import { useCallback, useState } from 'react';
+import { BuyModal } from '../components/inventory/BuyModal';
 import { ItemTile } from '../components/inventory/ItemTile';
 import { Panel, PanelHeader } from '../components/ui/Panel';
 import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
-import type { ItemType } from '../types/game';
+import type { ItemType, ShopEntry } from '../types/game';
 import { formatMoney } from '../utils/format';
+import { lotsThatFit } from '../utils/inventory';
 import '../components/inventory/inventory.css';
 import './pages.css';
 
@@ -20,9 +23,23 @@ export function ShopPage() {
   const { state, actions } = useGame();
   const { config, player, menu } = state;
   const money = player?.money ?? 0;
+  /** Ligne de la boutique dont on choisit la quantité (index 1-based) */
+  const [buying, setBuying] = useState<number | null>(null);
+  const closeBuying = useCallback(() => setBuying(null), []);
 
   // Config.Shop est indexé à partir de 1 côté Lua
   const entries = config.shop.map((entry, i) => ({ entry, index: i + 1 }));
+  const pending = buying !== null ? config.shop[buying - 1] : null;
+
+  /** Lots que le joueur peut payer et porter */
+  const maxLots = (entry: ShopEntry) =>
+    Math.min(config.shopMaxQuantity, Math.floor(money / entry.price), lotsThatFit(config, player, entry.item, entry.count));
+
+  /** Achète directement s'il n'y a qu'un lot possible (le serveur explique un refus), sinon demande la quantité. */
+  const startBuy = (entry: ShopEntry, index: number) => {
+    if (maxLots(entry) > 1) setBuying(index);
+    else actions.buy(index, 1);
+  };
 
   return (
     <>
@@ -49,7 +66,7 @@ export function ShopPage() {
                     item={entry.count > 1 ? { ...item, label: `${t(item.label)} x${entry.count}` } : item}
                     corner={locked ? t('NIV. {level}', { level: entry.level ?? 1 }) : formatMoney(entry.price)}
                     disabled={locked || !menu.near.shop || money < entry.price}
-                    onClick={() => actions.buy(index)}
+                    onClick={() => startBuy(entry, index)}
                   />
                 );
               })}
@@ -57,6 +74,19 @@ export function ShopPage() {
           </Panel>
         );
       })}
+      {pending && buying !== null && (
+        <BuyModal
+          item={pending.item}
+          count={pending.count}
+          price={pending.price}
+          max={maxLots(pending)}
+          onConfirm={(lots) => {
+            actions.buy(buying, lots);
+            closeBuying();
+          }}
+          onCancel={closeBuying}
+        />
+      )}
     </>
   );
 }

@@ -121,9 +121,10 @@ function BlackMarketService.list(source)
 end
 
 ---@param source integer
----@param index any numéro du lot
+---@param index any numéro de l'offre
+---@param quantity? any nombre de lots (1 par défaut)
 ---@return { ok: boolean, message?: string }
-function BlackMarketService.buy(source, index)
+function BlackMarketService.buy(source, index, quantity)
     local player = PlayerService.get(source)
     if not player or player.dead or player.mode ~= BlackMarketService.MODE then
         return { ok = false, message = Locale.t('Achat impossible.') }
@@ -133,15 +134,18 @@ function BlackMarketService.buy(source, index)
     if not BlackMarketService.isNear(player) then return { ok = false, message = Locale.t('Le marchand noir est trop loin.') } end
 
     local offer = visit.stock[tonumber(index)]
-    if not offer then return { ok = false, message = Locale.t('Achat impossible.') } end
+    local lots = Utils.toCount(quantity or 1)
+    if not offer or lots < 1 then return { ok = false, message = Locale.t('Achat impossible.') } end
     if offer.left <= 0 then return { ok = false, message = Locale.t('Plus aucun lot.') } end
-    if player:getMoney() < offer.price then return { ok = false, message = Locale.t('Pas assez d\'argent.') } end
-    if player.inventory:maxFit('bag', offer.item) < offer.count then return { ok = false, message = Locale.t('Ton sac est trop lourd.') } end
+    if offer.left < lots then return { ok = false, message = Locale.t('Plus assez de lots.') } end
+    local total, received = offer.price * lots, offer.count * lots
+    if player:getMoney() < total then return { ok = false, message = Locale.t('Pas assez d\'argent.') } end
+    if player.inventory:maxFit('bag', offer.item) < received then return { ok = false, message = Locale.t('Ton sac est trop lourd.') } end
 
-    offer.left = offer.left - 1
-    player:removeMoney(offer.price)
-    player:giveItem(offer.item, offer.count)
+    offer.left = offer.left - lots
+    player:removeMoney(total)
+    player:giveItem(offer.item, received)
     player:sync()
-    Logger.info('[marchand noir] %s achète %s pour $%d', player.name, Items.describe({ [offer.item] = offer.count }), offer.price)
-    return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [offer.item] = offer.count })) }
+    Logger.info('[marchand noir] %s achète %s pour $%d', player.name, Items.describe({ [offer.item] = received }), total)
+    return { ok = true, message = Locale.t('Acheté : %s', Items.describeText({ [offer.item] = received })) }
 end
