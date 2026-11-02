@@ -9,7 +9,8 @@ local Classes = PVP.use('Classes')
 Appearance.palettes = nil
 -- À l'arrivée en jeu, le chargement peut prendre bien plus que les 5 s par défaut
 Appearance.MODEL_TIMEOUT = 30000
-Appearance.HEALTH_CHECK_INTERVAL = 500
+-- À chaque image : un tir encaissé avant la correction ferait repartir le modèle féminin sous ses 100 PV
+Appearance.HEALTH_CHECK_INTERVAL = 0
 ---@type integer|nil modèle porté à la place du personnage du joueur (mode Call of Duty)
 Appearance.forcedModel = nil
 ---@type table<integer, boolean> modèles qui acceptent une apparence
