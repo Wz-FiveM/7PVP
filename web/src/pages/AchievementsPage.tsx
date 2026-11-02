@@ -36,7 +36,7 @@ export function AchievementsPage() {
                 className={data.title === title.id ? 'btn btn--active btn--small cut-s' : 'btn btn--small cut-s'}
                 onClick={() => gameApi.selectTitle(data.title === title.id ? '' : title.id).then(report)}
               >
-                {t(title.label)}
+                {t(title.label)} · {title.id.split(':')[0]}
               </button>
             ))}
           </div>

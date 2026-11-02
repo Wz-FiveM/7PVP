@@ -72,6 +72,7 @@ export interface PlayerState {
   contracts?: ContractsState;
   season?: SeasonStats;
   achievements?: AchievementsState;
+  seasonPass?: SeasonPassState;
   /** texte du titre affiché */
   title?: string;
   /** sets d'équipement : `false` pour un emplacement vide */
@@ -186,7 +187,25 @@ export interface AchievementsState {
   seasonTitles: { id: string; label: string }[];
 }
 
+export interface SeasonPassReward {
+  money?: number;
+  xp?: number;
+  items?: ItemStacks;
+  title?: string;
+}
+
+export interface SeasonPassState {
+  points: number;
+  tier: number;
+  premium: boolean;
+  /** 'f12' (gratuit) ou 'p12' (premium) */
+  claimed: Record<string, boolean>;
+}
+
 export interface GameConfig {
+  seasonPass?: { premiumPrice: number; pointsPerTier: number; tiers: { free: SeasonPassReward; premium: SeasonPassReward }[] };
+  seasonRewards?: { from: number; to: number; points: number; title: string; id: string }[];
+  seasonRewardsMinKills?: number;
   achievements?: AchievementEntry[];
   achievementStats?: Record<string, { text: string; max?: boolean }>;
   /** Config.Bounty.player : primes posées par les joueurs */

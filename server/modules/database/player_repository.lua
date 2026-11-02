@@ -1,6 +1,7 @@
 ---Accès à la table `pvp_players`.
 ---@class PlayerRepositoryModule
 local PlayerRepository = PVP.define('PlayerRepository')
+local SeasonPassService = PVP.use('SeasonPassService')
 local Logger = PVP.use('Logger')
 
 -- Évolutions du schéma pour les bases créées avant l'ajout d'une colonne
@@ -86,6 +87,7 @@ function PlayerRepository.save(player)
         }
     )
     PlayerRepository.saveSeason(player)
+    SeasonPassService.save(player)
 end
 
 ---Stats de la saison en cours du joueur (créées au besoin).

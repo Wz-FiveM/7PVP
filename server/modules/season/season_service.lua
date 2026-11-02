@@ -6,6 +6,8 @@ local SeasonService = PVP.define('SeasonService')
 local PlayerService = PVP.use('PlayerService')
 local PlayerRepository = PVP.use('PlayerRepository')
 local ChatService = PVP.use('ChatService')
+local SeasonRewardService = PVP.use('SeasonRewardService')
+local SeasonPassService = PVP.use('SeasonPassService')
 local Logger = PVP.use('Logger')
 local Locale = PVP.use('Locale')
 
@@ -71,9 +73,11 @@ function SeasonService.start(season)
     for _, player in pairs(PlayerService.all()) do
         PlayerRepository.saveSeason(player)
         player.season = { id = season, kills = 0, deaths = 0, npcKills = 0 }
+        SeasonPassService.onSeasonStart(player, season)
         player:sync()
     end
     ChatService.announce('pvp', Locale.t('%s terminée : place à la %s ! Le classement de saison repart à zéro.',
         SeasonService.label(previous), SeasonService.label(season)))
     Logger.info('[saison] %s -> %s', previous, season)
+    SeasonRewardService.onSeasonEnded(previous)
 end

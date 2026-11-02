@@ -19,6 +19,7 @@ local GungameService = PVP.use('GungameService')
 local AirdropService = PVP.use('AirdropService')
 local ControlService = PVP.use('ControlService')
 local CrewStatsService = PVP.use('CrewStatsService')
+local SeasonRewardService = PVP.use('SeasonRewardService')
 local HordeService = PVP.use('HordeService')
 local BountyService = PVP.use('BountyService')
 local Logger = PVP.use('Logger')
@@ -434,6 +435,7 @@ function LiveService.buildBoards()
             season = LeaderboardService.buildSeason(season, true),
             all = LeaderboardService.build(),
             crews = CrewStatsService.build('season').rows,
+            seasonWinners = SeasonRewardService.lastWinners,
             zombies = MySQL.query.await('SELECT name, npc_kills AS npcKills, kills, deaths FROM pvp_players WHERE npc_kills > 0 ORDER BY npc_kills DESC LIMIT ?', { LiveService.TOP }) or {},
         },
         elo = LiveService.eloBoards(),

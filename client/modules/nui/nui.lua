@@ -155,6 +155,13 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.killfeedBackgroundSelect, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('seasonPassClaim', function(data, cb)
+        cb(Callback.await(Events.callbacks.seasonPassClaim, { tier = data.tier, premium = data.premium == true }) or { ok = false })
+    end)
+    RegisterNUICallback('seasonPassBuy', function(_, cb)
+        cb(Callback.await(Events.callbacks.seasonPassBuy) or { ok = false })
+    end)
+
     RegisterNUICallback('titleSelect', function(data, cb)
         cb(Callback.await(Events.callbacks.titleSelect, data.id) or { ok = false })
     end)
@@ -220,6 +227,13 @@ function Nui.buildInitPayload()
             },
             nameColors = Config.NameColors,
             achievements = Config.Achievements,
+            seasonPass = {
+                premiumPrice = Config.SeasonPass.premiumPrice,
+                pointsPerTier = Config.SeasonPass.pointsPerTier,
+                tiers = Config.SeasonPass.tiers,
+            },
+            seasonRewards = Config.SeasonRewards.ranks,
+            seasonRewardsMinKills = Config.SeasonRewards.minKills,
             achievementStats = Config.AchievementStats,
             killfeedBackgrounds = Config.KillfeedBackgrounds,
             menuKey = Config.MenuKeyLabel,

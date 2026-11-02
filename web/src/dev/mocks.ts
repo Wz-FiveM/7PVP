@@ -318,6 +318,21 @@ export const mockInit: InitPayload = {
       playerKill: { text: 'Tue {goal} joueurs' },
       headshots: { text: 'Fais {goal} kills en pleine tête' },
     },
+    seasonPass: {
+      premiumPrice: 1000,
+      pointsPerTier: 200,
+      tiers: [
+        { free: { money: 220 }, premium: { money: 550, xp: 100 } },
+        { free: { money: 240, items: { bandage: 5 } }, premium: { money: 600, xp: 100, items: { medkit: 5, armor: 1 } } },
+        { free: { money: 260 }, premium: { money: 650, xp: 100, title: 'Vétéran de saison' } },
+      ],
+    },
+    seasonRewards: [
+      { from: 1, to: 1, points: 1000, title: 'Champion de saison', id: 'top1' },
+      { from: 2, to: 3, points: 500, title: 'Podium de saison', id: 'top3' },
+      { from: 4, to: 10, points: 200, title: 'Top 10 de saison', id: 'top10' },
+    ],
+    seasonRewardsMinKills: 10,
     bountyPlayer: { min: 500, max: 50000, maxOnHead: 200000, fee: 0.1, delay: 30 },
     crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24, maxTerritories: 2, territoryInterval: 300, stashCapacity: 500, captureScore: 10 },
     nameColors: {
@@ -612,6 +627,7 @@ export const mockInit: InitPayload = {
     playerClass: { id: 'scout', cooldown: 12, changeIn: 0 },
     achievements: { stats: { playerKill: 72, headshots: 9 }, done: { kills_50: true }, title: 'kills_50', seasonTitles: [{ id: '2026-10:top3', label: 'Podium de saison' }] },
     title: 'Chasseur',
+    seasonPass: { points: 310, tier: 1, premium: false, claimed: { f1: true } },
     loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
     xp: 2450,
     level: 3,

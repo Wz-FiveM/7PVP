@@ -65,6 +65,10 @@ export const gameApi = {
   /** Achat d'un fond du killfeed en points boutique, équipé aussitôt */
   buyKillfeedBackground: (id: string) => fetchNui<ActionResult>('killfeedBackgroundBuy', { id }, MOCK_OK),
 
+  seasonPassClaim: (tier: number, premium: boolean) => fetchNui<ActionResult>('seasonPassClaim', { tier, premium }, MOCK_OK),
+
+  seasonPassBuy: () => fetchNui<ActionResult>('seasonPassBuy', {}, MOCK_OK),
+
   /** Titre affiché : chaîne vide pour n'en afficher aucun */
   selectTitle: (id: string) => fetchNui<ActionResult>('titleSelect', { id }, MOCK_OK),
 
