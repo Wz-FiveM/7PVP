@@ -44,11 +44,10 @@ function ResaleService.init()
     Callback.register(Events.callbacks.adminResale, ResaleService.getCallback)
     Callback.register(Events.callbacks.adminResaleSave, ResaleService.saveCallback)
     Callback.register(Events.callbacks.adminResaleReset, ResaleService.resetCallback)
-
-    CreateThread(ResaleService.load)
 end
 
----Applique ce qui a été enregistré depuis le panneau.
+---Applique ce qui a été enregistré depuis le panneau. Appelé par ShopService.load, une fois les prix
+---de la boutique appliqués.
 function ResaleService.load()
     MySQL.query.await(ResaleService.SCHEMA)
     local rows = MySQL.query.await('SELECT item, price FROM pvp_resale_prices') or {}
@@ -57,6 +56,27 @@ function ResaleService.load()
         if price then ResaleService.prices[row.item] = price end
     end
     if #rows > 0 then Logger.info('[revente] %d prix chargé(s) depuis la base', #rows) end
+end
+
+---Prix de la boutique modifiés : les objets dont la reprise n'a pas été fixée suivent, sinon baisser
+---un prix permettrait d'acheter puis de revendre à profit.
+function ResaleService.refreshDefaults()
+    local previous = ResaleService.defaults
+    ResaleService.shopPrices = ResaleService.buildShopPrices()
+    ResaleService.defaults = ResaleService.buildDefaults()
+    for name, price in pairs(ResaleService.prices) do
+        if price == previous[name] then
+            ResaleService.prices[name] = ResaleService.defaults[name]
+        elseif price == ResaleService.defaults[name] then
+            MySQL.update('DELETE FROM pvp_resale_prices WHERE item = ?', { name })
+        end
+    end
+end
+
+---@param name string
+---@return boolean true si la reprise de cet objet dépend du prix de la boutique
+function ResaleService.followsShop(name)
+    return not Config.Resale.prices[name] and ResaleService.prices[name] == ResaleService.defaults[name]
 end
 
 ---@return table<string, number>

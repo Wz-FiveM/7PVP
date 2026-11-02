@@ -1,4 +1,4 @@
-import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData } from '../types/admin';
+import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData, ShopAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -661,6 +661,21 @@ export const mockResaleAdmin: ResaleAdminData = {
     { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', price: 450, default: 200, shop: 400 },
     { name: 'att_scope', label: 'Lunette', type: 'attachment', price: 750, default: 750, shop: 1500 },
     { name: 'vehicle_panto', label: 'Panto', type: 'vehicle', price: 300, default: 300, shop: false },
+  ],
+};
+
+/** Onglet « Boutique » du panneau admin (hors jeu) */
+export const mockShopAdmin: ShopAdminData = {
+  ok: true,
+  maxPrice: 10000000,
+  items: [
+    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', count: 1, price: 400, default: 400, resale: 450, resaleFollows: false },
+    { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon', count: 1, price: 6000, default: 5500, resale: 3000, resaleFollows: true },
+    { name: 'ammo_9mm', label: 'Munitions de pistolet', type: 'ammo', count: 48, price: 80, default: 80, resale: 48, resaleFollows: true },
+    { name: 'ammo_556', label: 'Munitions de fusil', type: 'ammo', count: 60, price: 250, default: 250, resale: 120, resaleFollows: true },
+    { name: 'att_scope', label: 'Lunette', type: 'attachment', count: 1, price: 1500, default: 1500, resale: 750, resaleFollows: true },
+    { name: 'medkit', label: 'Trousse de soins', type: 'consumable', count: 1, price: 350, default: 350, resale: 175, resaleFollows: true },
+    { name: 'vehicle_faggio', label: 'Faggio', type: 'vehicle', count: 1, price: 600, default: 600, resale: 300, resaleFollows: true },
   ],
 };
 

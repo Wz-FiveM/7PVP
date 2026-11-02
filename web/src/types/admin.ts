@@ -105,6 +105,30 @@ export interface ResaleAdminData {
   maxPrice: number;
 }
 
+/** Ligne de la boutique (server/modules/shop/shop_service.lua) */
+export interface ShopAdminItem {
+  name: string;
+  label: string;
+  type: string;
+  /** quantité reçue à l'achat */
+  count: number;
+  /** prix du lot */
+  price: number;
+  /** valeur de config/shop.lua */
+  default: number;
+  /** ce que le lot rapporte au receleur */
+  resale: number;
+  /** la reprise dépend du prix de la boutique (pas fixée dans l'onglet Revente) */
+  resaleFollows: boolean;
+}
+
+export interface ShopAdminData {
+  ok: boolean;
+  message?: string;
+  items: ShopAdminItem[];
+  maxPrice: number;
+}
+
 /** Véhicule d'une liste du Freeroam (server/modules/freeroam/freeroam_config_service.lua) */
 export interface FreeroamVehicle {
   model: string;

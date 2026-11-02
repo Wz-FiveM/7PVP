@@ -31,6 +31,8 @@ export type NuiMessage =
   | { action: 'notify'; data: { text: string; kind: ToastKind } }
   | { action: 'locale'; data: LocalePayload }
   | { action: 'killfeed'; data: KillfeedEntry }
+  /** prix de la boutique, objet -> prix (voir ShopService) */
+  | { action: 'shopPrices'; data: Record<string, number> }
   | { action: 'hit'; data: HitEvent }
   /** statut « en combat » : secondes restantes, 0 = terminé */
   | { action: 'combat'; data: { seconds: number } }

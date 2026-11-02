@@ -148,6 +148,14 @@ function Nui.init()
     RegisterNetEvent(Events.client.killfeed, function(entry)
         Nui.send('killfeed', entry)
     end)
+
+    -- Prix de la boutique (voir ShopService) : Config.Shop est aussi relu si la page n'est pas encore prête
+    RegisterNetEvent(Events.client.shopPrices, function(prices)
+        for _, entry in ipairs(Config.Shop) do
+            entry.price = prices[entry.item] or entry.price
+        end
+        Nui.send('shopPrices', prices)
+    end)
 end
 
 ---Les messages à traduire venus du serveur (Locale.t) sont traduits ici, dans la langue du joueur.

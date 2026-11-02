@@ -1,6 +1,11 @@
--- item : clé de Config.Items ; count : quantité reçue ; price : prix ; level : niveau minimum (défaut 1)
+-- item : clé de Config.Items, une seule ligne par objet ; count : quantité reçue ; price : prix ;
+-- level : niveau minimum (défaut 1)
 -- Armes lourdes, explosifs puissants et armes « fun » (minigun, railgun, laser...) ne sont pas vendus :
 -- largages ou admins seulement (config/loot.lua).
+-- Les prix se modifient dans le panneau admin F10 (onglet « Boutique ») : ce fichier ne donne que les
+-- valeurs par défaut.
+Config.ShopMaxPrice = 10000000 -- prix maximum accepté dans le panneau admin
+
 Config.Shop = {
     -- Armes blanches
     { item = 'weapon_knife', count = 1, price = 200 },
