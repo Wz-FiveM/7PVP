@@ -172,6 +172,7 @@ Events.callbacks = {
     caseBuy = 'case:buy',
     caseOpen = 'case:open',
     caseOpenPoints = 'case:openPoints',
+    caseSkip = 'case:skip',
     useItem = 'inventory:use',
     moveItem = 'inventory:move',
     dropItem = 'inventory:drop',

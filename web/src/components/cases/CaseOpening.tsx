@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { gameApi } from '../../api/gameApi';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { CaseReelEntry, CaseSpin } from '../../types/game';
@@ -59,8 +60,14 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
       strip.style.transition = 'none';
       strip.style.transform = `translateX(${-targetRef.current}px)`;
     }
+    if (!doneRef.current) void gameApi.caseSkip();
     finish();
   }, [finish]);
+
+  // Menu fermé ou mort pendant la roulette : le serveur ne doit pas continuer à l'attendre
+  useEffect(() => () => {
+    if (!doneRef.current) void gameApi.caseSkip();
+  }, []);
 
   // Lancement : la case gagnante s'arrête sous le repère, un peu décalée au hasard
   useLayoutEffect(() => {

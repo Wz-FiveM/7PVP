@@ -1,7 +1,8 @@
 ---Caisses (config/cases.lua) : achat chez l'armurier, ouverture, et ouverture payée en points boutique.
 ---Le tirage est fait ici : le client ne reçoit que la roulette à animer, déjà jouée.
 ---La récompense est donnée tout de suite (fermer le menu ne l'annule pas), mais l'inventaire
----n'est renvoyé au client qu'à la fin de l'animation, pour ne pas dévoiler le résultat.
+---n'est renvoyé au client qu'à la fin de l'animation (ou quand le joueur la passe), pour ne pas
+---dévoiler le résultat.
 ---@class CaseServiceModule
 local CaseService = PVP.define('CaseService')
 local PlayerService = PVP.use('PlayerService')
@@ -37,6 +38,7 @@ function CaseService.init()
     Callback.register(Events.callbacks.caseBuy, CaseService.buy)
     Callback.register(Events.callbacks.caseOpen, CaseService.open)
     Callback.register(Events.callbacks.caseOpenPoints, CaseService.openWithPoints)
+    Callback.register(Events.callbacks.caseSkip, CaseService.skip)
 end
 
 ---@param source integer
@@ -131,6 +133,18 @@ function CaseService.openWithPoints(source, id)
     return CaseService.spin(player, case)
 end
 
+---Roulette passée ou fermée par le joueur : résultat dévoilé tout de suite, une autre caisse peut s'ouvrir.
+---La récompense est déjà donnée : passer ne change rien au tirage.
+---@param source integer
+---@return { ok: boolean }
+function CaseService.skip(source)
+    local player = PlayerService.get(source)
+    if not player or not player.caseReveal then return { ok = false } end
+    player.caseReveal()
+    player.caseBusyUntil = 0
+    return { ok = true }
+end
+
 ---Tire la récompense, la donne et renvoie la roulette à animer.
 ---@param player PvpPlayer
 ---@param case table
@@ -143,13 +157,16 @@ function CaseService.spin(player, case)
     local durationMs = math.floor(options.spinDuration * 1000)
     player.caseBusyUntil = GetGameTimer() + durationMs
 
+    -- Le verrou peut expirer juste avant le minuteur de la roulette précédente
+    if player.caseReveal then player.caseReveal() end
+
     local placed = CaseService.deliver(player, reward.item, count)
     Logger.info('[caisse] %s ouvre %s : %s x%d (%s)', player.name, case.id, reward.item, count, reward.rarity)
 
-    -- Résultat dévoilé à la fin de la roulette
-    SetTimeout(durationMs, function()
-        local current = PlayerService.get(source)
-        if current ~= player then return end
+    -- Résultat dévoilé à la fin de la roulette, ou dès que le joueur la passe (une seule fois)
+    local function reveal()
+        if player.caseReveal ~= reveal then return end
+        player.caseReveal = nil
         player:sync()
         player:notify(CaseService.describeDelivery(reward.item, count, placed), 'success')
         if options.announceRarities[reward.rarity] then
@@ -158,6 +175,10 @@ function CaseService.spin(player, case)
                 Locale.t(Config.CaseRarities[reward.rarity].label), Locale.t(case.label)
             ))
         end
+    end
+    player.caseReveal = reveal
+    SetTimeout(durationMs, function()
+        if PlayerService.get(source) == player then reveal() end
     end)
 
     return {

@@ -25,6 +25,9 @@ export const gameApi = {
   /** Achat et ouverture immédiate avec des points boutique */
   caseOpenPoints: (id: string, mock: CaseOpenResult) => fetchNui<CaseOpenResult>('caseOpenPoints', { id }, mock),
 
+  /** Roulette passée ou fermée : le serveur dévoile le résultat et libère le verrou */
+  caseSkip: () => fetchNui<ActionResult>('caseSkip', {}, MOCK_OK),
+
   useItem: (name: string) => fetchNui<ActionResult>('useItem', { name }, MOCK_OK),
 
   equip: (name: string) => fetchNui<ActionResult>('equip', { name }, { ok: true }),
