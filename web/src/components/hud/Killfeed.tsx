@@ -3,6 +3,7 @@ import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { KillfeedItem } from '../../types/game';
 import { Icon } from '../icons/Icon';
+import { ColoredName } from '../ui/ColoredName';
 
 /** Images d'armes introuvables : la ligne affiche l'icône de repli sans les redemander. */
 const missingImages = new Set<string>();
@@ -59,8 +60,8 @@ export function Killfeed() {
       {state.killfeed.map((item) => (
         <div key={item.id} className={rowClass(item)}>
           {item.killer && (
-            <span className={nameClass(item.killerId, 'killfeed__killer')} style={item.killerColor ? { color: item.killerColor } : undefined}>
-              {item.killer}
+            <span className={nameClass(item.killerId, 'killfeed__killer')}>
+              <ColoredName text={item.killer} colors={item.killerColors} />
             </span>
           )}
           {item.reason === 'disconnect' ? (
@@ -69,8 +70,8 @@ export function Killfeed() {
             <WeaponSilhouette weapon={item.weapon} />
           )}
           {item.headshot && <Icon name="crosshair" size={15} strokeWidth={2.2} className="killfeed__headshot" />}
-          <span className={nameClass(item.victimId, 'killfeed__victim')} style={item.victimColor ? { color: item.victimColor } : undefined}>
-            {item.victim}
+          <span className={nameClass(item.victimId, 'killfeed__victim')}>
+            <ColoredName text={item.victim} colors={item.victimColors} />
           </span>
         </div>
       ))}

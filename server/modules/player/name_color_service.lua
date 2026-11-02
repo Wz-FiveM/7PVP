@@ -1,4 +1,4 @@
----Couleur du nom en PvP (Config.NameColors) : gamertags et killfeed. Gardée en base avec le profil du joueur.
+---Couleurs du nom en PvP (Config.NameColors) : gamertags et killfeed. Gardées en base avec le profil du joueur.
 ---@class NameColorServiceModule
 local NameColorService = PVP.define('NameColorService')
 local NameColors = PVP.use('NameColors')
@@ -21,19 +21,17 @@ function NameColorService.publish(player)
 end
 
 ---@param source integer
----@param id any couleur choisie, false pour revenir à la couleur par défaut
+---@param colors any un code par lettre (voir NameColors), chaîne vide pour tout retirer
 ---@return { ok: boolean, message?: string }
-function NameColorService.select(source, id)
+function NameColorService.select(source, colors)
     local player = PlayerService.get(source)
-    local color = NameColors.get(id)
-    if not player or (id and not color) then return { ok = false } end
+    if not player or not NameColors.isValid(colors) then return { ok = false } end
 
-    local chosen = color and color.id or nil
+    local chosen = NameColors.sanitize(colors)
     if player.nameColor == chosen then return { ok = true } end
 
     player.nameColor = chosen
     NameColorService.publish(player)
     player:sync()
-    if not color then return { ok = true, message = Locale.t('Couleur du nom retirée.') } end
-    return { ok = true, message = Locale.t('Couleur du nom : %s', Locale.t(color.label)) }
+    return { ok = true, message = chosen and Locale.t('Couleurs du nom enregistrées.') or Locale.t('Couleurs du nom retirées.') }
 end

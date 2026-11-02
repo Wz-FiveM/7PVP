@@ -27,7 +27,7 @@
 ---@field bounty integer prime sur sa tête ($), 0 = aucune
 ---@field combatLog { taken: table<integer, table>, dealt: table<integer, table> } dégâts de la vie en cours, par joueur
 ---@field classId string|nil classe du mode PvP (Config.Classes)
----@field nameColor string|nil couleur du nom en PvP (Config.NameColors)
+---@field nameColor string|nil couleurs du nom en PvP, un code par lettre (voir NameColors)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -120,10 +120,11 @@ function PlayerObject:displayName()
     return CrewService.label(self.identifier, self.name)
 end
 
----@return string|nil couleur du nom dans le killfeed (#RRGGBB), nil = couleur par défaut
-function PlayerObject:nameColorHex()
-    local color = NameColors.get(self.nameColor)
-    return color and color.hex or nil
+---Les codes sont alignés sur displayName() : le label du crew reste sans couleur.
+---@return string|nil couleurs des lettres de displayName(), nil = aucune
+function PlayerObject:displayColors()
+    if not self.nameColor then return nil end
+    return NameColors.NONE:rep(#self:displayName() - #self.name) .. self.nameColor
 end
 
 function PlayerObject:sync()

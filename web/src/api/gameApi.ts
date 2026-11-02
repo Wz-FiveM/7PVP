@@ -49,8 +49,8 @@ export const gameApi = {
 
   selectClass: (id: string) => fetchNui<ActionResult>('classSelect', { id }, MOCK_OK),
 
-  /** `id: null` revient à la couleur par défaut */
-  selectNameColor: (id: string | null) => fetchNui<ActionResult>('nameColorSelect', { id }, MOCK_OK),
+  /** Un code par lettre (« qg-r »), chaîne vide pour retirer les couleurs */
+  selectNameColors: (colors: string) => fetchNui<ActionResult>('nameColorSelect', { colors }, MOCK_OK),
 
   /** Fixe (`attach: true`) ou retire un accessoire d'une arme */
   attachment: (weapon: string, attachment: string, attach: boolean) =>

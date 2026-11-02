@@ -42,7 +42,7 @@ export interface PlayerState {
   name: string;
   /** nom précédé du label du crew : « [MGZ] Nom » */
   displayName?: string;
-  /** couleur du nom en PvP (Config.NameColors), absente = couleur par défaut */
+  /** couleurs du nom en PvP, un code par lettre (« qg-r »), absentes = couleur par défaut */
   nameColor?: string;
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
@@ -164,7 +164,7 @@ export interface GameConfig {
   xpPerLevel: number;
   groupMaxSize?: number;
   crew?: CrewConfig;
-  nameColors?: NameColor[];
+  nameColors?: NameColorsConfig;
   /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
@@ -278,9 +278,9 @@ export interface KillfeedEntry {
   /** server ids : la ligne est mise en avant si le joueur local est concerné */
   killerId?: number;
   victimId?: number;
-  /** couleurs de nom choisies par les joueurs (#RRGGBB), absentes = couleurs par défaut */
-  killerColor?: string;
-  victimColor?: string;
+  /** couleurs choisies par les joueurs, un code par lettre du nom affiché, absentes = couleurs par défaut */
+  killerColors?: string;
+  victimColors?: string;
 }
 
 export interface Toast {
@@ -368,11 +368,17 @@ export interface GroupInvite {
   fromName: string;
 }
 
-/** Couleur de nom au choix en PvP (Config.NameColors) */
+/** Couleur de lettre au choix en PvP */
 export interface NameColor {
-  id: string;
+  code: string;
   label: string;
   hex: string;
+}
+
+/** Couleurs du nom (Config.NameColors) */
+export interface NameColorsConfig {
+  maxLetters: number;
+  list: NameColor[];
 }
 
 /** Réglages du menu Crew (Config.Crews) */

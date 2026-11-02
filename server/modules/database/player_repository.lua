@@ -11,7 +11,9 @@ PlayerRepository.MIGRATIONS = {
     -- Argent des ventes de la place de marché à récupérer (modifié seulement par MarketRepository)
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS market_balance INT NOT NULL DEFAULT 0 AFTER contracts',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS class_id VARCHAR(16) NULL AFTER market_balance',
-    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS name_color VARCHAR(16) NULL AFTER class_id',
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS name_color VARCHAR(32) NULL AFTER class_id',
+    -- La colonne a d'abord gardé une seule couleur (VARCHAR(16)) : ces anciennes valeurs sont ignorées au chargement
+    'ALTER TABLE pvp_players MODIFY COLUMN name_color VARCHAR(32) NULL',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,

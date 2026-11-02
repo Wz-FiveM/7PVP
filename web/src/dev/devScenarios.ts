@@ -392,13 +392,13 @@ export const DEV_ACTIONS: DevAction[] = [
       sendNui({
         action: 'killfeed',
         data: {
-          killer: pick(PLAYERS),
-          victim: pick(PLAYERS),
+          killer: '[MGZ] Wezor',
+          victim: 'Kilian',
           weapon: 'weapon_carbinerifle',
           killerId: 20,
           victimId: 21,
-          killerColor: pick(['#E03232', '#F0C850', '#72CC72', '#5DB6E5', '#8466E2', '#CB3694']),
-          victimColor: pick(['#FF8555', '#5DB6E5', '#CB3694']),
+          killerColors: '------qgqgq',
+          victimColors: 'rrr-bb',
         },
       }),
   },

@@ -130,7 +130,7 @@ function Nui.init()
     end)
 
     RegisterNUICallback('nameColorSelect', function(data, cb)
-        cb(Callback.await(Events.callbacks.nameColorSelect, data.id or false) or { ok = false })
+        cb(Callback.await(Events.callbacks.nameColorSelect, data.colors) or { ok = false })
     end)
 
     RegisterNUICallback('attachment', function(data, cb)

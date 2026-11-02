@@ -30,8 +30,31 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+.name-colors__letters,
+.name-colors__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.name-colors__actions {
+  gap: 0.5rem;
+}
 .name-colors__hint {
   font-size: 0.75rem;
+}
+.name-letter {
+  min-width: 1.75rem;
+  height: 2.25rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--os);
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.name-letter:hover {
+  background: rgba(255, 255, 255, 0.18);
 }
 .name-color {
   width: 2.25rem;

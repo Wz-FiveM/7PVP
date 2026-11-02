@@ -66,16 +66,20 @@ Config.Crews = {
     },
 }
 
--- Couleurs de nom au choix en PvP (menu Profil) : gamertags et killfeed.
--- hud : couleur GTA des gamertags (eHudColour), hex : la même pour le killfeed.
+-- Couleurs du nom en PvP (menu Profil) : une couleur par lettre, dans les gamertags et le killfeed.
+-- code : code couleur GTA (~r~...), gardé en base à raison d'un code par lettre ('-' = sans couleur).
+-- hex : la même couleur GTA, pour l'interface.
 Config.NameColors = {
-    { id = 'red', label = 'Rouge', hud = 6, hex = '#E03232' },
-    { id = 'orange', label = 'Orange', hud = 15, hex = '#FF8555' },
-    { id = 'yellow', label = 'Jaune', hud = 12, hex = '#F0C850' },
-    { id = 'green', label = 'Vert', hud = 18, hex = '#72CC72' },
-    { id = 'blue', label = 'Bleu', hud = 9, hex = '#5DB6E5' },
-    { id = 'purple', label = 'Violet', hud = 21, hex = '#8466E2' },
-    { id = 'pink', label = 'Rose', hud = 24, hex = '#CB3694' },
+    maxLetters = 32, -- lettres qu'on peut colorier, taille de la colonne name_color
+    list = {
+        { code = 'r', label = 'Rouge', hex = '#E03232' },
+        { code = 'o', label = 'Orange', hex = '#FF8555' },
+        { code = 'y', label = 'Jaune', hex = '#F0C850' },
+        { code = 'g', label = 'Vert', hex = '#72CC72' },
+        { code = 'b', label = 'Bleu', hex = '#5DB6E5' },
+        { code = 'p', label = 'Violet', hex = '#8466E2' },
+        { code = 'q', label = 'Rose', hex = '#CB3694' },
+    },
 }
 
 -- ---------------------------------------------------------------------------

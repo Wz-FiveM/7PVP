@@ -127,8 +127,8 @@ function CombatTagService.onPlayerLeaving(source)
     CombatService.broadcastKill(killer and killer:displayName(), player:displayName(), 'disconnect', nil, {
         killerId = killer and killer.source,
         victimId = player.source,
-        killerColor = killer and killer:nameColorHex(),
-        victimColor = player:nameColorHex(),
+        killerColors = killer and killer:displayColors(),
+        victimColors = player:displayColors(),
     })
     BountyService.reset(player)
     Logger.info('[combat] %s s\'est déconnecté en combat (dernier attaquant : %s)', player.name,
