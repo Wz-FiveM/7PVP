@@ -198,7 +198,8 @@ Tout est contrôlé par le serveur (`server/modules/anticheat/`, réglages dans 
 | Détection | Ce qui est vérifié | Sanction par défaut |
 | --- | --- | --- |
 | Arme non possédée | Touche faite en PvP avec une arme absente de l'inventaire (la touche est annulée) | Kick à la 3e alerte |
-| Dégâts anormaux | Plus de 250 dégâts en une touche (touche annulée) | Kick à la 3e |
+| Dégâts anormaux | 3 touches sur des joueurs en 30 s au-dessus du maximum de l'arme, classe comprise (la touche n'est pas annulée) | Journal |
+| Multiplicateur de dégâts | Multiplicateur du joueur au-dessus de ce que permet sa classe pendant 6 s | Journal |
 | Explosion interdite | Grenade, roquette, bombe collante… en PvP (explosion annulée) | Ban définitif à la 2e |
 | Véhicule créé en PvP | Le mode n'en donne pas : véhicule apparu par un joueur (création annulée) | Kick à la 3e |
 | Vie / armure | Au-dessus de 200 PV ou 100 d'armure | Kick à la 3e |

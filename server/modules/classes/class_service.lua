@@ -80,6 +80,17 @@ function ClassService.healthLimit(player)
     return ClassDefs.maxHealth(ClassService.of(player))
 end
 
+---Juste après un changement de classe, le client garde un moment les multiplicateurs de l'ancienne.
+---@param player PvpPlayer
+---@return number, number multiplicateurs les plus hauts permis à ce joueur : armes à feu, corps à corps (anticheat)
+function ClassService.damageLimits(player)
+    if os.time() < ClassService.timersOf(player.identifier).healthGrace then
+        return ClassDefs.highestWeaponDamage, ClassDefs.highestMeleeDamage
+    end
+    local class = ClassService.of(player)
+    return ClassDefs.weaponDamageLimit(class), ClassDefs.meleeDamageLimit(class)
+end
+
 ---@param player PvpPlayer
 ---@return { id: string|nil, cooldown: integer, changeIn: integer } envoyé au client à chaque synchro
 function ClassService.describe(player)

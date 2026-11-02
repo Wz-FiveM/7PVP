@@ -1,7 +1,8 @@
 ---Anti-cheat côté serveur (Config.AntiCheat). Détections :
 ---  weapon    : touche avec une arme absente de l'inventaire (PvP)
 ---  heldWeapon : arme en main absente de l'inventaire, retirée aussitôt (PvP)
----  damage    : dégâts d'une touche au-dessus du maximum (alerte seulement, la touche passe)
+---  damage    : plusieurs touches sur des joueurs au-dessus du maximum de l'arme (la touche passe toujours)
+---  damageModifier : multiplicateur de dégâts du joueur au-dessus de ce que permet sa classe
 ---  explosion : explosion d'arme (grenade, roquette...) en PvP
 ---  entity    : véhicule créé par un joueur en PvP ou au lobby
 ---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible et qui le reste hors zone safe
@@ -45,8 +46,11 @@ AntiCheatService.strikes = {} -- [source][détection] = { horodatages }
 AntiCheatService.heldWeapons = {} -- [source] = arme non possédée vue en main au dernier relevé
 AntiCheatService.immunity = {} -- [source] = { hits, life, at } touches encaissées sans perte de vie
 AntiCheatService.aimSamples = {} -- [source] = { { at, head, offAim }, ... } touches récentes sur des joueurs
+AntiCheatService.damageHits = {} -- [source] = { os.time() des touches récentes au-dessus du maximum }
 ---@type table<integer, string>|nil [hash non signé] = objet de l'arme, rempli au premier besoin
 AntiCheatService.weaponItems = nil
+---@type table<integer, table>|nil [hash non signé] = ligne de Config.AntiCheat.weaponDamage, rempli au premier besoin
+AntiCheatService.weaponStats = nil
 AntiCheatService.rates = {} -- [source][clé] = { second, count }
 AntiCheatService.positions = {} -- [source] = { coords, at, moving }
 AntiCheatService.streaks = {} -- [source][signal] = relevés de suite où le signal est présent
@@ -165,7 +169,7 @@ function AntiCheatService.forget(source)
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
         AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.invincibleSince,
         AntiCheatService.heldWeapons, AntiCheatService.immunity, AntiCheatService.aimSamples,
-        AntiCheatService.streaks, AntiCheatService.vehicleAt,
+        AntiCheatService.streaks, AntiCheatService.vehicleAt, AntiCheatService.damageHits,
     }) do
         map[source] = nil
     end
@@ -282,16 +286,67 @@ function AntiCheatService.onWeaponDamage(sender, data)
     end
 
     AntiCheatService.observeHit(sender, player, weapon, data)
-    if not player then return end
+    if player then AntiCheatService.checkDamage(sender, player, weapon, data) end
+end
 
-    -- Jamais annulée : une touche annulée désynchronise les deux joueurs (le tireur voit sa cible
-    -- mourir, elle reste en vie chez elle et ne reçoit plus ses tirs). Des tirs légitimes dépassent
-    -- le seuil (tête, corps à corps) : on alerte avec le détail pour pouvoir trier.
+---@param player PvpPlayer tireur
+---@param weapon integer hash non signé
+---@param isHead boolean
+---@return number dégâts les plus hauts d'une touche normale sur un joueur
+function AntiCheatService.damageCap(player, weapon, isHead)
+    if not AntiCheatService.weaponStats then
+        AntiCheatService.weaponStats = {}
+        for name, stats in pairs(Config.AntiCheat.weaponDamage) do
+            AntiCheatService.weaponStats[AntiCheatService.unsigned(GetHashKey(name))] = stats
+        end
+    end
+    local stats = AntiCheatService.weaponStats[weapon]
+    if not stats then return Config.AntiCheat.maxWeaponDamage end
+    local limit = ClassService.damageLimits(player)
+    return stats.damage * (stats.pellets or 1) * (isHead and stats.head or 1) * limit * Config.AntiCheat.damageMargin
+end
+
+---Damage boost vu sur les touches. Jamais annulée : une touche annulée désynchronise les deux joueurs (le tireur
+---voit sa cible mourir, elle reste en vie chez elle et ne reçoit plus ses tirs). Les touches sur les zombies et les
+---véhicules n'ont pas les mêmes multiplicateurs : elles ne comptent pas.
+---@param sender integer
+---@param player PvpPlayer tireur
+---@param weapon integer hash non signé
+---@param data table
+function AntiCheatService.checkDamage(sender, player, weapon, data)
     local damage = tonumber(data.weaponDamage) or 0
-    if damage > Config.AntiCheat.maxWeaponDamage then
-        AntiCheatService.flag(sender, 'damage', ('%d dégâts en une touche (%s, partie %s%s)'):format(
-            math.floor(damage), AntiCheatService.weaponLabel(weapon), tostring(data.hitComponent),
-            data.willKill and ', mortelle' or ''))
+    local component = tonumber(data.hitComponent)
+    local cap = AntiCheatService.damageCap(player, weapon, component == Config.AntiCheat.aimbot.headComponent)
+    if damage <= cap or not AntiCheatService.playerHitBy(sender, data) then return end
+
+    local now = os.time()
+    local hits = {}
+    for _, at in ipairs(AntiCheatService.damageHits[sender] or {}) do
+        if now - at < Config.AntiCheat.damageWindow then hits[#hits + 1] = at end
+    end
+    hits[#hits + 1] = now
+    AntiCheatService.damageHits[sender] = hits
+    if #hits < Config.AntiCheat.damageHits then return end
+
+    -- Une alerte par série de touches, pas une par balle
+    AntiCheatService.damageHits[sender] = nil
+    AntiCheatService.flag(sender, 'damage', ('%d touches en %d s au-dessus du maximum, dernière : %d dégâts pour %d permis (%s, partie %s%s)'):format(
+        #hits, Config.AntiCheat.damageWindow, math.floor(damage), math.floor(cap), AntiCheatService.weaponLabel(weapon),
+        tostring(data.hitComponent), data.willKill and ', mortelle' or ''))
+end
+
+---Multiplicateur réglé par un menu de triche : le jeu l'envoie au serveur, qui le compare à celui de la classe.
+---@param source integer
+---@param player PvpPlayer
+function AntiCheatService.checkDamageModifier(source, player)
+    local rules = Config.AntiCheat.damageModifier
+    local weaponLimit, meleeLimit = ClassService.damageLimits(player)
+    local weapon, melee = GetPlayerWeaponDamageModifier(source), GetPlayerMeleeWeaponDamageModifier(source)
+    local boosted = GetGameTimer() >= (AntiCheatService.graceUntil[source] or 0)
+        and (weapon > weaponLimit + rules.weaponTolerance or melee > meleeLimit + rules.meleeTolerance)
+    if AntiCheatService.sustained(source, 'damageModifier', boosted, rules.readings) then
+        AntiCheatService.flag(source, 'damageModifier', ('armes x%.2f pour x%.2f permis, corps à corps x%.2f pour x%.2f permis'):format(
+            weapon, weaponLimit, melee, meleeLimit))
     end
 end
 
@@ -675,6 +730,7 @@ function AntiCheatService.vitalsLoop()
             if AntiCheatService.watched(source, true) and not player.dead then
                 AntiCheatService.checkVitals(source, player)
                 AntiCheatService.checkHeldWeapon(source, player)
+                AntiCheatService.checkDamageModifier(source, player)
             else
                 AntiCheatService.invincibleSince[source] = nil
                 AntiCheatService.heldWeapons[source] = nil

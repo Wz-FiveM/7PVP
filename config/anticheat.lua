@@ -14,7 +14,10 @@ Config.AntiCheat = {
         weapon = { label = 'Arme non possédée', action = 'kick', strikes = 3 },
         -- L'arme est retirée à chaque alerte. Il faut donc qu'elle revienne pour atteindre l'expulsion.
         heldWeapon = { label = 'Arme donnée par un menu', action = 'kick', strikes = 3 },
-        damage = { label = 'Dégâts anormaux', action = 'log', strikes = 1 }, -- la touche n'est jamais annulée
+        -- Damage boost, jamais vus sur de vrais joueurs : alerte seulement tant que le journal n'a pas montré
+        -- qu'ils épargnent les joueurs honnêtes. Passer action à 'kick' pour sanctionner. La touche n'est jamais annulée.
+        damage = { label = 'Dégâts anormaux', action = 'log', strikes = 3 },
+        damageModifier = { label = 'Multiplicateur de dégâts', action = 'log', strikes = 3 },
         explosion = { label = 'Explosion interdite', action = 'ban', strikes = 2, banDays = 0 },
         entity = { label = 'Véhicule créé en PvP', action = 'kick', strikes = 3 },
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },
@@ -38,9 +41,82 @@ Config.AntiCheat = {
         kill = { label = 'Kill annoncé sans touche', action = 'log', strikes = 1 },
     },
 
-    -- Dégâts d'une touche au-delà desquels une alerte part (le sniper fait ~100). Les tirs à la tête
-    -- et le corps à corps peuvent dépasser ce seuil sans triche : alerte seulement, jamais d'annulation.
-    maxWeaponDamage = 250,
+    -- Dégâts d'une touche sur un joueur : le maximum vient de weaponDamage, avec le multiplicateur de la classe du
+    -- tireur et cette marge. Une alerte part à `damageHits` touches au-dessus en `damageWindow` secondes.
+    damageMargin = 1.3,
+    damageHits = 3,
+    damageWindow = 30,
+    -- Maximum des armes absentes de weaponDamage : corps à corps et explosifs (une grenade fait 500)
+    maxWeaponDamage = 600,
+    -- Armes à balles de config/items.lua, lues dans les weapons.meta de GTA : dégâts d'une balle, multiplicateur
+    -- d'un tir à la tête sur un joueur, plombs par tir. Le journal confirme : canon scié 320 (40 x 8), tête au pistolet ~520.
+    weaponDamage = {
+        WEAPON_PISTOL = { damage = 26, head = 20 },
+        WEAPON_PISTOL_MK2 = { damage = 32, head = 20 },
+        WEAPON_COMBATPISTOL = { damage = 27, head = 20 },
+        WEAPON_APPISTOL = { damage = 25, head = 18 },
+        WEAPON_PISTOL50 = { damage = 51, head = 18 },
+        WEAPON_HEAVYPISTOL = { damage = 40, head = 20 },
+        WEAPON_SNSPISTOL = { damage = 28, head = 20 },
+        WEAPON_SNSPISTOL_MK2 = { damage = 30, head = 20 },
+        WEAPON_VINTAGEPISTOL = { damage = 34, head = 20 },
+        WEAPON_CERAMICPISTOL = { damage = 32, head = 20 },
+        WEAPON_MARKSMANPISTOL = { damage = 220, head = 18 },
+        WEAPON_REVOLVER = { damage = 160, head = 18 },
+        WEAPON_REVOLVER_MK2 = { damage = 200, head = 18 },
+        WEAPON_DOUBLEACTION = { damage = 81, head = 18 },
+        WEAPON_NAVYREVOLVER = { damage = 160, head = 18 },
+        WEAPON_MICROSMG = { damage = 21, head = 18 },
+        WEAPON_MINISMG = { damage = 22, head = 18 },
+        WEAPON_MACHINEPISTOL = { damage = 27, head = 18 },
+        WEAPON_SMG = { damage = 22, head = 18 },
+        WEAPON_SMG_MK2 = { damage = 25, head = 18 },
+        WEAPON_ASSAULTSMG = { damage = 23, head = 18 },
+        WEAPON_COMBATPDW = { damage = 28, head = 18 },
+        WEAPON_PUMPSHOTGUN = { damage = 29, head = 18, pellets = 8 },
+        WEAPON_PUMPSHOTGUN_MK2 = { damage = 32, head = 18, pellets = 8 },
+        WEAPON_SAWNOFFSHOTGUN = { damage = 40, head = 18, pellets = 8 },
+        WEAPON_DBSHOTGUN = { damage = 30, head = 2.5, pellets = 8 },
+        WEAPON_BULLPUPSHOTGUN = { damage = 14, head = 18, pellets = 8 },
+        WEAPON_ASSAULTSHOTGUN = { damage = 32, head = 18, pellets = 6 },
+        WEAPON_AUTOSHOTGUN = { damage = 27, head = 8, pellets = 6 },
+        WEAPON_HEAVYSHOTGUN = { damage = 117, head = 18 },
+        WEAPON_COMBATSHOTGUN = { damage = 31, head = 18, pellets = 6 },
+        WEAPON_MUSKET = { damage = 165, head = 18 },
+        WEAPON_CARBINERIFLE = { damage = 32, head = 18 },
+        WEAPON_CARBINERIFLE_MK2 = { damage = 33, head = 18 },
+        WEAPON_ASSAULTRIFLE = { damage = 30, head = 18 },
+        WEAPON_ASSAULTRIFLE_MK2 = { damage = 40, head = 18 },
+        WEAPON_ADVANCEDRIFLE = { damage = 34, head = 18 },
+        WEAPON_SPECIALCARBINE = { damage = 32, head = 18 },
+        WEAPON_SPECIALCARBINE_MK2 = { damage = 32.5, head = 18 },
+        WEAPON_BULLPUPRIFLE = { damage = 32, head = 18 },
+        WEAPON_BULLPUPRIFLE_MK2 = { damage = 33, head = 18 },
+        WEAPON_COMPACTRIFLE = { damage = 34, head = 18 },
+        WEAPON_MILITARYRIFLE = { damage = 37.5, head = 18 },
+        WEAPON_HEAVYRIFLE = { damage = 34, head = 18 },
+        WEAPON_TACTICALRIFLE = { damage = 34.75, head = 18 },
+        WEAPON_MG = { damage = 40, head = 18 },
+        WEAPON_COMBATMG = { damage = 45, head = 18 },
+        WEAPON_COMBATMG_MK2 = { damage = 47, head = 18 },
+        WEAPON_GUSENBERG = { damage = 34, head = 18 },
+        WEAPON_RAYCARBINE = { damage = 45, head = 18 },
+        WEAPON_SNIPERRIFLE = { damage = 101, head = 18 },
+        WEAPON_HEAVYSNIPER = { damage = 216, head = 18 },
+        WEAPON_HEAVYSNIPER_MK2 = { damage = 230, head = 18 },
+        WEAPON_MARKSMANRIFLE = { damage = 65, head = 18 },
+        WEAPON_MARKSMANRIFLE_MK2 = { damage = 75, head = 18 },
+        WEAPON_PRECISIONRIFLE = { damage = 101, head = 18 },
+        WEAPON_MINIGUN = { damage = 30, head = 18 },
+        WEAPON_RAYMINIGUN = { damage = 30, head = 18 },
+    },
+    -- Multiplicateur de dégâts envoyé par le jeu, comparé à ce que permet la classe du joueur. `tolerance` couvre
+    -- l'arrondi du réseau (0,01 pour les armes, 0,1 pour le corps à corps). Relevés toutes les 2 s, `readings` de suite.
+    damageModifier = {
+        weaponTolerance = 0.02,
+        meleeTolerance = 0.15,
+        readings = 3,
+    },
     -- Vie maximum d'un joueur (200 dans GTA, dont 100 sous le seuil de mort) et armure maximum
     maxHealth = 200,
     maxArmor = 100,
