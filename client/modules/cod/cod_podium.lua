@@ -63,6 +63,7 @@ function CodPodium.build(session, entries)
             CodPodium.place(session, GetPlayerPed(player), entry, base + right * slot.x + forward * slot.y, scene.ped.w, index == 1)
         end
     end
+    if CodPodium.session ~= session then return end
 
     session.cam = CreateCam('DEFAULT_SCRIPTED_CAMERA', true)
     SetCamCoord(session.cam, base.x + forward.x * settings.cameraDistance, base.y + forward.y * settings.cameraDistance, base.z + settings.cameraHeight)
@@ -79,11 +80,13 @@ end
 ---@param heading number
 ---@param winner boolean
 function CodPodium.place(session, source, entry, coords, heading, winner)
-    local ped = ClonePed(source, false, false, true)
-    if not DoesEntityExist(ped) then return end
+    local ped = PedUtils.copyPlayer(source)
+    if not ped then return end
+    if CodPodium.session ~= session then
+        DeletePed(ped)
+        return
+    end
     session.peds[#session.peds + 1] = ped
-    if IsEntityDead(ped) then ResurrectPed(ped) end
-    ClearPedTasksImmediately(ped)
     SetEntityInvincible(ped, true)
     SetBlockingOfNonTemporaryEvents(ped, true)
     SetPedCanRagdoll(ped, false)

@@ -403,10 +403,9 @@ end
 ---@param track table
 ---@return table acteur
 function CodKillcam.createKiller(session, source, track)
-    local ped = ClonePed(source, false, false, true)
-    if not DoesEntityExist(ped) then error('copie du tueur impossible') end
+    local ped = PedUtils.copyPlayer(source)
+    if not ped then error('copie du tueur impossible') end
     local actor = CodKillcam.createActor(session, ped, track)
-    if IsEntityDead(ped) then ResurrectPed(ped) end
     RequestNamedPtfxAsset('core')
     return actor
 end
@@ -421,11 +420,9 @@ function CodKillcam.createVictim(session)
     if session.final then
         local player = GetPlayerFromServerId(session.data.victim)
         if player == -1 then return nil end
-        local copy = ClonePed(GetPlayerPed(player), false, false, true)
-        if not DoesEntityExist(copy) then return nil end
-        local actor = CodKillcam.createActor(session, copy, track)
-        if IsEntityDead(copy) then ResurrectPed(copy) end
-        return actor
+        local copy = PedUtils.copyPlayer(GetPlayerPed(player))
+        if not copy then return nil end
+        return CodKillcam.createActor(session, copy, track)
     end
     local model = GetEntityModel(PlayerPedId())
     if not PedUtils.loadModel(model) then return nil end

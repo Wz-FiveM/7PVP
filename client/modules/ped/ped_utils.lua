@@ -28,6 +28,22 @@ function PedUtils.loadModel(model, timeout)
     return HasModelLoaded(model)
 end
 
+---Copie locale d'un joueur, sans entité réseau : un personnage neuf avec son modèle et sa tenue.
+---ClonePed reprendrait aussi son état : la copie d'un joueur mort reste au sol, même ressuscitée.
+---@param source integer personnage réel du joueur
+---@return integer|nil
+function PedUtils.copyPlayer(source)
+    if not DoesEntityExist(source) then return nil end
+    local model = GetEntityModel(source)
+    if not PedUtils.loadModel(model) then return nil end
+    local coords = GetEntityCoords(source)
+    local ped = CreatePed(4, model, coords.x, coords.y, coords.z, GetEntityHeading(source), false, false)
+    SetModelAsNoLongerNeeded(model)
+    if not DoesEntityExist(ped) then return nil end
+    ClonePedToTarget(source, ped)
+    return ped
+end
+
 ---@return number z du sol, ou `z` si introuvable
 function PedUtils.findGroundZ(x, y, z)
     for _ = 1, 50 do
