@@ -13,7 +13,6 @@ local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 local TutorialService = PVP.use('TutorialService')
-local DungeonService = PVP.use('DungeonService')
 
 ---@type table<integer, PvpGroup>
 GroupService.groups = {}
@@ -283,7 +282,6 @@ function GroupService.onWeaponDamage(sender, data)
     -- Un groupe survit au changement de mode : en Call of Duty, seules les équipes de la partie comptent
     local attacker = PlayerService.get(sender)
     if attacker and attacker.mode == 'cod' then return end
-    if DungeonService.isBossShot(sender, data) then return end
     local ids = data.hitGlobalIds or { data.hitGlobalId }
     for _, netId in ipairs(ids) do
         local ped = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)

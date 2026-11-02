@@ -20,6 +20,8 @@ Config.SafeNpcs = {
         custom = { label = 'Mécanicien', action = 'Customiser un véhicule', icon = 'craft', blip = { sprite = 72, color = 17 } },
         -- Custom des armes portées (voir config/weapon_custom.lua)
         weaponcustom = { label = 'Customiseur', action = 'Customiser mes armes', icon = 'weapon', blip = { sprite = 313, color = 17 } },
+        -- Ouvre les donjons (config/dungeon.lua)
+        dungeon = { label = 'James', action = 'Voir les donjons', icon = 'flag', blip = { sprite = 501, color = 1 } },
         -- Freeroam : lance un mode de jeu (Config.FreeroamActivities) ; nom, icône et repère viennent du mode
         activity = { label = 'Organisateur', action = 'Voir le mode de jeu', icon = 'flag', blip = { sprite = 280, color = 5 } },
     },
@@ -32,6 +34,10 @@ Config.SafeNpcs = {
         { zone = 'freeroam_hub', role = 'activity', activity = 'bike', model = 'g_m_y_lost_01', coords = vector4(190.0, -914.0, 30.7, 180.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },
         { zone = 'freeroam_hub', role = 'activity', activity = 'gungame', model = 's_m_y_marine_01', coords = vector4(184.0, -915.5, 30.7, 180.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
 
+        { zone = 'legion', role = 'dungeon', model = 's_m_y_blackops_01', coords = vector4(208.5, -950.5, 30.7, 20.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
+        { zone = 'airport', role = 'dungeon', model = 's_m_y_blackops_01', coords = vector4(-1035.0, -2748.0, 20.2, 330.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
+        { zone = 'sandy', role = 'dungeon', model = 's_m_y_blackops_01', coords = vector4(1853.0, 3674.0, 34.3, 30.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
+        { zone = 'paleto', role = 'dungeon', model = 's_m_y_blackops_01', coords = vector4(-448.0, 6003.0, 31.7, 340.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'legion', role = 'stash', model = 'cs_bankman', coords = vector4(186.8, -941.6, 30.1, 340.0), scenario = 'WORLD_HUMAN_CLIPBOARD' },
         { zone = 'legion', role = 'shop', model = 's_m_y_ammucity_01', coords = vector4(202.6, -925.5, 30.7, 150.0), scenario = 'WORLD_HUMAN_GUARD_STAND' },
         { zone = 'legion', role = 'clothing', model = 's_f_y_shop_mid', coords = vector4(171.4, -925.2, 30.7, 240.0), scenario = 'WORLD_HUMAN_STAND_IMPATIENT' },

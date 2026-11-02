@@ -12,6 +12,7 @@ local Creator = PVP.use('Creator')
 local PedUtils = PVP.use('PedUtils')
 local Zones = PVP.use('Zones')
 local Activities = PVP.use('Activities')
+local Dungeon = PVP.use('Dungeon')
 local FreeroamPositions = PVP.use('FreeroamPositions')
 local ActivityBoards = PVP.use('ActivityBoards')
 local VehicleCustom = PVP.use('VehicleCustom')
@@ -158,6 +159,8 @@ function Npcs.interact(npc)
     local role = Config.SafeNpcs.roles[npc.role]
     if npc.activity then
         Activities.open(npc.activity)
+    elseif npc.role == 'dungeon' then
+        CreateThread(Dungeon.openMenu)
     elseif npc.role == 'clothing' then
         Creator.requestEdit()
     elseif npc.role == Config.VehicleCustom.role then

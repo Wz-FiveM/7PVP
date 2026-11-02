@@ -4,6 +4,7 @@ Config.LootTables = {
     gang = {
         money = { 20, 80 },
         drops = {
+            { item = 'dungeon_key', count = { 1, 1 }, chance = 2 },
             { item = 'bandage', count = { 1, 2 }, chance = 40 },
             { item = 'ammo_9mm', count = { 12, 36 }, chance = 35 },
             { item = 'ammo_45acp', count = { 15, 40 }, chance = 15 },
@@ -29,6 +30,7 @@ Config.LootTables = {
     military = {
         money = { 60, 200 },
         drops = {
+            { item = 'dungeon_key', count = { 1, 1 }, chance = 4 },
             { item = 'bandage', count = { 1, 3 }, chance = 50 },
             { item = 'medkit', count = { 1, 1 }, chance = 15 },
             { item = 'armor', count = { 1, 1 }, chance = 10 },
@@ -63,6 +65,7 @@ Config.LootTables = {
     airdrop = {
         money = { 600, 1500 },
         drops = {
+            { item = 'dungeon_key', count = { 1, 2 }, chance = 50 },
             { item = 'medkit', count = { 2, 4 }, chance = 90 },
             { item = 'armor', count = { 1, 3 }, chance = 85 },
             { item = 'ammo_556', count = { 90, 180 }, chance = 70 },

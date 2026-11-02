@@ -879,10 +879,18 @@ export interface DungeonHud {
   objective?: string;
   hint?: string;
   subtitle?: string;
-  /** vie du mur ou du boss */
+  /** vie de la porte ou du boss */
   bar?: { label: string; value: number; max: number };
-  /** action maintenue en cours */
-  progress?: { label: string; seconds: number };
+}
+
+/** Menu de James, qui ouvre les donjons (DungeonService.menu) */
+export interface DungeonMenuInfo {
+  label: string;
+  keys: number;
+  required: number;
+  /** admin : entre sans clé */
+  free: boolean;
+  maxPlayers: number;
 }
 
 /** Menu du Freeroam (config/freeroam.lua) */

@@ -1,4 +1,4 @@
----Donjons du mode PvP : salles d'attente, entrée et sortie de l'instance, vies et commandes.
+---Donjons du mode PvP : salles d'attente, invitations, clés, entrée et sortie de l'instance, vies et commandes.
 ---Le déroulement d'une partie est dans DungeonRoom. Dans l'instance, le joueur compte comme dans
 ---le monde zombies (pas de PvP, zombies, équilibrage PvE) : voir PveWorldService.
 ---@class DungeonServiceModule
@@ -6,11 +6,11 @@ local DungeonService = PVP.define('DungeonService')
 local DungeonRoom = PVP.use('DungeonRoom')
 local PlayerService = PVP.use('PlayerService')
 local PveWorldService = PVP.use('PveWorldService')
-local GroupService = PVP.use('GroupService')
 local CombatTagService = PVP.use('CombatTagService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local AdminService = PVP.use('AdminService')
 local LootService = PVP.use('LootService')
+local SafeNpcs = PVP.use('SafeNpcs')
 local Zones = PVP.use('Zones')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
@@ -27,21 +27,24 @@ DungeonService.rooms = {}
 DungeonService.roomOf = {}
 ---@type table<integer, integer> GetGameTimer de fin du retour, par joueur
 DungeonService.returning = {}
----@type table<string, integer> os.time avant lequel un joueur ne peut pas relancer, par identifiant
-DungeonService.cooldowns = {}
 
--- Sous-commandes de /donjon
+-- Sous-commandes de /donjon et /dungeon
 DungeonService.ACTIONS = {
-    rejoindre = 'join', join = 'join',
+    ouvrir = 'open', open = 'open',
+    invite = 'invite', inviter = 'invite',
+    pret = 'ready', ['prêt'] = 'ready', ready = 'ready',
     lancer = 'launch', start = 'launch',
     quitter = 'quit', quit = 'quit',
 }
 
 function DungeonService.init()
     Callback.register(Events.callbacks.dungeonCommand, DungeonService.command)
-    Callback.register(Events.callbacks.dungeonAction, DungeonService.action)
+    Callback.register(Events.callbacks.dungeonMenu, DungeonService.menu)
     RegisterNetEvent(Events.server.dungeonWallHit, function(hits)
         DungeonService.onWallHit(source, hits)
+    end)
+    RegisterNetEvent(Events.server.dungeonBarrelHit, function(index)
+        DungeonService.onBarrelHit(source, index)
     end)
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource)
@@ -115,32 +118,6 @@ function DungeonService.roomOfPed(ped)
     return id and DungeonService.rooms[id] or nil
 end
 
----Coffre personnel : mêmes services que le banquier.
----@param player PvpPlayer
----@return boolean
-function DungeonService.isAtChest(player)
-    if not DungeonService.isInRun(player.source) then return false end
-    local coords = player:getCoords()
-    for _, chest in ipairs(Config.Dungeon.chests) do
-        if #(coords - chest) <= Config.Dungeon.chestDistance + 2.0 then return true end
-    end
-    return false
-end
-
----Le boss est un PNJ piloté par un joueur : sa balle arrive comme celle de ce joueur, et serait
----refusée comme du tir entre joueurs. On la reconnaît à l'arme, que le joueur ne tient pas.
----@param sender integer|string
----@param data table
----@return boolean
-function DungeonService.isBossShot(sender, data)
-    sender = tonumber(sender)
-    local room = DungeonService.roomOf[sender]
-    if not room or not room.boss or not DoesEntityExist(room.boss) or NetworkGetEntityOwner(room.boss) ~= sender then return false end
-    local weapon = AntiCheatService.unsigned(GetHashKey(Config.Dungeon.boss.weapon))
-    return AntiCheatService.unsigned(data.weaponType or 0) == weapon
-        and AntiCheatService.unsigned(GetSelectedPedWeapon(GetPlayerPed(sender))) ~= weapon
-end
-
 ---@param player PvpPlayer
 function DungeonService.onPlayerDied(player)
     local room = DungeonService.roomOf[player.source]
@@ -181,20 +158,46 @@ end
 -- ---------------------------------------------------------------------------
 
 ---@param source integer
----@param word any sous-commande (rien : ouvrir une salle)
+---@param word any sous-commande
+---@param argument any id du joueur invité
 ---@return table { ok, message? }
-function DungeonService.command(source, word)
+function DungeonService.command(source, word, argument)
     local player = PlayerService.get(source)
     if not player then return { ok = false } end
     if not Config.Dungeon.enabled then return { ok = false, message = Locale.t('Les donjons sont désactivés.') } end
     local action = word and DungeonService.ACTIONS[tostring(word):lower()]
-    if word and not action then
-        return { ok = false, message = Locale.t('Commandes : /donjon, /donjon rejoindre, /donjon lancer, /donjon quitter.') }
-    end
-    if action == 'join' then return DungeonService.join(player) end
+    if action == 'open' then return DungeonService.create(player) end
+    if action == 'invite' then return DungeonService.invite(player, argument) end
+    if action == 'ready' then return DungeonService.ready(player) end
     if action == 'launch' then return DungeonService.launch(player) end
     if action == 'quit' then return DungeonService.quit(player) end
-    return DungeonService.create(player)
+    return { ok = false, message = Locale.t('Commandes : /donjon invite <id>, /donjon pret, /donjon lancer, /donjon quitter.') }
+end
+
+---Ce que le menu de James affiche.
+---@param source integer
+---@return table|nil
+function DungeonService.menu(source)
+    local player = PlayerService.get(source)
+    if not player then return nil end
+    return {
+        label = Config.Dungeon.label,
+        keys = player:getItemCount(Config.Dungeon.keys.item),
+        required = Config.Dungeon.keys.count,
+        free = AdminService.isAdmin(source),
+        maxPlayers = Config.Dungeon.maxPlayers,
+    }
+end
+
+---@param player PvpPlayer
+---@return boolean assez de clés sur lui pour entrer
+function DungeonService.hasKeys(player)
+    return AdminService.isAdmin(player.source) or player:getItemCount(Config.Dungeon.keys.item) >= Config.Dungeon.keys.count
+end
+
+---@return table message de refus, faute de clés
+function DungeonService.keysMessage()
+    return Locale.t('Il te faut %d clés de donjon sur toi pour entrer.', Config.Dungeon.keys.count)
 end
 
 ---@param player PvpPlayer
@@ -205,10 +208,7 @@ function DungeonService.refusal(player)
     if CombatTagService.isTagged(player) then
         return Locale.t('Tu es en combat : attends %d s.', CombatTagService.remaining(player))
     end
-    local waitUntil = DungeonService.cooldowns[player.identifier] or 0
-    if waitUntil > os.time() and not AdminService.isAdmin(player.source) then
-        return Locale.t('Prochain donjon dans %d min.', math.ceil((waitUntil - os.time()) / 60))
-    end
+    if not DungeonService.hasKeys(player) then return DungeonService.keysMessage() end
     return nil
 end
 
@@ -220,10 +220,14 @@ function DungeonService.freeRoomId()
     return nil
 end
 
+---Ouvre une salle d'attente, à côté de James (les admins peuvent le faire de partout, pour tester).
 ---@param player PvpPlayer
 ---@return table
 function DungeonService.create(player)
     if DungeonService.roomOf[player.source] then return { ok = false, message = Locale.t('Tu es déjà dans un donjon.') } end
+    if not AdminService.isAdmin(player.source) and not SafeNpcs.isNear(player:getCoords(), 'dungeon', Config.SafeNpcs.useDistance + 2.0) then
+        return { ok = false, message = Locale.t('Va voir James en zone safe pour ouvrir un donjon.') }
+    end
     local refusal = DungeonService.refusal(player)
     if refusal then return { ok = false, message = refusal } end
     local id = DungeonService.freeRoomId()
@@ -233,12 +237,7 @@ function DungeonService.create(player)
     DungeonService.rooms[id] = room
     DungeonService.addPlayer(room, player.source)
     room:sync()
-
-    local group = GroupService.getGroupOf(player.source)
-    if group then
-        GroupService.notifyMembers(group, Locale.t('%s ouvre un donjon : /donjon rejoindre pour le suivre.', player:displayName()), player.source)
-    end
-    return { ok = true, message = Locale.t('Donjon ouvert : /donjon lancer pour entrer.') }
+    return { ok = true, message = Locale.t('Donjon ouvert : /donjon invite <id> pour tes coéquipiers, /donjon lancer pour entrer.') }
 end
 
 ---@param room DungeonRoom
@@ -248,18 +247,35 @@ function DungeonService.addPlayer(room, source)
     DungeonService.roomOf[source] = room
 end
 
----Rejoint la salle d'attente ouverte par quelqu'un de son groupe.
+---Le chef invite un joueur par son numéro ; celui-ci confirme avec /donjon pret.
+---@param player PvpPlayer
+---@param argument any
+---@return table
+function DungeonService.invite(player, argument)
+    local room = DungeonService.roomOf[player.source]
+    if not room or room.status ~= 'waiting' then return { ok = false, message = Locale.t('Parle à James pour ouvrir un donjon.') } end
+    if room.leader ~= player.source then return { ok = false, message = Locale.t('Seul celui qui a ouvert le donjon peut inviter.') } end
+    if room:count() >= Config.Dungeon.maxPlayers then return { ok = false, message = Locale.t('Ce donjon est complet.') } end
+
+    local target = PlayerService.get(tonumber(argument) or 0)
+    if not target or target.mode ~= 'pvp' then return { ok = false, message = Locale.t('Ce joueur n\'est pas en mode PvP.') } end
+    if DungeonService.roomOf[target.source] then return { ok = false, message = Locale.t('Ce joueur est déjà dans un donjon.') } end
+
+    room.invited[target.source] = true
+    target:notify(Locale.t('%s t\'invite dans son donjon : /donjon pret pour le rejoindre (%d clés).', player:displayName(), Config.Dungeon.keys.count), 'info')
+    return { ok = true, message = Locale.t('Invitation envoyée à %s.', target:displayName()) }
+end
+
+---Rejoint la salle d'attente où l'on a été invité.
 ---@param player PvpPlayer
 ---@return table
-function DungeonService.join(player)
+function DungeonService.ready(player)
     if DungeonService.roomOf[player.source] then return { ok = false, message = Locale.t('Tu es déjà dans un donjon.') } end
     local refusal = DungeonService.refusal(player)
     if refusal then return { ok = false, message = refusal } end
 
-    local group = GroupService.getGroupOf(player.source)
-    for _, member in ipairs(group and group.members or {}) do
-        local room = DungeonService.roomOf[member]
-        if room and room.status == 'waiting' then
+    for _, room in pairs(DungeonService.rooms) do
+        if room.status == 'waiting' and room.invited[player.source] then
             if room:count() >= Config.Dungeon.maxPlayers then return { ok = false, message = Locale.t('Ce donjon est complet.') } end
             DungeonService.addPlayer(room, player.source)
             DungeonService.notifyRoom(room, Locale.t('%s est prêt.', player:displayName()), 'info')
@@ -267,15 +283,15 @@ function DungeonService.join(player)
             return { ok = true }
         end
     end
-    return { ok = false, message = Locale.t('Personne de ton groupe n\'a ouvert de donjon.') }
+    return { ok = false, message = Locale.t('Personne ne t\'a invité dans un donjon.') }
 end
 
----Entrée dans l'instance de tous ceux qui peuvent y aller.
+---Entrée dans l'instance de tous ceux qui peuvent y aller : leurs clés sont retirées ici.
 ---@param player PvpPlayer
 ---@return table
 function DungeonService.launch(player)
     local room = DungeonService.roomOf[player.source]
-    if not room or room.status ~= 'waiting' then return { ok = false, message = Locale.t('Ouvre d\'abord un donjon avec /donjon.') } end
+    if not room or room.status ~= 'waiting' then return { ok = false, message = Locale.t('Parle à James pour ouvrir un donjon.') } end
     if room.leader ~= player.source then return { ok = false, message = Locale.t('Seul celui qui a ouvert le donjon peut le lancer.') } end
 
     SetRoutingBucketPopulationEnabled(room.bucket, false)
@@ -287,6 +303,9 @@ function DungeonService.launch(player)
         if refusal then
             member:notify(refusal, 'error')
             DungeonService.leave(source, false)
+        elseif member and not AdminService.isAdmin(source) then
+            member:removeItem(Config.Dungeon.keys.item, Config.Dungeon.keys.count)
+            member:sync()
         end
     end
     -- Plus personne (le chef lui-même refusé) : la salle s'est fermée avec son dernier joueur
@@ -301,8 +320,6 @@ end
 ---@param room DungeonRoom
 ---@param source integer
 function DungeonService.enter(room, source)
-    local player = PlayerService.get(source)
-    if player then DungeonService.cooldowns[player.identifier] = os.time() + Config.Dungeon.cooldown end
     AntiCheatService.grace(source)
     SetPlayerRoutingBucket(source, room.bucket)
     PveWorldService.setInside(source, true)
@@ -377,21 +394,8 @@ function DungeonService.close(room)
 end
 
 -- ---------------------------------------------------------------------------
--- Actions dans la salle
+-- Tirs dans la salle
 -- ---------------------------------------------------------------------------
-
----@param source integer
----@param kind any 'start' (début d'une action maintenue) ou 'finish'
----@param index any cible de l'étape
----@return table { ok, message? }
-function DungeonService.action(source, kind, index)
-    local player = PlayerService.get(source)
-    local room = DungeonService.roomOf[source]
-    if not player or not room or room.status ~= 'running' or player.dead then return { ok = false } end
-    if kind == 'start' then return room:startHold(player, index) end
-    if kind == 'finish' then return room:finishAction(player, index) end
-    return { ok = false }
-end
 
 ---@param source integer
 ---@param hits any
@@ -400,6 +404,15 @@ function DungeonService.onWallHit(source, hits)
     local player = PlayerService.get(source)
     local room = DungeonService.roomOf[source]
     if player and room and room.status == 'running' then room:onWallHit(player, hits) end
+end
+
+---@param source integer
+---@param index any numéro de la bonbonne
+function DungeonService.onBarrelHit(source, index)
+    if not AntiCheatService.allow(source, 'dungeonBarrel') then return end
+    local player = PlayerService.get(source)
+    local room = DungeonService.roomOf[source]
+    if player and room and room.status == 'running' then room:onBarrelHit(player, index) end
 end
 
 -- ---------------------------------------------------------------------------
@@ -426,7 +439,6 @@ function DungeonService.adminSkip(source)
     if not room then return false, Locale.t('Aucun donjon en cours (ou plusieurs : entres-y).') end
     if room.status ~= 'running' then return false, Locale.t('Ce donjon est déjà terminé.') end
     local step = room:step()
-    if step.type == 'repair' then room.dark = false end
     if step.type == 'boss' and room.boss then
         if DoesEntityExist(room.boss) then DeleteEntity(room.boss) end
         room.boss = nil

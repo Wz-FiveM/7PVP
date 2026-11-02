@@ -574,9 +574,27 @@ export const DEV_ACTIONS: DevAction[] = [
   },
   { label: 'Fin zone de conflit', run: () => sendNui({ action: 'conflict', data: { conflict: false } }) },
   {
+    label: 'Donjon : menu de James',
+    run: () =>
+      sendNui({ action: 'dungeonMenu', data: { open: true, menu: { label: 'Secret cave', keys: 3, required: 7, free: false, maxPlayers: 4 } } }),
+  },
+  {
     label: 'Donjon : salle d\'attente',
     run: () =>
       sendNui({ action: 'dungeon', data: { dungeon: { status: 'waiting', players: 2, maxPlayers: 4, leader: true, lives: 3, maxLives: 3, endsIn: 287 } } }),
+  },
+  {
+    label: 'Donjon : avancer',
+    run: () =>
+      sendNui({
+        action: 'dungeon',
+        data: {
+          dungeon: {
+            status: 'running', players: 3, maxPlayers: 4, leader: true, lives: 3, maxLives: 3, endsIn: 1090,
+            objective: 'Avance dans le tunnel',
+          },
+        },
+      }),
   },
   {
     label: 'Donjon : tuer les zombies',
@@ -585,37 +603,23 @@ export const DEV_ACTIONS: DevAction[] = [
         action: 'dungeon',
         data: {
           dungeon: {
-            status: 'running', players: 3, maxPlayers: 4, leader: true, lives: 2, maxLives: 3, endsIn: 1520,
-            objective: 'Tue les zombies', hint: 'Le courant est coupé : reste près des autres.',
-            subtitle: 'Zombies tués : 5/8 · Joueurs terminés : 1/3',
+            status: 'running', players: 3, maxPlayers: 4, leader: true, lives: 2, maxLives: 3, endsIn: 969,
+            objective: 'Tue tous les zombies', hint: 'Tire sur les bonbonnes pour les faire sauter.',
+            subtitle: 'Zombies restants : 23',
           },
         },
       }),
   },
   {
-    label: 'Donjon : détruire le mur',
+    label: 'Donjon : détruire la porte',
     run: () =>
       sendNui({
         action: 'dungeon',
         data: {
           dungeon: {
-            status: 'running', players: 2, maxPlayers: 4, leader: false, lives: 3, maxLives: 3, endsIn: 1180,
-            objective: 'Détruis le mur', hint: 'Tire dessus jusqu\'à ce qu\'il cède.',
-            bar: { label: 'Mur', value: 1340, max: 2250 },
-          },
-        },
-      }),
-  },
-  {
-    label: 'Donjon : réparer le générateur',
-    run: () =>
-      sendNui({
-        action: 'dungeon',
-        data: {
-          dungeon: {
-            status: 'running', players: 1, maxPlayers: 4, leader: true, lives: 1, maxLives: 3, endsIn: 960,
-            objective: 'Répare le générateur', hint: 'Maintiens E : tu reviens à zéro si tu lâches.',
-            progress: { label: 'Réparer (maintenir)', seconds: 12 },
+            status: 'running', players: 2, maxPlayers: 4, leader: false, lives: 3, maxLives: 3, endsIn: 610,
+            objective: 'Détruis la porte', hint: 'Vide tes chargeurs dessus.',
+            bar: { label: 'Porte de la base', value: 1340, max: 2000 },
           },
         },
       }),
@@ -628,20 +632,20 @@ export const DEV_ACTIONS: DevAction[] = [
         data: {
           dungeon: {
             status: 'running', players: 4, maxPlayers: 4, leader: true, lives: 2, maxLives: 3, endsIn: 340,
-            objective: 'Tue le boss', bar: { label: 'Boss', value: 4120, max: 7000 },
+            objective: 'Tue le boss', bar: { label: 'Mastodonte', value: 9120, max: 15000 },
           },
         },
       }),
   },
   {
-    label: 'Donjon : coffre de fin',
+    label: 'Donjon : butin de fin',
     run: () =>
       sendNui({
         action: 'dungeon',
         data: {
           dungeon: {
             status: 'exit', players: 2, maxPlayers: 4, leader: true, lives: 2, maxLives: 3, endsIn: 180,
-            objective: 'Ouvre ton coffre', hint: 'Vide-le avant la fin du compteur.',
+            objective: 'Les loots sont up', hint: 'Ouvre ta caisse avant la fin du compteur.',
           },
         },
       }),

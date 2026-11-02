@@ -16,6 +16,8 @@
 -- Sans image, l'interface affiche une icône selon le type.
 Config.Items = {
     money = { label = 'Argent', type = 'money', weight = 0.0 },
+    -- Entrée des donjons (config/dungeon.lua)
+    dungeon_key = { label = 'Clé de donjon', type = 'material', weight = 0.05 },
 
     -- Munitions : une par « pool » de munitions GTA (deux objets ne peuvent pas partager un pool)
     ammo_9mm = { label = 'Munitions de pistolet', type = 'ammo', weight = 0.01 }, -- AMMO_PISTOL

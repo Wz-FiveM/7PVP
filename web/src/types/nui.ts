@@ -4,7 +4,7 @@ import type { VehicleCustomPayload } from './vehicleCustom';
 import type { WeaponCustomPayload } from './weaponCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatCommand, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, DungeonHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatCommand, DungeonMenuInfo, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, DungeonHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -77,6 +77,7 @@ export type NuiMessage =
   | { action: 'lootContainer'; data: { open: boolean } & Partial<LootContainer> }
   /** fenêtre d'un mode de jeu du Freeroam (PNJ de la zone safe) */
   | { action: 'activity'; data: { open: boolean; activity?: ActivityInfo } }
+  | { action: 'dungeonMenu'; data: { open: boolean; menu?: DungeonMenuInfo } }
   /** course poursuite : file d'attente, vote, HUD de manche, résultats */
   | { action: 'chaseQueue'; data: { count: number; needed?: number } }
   | { action: 'chaseVote'; data: { open: boolean; vehicles?: { model: string; label: string }[]; seconds?: number; opponent?: string } }

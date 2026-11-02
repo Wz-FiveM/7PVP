@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 
-/** Barre du mur ou du boss, en haut au milieu. */
+/** Barre de la porte ou du boss, en haut au milieu. */
 export function DungeonBar() {
   const { state } = useGame();
   const bar = state.dungeon?.bar;
@@ -24,7 +24,7 @@ export function DungeonBar() {
   );
 }
 
-/** Donjon en cours : objectif, consigne, action maintenue, vies et temps restant. */
+/** Donjon en cours : objectif, consigne, vies et temps restant. */
 export function DungeonHud() {
   const t = useT();
   const { state } = useGame();
@@ -51,21 +51,13 @@ export function DungeonHud() {
         </div>
         {waiting ? (
           <div className="dungeon-objective__hint">
-            {dungeon.leader ? t('/donjon lancer pour entrer, /donjon quitter pour annuler.') : t('Le chef du groupe va lancer le donjon.')}
+            {dungeon.leader ? t('/donjon invite <id> pour tes coéquipiers, /donjon lancer pour entrer.') : t('Le chef du groupe va lancer le donjon.')}
           </div>
         ) : (
           dungeon.hint && <div className="dungeon-objective__hint">{dungeon.hint}</div>
         )}
       </div>
       {dungeon.subtitle && <div className="dungeon-subtitle">{dungeon.subtitle}</div>}
-      {dungeon.progress && (
-        <div className="dungeon-progress">
-          <div className="dungeon-progress__label">{dungeon.progress.label}</div>
-          <div className="dungeon-progress__track">
-            <div className="dungeon-progress__fill" style={{ animationDuration: `${dungeon.progress.seconds}s` }} />
-          </div>
-        </div>
-      )}
       <div className="dungeon-status">
         {!waiting && (
           <span className="dungeon-status__lives">
@@ -77,6 +69,7 @@ export function DungeonHud() {
             ))}
           </span>
         )}
+        <span className="label">{t('Temps restant')}</span>
         <span className="mono dungeon-status__time">{time}</span>
       </div>
     </>

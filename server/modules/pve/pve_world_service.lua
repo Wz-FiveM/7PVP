@@ -135,7 +135,6 @@ end
 ---@param data table
 function PveWorldService.onWeaponDamage(sender, data)
     if not PveWorldService.isInside(sender) or type(data) ~= 'table' then return end
-    if DungeonService.isBossShot(sender, data) then return end
 
     local ids = data.hitGlobalIds or { data.hitGlobalId }
     for _, netId in ipairs(ids) do

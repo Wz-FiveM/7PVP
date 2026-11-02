@@ -27,25 +27,29 @@ local OPTIONAL_PLAYER = {
     hint = 'Sans id : toi-même.',
     players = true,
 }
+local DUNGEON_ACTIONS = {
+    {
+        label = '<action>',
+        required = true,
+        hint = 'Parle d\'abord à James pour ouvrir le donjon.',
+        values = {
+            { value = 'invite', label = 'Inviter un coéquipier' },
+            { value = 'pret', label = 'Rejoindre le donjon où tu es invité' },
+            { value = 'lancer', label = 'Entrer dans le donjon' },
+            { value = 'quitter', label = 'Quitter le donjon' },
+        },
+    },
+    { label = '[id du joueur]', hint = 'Pour invite : le joueur à inviter.', players = true },
+}
 local REFERENCE = { label = '[référence]', hint = 'Référence facultative.' }
 
 Config.ChatCommands = {
     { name = 'lobby', description = 'Retourner au lobby' },
     {
         name = 'donjon',
-        description = 'Ouvrir un donjon ou agir dessus',
+        description = 'Inviter, se dire prêt, lancer ou quitter un donjon',
         mode = 'pvp',
-        args = {
-            {
-                label = '[action]',
-                hint = 'Sans action : ouvre un donjon pour ton groupe.',
-                values = {
-                    { value = 'rejoindre', label = 'Suivre ton groupe' },
-                    { value = 'lancer', label = 'Entrer dans le donjon' },
-                    { value = 'quitter', label = 'Quitter le donjon' },
-                },
-            },
-        },
+        args = DUNGEON_ACTIONS,
     },
 
     { name = 'inviter', description = 'Inviter un joueur dans ton groupe', args = { PLAYER } },

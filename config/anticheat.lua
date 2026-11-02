@@ -184,7 +184,8 @@ Config.AntiCheat = {
         zombieAttack = 40, -- vomis de ses zombies (au plus 24/s)
         npcDeath = 40, -- morts de ses zombies (au plus 24/s)
         loot = 10, -- ramassage de butin
-        dungeonHit = 12, -- balles sur un mur de donjon, par paquet (au plus 2/s)
+        dungeonHit = 12, -- balles sur une porte de donjon, par paquet (au plus 2/s)
+        dungeonBarrel = 12, -- bonbonnes touchées dans un donjon
         ui = 2, -- erreurs d'interface signalées (journal)
     },
     -- Le client envoie un signal toutes les `heartbeatInterval` s ; sans signal pendant

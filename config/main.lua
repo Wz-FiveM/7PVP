@@ -334,6 +334,8 @@ Config.ZombieTypes = {
             shake = 1.0, -- tremblement de caméra
         },
     },
+    -- Boss du donjon : jamais tiré au sort, sa vie vient de Config.Dungeon.boss
+    dungeonBoss = { label = 'Mastodonte', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
     -- Ancien du SWAT : gilet pare-balles qui encaisse les premiers tirs (hitmarker bleu)
     swat = {
         label = 'SWAT', weight = 5, nightWeight = 8, health = 1.0, damage = 1.2, lootRolls = 1,

@@ -82,11 +82,8 @@ function Pve.scan()
         if NetworkGetEntityIsNetworked(ped) and not IsPedAPlayer(ped) then
             local zone = Zones.byId(Entity(ped).state.pvpNpc)
             if zone then
-                -- Le boss du donjon est un soldat, pas un zombie
-                if not Entity(ped).state.dungeonBoss then
-                    Pve.decorate(ped)
-                    ZombieGear.update(ped, Pve.getType(ped))
-                end
+                Pve.decorate(ped)
+                ZombieGear.update(ped, Pve.getType(ped))
                 if NetworkGetEntityOwner(ped) == myId then
                     Pve.updatePed(ped, zone)
                 end
@@ -96,7 +93,7 @@ function Pve.scan()
 end
 
 function Pve.cleanup()
-    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned, Dungeon.bossConfigured, Dungeon.bossTask }) do
+    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned }) do
         for ped in pairs(tracked) do
             if not DoesEntityExist(ped) then tracked[ped] = nil end
         end
@@ -127,11 +124,7 @@ function Pve.updatePed(ped, zone)
 
     if Entity(ped).state.dungeonRoom then Dungeon.settlePed(ped) end
 
-    if Entity(ped).state.dungeonBoss then
-        Hits.watchZombie(ped)
-        if not Pve.isStunned(ped) then Dungeon.driveBoss(ped) end
-        return
-    end
+    if Entity(ped).state.dungeonBoss then Dungeon.setupBoss(ped) end
 
     if not Pve.configured[ped] then
         Pve.setupPed(ped, zone.npc)
@@ -231,7 +224,7 @@ function Pve.setupPed(ped, npc)
         if zombieType.armour then SetPedArmour(ped, zombieType.armour) end
         state:set('pvpNpcReady', true, true)
     end
-    if zombieType == Config.ZombieTypes.tank then
+    if zombieType == Config.ZombieTypes.tank or zombieType == Config.ZombieTypes.dungeonBoss then
         -- Le colosse ne tombe pas et encaisse les tirs à la tête
         SetPedCanRagdoll(ped, false)
         SetPedSuffersCriticalHits(ped, false)

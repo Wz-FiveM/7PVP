@@ -651,35 +651,11 @@
   text-shadow: var(--ombre-texte);
   transform: translateX(-50%);
 }
-.dungeon-progress {
-  position: absolute;
-  bottom: 10rem;
-  left: 50%;
-  width: 20rem;
-  transform: translateX(-50%);
-}
-.dungeon-progress__label {
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
-  text-align: center;
-  text-shadow: var(--ombre-texte);
-}
-.dungeon-progress__track,
 .dungeon-bar__track {
   height: 0.5rem;
   overflow: hidden;
   background: var(--panneau);
   box-shadow: var(--ombre);
-}
-.dungeon-progress__fill {
-  height: 100%;
-  background: var(--hazard);
-  transform-origin: left;
-  animation: dungeon-progress linear forwards;
-}
-@keyframes dungeon-progress {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
 }
 .dungeon-bar {
   width: 28rem;

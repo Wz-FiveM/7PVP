@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { ActivityPanel } from './components/activity/ActivityPanel';
+import { DungeonMenu } from './components/hud/DungeonMenu';
+import { dungeonApi } from './api/dungeonApi';
 import { Chase } from './components/activity/Chase';
 import { Cvc } from './components/activity/Cvc';
 import { Gunfight } from './components/activity/Gunfight';
@@ -73,6 +75,7 @@ export function App() {
       {(inPvp || inFreeroam) && !state.menu.open && !state.freeroam.menuOpen && !state.death.active && !customizing && (
         <UiGuard name="speedometer"><Speedometer /></UiGuard>
       )}
+      {inPvp && <UiGuard name="dungeon-menu" onCrash={dungeonApi.close}><DungeonMenu /></UiGuard>}
       {inFreeroam && <UiGuard name="activity" onCrash={activityApi.close}><ActivityPanel /></UiGuard>}
       {inFreeroam && <UiGuard name="chase"><Chase /></UiGuard>}
       {inFreeroam && <UiGuard name="cvc"><Cvc /></UiGuard>}
