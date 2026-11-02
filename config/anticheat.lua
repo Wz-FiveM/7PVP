@@ -12,11 +12,18 @@ Config.AntiCheat = {
 
     detections = {
         weapon = { label = 'Arme non possédée', action = 'kick', strikes = 3 },
+        -- L'arme est retirée à chaque alerte. Il faut donc qu'elle revienne pour atteindre l'expulsion.
+        heldWeapon = { label = 'Arme donnée par un menu', action = 'kick', strikes = 3 },
         damage = { label = 'Dégâts anormaux', action = 'log', strikes = 1 }, -- la touche n'est jamais annulée
         explosion = { label = 'Explosion interdite', action = 'ban', strikes = 2, banDays = 0 },
         entity = { label = 'Véhicule créé en PvP', action = 'kick', strikes = 3 },
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },
-        godmode = { label = 'Invincibilité', action = 'log', strikes = 1 },
+        -- Une alerte toutes les 15 s d'invincibilité continue (godmodeMargin) : expulsion après 45 s
+        godmode = { label = 'Invincibilité', action = 'kick', strikes = 3 },
+        -- Déductions à partir des touches : alerte seulement tant que le journal n'a pas montré qu'elles
+        -- épargnent les joueurs honnêtes. Passer action à 'kick' pour sanctionner.
+        immunity = { label = 'Touches sans aucun effet', action = 'log', strikes = 3 },
+        aimbot = { label = 'Aimbot suspecté', action = 'log', strikes = 3 },
         teleport = { label = 'Téléportation / vitesse impossible', action = 'log', strikes = 1 },
         -- Une alerte par seconde de dépassement : seul un envoi en boucle tient 5 s sur 10, pas un pic de combat.
         spam = { label = 'Requêtes en rafale', action = 'kick', strikes = 5, window = 10 },
@@ -33,6 +40,31 @@ Config.AntiCheat = {
     maxArmor = 100,
     -- Invincible hors zone safe : alerte après la durée du mode passif + cette marge, en s
     godmodeMargin = 10,
+    -- Touches d'armes à feu encaissées d'affilée sans perdre de vie ni d'armure, et silence (s) qui remet à zéro
+    immunityHits = 15,
+    immunityGap = 8,
+    -- Armes à feu observées (munitions de Config.Items) : ni fusils à pompe (plusieurs plombs par tir),
+    -- ni explosifs. `head` : compte pour la part de tirs à la tête (un bon sniper vise la tête, c'est normal).
+    trackedAmmo = {
+        ammo_9mm = { head = true },
+        ammo_45acp = { head = true },
+        ammo_556 = { head = true },
+        ammo_mg = { head = true },
+        ammo_762 = { head = false },
+    },
+    -- Touches sur des joueurs, sur les `window` dernières secondes et au-delà de `minDistance` m (de près,
+    -- viser la tête est facile et la caméra décalée fausse l'angle)
+    aimbot = {
+        window = 120,
+        minDistance = 12.0,
+        headComponent = 20, -- partie touchée : la tête
+        headSamples = 25, -- touches minimum avant de juger
+        headRatio = 0.8,
+        -- Silent aim : la balle touche un joueur que la caméra ne regarde pas
+        offAimAngle = 25.0, -- degrés entre la caméra et la cible
+        offAimHits = 8,
+        offAimRatio = 0.5,
+    },
     -- Vitesse horizontale maximum en PvP (m/s). Une voiture rapide fait ~60 m/s.
     maxSpeed = 120.0,
     -- Les déplacements plus courts ne comptent pas (chute, ragdoll, petit décalage réseau)

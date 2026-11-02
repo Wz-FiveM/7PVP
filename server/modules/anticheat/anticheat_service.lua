@@ -1,9 +1,12 @@
 ---Anti-cheat côté serveur (Config.AntiCheat). Détections :
 ---  weapon    : touche avec une arme absente de l'inventaire (PvP)
+---  heldWeapon : arme en main absente de l'inventaire, retirée aussitôt (PvP)
 ---  damage    : dégâts d'une touche au-dessus du maximum (alerte seulement, la touche passe)
 ---  explosion : explosion d'arme (grenade, roquette...) en PvP
----  entity    : véhicule créé par un joueur en PvP
+---  entity    : véhicule créé par un joueur en PvP ou au lobby
 ---  health    : vie ou armure au-dessus du maximum ; godmode : joueur invincible et qui le reste hors zone safe
+---  immunity  : touches encaissées d'affilée sans perdre de vie (godmode que le serveur ne voit pas directement)
+---  aimbot    : presque que des tirs à la tête, ou touches sur un joueur que la caméra ne regarde pas
 ---  teleport  : déplacement impossible entre deux relevés de position
 ---  spam      : requêtes réseau en rafale ; heartbeat : script client arrêté
 ---  kill      : tueur annoncé par la victime sans que le serveur ait vu ce kill (voir KillProof)
@@ -16,6 +19,8 @@ local AdminService = PVP.use('AdminService')
 local BanRepository = PVP.use('BanRepository')
 local DiscordService = PVP.use('DiscordService')
 local ClassService = PVP.use('ClassService')
+local GroupService = PVP.use('GroupService')
+local PveWorldService = PVP.use('PveWorldService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -28,8 +33,15 @@ AntiCheatService.HEARTBEAT_CHECK = 15000
 -- WEAPON_EXPLOSION : souffle d'une explosion permise (véhicule ou pompe touchés par balle, arme possédée) ;
 -- les explosions interdites sont contrôlées par onExplosion.
 AntiCheatService.ALWAYS_ALLOWED = { 'WEAPON_UNARMED', 'WEAPON_RUN_OVER_BY_CAR', 'WEAPON_RAMMED_BY_CAR', 'WEAPON_FALL', 'WEAPON_EXPLOSION' }
+-- Ce qu'un joueur peut tenir en main sans objet dans son inventaire
+AntiCheatService.ALWAYS_HELD = { 'WEAPON_UNARMED', 'GADGET_PARACHUTE' }
 
 AntiCheatService.strikes = {} -- [source][détection] = { horodatages }
+AntiCheatService.heldWeapons = {} -- [source] = arme non possédée vue en main au dernier relevé
+AntiCheatService.immunity = {} -- [source] = { hits, life, at } touches encaissées sans perte de vie
+AntiCheatService.aimSamples = {} -- [source] = { { at, head, offAim }, ... } touches récentes sur des joueurs
+---@type table<integer, string>|nil [hash non signé] = objet de l'arme, rempli au premier besoin
+AntiCheatService.weaponItems = nil
 AntiCheatService.rates = {} -- [source][clé] = { second, count }
 AntiCheatService.positions = {} -- [source] = { coords, at }
 AntiCheatService.graceUntil = {} -- [source] = GetGameTimer()
@@ -144,6 +156,7 @@ function AntiCheatService.forget(source)
         AntiCheatService.strikes, AntiCheatService.rates, AntiCheatService.positions,
         AntiCheatService.graceUntil, AntiCheatService.heartbeats, AntiCheatService.loadedAt,
         AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.invincibleSince,
+        AntiCheatService.heldWeapons, AntiCheatService.immunity, AntiCheatService.aimSamples,
     }) do
         map[source] = nil
     end
@@ -244,17 +257,20 @@ function AntiCheatService.explosionAllowed(player, explosionType)
     return false
 end
 
----@param sender integer
+---@param sender integer|string le jeu l'envoie en texte, les relevés sont indexés par nombre
 ---@param data table
 function AntiCheatService.onWeaponDamage(sender, data)
+    sender = tonumber(sender)
+    if not sender or type(data) ~= 'table' then return end
     local player = AntiCheatService.watched(sender, true)
-    if not player or type(data) ~= 'table' then return end
-
     local weapon = AntiCheatService.unsigned(data.weaponType)
-    if weapon ~= 0 and not AntiCheatService.ownedWeapons(player)[weapon] then
+    if player and weapon ~= 0 and not AntiCheatService.ownedWeapons(player)[weapon] then
         CancelEvent()
         return AntiCheatService.flag(sender, 'weapon', ('arme %d absente de l\'inventaire'):format(weapon))
     end
+
+    AntiCheatService.observeHit(sender, player, weapon, data)
+    if not player then return end
 
     -- Jamais annulée : une touche annulée désynchronise les deux joueurs (le tireur voit sa cible
     -- mourir, elle reste en vie chez elle et ne reçoit plus ses tirs). Des tirs légitimes dépassent
@@ -265,6 +281,147 @@ function AntiCheatService.onWeaponDamage(sender, data)
             math.floor(damage), AntiCheatService.weaponLabel(weapon), tostring(data.hitComponent),
             data.willKill and ', mortelle' or ''))
     end
+end
+
+---@param weapon integer hash non signé
+---@return string|nil objet de Config.Items
+function AntiCheatService.itemOfWeapon(weapon)
+    if not AntiCheatService.weaponItems then
+        AntiCheatService.weaponItems = {}
+        for name, item in pairs(Config.Items) do
+            if item.weapon then AntiCheatService.weaponItems[AntiCheatService.unsigned(GetHashKey(item.weapon))] = name end
+        end
+    end
+    return AntiCheatService.weaponItems[weapon]
+end
+
+---@param sender integer
+---@param data table hitGlobalId ou hitGlobalIds (selon la version du serveur)
+---@return integer|nil victime, integer|nil son personnage
+function AntiCheatService.playerHitBy(sender, data)
+    for _, netId in ipairs(data.hitGlobalIds or { data.hitGlobalId }) do
+        local entity = NetworkGetEntityFromNetworkId(tonumber(netId) or 0)
+        if entity ~= 0 and DoesEntityExist(entity) and GetEntityType(entity) == 1 then
+            local owner = NetworkGetEntityOwner(entity)
+            if owner and owner > 0 and owner ~= sender and GetPlayerPed(owner) == entity then return owner, entity end
+        end
+    end
+    return nil, nil
+end
+
+---Touche d'une arme à feu sur un joueur : ce qu'elle dit de la victime (godmode) et du tireur (aimbot).
+---@param sender integer
+---@param player PvpPlayer|nil tireur, s'il est contrôlé
+---@param weapon integer hash non signé
+---@param data table
+function AntiCheatService.observeHit(sender, player, weapon, data)
+    local item = Config.Items[AntiCheatService.itemOfWeapon(weapon) or '']
+    local tracked = item and Config.AntiCheat.trackedAmmo[item.ammo]
+    if not tracked then return end
+    local victim, victimPed = AntiCheatService.playerHitBy(sender, data)
+    if not victim then return end
+
+    AntiCheatService.trackImmunity(sender, victim, victimPed)
+    if player then AntiCheatService.trackAim(sender, victimPed, tracked.head, data.hitComponent) end
+end
+
+---Godmode invisible pour le serveur (dégâts bloqués ou vie remise à chaque image) : les touches
+---arrivent et la vie ne baisse jamais. Une seule baisse remet le compte à zéro.
+---@param sender integer
+---@param victim integer
+---@param ped integer
+function AntiCheatService.trackImmunity(sender, victim, ped)
+    -- Ces touches-là n'ont pas à blesser : annulées par le jeu ou par les autres modules
+    if GroupService.areAllies(sender, victim) or PveWorldService.isInside(victim) then return end
+
+    local player = AntiCheatService.watched(victim, true)
+    if not player or player.dead or player:isInSafeZone() or GetVehiclePedIsIn(ped, false) ~= 0
+        or GetPlayerInvincible(victim) or GetGameTimer() < (AntiCheatService.graceUntil[victim] or 0) then
+        AntiCheatService.immunity[victim] = nil
+        return
+    end
+
+    local now, life = GetGameTimer(), GetEntityHealth(ped) + GetPedArmour(ped)
+    local state = AntiCheatService.immunity[victim]
+    if not state or life < state.life or now - state.at > Config.AntiCheat.immunityGap * 1000 then
+        state = { hits = 0 }
+        AntiCheatService.immunity[victim] = state
+    end
+    state.hits, state.life, state.at = state.hits + 1, life, now
+    if state.hits >= Config.AntiCheat.immunityHits then
+        AntiCheatService.immunity[victim] = nil
+        AntiCheatService.flag(victim, 'immunity', ('%d touches encaissées sans perdre de vie (vie + armure : %d)'):format(state.hits, life))
+    end
+end
+
+---Écart entre là où regarde la caméra du joueur et une cible.
+---@param source integer
+---@param from vector3
+---@param to vector3
+---@return number|nil degrés, nil sans caméra exploitable
+function AntiCheatService.aimOffset(source, from, to)
+    if IsPlayerInFreeCamMode(source) then return nil end
+    -- En radians, dans le monde (x : tangage, z : lacet)
+    local rotation = GetPlayerCameraRotation(source)
+    if rotation.x == 0.0 and rotation.z == 0.0 then return nil end
+
+    local dx, dy, dz = to.x - from.x, to.y - from.y, to.z - from.z
+    local length = math.sqrt(dx * dx + dy * dy + dz * dz)
+    if length == 0.0 then return nil end
+    local flat = math.cos(rotation.x)
+    local dot = (-math.sin(rotation.z) * flat * dx + math.cos(rotation.z) * flat * dy + math.sin(rotation.x) * dz) / length
+    return math.deg(math.acos(math.max(-1.0, math.min(1.0, dot))))
+end
+
+---@param sender integer
+---@param victimPed integer
+---@param countsHead boolean
+---@param hitComponent any partie du corps touchée
+function AntiCheatService.trackAim(sender, victimPed, countsHead, hitComponent)
+    local rules = Config.AntiCheat.aimbot
+    local ped = GetPlayerPed(sender)
+    -- En véhicule, la caméra ne suit plus le tir et la position relevée a du retard sur la vitesse
+    if GetVehiclePedIsIn(ped, false) ~= 0 or GetVehiclePedIsIn(victimPed, false) ~= 0 then return end
+    local from, to = GetEntityCoords(ped), GetEntityCoords(victimPed)
+    if #(to - from) < rules.minDistance then return end
+
+    local now = os.time()
+    local samples = {}
+    for _, sample in ipairs(AntiCheatService.aimSamples[sender] or {}) do
+        if now - sample.at <= rules.window then samples[#samples + 1] = sample end
+    end
+    local offset = AntiCheatService.aimOffset(sender, from, to)
+    samples[#samples + 1] = {
+        at = now,
+        head = countsHead and tonumber(hitComponent) == rules.headComponent or nil,
+        countsHead = countsHead,
+        offAim = offset ~= nil and offset >= rules.offAimAngle,
+    }
+    AntiCheatService.aimSamples[sender] = samples
+    AntiCheatService.judgeAim(sender, samples)
+end
+
+---@param sender integer
+---@param samples table[]
+function AntiCheatService.judgeAim(sender, samples)
+    local rules = Config.AntiCheat.aimbot
+    local heads, headTotal, offAim = 0, 0, 0
+    for _, sample in ipairs(samples) do
+        if sample.countsHead then headTotal = headTotal + 1 end
+        if sample.head then heads = heads + 1 end
+        if sample.offAim then offAim = offAim + 1 end
+    end
+
+    local details
+    if headTotal >= rules.headSamples and heads / headTotal >= rules.headRatio then
+        details = ('%d tirs à la tête sur %d touches à plus de %d m'):format(heads, headTotal, math.floor(rules.minDistance))
+    elseif offAim >= rules.offAimHits and offAim / #samples >= rules.offAimRatio then
+        details = ('%d touches sur %d sans regarder la cible (silent aim)'):format(offAim, #samples)
+    end
+    if not details then return end
+    -- Les relevés repartent de zéro : l'alerte suivante repose sur de nouvelles touches
+    AntiCheatService.aimSamples[sender] = nil
+    AntiCheatService.flag(sender, 'aimbot', details)
 end
 
 ---@param weapon integer hash non signé
@@ -292,7 +449,8 @@ function AntiCheatService.onExplosion(sender, data)
     end
 end
 
----Véhicule créé par un joueur en PvP (le mode n'en donne pas : seuls les admins peuvent).
+---Véhicule créé par un joueur en PvP (le mode n'en donne pas : seuls les admins peuvent) ou au lobby
+---(rien n'y crée de véhicule en réseau). Le Freeroam et Call of Duty créent les leurs, ils ne sont pas contrôlés.
 ---Les PNJ ne sont pas contrôlés ici : le personnage d'un joueur est lui aussi créé comme un PNJ
 ---à chaque réapparition, le bloquer casserait le jeu.
 ---Seuls les véhicules créés par un script comptent comme triche : ceux que GTA fait apparaître
@@ -302,7 +460,8 @@ end
 function AntiCheatService.onEntityCreating(entity)
     if GetEntityType(entity) ~= 2 then return end
     local owner = NetworkGetEntityOwner(entity)
-    if not owner or owner <= 0 or not AntiCheatService.watched(owner, true) then return end
+    local player = owner and owner > 0 and AntiCheatService.watched(owner)
+    if not player or (player.mode and player.mode ~= 'pvp') then return end
     if AntiCheatService.consumeVehicleAllowance(owner, GetEntityModel(entity)) then
         AntiCheatService.createdVehicles[owner] = entity
         return
@@ -385,18 +544,54 @@ function AntiCheatService.checkMovement(source, now)
     end
 end
 
----Vie, armure et invincibilité des joueurs PvP vivants hors zone safe.
+---Vie, armure, invincibilité et arme en main des joueurs PvP vivants.
 function AntiCheatService.vitalsLoop()
     while true do
         Wait(AntiCheatService.VITALS_INTERVAL)
         for source, player in pairs(PlayerService.all()) do
             if AntiCheatService.watched(source, true) and not player.dead then
                 AntiCheatService.checkVitals(source, player)
+                AntiCheatService.checkHeldWeapon(source, player)
             else
                 AntiCheatService.invincibleSince[source] = nil
+                AntiCheatService.heldWeapons[source] = nil
             end
         end
     end
+end
+
+---@param weapon integer hash non signé
+---@param player PvpPlayer
+---@return boolean
+function AntiCheatService.mayHold(weapon, player)
+    for _, name in ipairs(AntiCheatService.ALWAYS_HELD) do
+        if AntiCheatService.unsigned(GetHashKey(name)) == weapon then return true end
+    end
+    local name = AntiCheatService.itemOfWeapon(weapon)
+    return name ~= nil and AntiCheatService.hasWeapon(player, name)
+end
+
+---En PvP, le client ne donne que les armes de l'inventaire (Loadout) : toute autre vient d'un menu de triche.
+---Vue sur deux relevés de suite : quand un objet quitte l'inventaire (vente, coffre, mort), le serveur le sait
+---avant que le client ait retiré l'arme. Pas de contrôle en véhicule : l'arme relevée peut être celle du véhicule.
+---@param source integer
+---@param player PvpPlayer
+function AntiCheatService.checkHeldWeapon(source, player)
+    local ped = GetPlayerPed(source)
+    local weapon = AntiCheatService.unsigned(GetSelectedPedWeapon(ped))
+    if weapon == 0 or GetVehiclePedIsIn(ped, false) ~= 0 or GetGameTimer() < (AntiCheatService.graceUntil[source] or 0)
+        or AntiCheatService.mayHold(weapon, player) then
+        AntiCheatService.heldWeapons[source] = nil
+        return
+    end
+
+    if AntiCheatService.heldWeapons[source] ~= weapon then
+        AntiCheatService.heldWeapons[source] = weapon
+        return
+    end
+    AntiCheatService.heldWeapons[source] = nil
+    RemoveWeaponFromPed(ped, weapon)
+    AntiCheatService.flag(source, 'heldWeapon', ('%s en main, absente de l\'inventaire (retirée)'):format(AntiCheatService.weaponLabel(weapon)))
 end
 
 ---@param source integer
