@@ -600,6 +600,7 @@ export const mockInit: InitPayload = {
     shopPoints: 450,
     killfeedOwned: ['nuit'],
     playerClass: { id: 'scout', cooldown: 12, changeIn: 0 },
+    loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
     xp: 2450,
     level: 3,
     kills: 12,

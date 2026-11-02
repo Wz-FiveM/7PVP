@@ -108,6 +108,7 @@ server_scripts {
     'server/modules/season/season_service.lua',
     'server/modules/clock/clock_service.lua',
     'server/modules/inventory/inventory_service.lua',
+    'server/modules/inventory/loadout_set_service.lua',
     'server/modules/inventory/weapon_custom_service.lua',
     'server/modules/world/world_service.lua',
     'server/modules/appearance/appearance_service.lua',

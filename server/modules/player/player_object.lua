@@ -30,6 +30,7 @@
 ---@field nameColor string|nil couleurs du nom en PvP, un code par lettre (voir NameColors)
 ---@field killfeedBackground string|nil fond choisi pour ses lignes du killfeed (KillfeedBackgroundService)
 ---@field killfeedOwned table<string, boolean> fonds du killfeed achetés
+---@field loadoutSets (table<string, integer>|false)[] sets d'équipement (LoadoutSetService)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -42,6 +43,7 @@ local ClassService = PVP.use('ClassService')
 local CrewService = PVP.use('CrewService')
 local NameColors = PVP.use('NameColors')
 local KillfeedBackgroundService = PVP.use('KillfeedBackgroundService')
+local LoadoutSetService = PVP.use('LoadoutSetService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -80,6 +82,7 @@ function PlayerObject.new(source, identifier, row)
         classId = ClassService.sanitize(row.class_id),
         nameColor = NameColors.sanitize(row.name_color),
         killfeedOwned = {},
+        loadoutSets = LoadoutSetService.decode(row.loadout_sets),
     }, PlayerObject)
     ClassService.applyInventory(player)
     return player
@@ -161,6 +164,7 @@ function PlayerObject:serialize()
         streak = self.streak,
         bounty = self.bounty,
         contracts = ContractService.serialize(self),
+        loadoutSets = self.loadoutSets,
         season = self.season and {
             label = SeasonService.label(self.season.id),
             kills = self.season.kills,

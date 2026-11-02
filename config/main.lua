@@ -32,6 +32,11 @@ Config.MaxKillDistance = 500.0
 -- Retourner au lobby est aussi bloqué pendant ce temps.
 Config.CombatTagDuration = 20
 
+-- Sets d'équipement : contenu du sac enregistré, ressorti des coffres en un clic chez le banquier
+Config.LoadoutSets = {
+    slots = 3,
+}
+
 -- Séries de kills : à partir de `threshold` kills sans mourir, la tête du joueur est mise à prix
 -- (base + perKill par kill supplémentaire). Son tueur encaisse la prime. Repère rouge sur la carte.
 Config.Bounty = {

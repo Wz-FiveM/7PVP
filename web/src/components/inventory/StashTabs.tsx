@@ -5,8 +5,8 @@ import { formatMoney } from '../../utils/format';
 import { isUnlocked, stashIds } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 
-/** Onglet affiché chez le banquier : un coffre personnel ou celui du crew. */
-export type BankerTab = StashId | 'crew';
+/** Onglet affiché chez le banquier : un coffre personnel, celui du crew ou les sets d'équipement. */
+export type BankerTab = StashId | 'crew' | 'sets';
 
 interface StashTabsProps {
   active: BankerTab;
@@ -40,6 +40,9 @@ export function StashTabs({ active, onChange }: StashTabsProps) {
           {t('Crew [{tag}]', { tag: crew.tag })}
         </button>
       )}
+      <button className={`btn btn--small cut-s stash-tabs__tab${active === 'sets' ? ' btn--active' : ''}`} onClick={() => onChange('sets')}>
+        {t('Sets')}
+      </button>
     </div>
   );
 }

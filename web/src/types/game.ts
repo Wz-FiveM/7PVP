@@ -68,6 +68,8 @@ export interface PlayerState {
   bounty: number;
   contracts?: ContractsState;
   season?: SeasonStats;
+  /** sets d'équipement : `false` pour un emplacement vide */
+  loadoutSets?: (ItemStacks | false)[];
 }
 
 /** Classe du joueur ; délais en secondes au moment de la synchro */

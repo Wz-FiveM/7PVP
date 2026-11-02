@@ -25,6 +25,10 @@ export interface GameActions {
   /** Coffre du crew (chez le banquier) : déposer ce qu'on porte, retirer vers le sac ou le conteneur protégé */
   crewStashPut: (item: string, count: number, from: ContainerId) => Promise<void>;
   crewStashTake: (item: string, count: number, to: 'bag' | 'protected') => Promise<void>;
+  /** Sets d'équipement : enregistrer le sac, le sortir des coffres, l'effacer */
+  loadoutSetSave: (slot: number) => Promise<void>;
+  loadoutSetApply: (slot: number) => Promise<void>;
+  loadoutSetClear: (slot: number) => Promise<void>;
   setShortcut: (slot: number, item: string | null) => Promise<void>;
   /** Échange : quantité proposée d'un objet (0 = le retirer de l'offre) */
   tradeOffer: (item: string, count: number) => Promise<void>;

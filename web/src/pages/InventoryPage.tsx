@@ -4,6 +4,7 @@ import { ContextMenu, type ContextMenuAction } from '../components/inventory/Con
 import { CrewStashSection } from '../components/inventory/CrewStashSection';
 import type { DragSource, DropTarget } from '../components/inventory/drag';
 import { DragProvider } from '../components/inventory/DragProvider';
+import { LoadoutSetsSection } from '../components/inventory/LoadoutSetsSection';
 import { LootSection } from '../components/inventory/LootSection';
 import { QuantityModal } from '../components/inventory/QuantityModal';
 import { ShortcutBar } from '../components/inventory/ShortcutBar';
@@ -68,7 +69,8 @@ export function InventoryPage() {
   const tab: BankerTab = activeTab === 'crew' && !state.crew ? 'stash' : activeTab;
   const crewStash = atBanker && tab === 'crew' ? state.crew : null;
   // Coffre de l'onglet choisi, s'il est ouvert (acheté) : les objets y vont et en viennent
-  const openStash = atBanker && tab !== 'crew' && isUnlocked(player.inventory, config, tab) ? tab : null;
+  const stashTab = tab !== 'crew' && tab !== 'sets' ? tab : null;
+  const openStash = atBanker && stashTab && isUnlocked(player.inventory, config, stashTab) ? stashTab : null;
   // Butin ouvert (largage) : son contenu s'affiche à droite, à la place du coffre
   const loot = state.loot;
   // Échange en cours (/trade) : il prend la place du butin et du coffre
@@ -321,7 +323,7 @@ export function InventoryPage() {
       return actions.crewStashPut(stack.name, count, from);
     }
     const to: ContainerId | null = isStash(from) ? 'bag' : atBanker ? openStash : from === 'bag' ? 'protected' : 'bag';
-    if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t(tab === 'crew' ? 'Coffre' : config.containers[tab]?.label ?? 'Coffre') }), 'error');
+    if (!to) return actions.notify(t('{container} : achète-le d\'abord.', { container: t((stashTab && config.containers[stashTab]?.label) ?? 'Coffre') }), 'error');
     const target = config.containers[to];
     const free = capacityOf(config, player, to) - weightOf(player.inventory[to] ?? [], config);
     const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
@@ -406,7 +408,9 @@ export function InventoryPage() {
             {carriedColumn}
             <div className="inventory__column inventory__column--stash">
               <StashTabs active={tab} onChange={setActiveTab} />
-              {crewStash ? (
+              {tab === 'sets' ? (
+                <LoadoutSetsSection />
+              ) : crewStash ? (
                 <CrewStashSection
                   crew={crewStash}
                   selected={crewSelection}
@@ -420,7 +424,7 @@ export function InventoryPage() {
               ) : openStash ? (
                 renderSection(openStash)
               ) : (
-                tab !== 'crew' && <StashPurchase id={tab} />
+                stashTab && <StashPurchase id={stashTab} />
               )}
             </div>
           </div>

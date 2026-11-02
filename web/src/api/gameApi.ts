@@ -41,6 +41,13 @@ export const gameApi = {
   /** Achat d'un coffre payant auprès du banquier */
   unlockStash: (id: StashId) => fetchNui<ActionResult>('unlockStash', { id }, MOCK_OK),
 
+  /** Sets d'équipement : `slot` est 1-based */
+  loadoutSetSave: (slot: number) => fetchNui<ActionResult>('loadoutSetSave', { slot }, MOCK_OK),
+
+  loadoutSetApply: (slot: number) => fetchNui<ActionResult>('loadoutSetApply', { slot }, MOCK_OK),
+
+  loadoutSetClear: (slot: number) => fetchNui<ActionResult>('loadoutSetClear', { slot }, MOCK_OK),
+
   dropItem: (item: string, container: ContainerId, count: number) =>
     fetchNui<ActionResult>('dropItem', { item, container, count }, MOCK_OK),
 
