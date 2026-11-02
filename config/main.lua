@@ -179,10 +179,11 @@ Config.PveWorld = {
 -- Les dégâts, la portée et le délai entre deux attaques sont vérifiés par le serveur.
 Config.Zombie = {
     aggroRange = 45.0, -- distance à laquelle un zombie repère un joueur
-    attackRange = 1.8, -- distance à laquelle il vomit
-    attackCooldown = 2500, -- ms entre deux vomissements d'un même zombie
+    attackRange = 1.3, -- distance à laquelle il vomit
+    attackCooldown = 3000, -- ms entre deux vomissements d'un même zombie
     damage = 12, -- dégâts par vomissement (l'armure encaisse en premier)
-    damageDelay = 600, -- ms entre le début de l'animation et les dégâts
+    damageDelay = 800, -- ms entre le début de l'animation et les dégâts
+    dodgeMargin = 1.5, -- mètres au-delà de la portée : plus loin au moment des dégâts, le vomi est esquivé
     vomitDuration = 1800, -- ms d'effet de vomi
     walkStyle = 'move_m@drunk@verydrunk', -- démarche titubante
     -- Animation et particules du vomi

@@ -347,18 +347,16 @@ end
 ---@param targetId integer server id du joueur touché
 ---@param damage integer dégâts calculés par le serveur selon le type de zombie
 function Pve.onVomit(netId, targetId, damage)
-    if NetworkDoesNetworkIdExist(netId) then
-        local ped = NetworkGetEntityFromNetworkId(netId)
-        if DoesEntityExist(ped) then
-            CreateThread(function()
-                Pve.playVomitEffect(ped)
-            end)
-        end
+    local ped = NetworkDoesNetworkIdExist(netId) and NetworkGetEntityFromNetworkId(netId) or 0
+    if DoesEntityExist(ped) then
+        CreateThread(function()
+            Pve.playVomitEffect(ped)
+        end)
     end
 
     if targetId == GetPlayerServerId(PlayerId()) then
         CreateThread(function()
-            Pve.receiveVomit(tonumber(damage) or Config.Zombie.damage)
+            Pve.receiveVomit(ped, tonumber(damage) or Config.Zombie.damage)
         end)
     end
 end
@@ -379,13 +377,25 @@ function Pve.playVomitEffect(ped)
     StopParticleFxLooped(effect, false)
 end
 
----Le joueur local a été touché : dégâts (l'armure encaisse d'abord) et effet d'écran.
+---Le zombie reste sur place pendant son animation : le joueur a le temps de s'écarter,
+---et un zombie tué avant le jet ne touche plus.
+---@param ped integer
+---@return boolean
+function Pve.vomitReaches(ped)
+    if not DoesEntityExist(ped) or IsEntityDead(ped) then return false end
+    local range = Pve.getType(ped).range or Config.Zombie.attackRange
+    return #(GetEntityCoords(PlayerPedId()) - GetEntityCoords(ped)) <= range + Config.Zombie.dodgeMargin
+end
+
+---Le joueur local est visé : dégâts (l'armure encaisse d'abord) et effet d'écran, sauf s'il a esquivé.
+---@param ped integer zombie qui vomit, 0 s'il n'existe pas sur ce client
 ---@param damage integer
-function Pve.receiveVomit(damage)
+function Pve.receiveVomit(ped, damage)
     Wait(Config.Zombie.damageDelay)
     if not State.isAlive() or State.isInSafeZone() or State.godmode then return end
     -- Antizin : immunisé contre le vomi tant que l'effet dure
     if Effects.isActive('antizin') then return end
+    if not Pve.vomitReaches(ped) then return end
 
     ApplyDamageToPed(PlayerPedId(), damage, true, 0)
     ShakeGameplayCam('DRUNK_SHAKE', 0.6)
