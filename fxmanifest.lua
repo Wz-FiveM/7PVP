@@ -53,6 +53,7 @@ shared_scripts {
     'config/black_market.lua',
     'config/anticheat.lua',
     'config/zones.lua',
+    'config/ipls.lua',
     'config/appearance.lua',
     'config/lobby.lua',
     'config/presence.lua',
