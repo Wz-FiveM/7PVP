@@ -27,11 +27,11 @@ function NameColors.sanitize(colors)
 end
 
 ---@param name string
----@param colors any
----@return string nom avec les codes couleur GTA (les ~ écrits dans le nom sont retirés), intact sans couleur
+---@param colors? any
+---@return string nom avec les codes couleur GTA, sans les ~ écrits dans le nom (ils serviraient de codes gratuits)
 function NameColors.format(name, colors)
     colors = NameColors.sanitize(colors)
-    if not colors then return name end
+    if not colors then return (name:gsub('~', '')) end
 
     local parts, index, current = {}, 0, NameColors.NONE
     for letter in name:gmatch(utf8.charpattern) do
