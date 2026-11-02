@@ -75,6 +75,7 @@ Events.client = {
     airdropSpawn = '7pvp:client:airdropSpawn',
     airdropRemove = '7pvp:client:airdropRemove',
     blackMarketState = '7pvp:client:blackMarketState',
+    convoyState = '7pvp:client:convoyState',
     bountySync = '7pvp:client:bountySync',
     hordeState = '7pvp:client:hordeState',
     controlZones = '7pvp:client:controlZones',

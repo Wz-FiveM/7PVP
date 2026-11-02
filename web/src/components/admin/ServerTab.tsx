@@ -40,6 +40,9 @@ export function ServerTab() {
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'blackMarket' })}>
         {t('Faire venir le marchand noir sur moi')}
       </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'convoy' })}>
+        {t('Lancer un convoi blindé')}
+      </button>
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'horde' })}>
         {t('Lancer une horde (zone PvE la plus proche)')}
       </button>

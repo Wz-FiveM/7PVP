@@ -11,6 +11,7 @@ local LootService = PVP.use('LootService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local AirdropService = PVP.use('AirdropService')
 local BlackMarketService = PVP.use('BlackMarketService')
+local ConvoyService = PVP.use('ConvoyService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
 local ConflictService = PVP.use('ConflictService')
@@ -40,6 +41,7 @@ AdminService.ACTIONS = {
     clearLoot = { method = 'clearLoot', target = false },
     airdrop = { method = 'airdrop', target = false },
     blackMarket = { method = 'blackMarket', target = false },
+    convoy = { method = 'convoy', target = false },
     horde = { method = 'horde', target = false },
     conflict = { method = 'conflict', target = false },
     conflictEnd = { method = 'conflictEnd', target = false },
@@ -385,6 +387,14 @@ function AdminService.blackMarket(source)
     if BlackMarketService.current then BlackMarketService.close(BlackMarketService.current.id) end
     BlackMarketService.open(coords)
     return true, Locale.t('Marchand noir envoyé.')
+end
+
+---Convoi blindé immédiat, sur une route de la config. Bloque le temps de créer le fourgon.
+---@param source integer
+function AdminService.convoy(source)
+    if ConvoyService.current then return false, Locale.t('Un convoi est déjà en route.') end
+    if not ConvoyService.start() then return false, Locale.t('Le convoi n\'a pas pu partir.') end
+    return true, Locale.t('Convoi lancé.')
 end
 
 ---Horde immédiate dans la zone PvE la plus proche de l'admin.
