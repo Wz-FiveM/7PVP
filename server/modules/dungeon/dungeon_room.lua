@@ -23,6 +23,7 @@ local CombatService = PVP.use('CombatService')
 local LootService = PVP.use('LootService')
 local PveZone = PVP.use('PveZone')
 local ChatService = PVP.use('ChatService')
+local AntiCheatService = PVP.use('AntiCheatService')
 local Utils = PVP.use('Utils')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -493,6 +494,7 @@ function DungeonRoom:keepPlayersClose(now, step)
         if player and not player.dead and now >= entry.leashAt
             and #(player:getCoords() - step.coords) > Config.Dungeon.leashDistance then
             entry.leashAt = now + DungeonRoom.LEASH_INTERVAL
+            AntiCheatService.grace(source)
             TriggerClientEvent(Events.client.teleport, source, self:checkpoint(), Config.Dungeon.zone.label)
         end
     end
