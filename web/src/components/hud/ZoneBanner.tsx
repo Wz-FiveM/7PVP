@@ -14,7 +14,7 @@ const DETAIL: Record<ZoneType, string> = {
 const EXPANDED_DURATION = 5000;
 
 /**
- * Zone courante, en haut à gauche, dans la couleur de la zone.
+ * Zone courante, en haut à gauche, sans fond : un filet et le type dans la couleur de la zone.
  * Bannière complète quelques secondes à l'entrée d'une zone, puis une seule ligne.
  */
 export function ZoneBanner() {
@@ -34,7 +34,7 @@ export function ZoneBanner() {
   if (!expanded) {
     return (
       <div className={`zone-banner zone-banner--compact zone-${zone.type}`}>
-        <span className="chip cut-s">{t(TAG[zone.type])}</span>
+        <span className="disp zone-banner__tag">{t(TAG[zone.type])}</span>
         <span className="disp zone-banner__compact-name">{name}</span>
       </div>
     );
@@ -42,12 +42,9 @@ export function ZoneBanner() {
 
   return (
     <div className={`zone-banner zone-${zone.type}`}>
-      <div className="stripes" />
-      <div className="zone-banner__body cut">
-        <span className="chip cut-s">{t(TAG[zone.type])}</span>
-        <span className="disp zone-banner__name">{name}</span>
-        <span className="muted zone-banner__detail">{t(DETAIL[zone.type])}</span>
-      </div>
+      <span className="disp zone-banner__tag">{t(TAG[zone.type])}</span>
+      <span className="disp zone-banner__name">{name}</span>
+      <span className="zone-banner__detail">{t(DETAIL[zone.type])}</span>
     </div>
   );
 }
