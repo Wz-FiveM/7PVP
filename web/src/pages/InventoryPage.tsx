@@ -281,13 +281,21 @@ export function InventoryPage() {
     if (stack.item.type === 'case') actions.openCase(stack.name);
   };
 
+  // Les raccourcis restent à gauche : sous un coffre bien rempli, ils sortiraient de l'écran
+  const carriedColumn = (
+    <div className="inventory__column inventory__column--carried">
+      {CARRIED.map(renderSection)}
+      <ShortcutBar />
+    </div>
+  );
+
   return (
     <DragProvider accepts={acceptsDrop} onDrop={handleDrop}>
       <div className="inventory">
         {trade ? (
           // Échange en cours : ce qu'on porte à gauche, l'échange à droite
           <div className="inventory__split">
-            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            {carriedColumn}
             <div className="inventory__column inventory__column--stash">
               <TradeSection
                 trade={trade}
@@ -304,7 +312,7 @@ export function InventoryPage() {
         ) : loot ? (
           // Butin ouvert (largage) : ce qu'on porte à gauche, le butin à droite
           <div className="inventory__split">
-            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            {carriedColumn}
             <div className="inventory__column inventory__column--stash">
               <LootSection
                 loot={loot}
@@ -322,17 +330,18 @@ export function InventoryPage() {
         ) : atBanker ? (
           // Chez le banquier : ce qu'on porte à gauche, le coffre à droite
           <div className="inventory__split">
-            <div className="inventory__column">{CARRIED.map(renderSection)}</div>
+            {carriedColumn}
             <div className="inventory__column inventory__column--stash">
               <StashTabs active={activeStash} onChange={setActiveStash} />
               {openStash ? renderSection(openStash) : <StashPurchase id={activeStash} />}
             </div>
           </div>
         ) : (
-          CARRIED.map(renderSection)
+          <>
+            {CARRIED.map(renderSection)}
+            <ShortcutBar />
+          </>
         )}
-
-        <ShortcutBar />
 
         <p className="mono inventory__help">
           {t('[GLISSER] {action}', { action: trade ? t('PROPOSER / DÉPLACER') : t('DÉPLACER') })} ·{' '}
