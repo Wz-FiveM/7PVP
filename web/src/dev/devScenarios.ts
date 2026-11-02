@@ -404,6 +404,42 @@ export const DEV_ACTIONS: DevAction[] = [
         },
       }),
   },
+  ...['nuit', 'bordeaux', 'kaki', 'violet', 'braise', 'ocean', 'neon', 'or', 'carbone'].map((background) => ({
+    label: `Killfeed : fond ${background}`,
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: { killer: '[MGZ] Wezor', victim: pick(PLAYERS), weapon: 'weapon_sniperrifle', killerId: 20, victimId: 21, background },
+      }),
+  })),
+  {
+    label: 'Killfeed : mon kill avec fond',
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: { killer: 'Dev', victim: pick(PLAYERS), weapon: 'weapon_pistol', headshot: true, killerId: 1, victimId: 22, background: 'braise' },
+      }),
+  },
+  {
+    label: 'Killfeed : arme sans image',
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: { killer: pick(PLAYERS), victim: pick(PLAYERS), weapon: 'weapon_inconnue', killerId: 20, victimId: 21 },
+      }),
+  },
+  {
+    label: 'Killfeed : sans arme',
+    run: () => sendNui({ action: 'killfeed', data: { victim: pick(PLAYERS), victimId: 21 } }),
+  },
+  {
+    label: 'Profil : fond Néon acheté',
+    run: () =>
+      sendNui({
+        action: 'sync',
+        data: { ...mockInit.player!, shopPoints: 50, killfeedOwned: ['nuit', 'neon'], killfeedBackground: 'neon' },
+      }),
+  },
   { label: 'Raccourcis (TAB)', run: () => sendNui({ action: 'hotbar', data: { visible: true } }) },
   { label: 'Cacher raccourcis', run: () => sendNui({ action: 'hotbar', data: { visible: false } }) },
   { label: 'Zone safe', run: () => sendNui({ action: 'zone', data: mockInit.zone }) },

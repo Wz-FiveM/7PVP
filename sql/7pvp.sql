@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS `pvp_players` (
     `market_balance` INT NOT NULL DEFAULT 0,
     `class_id` VARCHAR(16) NULL,
     `name_color` VARCHAR(32) NULL,
+    `killfeed_background` VARCHAR(16) NULL,
     `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`identifier`),
     KEY `idx_kills` (`kills`)

@@ -133,6 +133,14 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.nameColorSelect, data.colors) or { ok = false })
     end)
 
+    RegisterNUICallback('killfeedBackgroundBuy', function(data, cb)
+        cb(Callback.await(Events.callbacks.killfeedBackgroundBuy, data.id) or { ok = false })
+    end)
+
+    RegisterNUICallback('killfeedBackgroundSelect', function(data, cb)
+        cb(Callback.await(Events.callbacks.killfeedBackgroundSelect, data.id) or { ok = false })
+    end)
+
     RegisterNUICallback('attachment', function(data, cb)
         cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
     end)
@@ -188,6 +196,7 @@ function Nui.buildInitPayload()
                 nameMaxLength = Config.Crews.nameMaxLength,
             },
             nameColors = Config.NameColors,
+            killfeedBackgrounds = Config.KillfeedBackgrounds,
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,
             recipes = Config.Recipes,

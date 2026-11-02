@@ -14,6 +14,7 @@ PlayerRepository.MIGRATIONS = {
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS name_color VARCHAR(32) NULL AFTER class_id',
     -- La colonne a d'abord gardé une seule couleur (VARCHAR(16)) : ces anciennes valeurs sont ignorées au chargement
     'ALTER TABLE pvp_players MODIFY COLUMN name_color VARCHAR(32) NULL',
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS killfeed_background VARCHAR(16) NULL AFTER name_color',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,
@@ -73,11 +74,11 @@ end
 ---@param player PvpPlayer
 function PlayerRepository.save(player)
     MySQL.update(
-        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ?, class_id = ?, name_color = ? WHERE identifier = ?',
+        'UPDATE pvp_players SET name = ?, xp = ?, kills = ?, deaths = ?, npc_kills = ?, inventory = ?, appearance = ?, contracts = ?, class_id = ?, name_color = ?, killfeed_background = ? WHERE identifier = ?',
         {
             player.name, player.xp, player.kills, player.deaths, player.npcKills,
             player.inventory:encode(), player.appearance and json.encode(player.appearance) or nil,
-            json.encode(player.contracts), player.classId, player.nameColor, player.identifier,
+            json.encode(player.contracts), player.classId, player.nameColor, player.killfeedBackground, player.identifier,
         }
     )
     PlayerRepository.saveSeason(player)

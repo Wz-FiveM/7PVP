@@ -1,15 +1,17 @@
 import { useState, type CSSProperties } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { KillfeedItem } from '../../types/game';
+import type { KillfeedEntry } from '../../types/game';
 import { Icon } from '../icons/Icon';
+import { ItemIcon } from '../inventory/ItemIcon';
+import '../inventory/inventory.css';
 import { ColoredName } from '../ui/ColoredName';
 
 /** Images d'armes introuvables : la ligne affiche l'icône de repli sans les redemander. */
 const missingImages = new Set<string>();
 
 /**
- * Silhouette de l'arme : l'image de l'objet sert de masque, remplie d'une couleur unie.
+ * Silhouette de l'arme (feed du mode CoD) : l'image de l'objet sert de masque, remplie d'une couleur unie.
  * L'adresse est absolue : un url() relatif passé par une variable CSS serait résolu depuis
  * la feuille de style (build/assets/), où le dossier items n'existe pas.
  */
@@ -35,12 +37,13 @@ export function WeaponSilhouette({ weapon }: { weapon?: string }) {
   );
 }
 
-/** Killfeed (haut droite) : tueur, silhouette de l'arme, tir à la tête, victime. */
-export function Killfeed() {
+/** Une ligne du killfeed : tueur, image de l'arme (celle de l'inventaire), tir à la tête, victime. */
+export function KillfeedRow({ item }: { item: KillfeedEntry }) {
   const t = useT();
   const { state } = useGame();
   const me = state.player?.source;
   const mates = new Set(state.group?.members.map((member) => member.id) ?? []);
+  const background = state.config.killfeedBackgrounds?.find((entry) => entry.id === item.background)?.css;
 
   const nameClass = (id: number | undefined, base: string) => {
     if (id !== undefined && id === me) return `${base} killfeed__name--me`;
@@ -48,7 +51,7 @@ export function Killfeed() {
     return base;
   };
 
-  const rowClass = (item: KillfeedItem) => {
+  const rowClass = () => {
     if (me === undefined) return 'killfeed__item';
     if (item.killerId === me) return 'killfeed__item killfeed__item--kill';
     if (item.victimId === me) return 'killfeed__item killfeed__item--death';
@@ -56,24 +59,37 @@ export function Killfeed() {
   };
 
   return (
+    <div className={rowClass()} style={{ background }}>
+      {item.killer && (
+        <span className={nameClass(item.killerId, 'killfeed__killer')}>
+          <ColoredName text={item.killer} colors={item.killerColors} />
+        </span>
+      )}
+      {item.reason === 'disconnect' ? (
+        <span className="mono killfeed__reason">{t('DÉCO')}</span>
+      ) : item.weapon ? (
+        <span className="killfeed__image">
+          <ItemIcon name={item.weapon} type="weapon" />
+        </span>
+      ) : (
+        <Icon name="crosshair" size={14} strokeWidth={2} className="killfeed__fallback" />
+      )}
+      {item.headshot && <Icon name="crosshair" size={15} strokeWidth={2.2} className="killfeed__headshot" />}
+      <span className={nameClass(item.victimId, 'killfeed__victim')}>
+        <ColoredName text={item.victim} colors={item.victimColors} />
+      </span>
+    </div>
+  );
+}
+
+/** Killfeed (haut droite) */
+export function Killfeed() {
+  const { state } = useGame();
+
+  return (
     <div className="killfeed">
       {state.killfeed.map((item) => (
-        <div key={item.id} className={rowClass(item)}>
-          {item.killer && (
-            <span className={nameClass(item.killerId, 'killfeed__killer')}>
-              <ColoredName text={item.killer} colors={item.killerColors} />
-            </span>
-          )}
-          {item.reason === 'disconnect' ? (
-            <span className="mono killfeed__reason">{t('DÉCO')}</span>
-          ) : (
-            <WeaponSilhouette weapon={item.weapon} />
-          )}
-          {item.headshot && <Icon name="crosshair" size={15} strokeWidth={2.2} className="killfeed__headshot" />}
-          <span className={nameClass(item.victimId, 'killfeed__victim')}>
-            <ColoredName text={item.victim} colors={item.victimColors} />
-          </span>
-        </div>
+        <KillfeedRow key={item.id} item={item} />
       ))}
     </div>
   );

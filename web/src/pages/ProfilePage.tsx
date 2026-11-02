@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { gameApi } from '../api/gameApi';
+import { KillfeedRow } from '../components/hud/Killfeed';
 import { ColoredName } from '../components/ui/ColoredName';
 import { Panel } from '../components/ui/Panel';
 import { SegmentBar } from '../components/ui/SegmentBar';
 import { formatNumber, useT } from '../i18n';
 import { useGame } from '../store/GameContext';
+import type { ActionResult } from '../types/nui';
 import { formatKd, formatMoney, formatPoints } from '../utils/format';
 import './pages.css';
 
@@ -84,6 +86,94 @@ function NameColorEditor({ name }: { name: string }) {
   );
 }
 
+/**
+ * Fond du killfeed, en PvP : cliquer sur un fond ne fait que l'essayer sur la ligne d'aperçu.
+ * Seul le bouton paie ou équipe, et le serveur décide du paiement.
+ */
+function KillfeedBackgroundPicker({ name, colors }: { name: string; colors?: string }) {
+  const t = useT();
+  const { state, actions } = useGame();
+  const { player } = state;
+  const list = state.config.killfeedBackgrounds;
+  const saved = player?.killfeedBackground ?? '';
+  const [selected, setSelected] = useState(saved);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setSelected(saved), [saved]);
+
+  if (!player || !list?.length) return null;
+  const entry = list.find((background) => background.id === selected);
+  const owned = !entry || (player.killfeedOwned ?? []).includes(entry.id);
+  const short = state.config.shopPoints?.short ? t(state.config.shopPoints.short) : undefined;
+
+  const run = (action: Promise<ActionResult>) => {
+    setBusy(true);
+    action.then((result) => {
+      setBusy(false);
+      if (result?.message) actions.notify(result.message, result.ok ? 'success' : 'error');
+    });
+  };
+
+  return (
+    <div className="name-colors">
+      <span className="label">{t('Fond du killfeed')}</span>
+      <div className="killfeed-preview">
+        <KillfeedRow
+          item={{
+            killer: name,
+            killerColors: colors,
+            killerId: player.source,
+            victim: t('Adversaire'),
+            weapon: 'weapon_carbinerifle',
+            background: selected,
+          }}
+        />
+      </div>
+      <div className="name-colors__list">
+        <button
+          className={selected === '' ? 'name-color name-color--default name-color--on cut-s' : 'name-color name-color--default cut-s'}
+          title={t('Par défaut')}
+          aria-label={t('Par défaut')}
+          aria-pressed={selected === ''}
+          onClick={() => setSelected('')}
+        />
+        {list.map((background) => (
+          <button
+            key={background.id}
+            className={selected === background.id ? 'name-color name-color--on cut-s' : 'name-color cut-s'}
+            style={{ background: background.css }}
+            title={t(background.label)}
+            aria-label={t(background.label)}
+            aria-pressed={selected === background.id}
+            onClick={() => setSelected(background.id)}
+          />
+        ))}
+      </div>
+      <div className="name-colors__actions killfeed-preview__actions">
+        <span className="mono muted">{entry ? t(entry.label) : t('Par défaut')}</span>
+        {owned ? (
+          <button
+            className="btn btn--primary btn--small cut-s"
+            disabled={busy || selected === saved}
+            onClick={() => run(gameApi.selectKillfeedBackground(selected))}
+          >
+            {selected === saved ? t('Équipé') : t('Équiper')}
+          </button>
+        ) : (
+          <button
+            className="btn btn--primary btn--small cut-s"
+            disabled={busy || (player.shopPoints ?? 0) < entry.price}
+            onClick={() => run(gameApi.buyKillfeedBackground(entry.id))}
+          >
+            {t('Acheter : {price}', { price: formatPoints(entry.price, short) })}
+          </button>
+        )}
+      </div>
+      <span className="muted name-colors__hint">{t('Ton fond s\'affiche sur tes kills, pour tous les joueurs en PvP. Un fond acheté est gardé pour toujours.')}</span>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const t = useT();
   const { state } = useGame();
@@ -130,6 +220,7 @@ export function ProfilePage() {
           {t('{xp} / {max} XP avant le niveau {level}', { xp: levelXp, max: config.xpPerLevel, level: player.level + 1 })}
         </span>
         {pvp && <NameColorEditor name={player.name} />}
+        {pvp && <KillfeedBackgroundPicker name={displayName} colors={nameColors} />}
       </Panel>
 
       <div className="stat-grid">

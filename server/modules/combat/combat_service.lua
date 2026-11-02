@@ -128,6 +128,7 @@ function CombatService.onPlayerDied(source, killerId, cause)
         victimId = victim.source,
         killerColors = killer and killer:displayColors(),
         victimColors = victim:displayColors(),
+        background = killer and killer.killfeedBackground,
     })
     BountyService.reset(victim)
 
@@ -282,7 +283,7 @@ end
 ---@param victimName string
 ---@param reason? 'disconnect' déconnexion en plein combat
 ---@param recap? table récapitulatif de mort (arme, distance) pour le killfeed Discord
----@param extra? { weapon: string|nil, headshot: boolean, killerId: integer|nil, victimId: integer|nil, killerColors: string|nil, victimColors: string|nil } affichage du killfeed
+---@param extra? { weapon: string|nil, headshot: boolean, killerId: integer|nil, victimId: integer|nil, killerColors: string|nil, victimColors: string|nil, background: string|nil } affichage du killfeed (background : fond choisi par le tueur)
 function CombatService.broadcastKill(killerName, victimName, reason, recap, extra)
     extra = extra or {}
     ModeRegistry.broadcast('pvp', Events.client.killfeed, {
@@ -295,6 +296,7 @@ function CombatService.broadcastKill(killerName, victimName, reason, recap, extr
         victimId = extra.victimId,
         killerColors = extra.killerColors,
         victimColors = extra.victimColors,
+        background = extra.background,
     })
     DiscordService.killfeed(killerName, victimName, reason, recap)
 end

@@ -77,6 +77,7 @@ server_scripts {
     'server/modules/player/player_object.lua',
     'server/modules/player/player_service.lua',
     'server/modules/player/name_color_service.lua',
+    'server/modules/player/killfeed_background_service.lua',
     'server/modules/connection/connection_service.lua',
     'server/modules/spawn/spawn_service.lua',
     'server/modules/loot/loot_service.lua',

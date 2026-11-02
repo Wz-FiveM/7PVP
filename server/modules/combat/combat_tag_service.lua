@@ -129,6 +129,7 @@ function CombatTagService.onPlayerLeaving(source)
         victimId = player.source,
         killerColors = killer and killer:displayColors(),
         victimColors = player:displayColors(),
+        background = killer and killer.killfeedBackground,
     })
     BountyService.reset(player)
     Logger.info('[combat] %s s\'est déconnecté en combat (dernier attaquant : %s)', player.name,

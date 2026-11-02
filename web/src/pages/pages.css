@@ -75,6 +75,16 @@
 .name-color--default {
   background: rgba(255, 255, 255, 0.14);
 }
+/* Aperçu du fond du killfeed, sur un décor clair : le fond est translucide comme en jeu */
+.killfeed-preview {
+  display: flex;
+  padding: 0.5rem;
+  background: linear-gradient(120deg, #6f8796, #a7a595 55%, #5c6650);
+}
+.killfeed-preview__actions {
+  align-items: center;
+  justify-content: space-between;
+}
 
 .stat-grid {
   display: grid;

@@ -44,6 +44,10 @@ export interface PlayerState {
   displayName?: string;
   /** couleurs du nom en PvP, un code par lettre (« qg-r »), absentes = couleur par défaut */
   nameColor?: string;
+  /** fond choisi pour ses lignes du killfeed (Config.KillfeedBackgrounds), absent = fond par défaut */
+  killfeedBackground?: string;
+  /** fonds du killfeed achetés */
+  killfeedOwned?: string[];
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
   money: number;
@@ -165,6 +169,7 @@ export interface GameConfig {
   groupMaxSize?: number;
   crew?: CrewConfig;
   nameColors?: NameColorsConfig;
+  killfeedBackgrounds?: KillfeedBackground[];
   /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
@@ -281,6 +286,8 @@ export interface KillfeedEntry {
   /** couleurs choisies par les joueurs, un code par lettre du nom affiché, absentes = couleurs par défaut */
   killerColors?: string;
   victimColors?: string;
+  /** fond choisi par le tueur (Config.KillfeedBackgrounds), absent = fond par défaut */
+  background?: string;
 }
 
 export interface Toast {
@@ -379,6 +386,16 @@ export interface NameColor {
 export interface NameColorsConfig {
   maxLetters: number;
   list: NameColor[];
+}
+
+/** Fond de ligne du killfeed, acheté en points boutique (Config.KillfeedBackgrounds) */
+export interface KillfeedBackground {
+  id: string;
+  label: string;
+  /** prix en points boutique */
+  price: number;
+  /** valeur de la propriété CSS background */
+  css: string;
 }
 
 /** Réglages du menu Crew (Config.Crews) */

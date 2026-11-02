@@ -17,6 +17,8 @@ local Locale = PVP.use('Locale')
 VehicleService.active = {}
 ---@type table<integer, integer> véhicule sorti d'un menu (Freeroam, admin) par joueur : net id
 VehicleService.menu = {}
+---@type table<integer, integer> instant (GetGameTimer) à partir duquel le joueur peut ressortir un véhicule
+VehicleService.nextDeploy = {}
 -- State bag (non répliqué) posé sur ces véhicules : source du joueur qui l'a sorti
 VehicleService.MENU_STATE = '7pvp:menuVehicle'
 -- ms laissées au serveur pour connaître le véhicule créé par le client (l'événement arrive souvent avant)
@@ -39,6 +41,7 @@ function VehicleService.init()
         local player = PlayerService.get(playerSource)
         if player then VehicleService.release(player) end
         VehicleService.deleteMenuVehicle(playerSource)
+        VehicleService.nextDeploy[playerSource] = nil
     end)
 end
 
@@ -88,6 +91,10 @@ function VehicleService.deploy(player, name)
     if current and not current.netId then
         return { ok = false, message = Locale.t('Un véhicule est déjà en train d\'apparaître.') }
     end
+    local waitMs = (VehicleService.nextDeploy[player.source] or 0) - GetGameTimer()
+    if waitMs > 0 then
+        return { ok = false, message = Locale.t('Attends %d s avant de ressortir un véhicule.', math.ceil(waitMs / 1000)) }
+    end
     if not player:removeItem(name, 1) then
         return { ok = false, message = Locale.t('Tu n\'as plus cet objet.') }
     end
@@ -95,6 +102,7 @@ function VehicleService.deploy(player, name)
     -- Un seul véhicule sorti : le précédent est rangé s'il est intact
     VehicleService.release(player)
 
+    VehicleService.startCooldown(player.source)
     VehicleService.active[player.source] = { item = name }
     -- Le véhicule est dehors, pas perdu : son raccourci reste en place
     player.inventory:reserve(name)
@@ -102,6 +110,12 @@ function VehicleService.deploy(player, name)
     TriggerClientEvent(Events.client.vehicleSpawn, player.source, name, item.model, VehicleCustomService.get(player, item.model))
     player:sync()
     return { ok = true, message = Locale.t('%s sorti', Locale.t(item.label)) }
+end
+
+---Sortir ou ranger un véhicule relance l'attente : ranger puis ressortir ne répare pas à la volée.
+---@param source integer
+function VehicleService.startCooldown(source)
+    VehicleService.nextDeploy[source] = GetGameTimer() + Config.VehicleOptions.deployCooldown * 1000
 end
 
 ---Le client a créé le véhicule (net id), ou n'a pas pu (false) : l'objet est alors rendu.
@@ -127,6 +141,8 @@ function VehicleService.onSpawned(source, name, netId)
     if not VehicleService.isOfItem(entity, item) or NetworkGetEntityOwner(entity) ~= source or VehicleService.ownerOf(entity) then
         AntiCheatService.discardVehicle(source)
         VehicleService.active[source] = nil
+        -- Rien n'est sorti : le joueur peut réessayer tout de suite
+        VehicleService.nextDeploy[source] = nil
         player.inventory:unreserve(name)
         VehicleService.refund(player, name)
         TriggerClientEvent(Events.client.vehicleReleased, source)
@@ -193,6 +209,7 @@ function VehicleService.storeCallback(source)
 
     local label = Locale.t(Items.label(VehicleService.active[ownerSource].item))
     VehicleService.release(owner, player)
+    VehicleService.startCooldown(source)
     player:sync()
     if ownerSource == source then
         return { ok = true, message = Locale.t('%s rangé', label) }

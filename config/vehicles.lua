@@ -12,6 +12,7 @@ Config.VehicleOptions = {
     storeKey = 'K', -- touche pour ranger le véhicule où l'on est assis (modifiable dans Paramètres > Raccourcis > FiveM)
     storeMaxSpeed = 6.0, -- km/h : au-dessus, le véhicule roule encore et ne peut pas être rangé
     plate = '7PVP', -- plaque des véhicules sortis
+    deployCooldown = 5, -- secondes d'attente pour ressortir un véhicule, après en avoir sorti ou rangé un
 }
 
 -- Debout sur le toit d'un véhicule qui roule ou qui vole (Deluxo en vol, etc.) : le joueur y reste
