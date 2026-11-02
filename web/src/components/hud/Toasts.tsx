@@ -8,7 +8,7 @@ export function Toasts() {
   const { state } = useGame();
 
   return (
-    <div className="toasts">
+    <div className={state.dungeon ? 'toasts toasts--raised' : 'toasts'}>
       {state.toasts.map((toast) => (
         <div key={toast.id} className={`toast toast--${toast.kind} cut-s`}>
           <Icon name={ICON[toast.kind]} size={16} strokeWidth={2.4} className="toast__icon" />
