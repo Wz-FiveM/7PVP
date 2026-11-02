@@ -6,7 +6,7 @@ export const freeroamApi = {
   close: () => fetchNui<void>('freeroamClose'),
 
   action: (action: string, data: Record<string, unknown> = {}) =>
-    fetchNui<ActionResult & { pvp?: boolean }>('freeroamAction', { action, ...data }, {
+    fetchNui<ActionResult & { pvp?: boolean; owned?: string[] }>('freeroamAction', { action, ...data }, {
       ok: true,
       message: `Action simulée : ${action}`,
       pvp: action === 'pvp' ? true : undefined,

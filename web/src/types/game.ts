@@ -902,6 +902,10 @@ export interface FreeroamState {
   pvp: boolean;
   weapons: FreeroamWeapon[];
   vehicles: FreeroamVehicle[];
+  /** Armes de la liste portées par le joueur (WEAPON_...) */
+  owned: string[];
+  /** Modes de jeu présentés dans le menu (ils se lancent depuis leur PNJ) */
+  activities: ActivityInfo[];
   /** Mode de jeu en cours (Config.FreeroamActivities), null en Freeroam libre */
   activity: { label: string; tagline: string } | null;
 }

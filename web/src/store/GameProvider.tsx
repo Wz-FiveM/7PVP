@@ -90,6 +90,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
               pvp: message.data.pvp,
               weapons: message.data.weapons ?? [],
               vehicles: message.data.vehicles ?? [],
+              owned: message.data.owned ?? [],
+              activities: message.data.activities ?? [],
             },
           });
         case 'interaction':
@@ -303,6 +305,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         const result = await freeroamApi.action(action, data);
         if (result?.message) notify(result.message, result.ok ? 'success' : 'error');
         if (typeof result?.pvp === 'boolean') dispatch({ type: 'freeroam', patch: { pvp: result.pvp } });
+        if (Array.isArray(result?.owned)) dispatch({ type: 'freeroam', patch: { owned: result.owned } });
       },
       closeInteraction: () => {
         if (isEnvBrowser()) dispatch({ type: 'interaction', open: false, items: null });

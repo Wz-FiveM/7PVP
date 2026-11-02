@@ -32,6 +32,7 @@ Freeroam.ACTIONS = {
     heal = 'heal',
     armor = 'giveArmor',
     waypoint = 'teleportToWaypoint',
+    activity = 'gotoActivity',
     pvp = 'togglePvp',
 }
 
@@ -75,6 +76,8 @@ function Freeroam.setMenu(open)
         pvp = Freeroam.pvp,
         weapons = Config.Freeroam.weapons,
         vehicles = Config.Freeroam.vehicles,
+        owned = Freeroam.ownedWeapons(),
+        activities = Freeroam.activityList(),
     })
 end
 
@@ -83,12 +86,13 @@ function Freeroam.toggleMenu()
 end
 
 ---@param data table { action, ... }
----@return { ok: boolean, message?: string, pvp?: boolean }
+---@return { ok: boolean, message?: string, pvp?: boolean, owned?: string[] }
 function Freeroam.runAction(data)
     local method = type(data) == 'table' and Freeroam.ACTIONS[data.action]
     if not method or not Freeroam.isActive() then return { ok = false } end
     local result = Freeroam[method](data)
     result.pvp = Freeroam.pvp
+    result.owned = Freeroam.ownedWeapons()
     return result
 end
 
@@ -103,6 +107,17 @@ function Freeroam.isAllowedWeapon(weapon)
         if entry.weapon == weapon then return true end
     end
     return false
+end
+
+---Liste « Sur moi » du menu : regardée sur le personnage, un parachute utilisé ou une partie finie peuvent en retirer.
+---@return string[] armes de Config.Freeroam.weapons portées par le joueur
+function Freeroam.ownedWeapons()
+    local ped = PlayerPedId()
+    local list = {}
+    for _, entry in ipairs(Config.Freeroam.weapons) do
+        if HasPedGotWeapon(ped, GetHashKey(entry.weapon), false) then list[#list + 1] = entry.weapon end
+    end
+    return list
 end
 
 ---@param data { weapon: string }
@@ -228,6 +243,49 @@ function Freeroam.teleportToWaypoint()
     local result = Admin.teleportToWaypoint()
     if result.ok then Freeroam.setMenu(false) end
     return result
+end
+
+-- ---------------------------------------------------------------------------
+-- Modes de jeu
+-- ---------------------------------------------------------------------------
+
+---Onglet « Modes de jeu » : ils se lancent toujours en parlant à leur PNJ.
+---@return table[] modes de Config.FreeroamActivities, triés par nom
+function Freeroam.activityList()
+    local list = {}
+    for id, activity in pairs(Config.FreeroamActivities) do
+        list[#list + 1] = {
+            id = id,
+            label = activity.label,
+            tagline = activity.tagline,
+            description = activity.description,
+            icon = activity.icon,
+            enabled = activity.enabled == true,
+        }
+    end
+    table.sort(list, function(a, b) return a.label < b.label end)
+    return list
+end
+
+---Téléporte devant le PNJ d'un mode de jeu, face à lui.
+---@param data { id: string }
+function Freeroam.gotoActivity(data)
+    if not State.activity then
+        for _, npc in ipairs(Config.SafeNpcs.npcs) do
+            if npc.activity == data.id then
+                local coords = npc.coords
+                local heading = math.rad(coords.w)
+                local target = vector3(coords.x - math.sin(heading) * 1.5, coords.y + math.cos(heading) * 1.5, coords.z + 1.0)
+                CreateThread(function()
+                    Admin.teleport(target)
+                    SetEntityHeading(PlayerPedId(), (coords.w + 180.0) % 360.0)
+                end)
+                Freeroam.setMenu(false)
+                return { ok = true, message = Locale.t('Téléporté.') }
+            end
+        end
+    end
+    return { ok = false, message = Locale.t('Mode de jeu indisponible.') }
 end
 
 function Freeroam.togglePvp()

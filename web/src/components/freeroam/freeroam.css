@@ -1,22 +1,24 @@
-/* Menu du Freeroam : panneau à gauche, le jeu reste visible à droite, couleur « abri » (bleu) */
+/* Menu du Freeroam : grand écran avec catalogue et aperçu de l'objet choisi, couleur « abri » (bleu) */
 
 .freeroam-menu {
   position: absolute;
   inset: 0;
   z-index: 60;
   display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 1.5rem;
-  background: var(--grain), linear-gradient(90deg, rgba(12, 14, 13, 0.85) 0%, rgba(12, 14, 13, 0.45) 50%, rgba(12, 14, 13, 0.2) 100%);
-  text-shadow: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.6);
+  background: var(--grain), rgba(12, 14, 13, 0.72);
 }
 
 .freeroam__panel {
   display: flex;
   flex-direction: column;
-  width: 48rem;
+  width: 106.25rem;
+  height: 60rem;
   max-width: 100%;
   max-height: 100%;
-  background: rgba(18, 21, 20, 0.94);
+  background: rgba(18, 21, 20, 0.97);
   box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.6), inset 0 0.0625rem 0 rgba(255, 255, 255, 0.07);
 }
 .freeroam__stripes {
@@ -27,20 +29,15 @@
 
 .freeroam__header {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 1rem;
-  padding: 1.125rem 1.25rem 1rem;
+  padding: 1.125rem 1.5rem 1rem;
   border-bottom: 0.0625rem solid var(--trait);
-}
-.freeroam__heading {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 0.25rem;
 }
 .freeroam__title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 3rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -48,12 +45,65 @@
   color: var(--abri);
 }
 .freeroam__subtitle {
-  font-size: 0.8125rem;
+  flex: 1;
+  font-size: 0.875rem;
 }
 .freeroam__close {
-  align-self: flex-start;
-  min-width: 2rem;
-  padding: 0;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  font-size: 1.125rem;
+  color: var(--os);
+  background: var(--acier);
+  cursor: pointer;
+}
+.freeroam__close:hover {
+  background: var(--acier-hi);
+}
+.freeroam__pvp {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 3rem;
+  padding: 0 0.875rem;
+  border: 0.0625rem solid var(--trait);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brume-hi);
+  background: var(--acier);
+  cursor: pointer;
+}
+.freeroam__pvp:hover {
+  background: var(--acier-hi);
+}
+.freeroam__switch {
+  position: relative;
+  width: 2.25rem;
+  height: 1.125rem;
+  background: var(--trait);
+}
+.freeroam__switch::after {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 0.875rem;
+  height: 0.875rem;
+  background: var(--os);
+}
+.freeroam__pvp--on {
+  border-color: rgba(255, 90, 60, 0.5);
+  color: var(--hazard);
+  background: rgba(255, 90, 60, 0.08);
+}
+.freeroam__pvp--on .freeroam__switch {
+  background: var(--hazard);
+}
+.freeroam__pvp--on .freeroam__switch::after {
+  left: 1.25rem;
 }
 
 /* Navigation ------------------------------------------------------------------- */
@@ -61,40 +111,32 @@
 .freeroam__body {
   display: flex;
   flex: 1;
-  gap: 1rem;
+  gap: 1.25rem;
   min-height: 0;
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 1.25rem 1.5rem 1.5rem;
 }
 .freeroam__nav {
   display: flex;
   flex: none;
   flex-direction: column;
   gap: 0.375rem;
-  width: 13rem;
-}
-.freeroam__nav-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  margin-top: auto;
-  padding-top: 1rem;
+  width: 14rem;
 }
 .freeroam__tab {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  min-height: 2.75rem;
-  padding: 0 0.875rem;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0 1rem;
   border: 0;
   font-family: var(--font-display);
-  font-size: 1.0625rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-align: left;
   text-transform: uppercase;
   color: var(--brume-hi);
-  background: rgba(26, 30, 28, 0.85);
-  box-shadow: var(--ombre);
+  background: var(--acier);
   cursor: pointer;
 }
 .freeroam__tab:hover {
@@ -104,39 +146,26 @@
 .freeroam__tab--active,
 .freeroam__tab--active:hover {
   color: var(--nuit);
-  text-shadow: none;
   background: var(--abri);
 }
-.freeroam__tab--danger {
-  color: var(--hazard);
-  background: rgba(255, 90, 60, 0.08);
-  box-shadow: inset 0 0 0 0.0625rem rgba(255, 90, 60, 0.45), var(--ombre);
-}
-.freeroam__tab--danger:hover {
-  color: var(--nuit);
-  background: var(--hazard);
-}
 
-/* Contenu ---------------------------------------------------------------------- */
+/* Catalogue -------------------------------------------------------------------- */
 
 .freeroam__content {
   display: flex;
   flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1.25rem;
+  gap: 0.875rem;
   min-width: 0;
   overflow-y: auto;
 }
-.freeroam__content > .freeroam__grid,
-.freeroam__content > .freeroam__spawn,
-.freeroam__section {
-  align-self: stretch;
+.freeroam__content > * {
+  flex: none;
 }
 .freeroam__section {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 .freeroam__section-title {
   display: flex;
@@ -145,6 +174,7 @@
   margin: 0;
   font-size: 0.9375rem;
   font-weight: 700;
+  color: var(--brume-hi);
 }
 .freeroam__dot {
   width: 0.4375rem;
@@ -154,25 +184,70 @@
 
 .freeroam__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
 }
-.freeroam__item {
-  min-height: 2.75rem;
-  padding: 0 0.75rem;
+.freeroam__tile {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
   border: 0;
-  font-family: var(--font-display);
-  font-size: 0.8125rem;
-  font-weight: 600;
   text-align: left;
   color: var(--os);
-  background: rgba(26, 30, 28, 0.85);
+  background: var(--acier);
   cursor: pointer;
 }
-.freeroam__item:hover {
-  color: var(--nuit);
-  background: var(--abri);
+.freeroam__tile:hover,
+.freeroam__mode:hover {
+  background: var(--acier-hi);
 }
+.freeroam__tile--selected {
+  color: var(--abri);
+  box-shadow: inset 0 0 0 0.125rem var(--abri);
+}
+.freeroam__plate--weapon,
+.freeroam__plate--vehicle,
+.freeroam__preview-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.freeroam__plate {
+  width: 100%;
+}
+.freeroam__plate--weapon {
+  /* Images d'armes noires : plaque éclairée pour les détacher du panneau */
+  background: radial-gradient(ellipse at 50% 50%, #8d948c 0%, #4b524c 70%, #2c322e 100%);
+}
+.freeroam__plate--vehicle {
+  background: #141716;
+}
+.freeroam__plate.freeroam__plate--weapon {
+  height: 8rem;
+}
+.freeroam__plate.freeroam__plate--vehicle {
+  height: 4.875rem;
+}
+.freeroam__image {
+  display: block;
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+.freeroam__no-image {
+  color: #6b726c;
+}
+.freeroam__plate--weapon .freeroam__no-image {
+  color: var(--nuit);
+}
+.freeroam__label {
+  padding: 0.5rem 0.75rem 0.5625rem;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .freeroam__spawn {
   display: flex;
   gap: 0.5rem;
@@ -180,10 +255,181 @@
 .freeroam__input {
   flex: 1;
 }
+
+.freeroam__player {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.freeroam__player-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.125rem;
+  height: 15rem;
+  border: 0;
+  color: var(--os);
+  background: var(--acier);
+  cursor: pointer;
+}
+.freeroam__player-action:hover {
+  color: var(--nuit);
+  background: var(--abri);
+}
+.freeroam__player-label {
+  font-size: 1.625rem;
+  font-weight: 700;
+}
+
+.freeroam__mode {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  height: 6.25rem;
+  padding: 0 1.5rem;
+  border: 0;
+  text-align: left;
+  color: var(--os);
+  background: var(--acier);
+  cursor: pointer;
+}
+.freeroam__mode-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+}
+.freeroam__mode-label {
+  font-size: 1.625rem;
+  font-weight: 700;
+}
+.freeroam__mode-tagline {
+  font-size: 0.875rem;
+}
+
+/* Aperçu de l'objet choisi ------------------------------------------------------- */
+
+.freeroam__preview {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 25rem;
+  padding: 1rem;
+  background: #0f1211;
+}
+.freeroam__preview-plate {
+  flex: none;
+  height: 11.25rem;
+}
+.freeroam__preview-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.freeroam__preview-title {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.05;
+}
+.freeroam__preview-code {
+  font-size: 0.8125rem;
+}
+.freeroam__preview-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--brume-hi);
+}
+.freeroam__action {
+  flex: none;
+  height: 3.5rem;
+  border: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nuit);
+  background: var(--abri);
+  cursor: pointer;
+}
+.freeroam__action:hover:not(:disabled) {
+  background: #8fe0f0;
+}
+.freeroam__action:disabled {
+  color: var(--brume-hi);
+  background: var(--acier);
+  cursor: default;
+}
+.freeroam__action--small {
+  height: 2.75rem;
+  padding: 0 1.125rem;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
 .freeroam__tools {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+.freeroam__tool,
+.freeroam__danger {
+  flex: none;
+  height: 2.75rem;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.freeroam__tool {
+  border: 0;
+  color: var(--os);
+  background: var(--acier);
+}
+.freeroam__tool:hover {
+  background: var(--acier-hi);
+}
+.freeroam__danger {
+  border: 0.0625rem solid rgba(255, 90, 60, 0.5);
+  color: var(--hazard);
+  background: rgba(255, 90, 60, 0.08);
+}
+.freeroam__danger:hover {
+  color: var(--nuit);
+  background: var(--hazard);
+}
+.freeroam__owned {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+  padding-top: 0.75rem;
+  overflow-y: auto;
+  border-top: 0.0625rem solid var(--trait);
+}
+.freeroam__owned-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--brume-hi);
+}
+.freeroam__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.375rem;
+}
+.freeroam__chip {
+  padding: 0.3125rem 0.625rem;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  background: var(--acier);
 }
 
 /* Badge en jeu (haut gauche) */

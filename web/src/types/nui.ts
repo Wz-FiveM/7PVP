@@ -60,7 +60,7 @@ export type NuiMessage =
   | { action: 'controlZone'; data: { zone: ControlZoneHud | false } }
   | { action: 'conflict'; data: { conflict: ConflictHud | false } }
   | { action: 'dungeon'; data: { dungeon: DungeonHud | false } }
-  | { action: 'freeroamMenu'; data: { open: boolean; pvp: boolean; weapons: FreeroamWeapon[]; vehicles: FreeroamVehicle[] } }
+  | { action: 'freeroamMenu'; data: { open: boolean; pvp: boolean; weapons: FreeroamWeapon[]; vehicles: FreeroamVehicle[]; owned?: string[]; activities?: ActivityInfo[] } }
   | { action: 'freeroamPvp'; data: { pvp: boolean } }
   | { action: 'freeroamActivity'; data: { activity: { label: string; tagline: string } | false } }
   | { action: 'helpNotify'; data: { help: HelpNotification | false } }

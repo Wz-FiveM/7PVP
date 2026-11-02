@@ -191,7 +191,7 @@ export const initialState: GameState = {
   controlZone: null,
   conflict: null,
   dungeon: null,
-  freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [], activity: null },
+  freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [], owned: [], activities: [], activity: null },
   helpNotify: null,
   interaction: { open: false, items: null },
   loot: null,
