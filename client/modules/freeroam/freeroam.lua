@@ -11,6 +11,7 @@ local Gungame = PVP.use('Gungame')
 local Admin = PVP.use('Admin')
 local PedUtils = PVP.use('PedUtils')
 local Vehicles = PVP.use('Vehicles')
+local VehicleCustom = PVP.use('VehicleCustom')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -18,6 +19,7 @@ local Locale = PVP.use('Locale')
 Freeroam.menuOpen = false
 Freeroam.pvp = false
 Freeroam.vehicle = nil -- dernier véhicule créé (supprimé quand on en crée un autre, voir Vehicles.trackMenuVehicle)
+Freeroam.vehicleModel = nil -- nom du modèle de ce véhicule
 Freeroam.weapons = {} -- armes données : rendues après une mort
 
 -- Actions du menu : nom -> méthode
@@ -26,6 +28,7 @@ Freeroam.ACTIONS = {
     clearWeapons = 'clearWeapons',
     vehicle = 'spawnVehicle',
     repair = 'repairVehicle',
+    custom = 'customVehicle',
     heal = 'heal',
     armor = 'giveArmor',
     waypoint = 'teleportToWaypoint',
@@ -144,6 +147,7 @@ function Freeroam.spawnVehicle(data)
         return { ok = false, message = Locale.t('Impossible de faire apparaître un véhicule en zone safe : sors de la zone.') }
     end
 
+    local saved = Callback.await(Events.callbacks.freeroamCustomGet, model)
     Freeroam.deleteVehicle()
     if not PedUtils.loadModel(hash) then return { ok = false, message = Locale.t('Modèle introuvable.') } end
     local ped = PlayerPedId()
@@ -152,8 +156,10 @@ function Freeroam.spawnVehicle(data)
     SetVehicleOnGroundProperly(vehicle)
     SetPedIntoVehicle(ped, vehicle, -1)
     SetVehicleNumberPlateText(vehicle, '7PVP')
+    if saved and saved.custom then VehicleCustom.apply(vehicle, saved.custom) end
     SetModelAsNoLongerNeeded(hash)
     Freeroam.vehicle = vehicle
+    Freeroam.vehicleModel = model
     CreateThread(function() Vehicles.trackMenuVehicle(vehicle) end)
     Freeroam.setMenu(false)
     return { ok = true }
@@ -166,6 +172,7 @@ function Freeroam.deleteVehicle()
         DeleteVehicle(Freeroam.vehicle)
     end
     Freeroam.vehicle = nil
+    Freeroam.vehicleModel = nil
     Vehicles.trackMenuVehicle(nil)
 end
 
@@ -175,6 +182,31 @@ function Freeroam.repairVehicle()
     SetVehicleFixed(vehicle)
     SetVehicleDirtLevel(vehicle, 0.0)
     return { ok = true, message = Locale.t('Véhicule réparé.') }
+end
+
+---@param model string
+---@return string nom affiché : celui du menu, sinon celui de GTA (modèle tapé à la main)
+function Freeroam.vehicleLabel(model)
+    for _, entry in ipairs(Config.Freeroam.vehicles) do
+        if entry.model == model then return entry.label end
+    end
+    local label = GetLabelText(GetDisplayNameFromVehicleModel(GetHashKey(model)))
+    return label ~= 'NULL' and label or model
+end
+
+---Ouvre le menu du mécanicien sur le véhicule sorti de ce menu, joueur au volant et à l'arrêt.
+function Freeroam.customVehicle()
+    local ped = PlayerPedId()
+    local vehicle = GetVehiclePedIsIn(ped, false)
+    if not Freeroam.vehicle or vehicle ~= Freeroam.vehicle or GetPedInVehicleSeat(vehicle, -1) ~= ped then
+        return { ok = false, message = Locale.t('Mets-toi au volant du véhicule sorti du menu Freeroam.') }
+    end
+    if GetEntitySpeed(vehicle) * 3.6 >= Config.VehicleCustom.maxSpeed then
+        return { ok = false, message = Locale.t('Arrête le véhicule pour le customiser.') }
+    end
+    Freeroam.setMenu(false)
+    VehicleCustom.openFreeroam(vehicle, Freeroam.vehicleModel, Freeroam.vehicleLabel(Freeroam.vehicleModel))
+    return { ok = true }
 end
 
 -- ---------------------------------------------------------------------------

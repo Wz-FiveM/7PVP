@@ -1,6 +1,7 @@
 ---Custom des véhicules (Config.VehicleCustom) : repère devant chaque mécanicien, menu d'essai sur le
 ---véhicule immobilisé, et application de la custom enregistrée à chaque sortie du modèle (Vehicles.spawn).
 ---Annuler remet le véhicule comme il était. Voir server/modules/vehicle/vehicle_custom_service.lua.
+---En Freeroam, même menu sans mécanicien : ouvert depuis le menu du mode (Freeroam.customVehicle).
 ---@class VehicleCustomModule
 local VehicleCustom = PVP.define('VehicleCustom')
 local State = PVP.use('State')
@@ -27,6 +28,10 @@ VehicleCustom.vehicle = nil
 VehicleCustom.original = nil
 ---@type table|nil custom à l'essai
 VehicleCustom.props = nil
+---@type string|nil modèle en cours de custom en Freeroam (nil : custom du PvP)
+VehicleCustom.freeroamModel = nil
+-- Moteur, freins, turbo... proposés dans le menu ouvert
+VehicleCustom.performance = false
 VehicleCustom.opening = false
 -- Au volant sur un repère : l'aide « Customiser » remplace l'aide « Ranger » (voir Vehicles.helpLoop)
 VehicleCustom.atSpot = false
@@ -209,7 +214,7 @@ function VehicleCustom.describe(vehicle)
     local mods = {}
     for _, mod in ipairs(Config.VehicleCustom.mods) do
         local count = GetNumVehicleMods(vehicle, mod.id)
-        if count > 0 and (mod.tab ~= 'performance' or Config.VehicleCustom.performance) then
+        if count > 0 and (mod.tab ~= 'performance' or VehicleCustom.performance) then
             -- Le premier choix est la pièce d'origine (index -1 de GTA)
             local options = { Locale.t('D\'origine') }
             for index = 0, count - 1 do
@@ -224,7 +229,7 @@ function VehicleCustom.describe(vehicle)
         mods = mods,
         isCar = IsThisModelACar(model) and true or false,
         liveries = GetVehicleLiveryCount(vehicle),
-        performance = Config.VehicleCustom.performance,
+        performance = VehicleCustom.performance,
     }
 end
 
@@ -244,8 +249,23 @@ function VehicleCustom.open()
     -- Il a pu repartir, ou ouvrir autre chose, pendant la requête
     local vehicle = VehicleCustom.parkedVehicle()
     if not vehicle then return end
+    VehicleCustom.start(vehicle, result.label, Config.VehicleCustom.performance)
+end
 
+---@param vehicle integer véhicule sorti du menu du Freeroam, joueur au volant
+---@param model string nom du modèle
+---@param label string
+function VehicleCustom.openFreeroam(vehicle, model, label)
+    VehicleCustom.freeroamModel = model
+    VehicleCustom.start(vehicle, label, Config.Freeroam.customPerformance)
+end
+
+---@param vehicle integer
+---@param label string
+---@param performance boolean
+function VehicleCustom.start(vehicle, label, performance)
     VehicleCustom.vehicle = vehicle
+    VehicleCustom.performance = performance
     SetVehicleModKit(vehicle, 0)
     VehicleCustom.original = VehicleCustom.read(vehicle)
     VehicleCustom.props = VehicleCustom.original
@@ -255,7 +275,7 @@ function VehicleCustom.open()
     SetNuiFocus(true, true)
     Nui.send('vehicleCustom', {
         open = true,
-        label = result.label,
+        label = label,
         props = VehicleCustom.original,
         options = VehicleCustom.describe(vehicle),
         palettes = {
@@ -270,11 +290,17 @@ function VehicleCustom.open()
     CreateThread(VehicleCustom.watch)
 end
 
+---@return boolean le joueur est toujours dans le mode où le menu a été ouvert (en Freeroam, hors mode de jeu)
+function VehicleCustom.inOpeningMode()
+    if VehicleCustom.freeroamModel then return State.mode == 'freeroam' and not State.activity end
+    return State.inPvp()
+end
+
 ---Mort, éjecté, véhicule disparu, changement de mode : le menu se referme sans enregistrer.
 function VehicleCustom.watch()
     local vehicle = VehicleCustom.vehicle
     while VehicleCustom.vehicle == vehicle do
-        if not DoesEntityExist(vehicle) or not State.inPvp() or not State.isAlive()
+        if not DoesEntityExist(vehicle) or not VehicleCustom.inOpeningMode() or not State.isAlive()
             or GetPedInVehicleSeat(vehicle, -1) ~= PlayerPedId() then
             return VehicleCustom.cancel()
         end
@@ -296,7 +322,12 @@ end
 ---@return { ok: boolean, message?: string }
 function VehicleCustom.save()
     if not VehicleCustom.vehicle then return { ok = false } end
-    local result = Callback.await(Events.callbacks.vehicleCustomSave, VehicleCustom.props)
+    local result
+    if VehicleCustom.freeroamModel then
+        result = Callback.await(Events.callbacks.freeroamCustomSave, VehicleCustom.freeroamModel, VehicleCustom.props)
+    else
+        result = Callback.await(Events.callbacks.vehicleCustomSave, VehicleCustom.props)
+    end
     if not result or not result.ok then
         return result or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
     end
@@ -317,6 +348,7 @@ function VehicleCustom.close()
     VehicleCustom.vehicle = nil
     VehicleCustom.original = nil
     VehicleCustom.props = nil
+    VehicleCustom.freeroamModel = nil
     if vehicle and DoesEntityExist(vehicle) then FreezeEntityPosition(vehicle, false) end
     if VehicleCustom.cam then
         RenderScriptCams(false, true, 500, true, true)

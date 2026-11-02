@@ -2,6 +2,7 @@
 -- On gare devant lui, au volant de son véhicule sorti d'un objet, sur le repère au sol, et on appuie sur E.
 -- La custom est gardée en base, par joueur et par modèle : toutes ses prochaines Felon auront la même.
 -- Elle est gratuite et ne se perd jamais (véhicule détruit, volé, revendu : elle reste au joueur).
+-- Le Freeroam a sa propre custom, depuis son menu, avec les mêmes listes (Config.Freeroam.customPerformance).
 --
 -- Les positions se règlent dans le panneau admin (F10 > Positions > PNJ de service) : le repère est
 -- devant le mécanicien, dans la direction où il regarde.

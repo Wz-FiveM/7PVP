@@ -64,7 +64,7 @@ export function App() {
       )}
       {inPvp && state.menu.open && <UiGuard name="menu" onCrash={actions.closeMenu}><Menu /></UiGuard>}
       {inPvp && state.death.active && <UiGuard name="death"><DeathScreen /></UiGuard>}
-      {inFreeroam && !state.freeroam.menuOpen && <UiGuard name="freeroam-hud"><FreeroamHud /></UiGuard>}
+      {inFreeroam && !state.freeroam.menuOpen && !customizing && <UiGuard name="freeroam-hud"><FreeroamHud /></UiGuard>}
       {inFreeroam && state.freeroam.menuOpen && (
         <UiGuard name="freeroam-menu" onCrash={actions.closeFreeroam}>
           <FreeroamMenu />

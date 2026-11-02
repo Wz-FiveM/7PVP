@@ -135,9 +135,14 @@ export function FreeroamMenu() {
                     </div>
                   </section>
                 ))}
-                <button className="btn btn--small cut-s" onClick={() => actions.freeroamAction('repair')}>
-                  {t('Réparer mon véhicule')}
-                </button>
+                <div className="freeroam__tools">
+                  <button className="btn btn--small cut-s" onClick={() => actions.freeroamAction('repair')}>
+                    {t('Réparer mon véhicule')}
+                  </button>
+                  <button className="btn btn--small cut-s" onClick={() => actions.freeroamAction('custom')}>
+                    {t('Customiser mon véhicule')}
+                  </button>
+                </div>
               </>
             )}
 

@@ -180,6 +180,11 @@
 .freeroam__input {
   flex: 1;
 }
+.freeroam__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
 
 /* Badge en jeu (haut gauche) */
 .freeroam-hud {

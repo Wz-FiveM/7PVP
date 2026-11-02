@@ -43,6 +43,10 @@ Config.FreeroamActivities = {
 
 Config.Freeroam = {
     respawnDelay = 3, -- secondes avant de réapparaître sur place après une mort
+    -- Custom du véhicule sorti du menu (bouton de l'onglet Véhicules) : gratuite, partout, gardée par
+    -- joueur et par modèle, à part de celle du PvP. Bac à sable : moteur, freins, turbo... sont compris
+    -- (false les retire du menu, et ceux déjà enregistrés ne s'appliquent plus).
+    customPerformance = true,
     spawns = {
         vector4(-1037.7, -2737.6, 20.2, 330.0), -- aéroport de Los Santos
         vector4(-1388.0, -586.0, 30.2, 30.0), -- Del Perro
