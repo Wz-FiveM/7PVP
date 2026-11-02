@@ -3,6 +3,7 @@
 ---@class PvpGroup
 ---@field id integer
 ---@field leader integer server id du chef
+---@field slot integer place parmi les équipes en cours : son groupe de relations chez les clients (Group.relationGroups)
 ---@field members integer[] server ids, dans l'ordre d'arrivée
 
 ---@class GroupServiceModule
@@ -26,7 +27,7 @@ function GroupService.init()
     Callback.register(Events.callbacks.groupLeave, GroupService.leaveCallback)
     Callback.register(Events.callbacks.groupKick, GroupService.kick)
 
-    -- Pas de tir allié : la touche est annulée avant d'être appliquée
+    -- Pas de tir allié : le jeu le refuse déjà chez le tireur (Group.updateFire), ce contrôle ne compte que sur un client modifié
     AddEventHandler('weaponDamageEvent', function(sender, data)
         GroupService.onWeaponDamage(sender, data)
     end)
@@ -108,7 +109,7 @@ function GroupService.serialize(group)
             avatar = player and player.avatar,
         }
     end
-    return { id = group.id, leader = group.leader, members = members }
+    return { id = group.id, leader = group.leader, slot = group.slot, members = members }
 end
 
 ---Renvoie le groupe à jour à tous ses membres (ou `false` à un joueur sans groupe).
@@ -216,11 +217,20 @@ end
 -- Cycle de vie
 -- ---------------------------------------------------------------------------
 
+---@return integer première place libre : deux équipes en cours n'ont jamais la même
+function GroupService.freeSlot()
+    local used = {}
+    for _, group in pairs(GroupService.groups) do used[group.slot] = true end
+    local slot = 1
+    while used[slot] do slot = slot + 1 end
+    return slot
+end
+
 ---@param leader integer
 ---@return PvpGroup
 function GroupService.create(leader)
     GroupService.nextId = GroupService.nextId + 1
-    local group = { id = GroupService.nextId, leader = leader, members = { leader } }
+    local group = { id = GroupService.nextId, leader = leader, slot = GroupService.freeSlot(), members = { leader } }
     GroupService.groups[group.id] = group
     GroupService.memberOf[leader] = group.id
     GroupService.sync(group)

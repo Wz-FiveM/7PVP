@@ -3,19 +3,31 @@
 ---Le serveur décide de tout (voir server/modules/group/group_service.lua).
 ---@class GroupModule
 local Group = PVP.define('Group')
+local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
----@type table|false groupe actuel { id, leader, members = { { id, name } } }
+-- Équipes que le jeu sait distinguer. Au-delà, le tir allié est seulement annulé par le serveur.
+Group.MAX_SLOTS = 24
+Group.FIRE_INTERVAL = 250
+
+---@type table|false groupe actuel { id, leader, slot, members = { { id, name } } }
 Group.data = false
 ---@type table<integer, { blip: integer, entity: boolean }> server id -> repère (sur le joueur ou sur une position)
 Group.blips = {}
 ---@type table<integer, table> dernier état reçu du serveur par coéquipier { health, armor, dead, x, y, z, heading }
 Group.state = {}
+---@type table<integer, integer> place de l'équipe -> groupe de relations du personnage
+Group.relationGroups = {}
+Group.firePed = 0 -- personnage sur lequel le groupe de relations est appliqué, 0 = réglé par Call of Duty
+Group.fireRelation = false -- groupe de relations appliqué, false = celui de tous les joueurs
 
 function Group.init()
+    Group.setupRelationships()
+    CreateThread(Group.fireLoop)
+
     RegisterNetEvent(Events.client.groupSync, function(data)
         Group.onSync(data)
     end)
@@ -105,6 +117,64 @@ function Group.isMember(source)
         if member.id == source then return true end
     end
     return false
+end
+
+-- ---------------------------------------------------------------------------
+-- Tir sur les autres joueurs
+-- ---------------------------------------------------------------------------
+
+---Chaque équipe est alliée à elle-même et ennemie de tous les autres joueurs.
+function Group.setupRelationships()
+    local playerGroup = GetHashKey('PLAYER')
+    for slot = 1, Group.MAX_SLOTS do
+        local _, group = AddRelationshipGroup('PVP_SQUAD_' .. slot)
+        Group.relationGroups[slot] = group
+    end
+    for slot, group in ipairs(Group.relationGroups) do
+        SetRelationshipBetweenGroups(5, group, playerGroup)
+        SetRelationshipBetweenGroups(5, playerGroup, group)
+        for other, otherGroup in ipairs(Group.relationGroups) do
+            SetRelationshipBetweenGroups(slot == other and 0 or 5, group, otherGroup)
+        end
+    end
+end
+
+function Group.fireLoop()
+    while true do
+        Wait(Group.FIRE_INTERVAL)
+        Group.updateFire()
+    end
+end
+
+---Le jeu refuse lui-même le tir sur un coéquipier (équipe) ou sur tout autre joueur (monde zombies, où
+---tous restent dans le même groupe). Le serveur annule aussi ces touches, mais une touche annulée seule
+---abîme la cible chez le tireur alors qu'elle reste en vie chez elle : il la voit tomber ou disparaître.
+function Group.updateFire()
+    -- En Call of Duty, seules les équipes de la partie comptent (Cod.applyTeam)
+    if State.mode == 'cod' then
+        if Group.firePed ~= 0 then
+            Group.applyFire(false, false)
+            Group.firePed = 0
+        end
+        return
+    end
+
+    local pveWorld = LocalPlayer.state.pveWorld == true
+    local relation = not pveWorld and Group.data and Group.relationGroups[Group.data.slot] or false
+    Group.applyFire(relation, pveWorld or relation ~= false)
+end
+
+---@param relation integer|false groupe de relations de l'équipe, false = celui de tous les joueurs
+---@param blocked boolean le jeu refuse le tir sur les joueurs du même groupe
+function Group.applyFire(relation, blocked)
+    local ped = PlayerPedId()
+    if ped ~= Group.firePed or relation ~= Group.fireRelation then
+        SetPedRelationshipGroupHash(ped, relation or GetHashKey('PLAYER'))
+        Group.firePed, Group.fireRelation = ped, relation
+    end
+    -- Redemandé à chaque passage : une réapparition rétablit le tir sur le même personnage (Spawn.resetPed)
+    SetCanAttackFriendly(ped, not blocked, false)
+    NetworkSetFriendlyFireOption(not blocked)
 end
 
 -- ---------------------------------------------------------------------------
