@@ -10,6 +10,7 @@ local BountyService = PVP.use('BountyService')
 local RivalryService = PVP.use('RivalryService')
 local GroupService = PVP.use('GroupService')
 local AchievementService = PVP.use('AchievementService')
+local ReportService = PVP.use('ReportService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
@@ -139,6 +140,7 @@ function CombatService.onPlayerDied(source, killerId, cause)
     if killer then
         if type(cause) == 'table' and cause.headshot == true then AchievementService.track(killer, 'headshots', 1) end
         CombatService.rewardPlayerKill(killer, victim)
+        ReportService.recordKill(killer, victim, recap)
     end
     CombatService.broadcastKill(killer and killer:displayName(), victim:displayName(), nil, recap, {
         weapon = CombatService.weaponItem(cause and cause.weapon),

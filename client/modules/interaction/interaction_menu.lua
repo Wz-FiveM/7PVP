@@ -305,6 +305,11 @@ function Interaction.playerItems(target)
         kind = 'action', id = 'player:trade', label = Locale.t('Proposer un échange'), icon = 'trade',
         disabled = not Interaction.inReach(target.entity, Config.Trade.maxDistance),
     }
+    local reasons = {}
+    for index, reason in ipairs(Config.Reports.reasons) do
+        reasons[index] = { kind = 'action', id = 'report:' .. index, label = Locale.t(reason), icon = 'flag' }
+    end
+    items[#items + 1] = { kind = 'submenu', id = 'player:report', label = Locale.t('Signaler'), icon = 'flag', children = reasons }
     return items
 end
 
@@ -417,6 +422,11 @@ function Interaction.runOnTarget(id)
         Interaction.report(Callback.await(Events.callbacks.crewInvite, target.serverId))
     elseif id == 'player:trade' then
         Interaction.report(Callback.await(Events.callbacks.tradeRequest, target.serverId))
+    elseif id:find('^report:') then
+        Interaction.report(Callback.await(Events.callbacks.reportPlayer, {
+            target = target.serverId,
+            reason = Config.Reports.reasons[tonumber(id:sub(8))],
+        }))
     elseif id == 'loot:take' then
         Loot.interact(target.lootId)
     elseif id == 'npc:talk' then

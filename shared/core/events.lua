@@ -194,6 +194,7 @@ Events.callbacks = {
     seasonPassBuy = 'seasonPass:buy',
     blackMarketList = 'blackMarket:list',
     blackMarketBuy = 'blackMarket:buy',
+    reportPlayer = 'report:player',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',
     marketSell = 'market:sell',

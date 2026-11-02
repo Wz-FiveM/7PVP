@@ -18,6 +18,7 @@ local PlayerService = PVP.use('PlayerService')
 local AdminService = PVP.use('AdminService')
 local BanRepository = PVP.use('BanRepository')
 local DiscordService = PVP.use('DiscordService')
+local ReportService = PVP.use('ReportService')
 local ClassService = PVP.use('ClassService')
 local GroupService = PVP.use('GroupService')
 local PveWorldService = PVP.use('PveWorldService')
@@ -186,6 +187,7 @@ function AntiCheatService.flag(source, detection, details)
     AntiCheatService.strikes[source][detection] = list
 
     Logger.warn('[anti-cheat] %s (ID %d) : %s - %s (%d/%d)', player.name, source, rule.label, details, #list, rule.strikes)
+    ReportService.recordAlert(player, rule.label, details)
     DiscordService.send('sanctions', {
         title = '🛡️ Anti-cheat : ' .. rule.label,
         color = DiscordService.COLORS.critique,
