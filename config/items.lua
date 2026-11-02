@@ -63,7 +63,6 @@ Config.Items = {
     weapon_vintagepistol = { label = 'Pistolet vintage', type = 'weapon', weight = 1.0, weapon = 'WEAPON_VINTAGEPISTOL', ammo = 'ammo_9mm' },
     weapon_ceramicpistol = { label = 'Pistolet en céramique', type = 'weapon', weight = 0.8, weapon = 'WEAPON_CERAMICPISTOL', ammo = 'ammo_9mm' },
     weapon_marksmanpistol = { label = 'Pistolet de précision', type = 'weapon', weight = 1.2, weapon = 'WEAPON_MARKSMANPISTOL', ammo = 'ammo_9mm' },
-    weapon_machinepistol = { label = 'Pistolet-mitrailleur', type = 'weapon', weight = 1.6, weapon = 'WEAPON_MACHINEPISTOL', ammo = 'ammo_9mm' },
     weapon_revolver = { label = 'Revolver lourd', type = 'weapon', weight = 1.6, weapon = 'WEAPON_REVOLVER', ammo = 'ammo_9mm' },
     weapon_revolver_mk2 = { label = 'Revolver lourd Mk II', type = 'weapon', weight = 1.7, weapon = 'WEAPON_REVOLVER_MK2', ammo = 'ammo_9mm' },
     weapon_doubleaction = { label = 'Revolver double action', type = 'weapon', weight = 1.3, weapon = 'WEAPON_DOUBLEACTION', ammo = 'ammo_9mm' },
@@ -74,6 +73,7 @@ Config.Items = {
     -- Mitraillettes (munitions de SMG)
     weapon_microsmg = { label = 'Micro SMG', type = 'weapon', weight = 2.0, weapon = 'WEAPON_MICROSMG', ammo = 'ammo_45acp' },
     weapon_minismg = { label = 'Mini SMG', type = 'weapon', weight = 1.8, weapon = 'WEAPON_MINISMG', ammo = 'ammo_45acp' },
+    weapon_machinepistol = { label = 'Pistolet-mitrailleur', type = 'weapon', weight = 1.6, weapon = 'WEAPON_MACHINEPISTOL', ammo = 'ammo_45acp' },
     weapon_smg = { label = 'SMG', type = 'weapon', weight = 2.5, weapon = 'WEAPON_SMG', ammo = 'ammo_45acp' },
     weapon_smg_mk2 = { label = 'SMG Mk II', type = 'weapon', weight = 2.6, weapon = 'WEAPON_SMG_MK2', ammo = 'ammo_45acp' },
     weapon_assaultsmg = { label = 'SMG d\'assaut', type = 'weapon', weight = 2.7, weapon = 'WEAPON_ASSAULTSMG', ammo = 'ammo_45acp' },
