@@ -104,7 +104,7 @@ function GroupService.serialize(group)
         local player = PlayerService.get(source)
         members[#members + 1] = {
             id = source,
-            name = player and player.name or GetPlayerName(source),
+            name = player and player:displayName() or GetPlayerName(source),
             avatar = player and player.avatar,
         }
     end
@@ -158,7 +158,7 @@ function GroupService.invite(source, targetId)
         from = source,
         expires = os.time() + Config.Groups.inviteTimeout,
     }
-    TriggerClientEvent(Events.client.groupInvite, target.source, { from = source, fromName = player.name })
+    TriggerClientEvent(Events.client.groupInvite, target.source, { from = source, fromName = player:displayName() })
     return { ok = true, message = Locale.t('Invitation envoyée à %s.', target.name) }
 end
 

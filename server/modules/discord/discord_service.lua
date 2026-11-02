@@ -361,5 +361,5 @@ end
 function DiscordService.chat(player, text)
     local mode = ModeRegistry.getConfig(player.mode)
     DiscordService.sendLine('chat', ('`%s` **%s** : %s'):format(
-        mode and mode.label or player.mode, DiscordService.escape(player.name), DiscordService.escape(text)))
+        mode and mode.label or player.mode, DiscordService.escape(player:displayName()), DiscordService.escape(text)))
 end

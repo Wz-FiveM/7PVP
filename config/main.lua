@@ -49,6 +49,23 @@ Config.Groups = {
     blipColor = 3, -- couleur des coéquipiers sur la minimap (3 = bleu)
 }
 
+-- Crews du mode PvP : groupes permanents, reconnus à leur label de 3 lettres (« MGZ »).
+-- Le label s'affiche devant le nom du joueur (gamertags, chat, killfeed, classement...).
+-- Un crew ne change rien au combat : le tir allié reste une affaire d'équipe (Config.Groups).
+Config.Crews = {
+    maxMembers = 20,
+    createPrice = 5000, -- argent porté, payé à la création
+    nameMinLength = 3,
+    nameMaxLength = 24,
+    inviteTimeout = 60, -- secondes pour accepter une invitation
+    gamertagDistance = 150.0, -- portée des gamertags entre membres d'un même crew (mètres)
+    -- Labels que personne ne peut prendre
+    reservedTags = {
+        ADM = true, MOD = true, DEV = true, GMS = true, STF = true, BOT = true,
+        KKK = true, NZI = true, FDP = true, NTM = true, TPD = true,
+    },
+}
+
 -- ---------------------------------------------------------------------------
 -- Échanges entre joueurs (/trade) : PvP seulement, à côté l'un de l'autre, hors combat.
 -- Chacun propose des objets portés (sac + conteneur protégé), passe « Prêt », puis les deux

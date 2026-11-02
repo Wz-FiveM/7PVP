@@ -301,6 +301,7 @@ export const mockCreator: CreatorPayload = {
 export const mockInit: InitPayload = {
   config: {
     xpPerLevel: 1000,
+    crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24 },
     shortcutSlots: 7,
     containers: {
       bag: { label: 'Mon sac', capacity: 50 },

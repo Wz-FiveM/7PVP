@@ -13,6 +13,7 @@ local PlayerService = PVP.use('PlayerService')
 local PlayerRepository = PVP.use('PlayerRepository')
 local Progression = PVP.use('Progression')
 local SeasonService = PVP.use('SeasonService')
+local CrewService = PVP.use('CrewService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -57,13 +58,13 @@ end
 function LeaderboardService.buildSeason(season, withOnline)
     local byIdentifier = {}
     for _, row in ipairs(PlayerRepository.topSeason(season, LeaderboardService.SIZE * 2)) do
-        byIdentifier[row.identifier] = LeaderboardService.toRow(row.name, row.xp, row.kills, row.deaths, row.npc_kills, false)
+        byIdentifier[row.identifier] = LeaderboardService.toRow(CrewService.label(row.identifier, row.name), row.xp, row.kills, row.deaths, row.npc_kills, false)
     end
     if withOnline then
         for _, player in pairs(PlayerService.all()) do
             local stats = player.season
             if stats and stats.id == season and (stats.kills + stats.deaths + stats.npcKills) > 0 then
-                byIdentifier[player.identifier] = LeaderboardService.toRow(player.name, player.xp, stats.kills, stats.deaths, stats.npcKills, true)
+                byIdentifier[player.identifier] = LeaderboardService.toRow(CrewService.label(player.identifier, player.name), player.xp, stats.kills, stats.deaths, stats.npcKills, true)
             end
         end
     end
@@ -108,10 +109,10 @@ end
 function LeaderboardService.build()
     local byIdentifier = {}
     for _, row in ipairs(PlayerRepository.top(LeaderboardService.SIZE * 2)) do
-        byIdentifier[row.identifier] = LeaderboardService.toRow(row.name, row.xp, row.kills, row.deaths, row.npc_kills, false)
+        byIdentifier[row.identifier] = LeaderboardService.toRow(CrewService.label(row.identifier, row.name), row.xp, row.kills, row.deaths, row.npc_kills, false)
     end
     for _, player in pairs(PlayerService.all()) do
-        byIdentifier[player.identifier] = LeaderboardService.toRow(player.name, player.xp, player.kills, player.deaths, player.npcKills, true)
+        byIdentifier[player.identifier] = LeaderboardService.toRow(CrewService.label(player.identifier, player.name), player.xp, player.kills, player.deaths, player.npcKills, true)
     end
 
     return LeaderboardService.sortTop(byIdentifier)

@@ -2,7 +2,7 @@ import type { AdminSelf, NoclipInfo, NoclipKeyId } from './admin';
 import type { CreatorPayload } from './appearance';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -37,6 +37,10 @@ export type NuiMessage =
   /** groupe actuel, `false` sans groupe */
   | { action: 'group'; data: { group: GroupData | false } }
   | { action: 'groupInvite'; data: GroupInvite }
+  /** crew actuel, `false` sans crew */
+  | { action: 'crew'; data: { crew: CrewData | false } }
+  /** invitation reçue, `false` une fois traitée */
+  | { action: 'crewInvite'; data: CrewInvite | false }
   /** échange en cours entre joueurs (à droite de l'inventaire), `false` quand il se termine */
   | { action: 'trade'; data: { trade: TradeData | false } }
   | { action: 'groupVitals'; data: GroupVital[] }
@@ -138,6 +142,8 @@ export interface InitPayload {
   locale?: LocalePayload;
   config: GameConfig;
   player?: PlayerState;
+  /** crew du joueur, `false` sans crew */
+  crew?: CrewData | false;
   zone: ZoneInfo;
   /** mode en cours, `false` au lobby */
   mode?: string | false;

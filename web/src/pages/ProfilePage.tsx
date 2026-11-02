@@ -37,7 +37,7 @@ export function ProfilePage() {
     <div className="profile">
       <Panel className="profile__card">
         <span className="label">{t('Opérateur')}</span>
-        <span className="disp profile__name">{player.name}</span>
+        <span className="disp profile__name">{player.displayName ?? player.name}</span>
         <span className="disp profile__level">{t('Niveau {level}', { level: player.level })}</span>
         <SegmentBar value={levelXp} max={config.xpPerLevel} segments={20} color="var(--signal)" height={8} />
         <span className="mono muted profile__xp">

@@ -12,6 +12,7 @@ local Freeroam = PVP.use('Freeroam')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Loot = PVP.use('Loot')
 local Trade = PVP.use('Trade')
+local Crew = PVP.use('Crew')
 local Lobby = PVP.use('Lobby')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -169,6 +170,11 @@ function Nui.buildInitPayload()
             shortcutSlots = Config.ShortcutSlots,
             xpPerLevel = Config.XpPerLevel,
             groupMaxSize = Config.Groups.maxSize,
+            crew = {
+                maxMembers = Config.Crews.maxMembers,
+                createPrice = Config.Crews.createPrice,
+                nameMaxLength = Config.Crews.nameMaxLength,
+            },
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,
             recipes = Config.Recipes,
@@ -182,6 +188,7 @@ function Nui.buildInitPayload()
             },
         },
         player = State.player,
+        crew = Crew.data,
         zone = Zones.toInfo(State.zone),
         -- Un message « mode » envoyé avant que la page soit prête serait perdu
         mode = State.mode or false,

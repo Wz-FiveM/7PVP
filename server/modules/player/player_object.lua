@@ -36,6 +36,7 @@ local Zones = PVP.use('Zones')
 local ContractService = PVP.use('ContractService')
 local SeasonService = PVP.use('SeasonService')
 local ClassService = PVP.use('ClassService')
+local CrewService = PVP.use('CrewService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -109,6 +110,13 @@ function PlayerObject:notify(message, kind)
     TriggerClientEvent(Events.client.notify, self.source, message, kind or 'info')
 end
 
+---Nom montré aux autres joueurs : avec le label du crew en PvP (« [MGZ] Nom »), le nom seul ailleurs.
+---@return string
+function PlayerObject:displayName()
+    if self.mode ~= 'pvp' then return self.name end
+    return CrewService.label(self.identifier, self.name)
+end
+
 function PlayerObject:sync()
     -- Objet rangé au coffre, vendu, jeté ou perdu : il quitte aussi les raccourcis
     self.inventory:pruneShortcuts()
@@ -120,6 +128,7 @@ function PlayerObject:serialize()
     return {
         source = self.source,
         name = self.name,
+        displayName = CrewService.label(self.identifier, self.name),
         avatar = self.avatar,
         money = self:getMoney(),
         shopPoints = self.shopPoints or 0,

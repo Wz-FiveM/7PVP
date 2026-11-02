@@ -117,6 +117,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'group', group: message.data.group || null });
         case 'groupInvite':
           return dispatch({ type: 'group/invite', invite: message.data });
+        case 'crew':
+          return dispatch({ type: 'crew', crew: message.data.crew || null });
+        case 'crewInvite':
+          return dispatch({ type: 'crew/invite', invite: message.data || null });
         case 'pause':
           return dispatch({ type: 'pause', open: message.data.open, info: message.data.info });
         case 'groupVitals':

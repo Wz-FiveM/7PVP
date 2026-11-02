@@ -178,7 +178,7 @@ function AdminService.listPlayers(source)
     for id, player in pairs(PlayerService.all()) do
         list[#list + 1] = {
             id = id,
-            name = player.name,
+            name = player:displayName(),
             mode = player.mode or false,
             dead = player.dead,
             money = player:getMoney(),

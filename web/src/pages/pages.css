@@ -195,6 +195,60 @@
   color: var(--brume-hi);
 }
 
+/* Crew ------------------------------------------------------------------------------- */
+
+.crew-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+}
+.crew-title__tag {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--signal);
+}
+.crew-title__name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.crew-title__count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--brume);
+}
+.crew-member {
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+}
+.crew-member .group-member__id {
+  font-size: 0.6875rem;
+  white-space: nowrap;
+}
+.crew-member--offline .group-member__name {
+  color: var(--brume);
+}
+.crew-member__actions {
+  display: flex;
+  gap: 0.375rem;
+}
+.crew-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.crew-form__row {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.crew-form__tag {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+.crew-form .btn {
+  align-self: flex-start;
+}
+
 /* Fabrication ------------------------------------------------------------------------ */
 
 .crafting {

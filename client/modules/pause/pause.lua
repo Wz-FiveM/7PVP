@@ -77,7 +77,7 @@ end
 function Pause.buildInfo()
     local player = State.player or {}
     return {
-        name = player.name or GetPlayerName(PlayerId()),
+        name = (State.mode == 'pvp' and player.displayName) or player.name or GetPlayerName(PlayerId()),
         serverId = GetPlayerServerId(PlayerId()),
         avatar = player.avatar,
         mode = State.mode,

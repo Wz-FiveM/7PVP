@@ -20,6 +20,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Place de marché** | Auprès du commissaire-priseur : mettre en vente des objets portés (ils quittent l'inventaire), acheter ceux des autres, retirer ses annonces. L'argent des ventes (moins 5 % de taxe) est à récupérer chez lui, même si on était déconnecté. Annonces gardées en base. | `config/market.lua` |
 | **Coffres** | Conteneurs conservés, utilisables seulement auprès du banquier, en onglets (Coffre 1, 2, 3). Le coffre 1 est offert, les suivants s'achètent une fois pour toutes chez le banquier avec l'argent porté. Leur contenu n'est pas porté. | `Config.Containers.stash*` (`config/items.lua`) |
 | **Équipes** | Jusqu'à 4 joueurs en PvP : pas de tir allié, vie et armure de chaque coéquipier à gauche de l'écran, repères bleus sur la carte à toute distance (positions envoyées par le serveur). Menu (Verr. Maj) > Équipe ou `/inviter ID`, `/accepter`, `/refuser`, `/quittergroupe`. | `Config.Groups` |
+| **Crews** | Groupes permanents du mode PvP, gardés en base, jusqu'à 20 membres, reconnus à leur label de 3 lettres (« MGZ »). Le label s'affiche devant le nom : gamertags, chat, killfeed, récap de mort, primes, équipe, zones de contrôle, classement, Discord. Les membres d'un crew voient le gamertag des autres à 150 m. Un crew ne change rien au combat : pour couper le tir allié, il faut une équipe. Menu (Verr. Maj) > Crew, menu d'interaction ou `/crewinviter ID`, `/crewaccepter`, `/crewrefuser`, `/crewquitter`. | `Config.Crews`, tables `pvp_crews`, `pvp_crew_members` |
 | **Échanges** | `/trade ID` (ou menu d'interaction > Proposer un échange) : en PvP, à moins de 5 m, hors combat. L'inventaire s'ouvre avec les deux offres à droite ; on y glisse ses objets (argent compris), chacun passe « Prêt » puis les deux confirment. Toute modification retire les « Prêt » ; tout est revérifié et appliqué d'un coup par le serveur. Fermer le menu, s'éloigner, mourir ou entrer en combat annule. | `Config.Trade` |
 | **Largages aériens** | Une caisse tombe en parachute toutes les 20 min (2 joueurs PvP minimum), s'ouvre 60 s après l'atterrissage et se fouille avec `E`. | `Config.Airdrops`, table `airdrop` (`config/loot.lua`) |
 | **Menu pause** | Échap / P : carte, paramètres GTA, inventaire, commandes, retour au lobby, quitter. | — |
@@ -132,6 +133,10 @@ unban <license:xxxx>                        lève le ban
 bans                                        liste les bans en cours
 ```
 
+```
+crewdissoudre <label>   dissout un crew (label injurieux...)
+```
+
 ### Points boutique (Tebex)
 
 Monnaie premium achetée sur la boutique Tebex, dépensée en jeu (caisses : bouton « PB », achetée et ouverte aussitôt, partout hors combat). Solde gardé en base à part de l'inventaire (`pvp_shop_points`, jamais perdu à la mort ni échangeable), chaque mouvement est journalisé (`pvp_shop_points_log`) et chaque crédit/retrait par commande part dans le salon Discord admin. Réglages : `config/shop_points.lua` (nom, abréviation, lien de la boutique affiché dans le menu) ; prix en points : `points` dans `config/cases.lua`.
@@ -216,6 +221,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   │   │                       + InventoryService (utiliser, déplacer, jeter, raccourcis)
 │   │   ├── spawn/              SpawnService
 │   │   ├── combat/             CombatService (morts, récompenses, killfeed)
+│   │   ├── crew/               CrewRepository (SQL) + CrewService (crews du mode PvP, label de 3 lettres)
 │   │   ├── loot/               LootService (sacs, tables de butin)
 │   │   ├── pve/                PveZone (classe) + PveService
 │   │   ├── shop/               ShopService

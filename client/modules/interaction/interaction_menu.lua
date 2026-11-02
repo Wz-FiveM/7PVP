@@ -13,6 +13,7 @@ local Interaction = PVP.define('Interaction')
 local State = PVP.use('State')
 local Nui = PVP.use('Nui')
 local Group = PVP.use('Group')
+local Crew = PVP.use('Crew')
 local Loot = PVP.use('Loot')
 local Npcs = PVP.use('Npcs')
 local Bounty = PVP.use('Bounty')
@@ -262,7 +263,7 @@ function Interaction.selfItems()
     local player = State.player or {}
     return {
         -- Première ligne « :name » : affichée en en-tête du menu
-        { kind = 'info', id = 'self:name', label = player.name or GetPlayerName(PlayerId()), icon = 'profile' },
+        { kind = 'info', id = 'self:name', label = player.displayName or GetPlayerName(PlayerId()), icon = 'profile' },
         { kind = 'info', id = 'serverId', label = Locale.t('ID Serveur'), icon = 'contract', value = tostring(GetPlayerServerId(PlayerId())) },
         { kind = 'info', id = 'level', label = Locale.t('Niveau'), icon = 'trophy', value = tostring(player.level or 1) },
         { kind = 'separator', id = 'separator' },
@@ -274,7 +275,7 @@ end
 ---@return table[]
 function Interaction.playerItems(target)
     local items = {
-        { kind = 'info', id = 'player:name', label = target.name or Locale.t('Joueur'), icon = 'profile', value = ('ID %d'):format(target.serverId) },
+        { kind = 'info', id = 'player:name', label = target.name and Crew.label(target.serverId, target.name) or Locale.t('Joueur'), icon = 'profile', value = ('ID %d'):format(target.serverId) },
     }
     for _, entry in ipairs(Bounty.list) do
         if entry.id == target.serverId then
@@ -296,6 +297,9 @@ function Interaction.playerItems(target)
             kind = 'action', id = 'player:invite', label = Locale.t('Inviter dans l\'équipe'), icon = 'group',
             disabled = Group.data ~= false and not isLeader,
         }
+    end
+    if Crew.isLeader() and not Crew.tagOf(target.serverId) then
+        items[#items + 1] = { kind = 'action', id = 'player:crewInvite', label = Locale.t('Inviter dans le crew'), icon = 'flag' }
     end
     items[#items + 1] = {
         kind = 'action', id = 'player:trade', label = Locale.t('Proposer un échange'), icon = 'trade',
@@ -409,6 +413,8 @@ function Interaction.runOnTarget(id)
         Interaction.report(Callback.await(Events.callbacks.groupInvite, target.serverId))
     elseif id == 'player:kick' then
         Interaction.report(Callback.await(Events.callbacks.groupKick, target.serverId))
+    elseif id == 'player:crewInvite' then
+        Interaction.report(Callback.await(Events.callbacks.crewInvite, target.serverId))
     elseif id == 'player:trade' then
         Interaction.report(Callback.await(Events.callbacks.tradeRequest, target.serverId))
     elseif id == 'loot:take' then

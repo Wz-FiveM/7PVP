@@ -62,7 +62,7 @@ function ChatService.onMessage(source, text)
     if not clean then return end
     ChatService.lastSent[source] = now
 
-    ChatService.broadcast(player.mode, { kind = 'player', author = player.name, text = clean })
+    ChatService.broadcast(player.mode, { kind = 'player', author = player:displayName(), text = clean })
     Logger.info('[chat:%s] %s : %s', player.mode, player.name, clean)
     DiscordService.chat(player, clean)
 end

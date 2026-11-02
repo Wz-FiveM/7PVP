@@ -40,6 +40,8 @@ export interface PlayerState {
   /** server id du joueur */
   source: number;
   name: string;
+  /** nom précédé du label du crew : « [MGZ] Nom » */
+  displayName?: string;
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
   money: number;
@@ -159,6 +161,7 @@ export interface GameConfig {
   shortcutSlots: number;
   xpPerLevel: number;
   groupMaxSize?: number;
+  crew?: CrewConfig;
   /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
   /** accessoire -> { arme -> composant GTA } */
@@ -356,6 +359,28 @@ export interface GroupVital {
 
 export interface GroupInvite {
   from: number;
+  fromName: string;
+}
+
+/** Réglages du menu Crew (Config.Crews) */
+export interface CrewConfig {
+  maxMembers: number;
+  createPrice: number;
+  nameMaxLength: number;
+}
+
+/** Crew du joueur, envoyé par server/modules/crew/crew_service.lua */
+export interface CrewData {
+  /** label de 3 lettres : « MGZ » */
+  tag: string;
+  name: string;
+  /** key : numéro à renvoyer au serveur ; id : server id, `false` hors ligne */
+  members: { key: number; name: string; id: number | false; leader: boolean }[];
+}
+
+export interface CrewInvite {
+  tag: string;
+  name: string;
   fromName: string;
 }
 

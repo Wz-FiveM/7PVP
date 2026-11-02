@@ -133,7 +133,7 @@ function TradeService.serialize(trade, source)
         id = trade.id,
         partner = {
             id = partnerSource,
-            name = partner and partner.name or GetPlayerName(partnerSource),
+            name = partner and partner:displayName() or GetPlayerName(partnerSource),
             avatar = partner and partner.avatar,
         },
         mine = TradeService.serializeOffer(trade, source),
@@ -197,7 +197,7 @@ function TradeService.request(source, targetId)
     end
 
     TradeService.requests[target.source] = { from = source, expires = os.time() + Config.Trade.requestTimeout }
-    TriggerClientEvent(Events.client.tradeRequest, target.source, { from = source, fromName = player.name })
+    TriggerClientEvent(Events.client.tradeRequest, target.source, { from = source, fromName = player:displayName() })
     return { ok = true, message = Locale.t('Demande d\'échange envoyée à %s.', target.name) }
 end
 

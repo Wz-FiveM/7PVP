@@ -59,9 +59,9 @@ function ControlService.teamLabel(team, player)
     local group = GroupService.getGroupOf(player.source)
     if team:sub(1, 2) == 'g:' and group then
         local leader = PlayerService.get(group.leader)
-        return Locale.t('Groupe de %s', leader and leader.name or player.name)
+        return Locale.t('Groupe de %s', leader and leader:displayName() or player:displayName())
     end
-    return player.name
+    return player:displayName()
 end
 
 ---Camps présents dans le cercle (joueurs PvP vivants).

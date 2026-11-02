@@ -176,7 +176,7 @@ function LiveService.players()
         local mode = player.mode or 'lobby'
         modes[mode] = (modes[mode] or 0) + 1
         list[#list + 1] = {
-            name = player.name,
+            name = player:displayName(),
             mode = mode,
             activity = LiveService.safe('activité', function() return LiveService.activityOf(source) end, false),
         }

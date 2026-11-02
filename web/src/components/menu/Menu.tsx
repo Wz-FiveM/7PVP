@@ -37,7 +37,7 @@ export function Menu() {
       <header className="menu__bar">
         <div className="menu__heading">
           <span className="mono menu__eyebrow">
-            {t('OPÉRATEUR')}{player ? ` · ${player.name} · ${t('NIV. {level}', { level: player.level })}` : ''}
+            {t('OPÉRATEUR')}{player ? ` · ${player.displayName ?? player.name} · ${t('NIV. {level}', { level: player.level })}` : ''}
           </span>
           <h1 className="disp menu__title">{t(page.label)}</h1>
         </div>

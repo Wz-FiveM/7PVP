@@ -2,6 +2,8 @@ import type {
   CaseSpin,
   ChatMessage,
   GameConfig,
+  CrewData,
+  CrewInvite,
   GroupData,
   GroupInvite,
   GroupVital,
@@ -63,6 +65,9 @@ export interface GameState {
   group: GroupData | null;
   groupInvite: GroupInvite | null;
   groupVitals: GroupVital[];
+  /** Crew du joueur et invitation reçue */
+  crew: CrewData | null;
+  crewInvite: CrewInvite | null;
   /** Menu pause (Échap) */
   pause: { open: boolean; info: PauseInfo | null };
   toasts: Toast[];
@@ -110,6 +115,8 @@ export type GameAction =
   | { type: 'group'; group: GroupData | null }
   | { type: 'group/invite'; invite: GroupInvite | null }
   | { type: 'group/vitals'; vitals: GroupVital[] }
+  | { type: 'crew'; crew: CrewData | null }
+  | { type: 'crew/invite'; invite: CrewInvite | null }
   | { type: 'pause'; open: boolean; info?: PauseInfo }
   | { type: 'toast/add'; toast: Toast }
   | { type: 'toast/remove'; id: number }
@@ -157,6 +164,8 @@ export const initialState: GameState = {
   group: null,
   groupInvite: null,
   groupVitals: [],
+  crew: null,
+  crewInvite: null,
   pause: { open: false, info: null },
   toasts: [],
   killfeed: [],
@@ -179,6 +188,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ready: true,
         config: action.payload.config,
         player: action.payload.player ?? state.player,
+        crew: action.payload.crew || state.crew,
         zone: action.payload.zone,
         mode: action.payload.mode === undefined ? state.mode : action.payload.mode || null,
         lobby: action.payload.lobby ?? state.lobby,
@@ -260,6 +270,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, pause: { open: action.open, info: action.info ?? state.pause.info } };
     case 'group/vitals':
       return { ...state, groupVitals: action.vitals };
+    case 'crew':
+      return { ...state, crew: action.crew, crewInvite: action.crew ? null : state.crewInvite };
+    case 'crew/invite':
+      return { ...state, crewInvite: action.invite };
     case 'combat':
       return { ...state, combatUntil: action.seconds > 0 ? Date.now() + action.seconds * 1000 : 0 };
     case 'toast/add':

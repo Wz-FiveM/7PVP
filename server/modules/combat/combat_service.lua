@@ -120,7 +120,7 @@ function CombatService.onPlayerDied(source, killerId, cause)
     if killer then
         CombatService.rewardPlayerKill(killer, victim)
     end
-    CombatService.broadcastKill(killer and killer.name, victim.name, nil, recap, {
+    CombatService.broadcastKill(killer and killer:displayName(), victim:displayName(), nil, recap, {
         weapon = CombatService.weaponItem(cause and cause.weapon),
         headshot = type(cause) == 'table' and cause.headshot == true,
         killerId = killer and killer.source,
@@ -142,7 +142,7 @@ function CombatService.dropVictimLoot(victim, coords)
         -- Ouvert comme un coffre : on glisse dans son sac ce qu'on veut garder
         browse = true,
         label = Locale.t('Fouiller le butin'),
-        title = Locale.t('Butin de %s', victim.name),
+        title = Locale.t('Butin de %s', victim:displayName()),
     })
 end
 
@@ -184,7 +184,7 @@ function CombatService.rewardPlayerKill(killer, victim, message)
     killer:incrementStat('kills')
     killer:addMoney(reward.money)
     killer:addXp(reward.xp)
-    killer:notify(Locale.t('%s (+$%d)', message or Locale.t('Tu as tué %s', victim.name), reward.money), 'success')
+    killer:notify(Locale.t('%s (+$%d)', message or Locale.t('Tu as tué %s', victim:displayName()), reward.money), 'success')
     BountyService.onPlayerKill(killer, victim)
     ContractService.track(killer, 'playerKill', 1)
     killer:sync()
@@ -228,7 +228,7 @@ function CombatService.buildRecap(victim, killer, cause)
     local taken = victim.combatLog.taken[killer.source] or {}
     local dealt = victim.combatLog.dealt[killer.source] or {}
     local ped = GetPlayerPed(killer.source)
-    recap.killer = killer.name
+    recap.killer = killer:displayName()
     recap.killerId = killer.source
     recap.distance = math.floor(#(killer:getCoords() - victim:getCoords()) + 0.5)
     recap.killerHealth = math.max(0, GetEntityHealth(ped) - 100)

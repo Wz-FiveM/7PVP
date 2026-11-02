@@ -828,6 +828,26 @@ export const DEV_ACTIONS: DevAction[] = [
   { label: 'Masquer aide', run: () => sendNui({ action: 'helpNotify', data: { help: false } }) },
   { label: 'Invitation groupe', run: () => sendNui({ action: 'groupInvite', data: { from: 9, fromName: 'Nova' } }) },
   { label: 'Quitter groupe', run: () => sendNui({ action: 'group', data: { group: false } }) },
+  {
+    label: 'Crew MGZ',
+    run: () =>
+      sendNui({
+        action: 'crew',
+        data: {
+          crew: {
+            tag: 'MGZ',
+            name: 'Magazine',
+            members: [
+              { key: 1, name: 'Dev', id: 1, leader: true },
+              { key: 2, name: 'Bravo', id: 7, leader: false },
+              { key: 3, name: 'Kilo', id: false, leader: false },
+            ],
+          },
+        },
+      }),
+  },
+  { label: 'Invitation crew', run: () => sendNui({ action: 'crewInvite', data: { tag: 'MGZ', name: 'Magazine', fromName: 'Nova' } }) },
+  { label: 'Quitter crew', run: () => sendNui({ action: 'crew', data: { crew: false } }) },
   { label: 'En combat (20 s)', run: () => sendNui({ action: 'combat', data: { seconds: 20 } }) },
   { label: 'Fin du combat', run: () => sendNui({ action: 'combat', data: { seconds: 0 } }) },
   {

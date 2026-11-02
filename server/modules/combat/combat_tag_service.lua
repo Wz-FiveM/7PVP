@@ -122,9 +122,9 @@ function CombatTagService.onPlayerLeaving(source)
 
     local killer = player.lastAttacker and PlayerService.get(player.lastAttacker)
     if killer then
-        CombatService.rewardPlayerKill(killer, player, Locale.t('%s s\'est déconnecté en combat', player.name))
+        CombatService.rewardPlayerKill(killer, player, Locale.t('%s s\'est déconnecté en combat', player:displayName()))
     end
-    CombatService.broadcastKill(killer and killer.name, player.name, 'disconnect', nil, {
+    CombatService.broadcastKill(killer and killer:displayName(), player:displayName(), 'disconnect', nil, {
         killerId = killer and killer.source,
         victimId = player.source,
     })
