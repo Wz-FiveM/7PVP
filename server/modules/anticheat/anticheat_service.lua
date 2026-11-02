@@ -114,7 +114,7 @@ end
 
 ---Limite de requêtes par seconde : false (requête à ignorer) au-delà de Config.AntiCheat.rateLimits[key].
 ---@param source integer
----@param key string callback, hit, npcDeath, loot
+---@param key string callback, hit, npcHit, zombieAttack, npcDeath, loot
 ---@return boolean
 function AntiCheatService.allow(source, key)
     local limit = Config.AntiCheat.rateLimits[key]

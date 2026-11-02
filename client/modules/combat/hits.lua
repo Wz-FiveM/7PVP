@@ -13,6 +13,9 @@ Hits.HEAD_BONE = 31086 -- SKEL_Head
 -- Écart max (ms) entre la baisse de vie et l'événement de dégâts du jeu pour les associer
 -- (les deux n'arrivent pas toujours dans la même image)
 Hits.ATTRIBUTION_WINDOW = 250
+-- Délai minimum (ms) entre deux touches signalées : le feu peut blesser à chaque image
+Hits.HIT_REPORT_INTERVAL = 50
+Hits.lastHitReport = 0
 
 Hits.health = 0
 Hits.armor = 0
@@ -22,9 +25,11 @@ Hits.pendingDamage = nil
 Hits.pendingAttacker = nil
 -- Vie et gilet connus des zombies dont ce client est propriétaire : [ped] = { health, armor }
 Hits.zombieHealth = {}
--- Les touches des autres joueurs sur nos zombies partent regroupées (ms) : chaque plomb d'un
--- fusil à pompe peut arriver dans sa propre image, et toutes comptent contre notre limite de requêtes
+-- Les touches des autres joueurs sur nos zombies partent ensemble, en une seule requête par intervalle (ms) :
+-- celui qui pilote toute une horde reçoit les tirs de tout le monde, et ils comptent contre sa limite de requêtes
 Hits.ZOMBIE_REPORT_INTERVAL = 100
+-- Touches par requête, les suivantes partent à l'intervalle d'après (limite du serveur : MAX_NPC_HIT_REPORTS)
+Hits.MAX_ZOMBIE_REPORTS = 32
 Hits.lastZombieReport = 0
 -- Touches à envoyer : ['ped:tireur'] = { attackerId, netId, hit }
 Hits.zombieReports = {}
@@ -120,9 +125,12 @@ end
 ---@param attacker integer ped du joueur
 ---@param fatal boolean
 function Hits.onPlayerDamaged(ped, attacker, fatal)
+    local serverId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(attacker))
+    local pending = Hits.pendingAttacker
     Hits.pendingAttacker = {
-        serverId = GetPlayerServerId(NetworkGetPlayerIndexFromPed(attacker)),
-        headshot = Hits.isHeadshot(ped),
+        serverId = serverId,
+        -- Les touches en attente partent ensemble : la tête touchée juste avant ne doit pas se perdre
+        headshot = Hits.isHeadshot(ped) or (pending ~= nil and pending.serverId == serverId and pending.headshot),
         fatal = fatal or IsEntityDead(ped),
         at = GetGameTimer(),
     }
@@ -135,6 +143,8 @@ function Hits.flush()
     local now = GetGameTimer()
 
     if damage and attacker and math.abs(damage.at - attacker.at) <= Hits.ATTRIBUTION_WINDOW then
+        if now - Hits.lastHitReport < Hits.HIT_REPORT_INTERVAL then return end
+        Hits.lastHitReport = now
         TriggerServerEvent(Events.server.hitReport, attacker.serverId, {
             health = damage.health,
             armor = damage.armor,
@@ -234,10 +244,13 @@ function Hits.flushZombieReports()
     local now = GetGameTimer()
     if now - Hits.lastZombieReport < Hits.ZOMBIE_REPORT_INTERVAL then return end
     Hits.lastZombieReport = now
+    local reports = {}
     for key, report in pairs(Hits.zombieReports) do
-        TriggerServerEvent(Events.server.npcHitReport, report.attackerId, report.netId, report.hit)
+        reports[#reports + 1] = report
         Hits.zombieReports[key] = nil
+        if #reports >= Hits.MAX_ZOMBIE_REPORTS then break end
     end
+    if reports[1] then TriggerServerEvent(Events.server.npcHitReport, reports) end
 end
 
 -- ---------------------------------------------------------------------------

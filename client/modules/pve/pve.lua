@@ -21,7 +21,12 @@ Pve.SCREEN_EFFECT_TIME = 1200
 -- bousculades 8192 + 16384 + 32768. Un zombie à terre est presque impossible à viser ; les explosions,
 -- les véhicules et l'étourdissement des classes le font encore tomber.
 Pve.RAGDOLL_BLOCKING_FLAGS = 57425
+-- Morts et vomis signalés par scan : ce client peut piloter toute une horde, le reste attend le scan suivant
+-- (Config.AntiCheat.rateLimits : 40 requêtes/s, et 4 scans par seconde)
+Pve.REQUESTS_PER_SCAN = 6
 
+Pve.deathBudget = 0
+Pve.attackBudget = 0
 Pve.npcGroup = 0
 Pve.configured = {} -- [ped] = true quand le comportement zombie a été appliqué sur ce client
 Pve.reported = {} -- [ped] = true quand la mort a été signalée
@@ -69,6 +74,8 @@ function Pve.loadAssets()
 end
 
 function Pve.scan()
+    Pve.deathBudget = Pve.REQUESTS_PER_SCAN
+    Pve.attackBudget = Pve.REQUESTS_PER_SCAN
     local myId = PlayerId()
     for _, ped in ipairs(GetGamePool('CPed')) do
         if NetworkGetEntityIsNetworked(ped) and not IsPedAPlayer(ped) then
@@ -168,11 +175,17 @@ function Pve.stun(ped, offset, duration, push)
     end
 end
 
+---Un corps dont la mort est déjà comptée n'est pas signalé : il change de propriétaire avec tout le tas
+---quand un joueur s'approche ou quitte le serveur.
 ---@param ped integer
 function Pve.reportDeath(ped)
     if Pve.reported[ped] then return end
+    if not Entity(ped).state.pvpNpcDead then
+        if Pve.deathBudget <= 0 then return end
+        Pve.deathBudget = Pve.deathBudget - 1
+        TriggerServerEvent(Events.server.npcDied, NetworkGetNetworkIdFromEntity(ped), PedUtils.getKillerServerId(ped))
+    end
     Pve.reported[ped] = true
-    TriggerServerEvent(Events.server.npcDied, NetworkGetNetworkIdFromEntity(ped), PedUtils.getKillerServerId(ped))
     ZombieGear.onDeath(ped, Pve.getType(ped))
 end
 
@@ -312,6 +325,8 @@ end
 function Pve.tryAttack(ped, target, zombieType)
     local now = GetGameTimer()
     if now - (Pve.lastAttack[ped] or 0) < (zombieType.cooldown or Config.Zombie.attackCooldown) then return end
+    if Pve.attackBudget <= 0 then return end
+    Pve.attackBudget = Pve.attackBudget - 1
     Pve.lastAttack[ped] = now
     Pve.chasing[ped] = nil
 

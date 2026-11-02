@@ -30,9 +30,9 @@ function CombatService.init()
         CombatService.onHitReport(source, attackerId, hit)
     end)
 
-    -- Envoyé par le client propriétaire d'un zombie touché par un autre joueur
-    RegisterNetEvent(Events.server.npcHitReport, function(attackerId, netId, hit)
-        CombatService.onNpcHitReport(source, attackerId, netId, hit)
+    -- Envoyé par le client propriétaire de zombies touchés par d'autres joueurs : un paquet de touches
+    RegisterNetEvent(Events.server.npcHitReport, function(reports)
+        CombatService.onNpcHitReports(source, reports)
     end)
 end
 
@@ -41,6 +41,8 @@ CombatService.MAX_HIT_HEALTH = 200
 CombatService.MAX_HIT_ARMOR = 100
 -- Les zombies peuvent avoir plus de vie qu'un joueur (bloc `npc` des zones)
 CombatService.MAX_NPC_HIT_HEALTH = 1000
+-- Touches lues par paquet (Hits.MAX_ZOMBIE_REPORTS côté client)
+CombatService.MAX_NPC_HIT_REPORTS = 32
 
 ---@param value any
 ---@param max integer
@@ -49,13 +51,25 @@ function CombatService.clampDamage(value, max)
     return math.floor(math.min(math.max(tonumber(value) or 0, 0), max))
 end
 
+---@param source integer propriétaire des zombies
+---@param reports any liste de { attackerId, netId, hit }
+function CombatService.onNpcHitReports(source, reports)
+    if type(reports) ~= 'table' or not AntiCheatService.allow(source, 'npcHit') then return end
+    for i = 1, math.min(#reports, CombatService.MAX_NPC_HIT_REPORTS) do
+        local report = reports[i]
+        if type(report) == 'table' then
+            CombatService.onNpcHitReport(source, report.attackerId, report.netId, report.hit)
+        end
+    end
+end
+
 ---Zombie touché : seul son propriétaire réseau peut le signaler, le tireur doit être proche.
 ---@param source integer propriétaire du zombie
 ---@param attackerId any
 ---@param netId any
 ---@param hit any { damage, headshot, fatal }
 function CombatService.onNpcHitReport(source, attackerId, netId, hit)
-    if type(hit) ~= 'table' or not AntiCheatService.allow(source, 'hit') then return end
+    if type(hit) ~= 'table' then return end
     netId = tonumber(netId)
     local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
     if ped == 0 or not DoesEntityExist(ped) or not Entity(ped).state.pvpNpc then return end

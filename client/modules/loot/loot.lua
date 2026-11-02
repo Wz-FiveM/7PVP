@@ -21,6 +21,9 @@ local Locale = PVP.use('Locale')
 Loot.STREAM_DISTANCE = 60.0
 Loot.DRAW_DISTANCE = 15.0
 Loot.CONTROL_PICKUP = 38 -- E
+-- Délai minimum (ms) entre deux fouilles : marteler E reste sous Config.AntiCheat.rateLimits.loot
+Loot.PICKUP_INTERVAL = 120
+Loot.lastPickup = 0
 
 ---@type table<integer, ClientLootBag>
 Loot.bags = {}
@@ -212,6 +215,9 @@ end
 function Loot.interact(id)
     local bag = Loot.bags[id]
     if not bag then return end
+    local now = GetGameTimer()
+    if now - Loot.lastPickup < Loot.PICKUP_INTERVAL then return end
+    Loot.lastPickup = now
     if not bag.browse then return TriggerServerEvent(Events.server.lootPickup, id) end
     CreateThread(function()
         Loot.openContainer(id)

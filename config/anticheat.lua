@@ -42,8 +42,11 @@ Config.AntiCheat = {
     -- Requêtes réseau par seconde et par joueur avant d'être ignorées
     rateLimits = {
         callback = 25, -- menus, inventaire, achats...
-        hit = 40, -- touches signalées (hitmarker, zombies)
-        npcDeath = 40, -- morts de zombies : à part, un pic de touches ne doit pas faire perdre un kill
+        -- Combat : un client honnête reste en dessous quel que soit le nombre de zombies, il regroupe ses envois
+        hit = 40, -- touches sur ce joueur (au plus 20/s)
+        npcHit = 25, -- touches sur ses zombies, par paquet (au plus 10/s)
+        zombieAttack = 40, -- vomis de ses zombies (au plus 24/s)
+        npcDeath = 40, -- morts de ses zombies (au plus 24/s)
         loot = 10, -- ramassage de butin
         ui = 2, -- erreurs d'interface signalées (journal)
     },

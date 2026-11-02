@@ -159,6 +159,8 @@ function PveZone:onNpcDeath(ped, killer)
     local zombieType = Config.ZombieTypes[typeId] or Config.ZombieTypes.walker
     self.peds[ped] = nil
     self.respawnQueue[#self.respawnQueue + 1] = GetGameTimer() + self.config.respawn * 1000
+    -- Mort comptée : le prochain propriétaire du corps ne la signalera pas (Pve.reportDeath)
+    Entity(ped).state:set('pvpNpcDead', true, true)
 
     if killer then
         CombatService.rewardNpcKill(killer, self.zone.id)
