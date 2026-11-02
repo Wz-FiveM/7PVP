@@ -1,6 +1,8 @@
 import type {
   CaseSpin,
+  ChatCommand,
   ChatMessage,
+  ChatPlayer,
   GameConfig,
   CrewData,
   CrewInvite,
@@ -49,7 +51,7 @@ export interface GameState {
   /** Mode de jeu en cours ('pvp', 'freeroam'), null au lobby */
   mode: string | null;
   lobby: { open: boolean; modes: LobbyMode[] };
-  chat: { open: boolean; messages: ChatMessage[] };
+  chat: { open: boolean; messages: ChatMessage[]; commands: ChatCommand[]; players: ChatPlayer[] };
   admin: { open: boolean; self: AdminSelf };
   /** Aide à l'écran du noclip et touches maintenues */
   noclip: NoclipInfo & { held: NoclipKeyId[] };
@@ -105,7 +107,8 @@ export type GameAction =
   | { type: 'minimap'; minimap: MinimapAnchor }
   | { type: 'mode'; mode: string | null }
   | { type: 'lobby'; open: boolean; modes?: LobbyMode[] }
-  | { type: 'chat/open'; open: boolean }
+  | { type: 'chat/open'; open: boolean; commands?: ChatCommand[] }
+  | { type: 'chat/players'; players: ChatPlayer[] }
   | { type: 'chat/message'; message: ChatMessage }
   | { type: 'admin'; open: boolean; self?: AdminSelf }
   /** Navigateur uniquement : simule une option admin activée / coupée */
@@ -161,7 +164,7 @@ export const initialState: GameState = {
   minimap: null,
   mode: null,
   lobby: { open: false, modes: [] },
-  chat: { open: false, messages: [] },
+  chat: { open: false, messages: [], commands: [], players: [] },
   admin: { open: false, self: { noclip: false, god: false, invisible: false, gamertags: false, spectating: false } },
   noclip: { active: false, toggleKey: 'F11', speed: 0, fastMultiplier: 1, slowMultiplier: 1, held: [] },
   menu: { open: false, inSafe: false, near: {}, page: null, key: 0 },
@@ -241,7 +244,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'noclip/held':
       return { ...state, noclip: { ...state.noclip, held: action.held } };
     case 'chat/open':
-      return { ...state, chat: { ...state.chat, open: action.open } };
+      return {
+        ...state,
+        chat: {
+          ...state.chat,
+          open: action.open,
+          commands: Array.isArray(action.commands) ? action.commands : state.chat.commands,
+        },
+      };
+    case 'chat/players':
+      return { ...state, chat: { ...state.chat, players: Array.isArray(action.players) ? action.players : [] } };
     case 'chat/message':
       return {
         ...state,

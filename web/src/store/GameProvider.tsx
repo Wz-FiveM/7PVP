@@ -7,7 +7,7 @@ import { pauseApi } from '../api/pauseApi';
 import { crewApi } from '../api/crewApi';
 import { tradeApi } from '../api/tradeApi';
 import { isEnvBrowser } from '../api/nui';
-import { mockCaseReel, mockLobbyModes, mockVitals } from '../dev/mocks';
+import { mockCaseReel, mockChatCommands, mockChatPlayers, mockLobbyModes, mockVitals } from '../dev/mocks';
 import { useNuiMessage } from '../hooks/useNuiMessage';
 import { setLanguage, t } from '../i18n';
 import type { KillfeedEntry, ToastKind } from '../types/game';
@@ -59,7 +59,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
         case 'lobby':
           return dispatch({ type: 'lobby', open: message.data.open, modes: message.data.modes });
         case 'chat':
-          return dispatch({ type: 'chat/open', open: message.data.open });
+          return dispatch({ type: 'chat/open', open: message.data.open, commands: message.data.commands });
+        case 'chatPlayers':
+          return dispatch({ type: 'chat/players', players: message.data.players });
         case 'admin':
           return dispatch({ type: 'admin', open: message.data.open, self: message.data.self });
         case 'noclip':
@@ -176,7 +178,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const typing = document.activeElement instanceof HTMLInputElement;
       if (event.key.toLowerCase() === 't' && event.type === 'keydown' && !typing) {
         event.preventDefault();
-        dispatch({ type: 'chat/open', open: true });
+        dispatch({ type: 'chat/open', open: true, commands: mockChatCommands });
+        dispatch({ type: 'chat/players', players: mockChatPlayers });
         return;
       }
       if (event.key !== 'Tab') return;

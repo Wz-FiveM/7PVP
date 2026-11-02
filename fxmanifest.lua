@@ -58,6 +58,7 @@ shared_scripts {
     'config/presence.lua',
     'config/voice.lua',
     'config/admin.lua',
+    'config/chat_commands.lua',
     'shared/core/logger.lua',
     'shared/core/locale.lua',
     'shared/core/events.lua',

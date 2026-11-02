@@ -1,7 +1,7 @@
 import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
 import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile, mockCodProfilePrestige } from './codMocks';
-import { mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
+import { mockChatCommands, mockChatPlayers, mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 import { mockVehicleCustom } from './vehicleCustomMock';
 import { mockWeaponCustom } from './weaponCustomMock';
 
@@ -337,7 +337,8 @@ export const DEV_SCREENS: DevScreen[] = [
     label: 'Chat ouvert',
     open: () => {
       enterPvp();
-      sendNui({ action: 'chat', data: { open: true } });
+      sendNui({ action: 'chat', data: { open: true, commands: mockChatCommands } });
+      sendNui({ action: 'chatPlayers', data: { players: mockChatPlayers } });
     },
   },
 ];
@@ -356,7 +357,7 @@ export const DEV_ACTIONS: DevAction[] = [
   {
     label: 'Message chat',
     run: () =>
-      sendNui({ action: 'chatMessage', data: { kind: 'player', author: pick(PLAYERS), text: pick(LINES), time: Date.now() / 1000 } }),
+      sendNui({ action: 'chatMessage', data: { kind: 'player', author: `« Tireur d'élite » [NVA] ${pick(PLAYERS)}`, text: `@Soldat ${pick(LINES)}`, time: Date.now() / 1000 } }),
   },
   {
     label: 'Message système',

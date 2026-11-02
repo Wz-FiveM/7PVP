@@ -4,7 +4,7 @@ import type { VehicleCustomPayload } from './vehicleCustom';
 import type { WeaponCustomPayload } from './weaponCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatMessageData, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatCommand, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -22,7 +22,9 @@ export type NuiMessage =
   | { action: 'lobby'; data: { open: boolean; modes?: LobbyMode[] } }
   /** mode de jeu en cours, `false` au lobby */
   | { action: 'mode'; data: { mode: string | false } }
-  | { action: 'chat'; data: { open: boolean } }
+  /** `commands` : suggestions du chat, envoyées à l'ouverture */
+  | { action: 'chat'; data: { open: boolean; commands?: ChatCommand[] } }
+  | { action: 'chatPlayers'; data: { players: ChatPlayer[] } }
   | { action: 'admin'; data: { open: boolean; self?: AdminSelf } }
   | { action: 'noclip'; data: NoclipInfo }
   /** touches du noclip maintenues (envoyé seulement quand elles changent) */

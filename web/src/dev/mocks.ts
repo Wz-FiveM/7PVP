@@ -179,7 +179,7 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
   ],
   codMapsRemoved: [{ id: 'construction', label: 'Le Chantier' }],
 };
-import type { CaseDefinition, CaseReelEntry, LeaderboardRow, LobbyMode, Vitals, MarketState, ResaleState } from '../types/game';
+import type { CaseDefinition, CaseReelEntry, ChatCommand, ChatCommandArg, ChatPlayer, LeaderboardRow, LobbyMode, Vitals, MarketState, ResaleState } from '../types/game';
 
 /** Ouverture de caisse hors jeu : même tirage pondéré que CaseService.roll côté serveur */
 export function mockCaseReel(definition: CaseDefinition, length = 56): CaseReelEntry[] {
@@ -193,6 +193,79 @@ export function mockCaseReel(definition: CaseDefinition, length = 56): CaseReelE
     return { item: reward.item, count, rarity: reward.rarity };
   });
 }
+
+const MOCK_PLAYER_ARG: ChatCommandArg = {
+  label: '<id du joueur>',
+  required: true,
+  hint: 'Choisis un joueur du mode ou saisis son id.',
+  players: true,
+  values: [],
+};
+
+export const mockChatCommands: ChatCommand[] = [
+  { name: 'lobby', description: 'Retourner au lobby', admin: false, args: [] },
+  { name: 'inviter', description: 'Inviter un joueur dans ton groupe', admin: false, args: [MOCK_PLAYER_ARG] },
+  { name: 'accepter', description: 'Accepter l\'invitation de groupe', admin: false, args: [] },
+  { name: 'refuser', description: 'Refuser l\'invitation de groupe', admin: false, args: [] },
+  { name: 'quittergroupe', description: 'Quitter ton groupe', admin: false, args: [] },
+  { name: 'crewinviter', description: 'Inviter un joueur dans ton crew', admin: false, args: [MOCK_PLAYER_ARG] },
+  { name: 'crewaccepter', description: 'Accepter l\'invitation de crew', admin: false, args: [] },
+  { name: 'crewrefuser', description: 'Refuser l\'invitation de crew', admin: false, args: [] },
+  { name: 'crewquitter', description: 'Quitter ton crew', admin: false, args: [] },
+  {
+    name: 'trade',
+    description: 'Proposer un échange',
+    admin: false,
+    args: [
+      {
+        label: '[id | accepter | refuser | annuler]',
+        required: false,
+        hint: 'Sans argument : le joueur le plus proche.',
+        players: true,
+        values: [
+          { value: 'accepter', label: 'Accepter la demande reçue' },
+          { value: 'refuser', label: 'Refuser la demande reçue' },
+          { value: 'annuler', label: 'Annuler ta demande' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'langue',
+    description: 'Changer la langue',
+    admin: false,
+    args: [
+      {
+        label: '[code]',
+        required: false,
+        hint: 'Sans code : liste des langues.',
+        players: false,
+        values: [
+          { value: 'fr', label: 'Français' },
+          { value: 'en', label: 'English' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'ban',
+    description: 'Bannir un joueur',
+    admin: true,
+    args: [
+      { ...MOCK_PLAYER_ARG, label: '<id du joueur | license:xxxx>' },
+      { label: '<jours, 0 = définitif>', required: true, hint: 'Durée du bannissement.', players: false, values: [] },
+      { label: '<raison>', required: true, hint: 'Raison du bannissement.', players: false, values: [] },
+    ],
+  },
+];
+
+export const mockChatPlayers: ChatPlayer[] = [
+  { id: 12, name: 'Kira', crew: 'NVA' },
+  { id: 58, name: 'Theo_K' },
+  { id: 44, name: 'Lina', crew: 'WZR' },
+  { id: 31, name: 'Moussa' },
+  { id: 27, name: 'Zed Rush', crew: 'NVA' },
+];
 
 export const mockLobbyModes: LobbyMode[] = [
   {

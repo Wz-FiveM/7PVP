@@ -9,6 +9,8 @@ local DiscordService = PVP.use('DiscordService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local Callback = PVP.use('Callback')
+local CrewService = PVP.use('CrewService')
 
 ---@type table<integer, integer> dernier message de chaque joueur (GetGameTimer)
 ChatService.lastSent = {}
@@ -17,6 +19,8 @@ function ChatService.init()
     RegisterNetEvent(Events.server.chatSend, function(text)
         ChatService.onMessage(source, text)
     end)
+
+    Callback.register(Events.callbacks.chatPlayers, ChatService.listPlayers)
 
     AddEventHandler(Events.internal.playerUnloading, function(playerSource, name, mode)
         ChatService.onPlayerLeft(playerSource, name, mode)
@@ -63,9 +67,39 @@ function ChatService.onMessage(source, text)
     if not clean then return end
     ChatService.lastSent[source] = now
 
-    ChatService.broadcast(player.mode, { kind = 'player', author = AchievementService.chatName(player), text = clean })
+    ChatService.broadcast(player.mode, {
+        kind = 'player',
+        author = AchievementService.chatName(player),
+        -- Pour colorer le nom à la fin de `author`, sans le titre ni le label du crew
+        name = player.name,
+        colors = player.mode == 'pvp' and player.nameColor or nil,
+        text = clean,
+    })
     Logger.info('[chat:%s] %s : %s', player.mode, player.name, clean)
     DiscordService.chat(player, clean)
+end
+
+---Joueurs proposés par les suggestions du chat : ceux du même mode, sans le demandeur.
+---@param source integer
+---@return { id: integer, name: string, crew: string|nil }[]
+function ChatService.listPlayers(source)
+    local player = PlayerService.get(source)
+    if not player or not player.mode then return {} end
+
+    local list = {}
+    for _, id in ipairs(ModeRegistry.getPlayers(player.mode)) do
+        local other = PlayerService.get(id)
+        if other and id ~= source then
+            list[#list + 1] = {
+                id = id,
+                name = other.name,
+                -- Le label du crew ne s'affiche qu'en PvP (voir PlayerObject:displayName)
+                crew = other.mode == 'pvp' and CrewService.memberOf[other.identifier] or nil,
+            }
+        end
+    end
+    table.sort(list, function(a, b) return a.name:lower() < b.name:lower() end)
+    return list
 end
 
 ---Envoie un message à tous les joueurs d'un mode.

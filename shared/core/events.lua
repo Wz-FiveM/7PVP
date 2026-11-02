@@ -212,6 +212,7 @@ Events.callbacks = {
     saveAppearance = 'appearance:save',
     joinMode = 'lobby:join',
     leaveMode = 'lobby:leave',
+    chatPlayers = 'chat:players',
     adminPlayers = 'admin:players',
     adminAction = 'admin:action',
     leaderboard = 'leaderboard:get',
