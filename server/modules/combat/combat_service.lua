@@ -9,6 +9,7 @@ local CombatTagService = PVP.use('CombatTagService')
 local BountyService = PVP.use('BountyService')
 local RivalryService = PVP.use('RivalryService')
 local GroupService = PVP.use('GroupService')
+local AchievementService = PVP.use('AchievementService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local Items = PVP.use('Items')
@@ -122,6 +123,7 @@ function CombatService.onPlayerDied(source, killerId, cause)
     if PlayerService.get(source) ~= victim then return end
     local recap = CombatService.buildRecap(victim, killer, type(cause) == 'table' and cause or {})
     if killer then
+        if type(cause) == 'table' and cause.headshot == true then AchievementService.track(killer, 'headshots', 1) end
         CombatService.rewardPlayerKill(killer, victim)
     end
     CombatService.broadcastKill(killer and killer:displayName(), victim:displayName(), nil, recap, {
@@ -198,6 +200,8 @@ function CombatService.rewardPlayerKill(killer, victim, message)
     RivalryService.onPlayerKill(killer, victim)
     CombatService.rewardAssists(killer, victim)
     ContractService.track(killer, 'playerKill', 1)
+    AchievementService.track(killer, 'bestStreak', killer.streak)
+    AchievementService.track(killer, 'longShot', math.floor(#(killer:getCoords() - victim:getCoords())))
     killer:sync()
 end
 
@@ -213,6 +217,7 @@ function CombatService.rewardAssists(killer, victim)
         if helper and helper.mode == 'pvp' and entry.damage >= settings.minDamage and now - entry.lastAt <= settings.window * 1000
             and not GroupService.areAllies(source, victim.source) then
             helper.assists = helper.assists + 1
+            AchievementService.track(helper, 'assists', 1)
             helper:addMoney(money)
             helper:addXp(xp)
             helper:notify(Locale.t('Assistance sur %s (+$%d)', victim:displayName(), money), 'success')

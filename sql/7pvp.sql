@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS `pvp_players` (
     `killfeed_background` VARCHAR(16) NULL,
     `loadout_sets` TEXT NULL,
     `assists` INT NOT NULL DEFAULT 0,
+    `achievements` TEXT NULL,
     `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`identifier`),
     KEY `idx_kills` (`kills`)

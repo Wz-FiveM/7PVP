@@ -14,6 +14,7 @@
 
 ---@class ConflictServiceModule
 local ConflictService = PVP.define('ConflictService')
+local AchievementService = PVP.use('AchievementService')
 local PlayerService = PVP.use('PlayerService')
 local GroupService = PVP.use('GroupService')
 local LootService = PVP.use('LootService')
@@ -178,6 +179,7 @@ end
 ---L'argent et les objets vont dans le sac ; ce qui n'y rentre pas tombe aux pieds du gagnant.
 ---@param player PvpPlayer
 function ConflictService.reward(player)
+    AchievementService.track(player, 'conflictWins', 1)
     local reward = Config.ConflictZones.reward
     player:addMoney(reward.money)
     player:addXp(reward.xp)

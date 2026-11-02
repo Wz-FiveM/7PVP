@@ -2,6 +2,7 @@
 ---Les commandes (/lobby...) sont exécutées côté client et ne passent pas par ici.
 ---@class ChatServiceModule
 local ChatService = PVP.define('ChatService')
+local AchievementService = PVP.use('AchievementService')
 local PlayerService = PVP.use('PlayerService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local DiscordService = PVP.use('DiscordService')
@@ -62,7 +63,7 @@ function ChatService.onMessage(source, text)
     if not clean then return end
     ChatService.lastSent[source] = now
 
-    ChatService.broadcast(player.mode, { kind = 'player', author = player:displayName(), text = clean })
+    ChatService.broadcast(player.mode, { kind = 'player', author = AchievementService.chatName(player), text = clean })
     Logger.info('[chat:%s] %s : %s', player.mode, player.name, clean)
     DiscordService.chat(player, clean)
 end

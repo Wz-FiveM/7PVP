@@ -2,6 +2,7 @@
 ---progression sauvegardée par joueur (colonne `contracts`), récompense versée à l'objectif.
 ---@class ContractServiceModule
 local ContractService = PVP.define('ContractService')
+local AchievementService = PVP.use('AchievementService')
 local Logger = PVP.use('Logger')
 local Locale = PVP.use('Locale')
 
@@ -67,6 +68,7 @@ end
 ---@param amount integer
 ---@param zoneId? string zone de l'action (contrats limités à une zone)
 function ContractService.track(player, contractType, amount, zoneId)
+    AchievementService.track(player, contractType, amount)
     local state = ContractService.state(player)
     for _, contract in ipairs(ContractService.forDay(state.day)) do
         if contract.type == contractType and not state.done[contract.id] and (not contract.zone or contract.zone == zoneId) then
@@ -82,6 +84,7 @@ end
 ---@param player PvpPlayer
 ---@param contract table
 function ContractService.complete(player, contract)
+    AchievementService.track(player, 'contracts', 1)
     player.contracts.done[contract.id] = true
     player:addMoney(contract.reward.money)
     player:addXp(contract.reward.xp)

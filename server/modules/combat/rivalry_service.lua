@@ -11,6 +11,7 @@
 ---@class RivalryServiceModule
 local RivalryService = PVP.define('RivalryService')
 local GroupService = PVP.use('GroupService')
+local AchievementService = PVP.use('AchievementService')
 local Locale = PVP.use('Locale')
 
 ---@param player PvpPlayer
@@ -59,6 +60,7 @@ function RivalryService.reward(killer, victim, mine, wasNemesis, now)
     local settings = Config.Rivalry
     if now - (mine.bonusAt[victim.identifier] or 0) < settings.bonusDelay then return end
     mine.bonusAt[victim.identifier] = now
+    AchievementService.track(killer, wasNemesis and 'nemeses' or 'revenges', 1)
 
     local reward = wasNemesis and settings.nemesisReward or settings.revengeReward
     killer:addMoney(reward.money)

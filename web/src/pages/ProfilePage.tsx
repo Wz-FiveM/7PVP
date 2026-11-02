@@ -216,6 +216,7 @@ export function ProfilePage() {
         <span className="disp profile__name">
           <ColoredName text={displayName} colors={nameColors} />
         </span>
+        {pvp && player.title && <span className="mono muted">« {player.title} »</span>}
         <span className="disp profile__level">{t('Niveau {level}', { level: player.level })}</span>
         <SegmentBar value={levelXp} max={config.xpPerLevel} segments={20} color="var(--signal)" height={8} />
         <span className="mono muted profile__xp">

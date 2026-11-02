@@ -32,6 +32,7 @@
 ---@field killfeedBackground string|nil fond choisi pour ses lignes du killfeed (KillfeedBackgroundService)
 ---@field killfeedOwned table<string, boolean> fonds du killfeed achetés
 ---@field loadoutSets (table<string, integer>|false)[] sets d'équipement (LoadoutSetService)
+---@field achievements PvpAchievements hauts faits et titre choisi (AchievementService)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -47,6 +48,7 @@ local KillfeedBackgroundService = PVP.use('KillfeedBackgroundService')
 local LoadoutSetService = PVP.use('LoadoutSetService')
 local RivalryService = PVP.use('RivalryService')
 local BountyService = PVP.use('BountyService')
+local AchievementService = PVP.use('AchievementService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -87,6 +89,7 @@ function PlayerObject.new(source, identifier, row)
         nameColor = NameColors.sanitize(row.name_color),
         killfeedOwned = {},
         loadoutSets = LoadoutSetService.decode(row.loadout_sets),
+        achievements = AchievementService.decode(row.achievements, row),
     }, PlayerObject)
     ClassService.applyInventory(player)
     return player
@@ -171,6 +174,8 @@ function PlayerObject:serialize()
         bounty = self.bounty + BountyService.placedOn(self),
         contracts = ContractService.serialize(self),
         loadoutSets = self.loadoutSets,
+        achievements = AchievementService.serialize(self),
+        title = AchievementService.titleOf(self),
         season = self.season and {
             label = SeasonService.label(self.season.id),
             kills = self.season.kills,

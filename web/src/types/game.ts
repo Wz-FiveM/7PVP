@@ -71,6 +71,9 @@ export interface PlayerState {
   bounty: number;
   contracts?: ContractsState;
   season?: SeasonStats;
+  achievements?: AchievementsState;
+  /** texte du titre affiché */
+  title?: string;
   /** sets d'équipement : `false` pour un emplacement vide */
   loadoutSets?: (ItemStacks | false)[];
 }
@@ -165,7 +168,27 @@ export interface ContractsState {
   resetIn: number;
 }
 
+/** Haut fait de config/achievements.lua */
+export interface AchievementEntry {
+  id: string;
+  label: string;
+  stat: string;
+  goal: number;
+  reward: { money: number; xp: number };
+  title?: boolean;
+}
+
+export interface AchievementsState {
+  stats: Record<string, number>;
+  done: Record<string, boolean>;
+  /** titre choisi : id d'un haut fait ou titre de saison */
+  title?: string;
+  seasonTitles: { id: string; label: string }[];
+}
+
 export interface GameConfig {
+  achievements?: AchievementEntry[];
+  achievementStats?: Record<string, { text: string; max?: boolean }>;
   /** Config.Bounty.player : primes posées par les joueurs */
   bountyPlayer?: { min: number; max: number; maxOnHead: number; fee: number; delay: number };
   shop: ShopEntry[];

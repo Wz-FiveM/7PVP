@@ -188,6 +188,7 @@ Events.callbacks = {
     nameColorSelect = 'nameColor:select',
     killfeedBackgroundBuy = 'killfeedBackground:buy',
     killfeedBackgroundSelect = 'killfeedBackground:select',
+    titleSelect = 'achievement:titleSelect',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',
     marketSell = 'market:sell',

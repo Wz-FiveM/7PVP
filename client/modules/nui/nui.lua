@@ -155,6 +155,10 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.killfeedBackgroundSelect, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('titleSelect', function(data, cb)
+        cb(Callback.await(Events.callbacks.titleSelect, data.id) or { ok = false })
+    end)
+
     RegisterNUICallback('attachment', function(data, cb)
         cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
     end)
@@ -215,6 +219,8 @@ function Nui.buildInitPayload()
                 captureScore = Config.Crews.stats.captureScore,
             },
             nameColors = Config.NameColors,
+            achievements = Config.Achievements,
+            achievementStats = Config.AchievementStats,
             killfeedBackgrounds = Config.KillfeedBackgrounds,
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,

@@ -309,6 +309,15 @@ export const mockCreator: CreatorPayload = {
 export const mockInit: InitPayload = {
   config: {
     xpPerLevel: 1000,
+    achievements: [
+      { id: 'kills_50', label: 'Chasseur', stat: 'playerKill', goal: 50, reward: { money: 1000, xp: 300 }, title: true },
+      { id: 'kills_250', label: 'Prédateur', stat: 'playerKill', goal: 250, reward: { money: 5000, xp: 1000 }, title: true },
+      { id: 'head_25', label: 'Tireur précis', stat: 'headshots', goal: 25, reward: { money: 1000, xp: 250 } },
+    ],
+    achievementStats: {
+      playerKill: { text: 'Tue {goal} joueurs' },
+      headshots: { text: 'Fais {goal} kills en pleine tête' },
+    },
     bountyPlayer: { min: 500, max: 50000, maxOnHead: 200000, fee: 0.1, delay: 30 },
     crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24, maxTerritories: 2, territoryInterval: 300, stashCapacity: 500, captureScore: 10 },
     nameColors: {
@@ -601,6 +610,8 @@ export const mockInit: InitPayload = {
     shopPoints: 450,
     killfeedOwned: ['nuit'],
     playerClass: { id: 'scout', cooldown: 12, changeIn: 0 },
+    achievements: { stats: { playerKill: 72, headshots: 9 }, done: { kills_50: true }, title: 'kills_50', seasonTitles: [{ id: '2026-10:top3', label: 'Podium de saison' }] },
+    title: 'Chasseur',
     loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
     xp: 2450,
     level: 3,

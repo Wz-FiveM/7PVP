@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import type { IconName } from '../components/icons/Icon';
+import { AchievementsPage } from './AchievementsPage';
 import { BountiesPage } from './BountiesPage';
 import { CasesPage } from './CasesPage';
 import { ClassesPage } from './ClassesPage';
@@ -15,7 +16,7 @@ import { ProfilePage } from './ProfilePage';
 import { ResalePage } from './ResalePage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'inventory' | 'class' | 'group' | 'crew' | 'bounties' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
+export type PageId = 'achievements' | 'inventory' | 'class' | 'group' | 'crew' | 'bounties' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -38,6 +39,7 @@ export const PAGES: PageDefinition[] = [
   { id: 'market', label: 'Place de marché', icon: 'shop', component: MarketPage, npcOnly: true },
   { id: 'resale', label: 'Revente', icon: 'money', component: ResalePage, npcOnly: true },
   { id: 'profile', label: 'Profil', icon: 'profile', component: ProfilePage },
+  { id: 'achievements', label: 'Hauts faits', icon: 'trophy', component: AchievementsPage },
   { id: 'leaderboard', label: 'Top joueurs', icon: 'leaderboard', component: LeaderboardPage },
   { id: 'shop', label: 'Boutique', icon: 'shop', component: ShopPage },
   { id: 'cases', label: 'Caisses', icon: 'crate', component: CasesPage },
