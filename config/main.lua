@@ -66,6 +66,18 @@ Config.Crews = {
     },
 }
 
+-- Couleurs de nom au choix en PvP (menu Profil) : gamertags et killfeed.
+-- hud : couleur GTA des gamertags (eHudColour), hex : la même pour le killfeed.
+Config.NameColors = {
+    { id = 'red', label = 'Rouge', hud = 6, hex = '#E03232' },
+    { id = 'orange', label = 'Orange', hud = 15, hex = '#FF8555' },
+    { id = 'yellow', label = 'Jaune', hud = 12, hex = '#F0C850' },
+    { id = 'green', label = 'Vert', hud = 18, hex = '#72CC72' },
+    { id = 'blue', label = 'Bleu', hud = 9, hex = '#5DB6E5' },
+    { id = 'purple', label = 'Violet', hud = 21, hex = '#8466E2' },
+    { id = 'pink', label = 'Rose', hud = 24, hex = '#CB3694' },
+}
+
 -- ---------------------------------------------------------------------------
 -- Échanges entre joueurs (/trade) : PvP seulement, à côté l'un de l'autre, hors combat.
 -- Chacun propose des objets portés (sac + conteneur protégé), passe « Prêt », puis les deux

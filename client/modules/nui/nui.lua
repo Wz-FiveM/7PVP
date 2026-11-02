@@ -129,6 +129,10 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.classSelect, data.id) or { ok = false })
     end)
 
+    RegisterNUICallback('nameColorSelect', function(data, cb)
+        cb(Callback.await(Events.callbacks.nameColorSelect, data.id or false) or { ok = false })
+    end)
+
     RegisterNUICallback('attachment', function(data, cb)
         cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
     end)
@@ -175,6 +179,7 @@ function Nui.buildInitPayload()
                 createPrice = Config.Crews.createPrice,
                 nameMaxLength = Config.Crews.nameMaxLength,
             },
+            nameColors = Config.NameColors,
             menuKey = Config.MenuKeyLabel,
             attachments = Config.Attachments,
             recipes = Config.Recipes,

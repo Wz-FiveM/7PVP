@@ -27,6 +27,7 @@
 ---@field bounty integer prime sur sa tête ($), 0 = aucune
 ---@field combatLog { taken: table<integer, table>, dealt: table<integer, table> } dégâts de la vie en cours, par joueur
 ---@field classId string|nil classe du mode PvP (Config.Classes)
+---@field nameColor string|nil couleur du nom en PvP (Config.NameColors)
 local PlayerObject = PVP.define('PlayerObject')
 local InventoryObject = PVP.use('InventoryObject')
 local AppearanceSchema = PVP.use('AppearanceSchema')
@@ -37,6 +38,7 @@ local ContractService = PVP.use('ContractService')
 local SeasonService = PVP.use('SeasonService')
 local ClassService = PVP.use('ClassService')
 local CrewService = PVP.use('CrewService')
+local NameColors = PVP.use('NameColors')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -73,6 +75,7 @@ function PlayerObject.new(source, identifier, row)
         bounty = 0,
         combatLog = { taken = {}, dealt = {} },
         classId = ClassService.sanitize(row.class_id),
+        nameColor = NameColors.sanitize(row.name_color),
     }, PlayerObject)
     ClassService.applyInventory(player)
     return player
@@ -117,6 +120,12 @@ function PlayerObject:displayName()
     return CrewService.label(self.identifier, self.name)
 end
 
+---@return string|nil couleur du nom dans le killfeed (#RRGGBB), nil = couleur par défaut
+function PlayerObject:nameColorHex()
+    local color = NameColors.get(self.nameColor)
+    return color and color.hex or nil
+end
+
 function PlayerObject:sync()
     -- Objet rangé au coffre, vendu, jeté ou perdu : il quitte aussi les raccourcis
     self.inventory:pruneShortcuts()
@@ -129,6 +138,7 @@ function PlayerObject:serialize()
         source = self.source,
         name = self.name,
         displayName = CrewService.label(self.identifier, self.name),
+        nameColor = self.nameColor,
         avatar = self.avatar,
         money = self:getMoney(),
         shopPoints = self.shopPoints or 0,

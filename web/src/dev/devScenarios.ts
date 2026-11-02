@@ -386,6 +386,22 @@ export const DEV_ACTIONS: DevAction[] = [
         data: { killer: 'Dev', victim: pick(PLAYERS), weapon: 'weapon_assaultrifle', headshot: true, killerId: 1, victimId: 22 },
       }),
   },
+  {
+    label: 'Killfeed : noms en couleur',
+    run: () =>
+      sendNui({
+        action: 'killfeed',
+        data: {
+          killer: pick(PLAYERS),
+          victim: pick(PLAYERS),
+          weapon: 'weapon_carbinerifle',
+          killerId: 20,
+          victimId: 21,
+          killerColor: pick(['#E03232', '#F0C850', '#72CC72', '#5DB6E5', '#8466E2', '#CB3694']),
+          victimColor: pick(['#FF8555', '#5DB6E5', '#CB3694']),
+        },
+      }),
+  },
   { label: 'Raccourcis (TAB)', run: () => sendNui({ action: 'hotbar', data: { visible: true } }) },
   { label: 'Cacher raccourcis', run: () => sendNui({ action: 'hotbar', data: { visible: false } }) },
   { label: 'Zone safe', run: () => sendNui({ action: 'zone', data: mockInit.zone }) },

@@ -302,6 +302,15 @@ export const mockInit: InitPayload = {
   config: {
     xpPerLevel: 1000,
     crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24 },
+    nameColors: [
+      { id: 'red', label: 'Rouge', hex: '#E03232' },
+      { id: 'orange', label: 'Orange', hex: '#FF8555' },
+      { id: 'yellow', label: 'Jaune', hex: '#F0C850' },
+      { id: 'green', label: 'Vert', hex: '#72CC72' },
+      { id: 'blue', label: 'Bleu', hex: '#5DB6E5' },
+      { id: 'purple', label: 'Violet', hex: '#8466E2' },
+      { id: 'pink', label: 'Rose', hex: '#CB3694' },
+    ],
     shortcutSlots: 7,
     containers: {
       bag: { label: 'Mon sac', capacity: 50 },

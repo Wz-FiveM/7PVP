@@ -1,15 +1,17 @@
----Gamertags : nom et barre de vie au-dessus de la tête des joueurs à portée, avec le label du crew.
+---Gamertags : nom et barre de vie au-dessus de la tête des joueurs à portée, avec le label du crew
+---et, en PvP, la couleur de nom choisie par le joueur.
 ---Option admin : tous les joueurs, avec leur ID. En PvP, chacun voit aussi les membres de son crew.
 ---Jamais au lobby ni dans le créateur.
 ---@class GamertagsModule
 local Gamertags = PVP.define('Gamertags')
 local State = PVP.use('State')
 local Crew = PVP.use('Crew')
+local NameColors = PVP.use('NameColors')
 
 Gamertags.active = false -- option admin
 Gamertags.crewTag = nil -- label du crew du joueur
 Gamertags.running = false -- boucle en cours (couper puis remettre l'option ne doit pas en lancer une deuxième)
-Gamertags.tags = {} -- joueur -> { id, ped, label }
+Gamertags.tags = {} -- joueur -> { id, ped, label, color }
 
 -- Composants des gamertags du jeu
 Gamertags.COMPONENT_NAME = 0
@@ -89,13 +91,23 @@ function Gamertags.labelOf(player)
     return Gamertags.active and ('[%d] %s'):format(serverId, label) or label
 end
 
+---La couleur ne compte qu'en PvP.
+---@param player number
+---@return integer|nil couleur GTA de son nom, nil = couleur par défaut
+function Gamertags.colorOf(player)
+    if State.mode ~= 'pvp' then return nil end
+    local color = NameColors.get(Player(GetPlayerServerId(player)).state[NameColors.STATE_KEY])
+    return color and color.hud or nil
+end
+
 ---@param player number
 ---@param ped number
 function Gamertags.show(player, ped)
     local tag = Gamertags.tags[player]
     local label = Gamertags.labelOf(player)
+    local color = Gamertags.colorOf(player)
     -- Le personnage change à la réapparition : le gamertag suit l'ancien, on le recrée
-    if tag and (tag.ped ~= ped or tag.label ~= label or not IsMpGamerTagActive(tag.id)) then
+    if tag and (tag.ped ~= ped or tag.label ~= label or tag.color ~= color or not IsMpGamerTagActive(tag.id)) then
         Gamertags.remove(player)
         tag = nil
     end
@@ -105,7 +117,8 @@ function Gamertags.show(player, ped)
     SetMpGamerTagVisibility(id, Gamertags.COMPONENT_NAME, true)
     SetMpGamerTagVisibility(id, Gamertags.COMPONENT_HEALTH, true)
     SetMpGamerTagAlpha(id, Gamertags.COMPONENT_HEALTH, 255)
-    Gamertags.tags[player] = { id = id, ped = ped, label = label }
+    if color then SetMpGamerTagColour(id, Gamertags.COMPONENT_NAME, color) end
+    Gamertags.tags[player] = { id = id, ped = ped, label = label, color = color }
 end
 
 ---@param player number

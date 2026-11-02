@@ -58,14 +58,20 @@ export function Killfeed() {
     <div className="killfeed">
       {state.killfeed.map((item) => (
         <div key={item.id} className={rowClass(item)}>
-          {item.killer && <span className={nameClass(item.killerId, 'killfeed__killer')}>{item.killer}</span>}
+          {item.killer && (
+            <span className={nameClass(item.killerId, 'killfeed__killer')} style={item.killerColor ? { color: item.killerColor } : undefined}>
+              {item.killer}
+            </span>
+          )}
           {item.reason === 'disconnect' ? (
             <span className="mono killfeed__reason">{t('DÉCO')}</span>
           ) : (
             <WeaponSilhouette weapon={item.weapon} />
           )}
           {item.headshot && <Icon name="crosshair" size={15} strokeWidth={2.2} className="killfeed__headshot" />}
-          <span className={nameClass(item.victimId, 'killfeed__victim')}>{item.victim}</span>
+          <span className={nameClass(item.victimId, 'killfeed__victim')} style={item.victimColor ? { color: item.victimColor } : undefined}>
+            {item.victim}
+          </span>
         </div>
       ))}
     </div>

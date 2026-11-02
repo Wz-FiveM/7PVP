@@ -178,6 +178,7 @@ Events.callbacks = {
     craft = 'crafting:craft',
     classSelect = 'class:select',
     classUse = 'class:use',
+    nameColorSelect = 'nameColor:select',
     freeroamPvp = 'freeroam:pvp',
     marketList = 'market:list',
     marketSell = 'market:sell',

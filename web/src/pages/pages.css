@@ -19,6 +19,39 @@
 .profile__xp {
   font-size: 0.75rem;
 }
+.name-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.name-colors__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.name-colors__hint {
+  font-size: 0.75rem;
+}
+.name-color {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.name-color:hover,
+.name-color--on {
+  opacity: 1;
+}
+.name-color--on {
+  box-shadow: inset 0 -0.25rem 0 var(--os);
+}
+/* Pas de couleur : le texte reste comme par défaut */
+.name-color--default {
+  background: rgba(255, 255, 255, 0.14);
+}
 
 .stat-grid {
   display: grid;

@@ -125,6 +125,8 @@ function CombatService.onPlayerDied(source, killerId, cause)
         headshot = type(cause) == 'table' and cause.headshot == true,
         killerId = killer and killer.source,
         victimId = victim.source,
+        killerColor = killer and killer:nameColorHex(),
+        victimColor = victim:nameColorHex(),
     })
     BountyService.reset(victim)
 
@@ -278,7 +280,7 @@ end
 ---@param victimName string
 ---@param reason? 'disconnect' déconnexion en plein combat
 ---@param recap? table récapitulatif de mort (arme, distance) pour le killfeed Discord
----@param extra? { weapon: string|nil, headshot: boolean, killerId: integer|nil, victimId: integer|nil } affichage du killfeed
+---@param extra? { weapon: string|nil, headshot: boolean, killerId: integer|nil, victimId: integer|nil, killerColor: string|nil, victimColor: string|nil } affichage du killfeed
 function CombatService.broadcastKill(killerName, victimName, reason, recap, extra)
     extra = extra or {}
     ModeRegistry.broadcast('pvp', Events.client.killfeed, {
@@ -289,6 +291,8 @@ function CombatService.broadcastKill(killerName, victimName, reason, recap, extr
         headshot = extra.headshot == true,
         killerId = extra.killerId,
         victimId = extra.victimId,
+        killerColor = extra.killerColor,
+        victimColor = extra.victimColor,
     })
     DiscordService.killfeed(killerName, victimName, reason, recap)
 end
