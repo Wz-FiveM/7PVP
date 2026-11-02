@@ -15,6 +15,7 @@ local ConvoyService = PVP.use('ConvoyService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
 local ConflictService = PVP.use('ConflictService')
+local DungeonService = PVP.use('DungeonService')
 local SpectateService = PVP.use('SpectateService')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
@@ -45,6 +46,8 @@ AdminService.ACTIONS = {
     horde = { method = 'horde', target = false },
     conflict = { method = 'conflict', target = false },
     conflictEnd = { method = 'conflictEnd', target = false },
+    dungeonSkip = { method = 'dungeonSkip', target = false },
+    dungeonStop = { method = 'dungeonStop', target = false },
 }
 
 function AdminService.init()
@@ -431,6 +434,16 @@ end
 function AdminService.conflictEnd()
     if not ConflictService.finish() then return false, Locale.t('Aucune zone de conflit en cours.') end
     return true, Locale.t('Zone de conflit terminée.')
+end
+
+---@param source integer
+function AdminService.dungeonSkip(source)
+    return DungeonService.adminSkip(source)
+end
+
+---@param source integer
+function AdminService.dungeonStop(source)
+    return DungeonService.adminStop(source)
 end
 
 function AdminService.clearLoot()

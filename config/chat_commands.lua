@@ -31,6 +31,22 @@ local REFERENCE = { label = '[référence]', hint = 'Référence facultative.' }
 
 Config.ChatCommands = {
     { name = 'lobby', description = 'Retourner au lobby' },
+    {
+        name = 'donjon',
+        description = 'Ouvrir un donjon ou agir dessus',
+        mode = 'pvp',
+        args = {
+            {
+                label = '[action]',
+                hint = 'Sans action : ouvre un donjon pour ton groupe.',
+                values = {
+                    { value = 'rejoindre', label = 'Suivre ton groupe' },
+                    { value = 'lancer', label = 'Entrer dans le donjon' },
+                    { value = 'quitter', label = 'Quitter le donjon' },
+                },
+            },
+        },
+    },
 
     { name = 'inviter', description = 'Inviter un joueur dans ton groupe', args = { PLAYER } },
     { name = 'accepter', description = 'Accepter l\'invitation de groupe' },

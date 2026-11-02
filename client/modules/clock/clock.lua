@@ -1,10 +1,11 @@
 ---Applique l'heure commune du jeu (shared/modules/clock.lua) et l'affiche dans le HUD.
----Le mode Call of Duty impose à la place son heure et sa météo (Config.Cod.sky).
+---Le mode Call of Duty et le donjon imposent à la place leur heure et leur météo.
 ---@class ClockClientModule
 local ClockClient = PVP.define('ClockClient')
 local Clock = PVP.use('Clock')
 local Nui = PVP.use('Nui')
 local State = PVP.use('State')
+local Dungeon = PVP.use('Dungeon')
 
 ClockClient.INTERVAL = 1000
 ClockClient.lastMinute = -1
@@ -19,6 +20,8 @@ function ClockClient.loop()
         local hour, minute = Clock.time()
         if State.mode == 'cod' then
             ClockClient.forceSky(Config.Cod.sky)
+        elseif Dungeon.isInside() then
+            ClockClient.forceSky(Config.Dungeon.sky)
         else
             ClockClient.releaseSky()
             NetworkOverrideClockTime(hour, minute, 0)

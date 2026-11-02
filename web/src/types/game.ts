@@ -858,6 +858,26 @@ export interface ConflictHud {
   leader: { name: string; colors?: string; kills: number } | false;
 }
 
+/** Donjon du joueur (client/modules/dungeon/dungeon.lua) */
+export interface DungeonHud {
+  /** salle d'attente, parcours, ou coffres de fin */
+  status: 'waiting' | 'running' | 'exit';
+  players: number;
+  maxPlayers: number;
+  leader: boolean;
+  lives: number;
+  maxLives: number;
+  /** secondes restantes */
+  endsIn: number;
+  objective?: string;
+  hint?: string;
+  subtitle?: string;
+  /** vie du mur ou du boss */
+  bar?: { label: string; value: number; max: number };
+  /** action maintenue en cours */
+  progress?: { label: string; seconds: number };
+}
+
 /** Menu du Freeroam (config/freeroam.lua) */
 export interface FreeroamWeapon {
   weapon: string;

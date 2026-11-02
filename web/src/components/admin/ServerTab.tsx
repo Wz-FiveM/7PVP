@@ -52,6 +52,12 @@ export function ServerTab() {
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'conflictEnd' })}>
         {t('Terminer la zone de conflit (récompense le leader)')}
       </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'dungeonSkip' })}>
+        {t('Donjon : passer l\'étape en cours')}
+      </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'dungeonStop' })}>
+        {t('Donjon : arrêter la partie')}
+      </button>
       <button
         className="btn btn--small btn--danger cut-s"
         onClick={() => {

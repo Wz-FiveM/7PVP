@@ -98,4 +98,26 @@ Config.LootTables = {
             { item = 'case_elite', count = { 1, 1 }, chance = 6 },
         },
     },
+    -- Coffre de fin de donjon (voir config/dungeon.lua)
+    dungeon = {
+        money = { 2000, 5000 },
+        drops = {
+            { item = 'medkit', count = { 3, 5 }, chance = 100 },
+            { item = 'armor', count = { 2, 3 }, chance = 100 },
+            { item = 'antizin', count = { 2, 4 }, chance = 90 },
+            { item = 'ammo_556', count = { 150, 300 }, chance = 90 },
+            { item = 'ammo_762', count = { 90, 180 }, chance = 60 },
+            { item = 'heavy_kevlar', count = { 2, 3 }, chance = 60 },
+            { item = 'drug_health', count = { 2, 4 }, chance = 60 },
+            { item = 'mat_chemicals', count = { 4, 8 }, chance = 70 },
+            { item = 'weapon_carbinerifle_mk2', count = { 1, 1 }, chance = 35 },
+            { item = 'weapon_assaultrifle', count = { 1, 1 }, chance = 40 },
+            { item = 'weapon_combatmg_mk2', count = { 1, 1 }, chance = 12 },
+            { item = 'att_suppressor', count = { 1, 1 }, chance = 45 },
+            { item = 'att_scope', count = { 1, 1 }, chance = 45 },
+            { item = 'case_military', count = { 1, 1 }, chance = 40 },
+            { item = 'case_elite', count = { 1, 1 }, chance = 12 },
+            { item = 'vehicle_deluxo', count = { 1, 1 }, chance = 3 },
+        },
+    },
 }

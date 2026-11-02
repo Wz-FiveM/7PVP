@@ -15,6 +15,8 @@ function Zones.init()
     for _, zone in ipairs(Config.Zones) do
         Zones.index[zone.id] = zone
     end
+    -- Zombies du donjon : retrouvés par leur zone, qui n'existe pas sur la carte (absente de Config.Zones)
+    Zones.index[Config.Dungeon.zone.id] = Config.Dungeon.zone
 end
 
 ---@param id string|nil

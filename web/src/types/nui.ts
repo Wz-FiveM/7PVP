@@ -4,7 +4,7 @@ import type { VehicleCustomPayload } from './vehicleCustom';
 import type { WeaponCustomPayload } from './weaponCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatCommand, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseReelEntry, ChatCommand, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, DungeonHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -59,6 +59,7 @@ export type NuiMessage =
   | { action: 'clock'; data: GameClock }
   | { action: 'controlZone'; data: { zone: ControlZoneHud | false } }
   | { action: 'conflict'; data: { conflict: ConflictHud | false } }
+  | { action: 'dungeon'; data: { dungeon: DungeonHud | false } }
   | { action: 'freeroamMenu'; data: { open: boolean; pvp: boolean; weapons: FreeroamWeapon[]; vehicles: FreeroamVehicle[] } }
   | { action: 'freeroamPvp'; data: { pvp: boolean } }
   | { action: 'freeroamActivity'; data: { activity: { label: string; tagline: string } | false } }

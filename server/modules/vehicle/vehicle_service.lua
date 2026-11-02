@@ -12,6 +12,7 @@ local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local DungeonService = PVP.use('DungeonService')
 
 ---@type table<integer, { item: string, netId: integer|nil, checking: boolean|nil }> véhicule sorti (ou en cours de création) par joueur
 VehicleService.active = {}
@@ -83,6 +84,9 @@ function VehicleService.deploy(player, name)
     local ped = player:getPed()
     if player.mode ~= 'pvp' then
         return { ok = false, message = Locale.t('Véhicules disponibles en mode PvP.') }
+    end
+    if DungeonService.isInRun(player.source) then
+        return { ok = false, message = Locale.t('Pas de véhicule dans un donjon.') }
     end
     if GetVehiclePedIsIn(ped, false) ~= 0 then
         return { ok = false, message = Locale.t('Descends d\'abord du véhicule.') }

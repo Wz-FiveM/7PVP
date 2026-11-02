@@ -9,6 +9,7 @@ local PveWorldService = PVP.use('PveWorldService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local KillProof = PVP.use('KillProof')
 local ClassService = PVP.use('ClassService')
+local DungeonService = PVP.use('DungeonService')
 local Events = PVP.use('Events')
 
 PveService.TICK_INTERVAL = 1500
@@ -92,8 +93,10 @@ function PveService.onZombieAttack(source, netId, targetId)
     PveService.lastAttack[ped] = now
 
     local damage = ClassService.zombieDamage(target, math.floor(Config.Zombie.damage * zombieType.damage + 0.5))
+    local bucket = GetEntityRoutingBucket(ped)
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
-        if PveWorldService.isInside(id) and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveService.VOMIT_BROADCAST_RANGE then
+        if GetPlayerRoutingBucket(id) == bucket and PveWorldService.isInside(id)
+            and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveService.VOMIT_BROADCAST_RANGE then
             TriggerClientEvent(Events.client.zombieVomit, id, netId, target.source, damage)
         end
     end
@@ -106,9 +109,9 @@ function PveService.despawnAll()
 end
 
 ---@param ped integer
----@return PveZone|nil
+---@return PveZone|DungeonRoom|nil
 function PveService.getZoneOf(ped)
-    return PveService.zones[Entity(ped).state.pvpNpc]
+    return PveService.zones[Entity(ped).state.pvpNpc] or DungeonService.roomOfPed(ped)
 end
 
 ---@param source integer

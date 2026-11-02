@@ -11,6 +11,7 @@ local ClassService = PVP.use('ClassService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 local TutorialService = PVP.use('TutorialService')
+local DungeonService = PVP.use('DungeonService')
 
 function InventoryService.init()
     Callback.register(Events.callbacks.useItem, InventoryService.use)
@@ -51,7 +52,7 @@ end
 ---@param player PvpPlayer
 ---@return boolean
 function InventoryService.isAtBanker(player)
-    return SafeNpcs.isNear(player:getCoords(), 'stash', Config.SafeNpcs.useDistance + 2.0)
+    return SafeNpcs.isNear(player:getCoords(), 'stash', Config.SafeNpcs.useDistance + 2.0) or DungeonService.isAtChest(player)
 end
 
 ---Achat d'un coffre payant (Config.Containers[id].price) auprès du banquier, avec l'argent porté.

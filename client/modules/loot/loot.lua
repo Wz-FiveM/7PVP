@@ -8,6 +8,8 @@
 ---@field solid boolean objet avec collisions (caisse de largage)
 ---@field browse boolean s'ouvre comme un inventaire (largage) au lieu d'être ramassé d'un coup
 ---@field pveWorld boolean tombé dans le monde zombies (Config.PveWorld) : invisible depuis le monde PvP, et inversement
+---@field bucket integer bucket où il est tombé (instance d'un donjon : visible seulement de ses joueurs)
+---@field owner integer|nil seul ce joueur le voit (coffre de fin de donjon)
 
 ---@class LootModule
 local Loot = PVP.define('Loot')
@@ -70,6 +72,8 @@ function Loot.add(id, info)
         solid = info.solid == true,
         browse = info.browse == true,
         pveWorld = info.bucket == Config.PveWorld.bucket,
+        bucket = info.bucket,
+        owner = info.owner,
     }
 end
 
@@ -182,6 +186,16 @@ function Loot.promptPickup(id)
 end
 
 ---@param bag ClientLootBag
+---@return boolean le butin est dans le monde du joueur
+function Loot.isInMyWorld(bag)
+    if bag.owner and bag.owner ~= GetPlayerServerId(PlayerId()) then return false end
+    local dungeon = LocalPlayer.state.dungeonBucket
+    local base = Config.Dungeon.bucketBase
+    if dungeon or (bag.bucket > base and bag.bucket <= base + Config.Dungeon.maxRooms) then return bag.bucket == dungeon end
+    return bag.pveWorld == (LocalPlayer.state.pveWorld == true)
+end
+
+---@param bag ClientLootBag
 ---@param pos vector3 position du joueur
 ---@return boolean visible true si le sac doit être dessiné à chaque frame
 ---@return number|nil distance distance du sac s'il est à portée de ramassage
@@ -190,7 +204,7 @@ function Loot.renderBag(bag, pos)
     local dist = #(pos - coords)
 
     -- Le butin n'existe que dans le mode PvP, et seulement dans le monde où il est tombé (PvP ou zombies)
-    if not State.inPvp() or bag.pveWorld ~= (LocalPlayer.state.pveWorld == true) or dist >= Loot.STREAM_DISTANCE then
+    if not State.inPvp() or not Loot.isInMyWorld(bag) or dist >= Loot.STREAM_DISTANCE then
         if bag.object then Loot.deleteObject(bag) end
         return false
     end

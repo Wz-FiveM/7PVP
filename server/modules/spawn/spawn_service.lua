@@ -3,6 +3,7 @@ local SpawnService = PVP.define('SpawnService')
 local PlayerService = PVP.use('PlayerService')
 local Zones = PVP.use('Zones')
 local AntiCheatService = PVP.use('AntiCheatService')
+local DungeonService = PVP.use('DungeonService')
 local Events = PVP.use('Events')
 
 function SpawnService.init()
@@ -24,18 +25,19 @@ end
 
 ---Le client applique lui-même ses armes après le spawn (voir client/modules/loadout).
 ---@param player PvpPlayer
-function SpawnService.spawn(player)
+---@param point? vector4 défaut : une zone safe
+function SpawnService.spawn(player, point)
     player.dead = false
     AntiCheatService.grace(player.source)
     player.combatLog = { taken = {}, dealt = {} }
     player:sync()
-    TriggerClientEvent(Events.client.spawn, player.source, Zones.randomSpawn('pvp'), player.appearance)
+    TriggerClientEvent(Events.client.spawn, player.source, point or Zones.randomSpawn('pvp'), player.appearance)
 end
 
 ---@param player PvpPlayer
 function SpawnService.respawn(player)
     player:applyRespawnKit()
-    SpawnService.spawn(player)
+    SpawnService.spawn(player, DungeonService.respawnPoint(player))
 end
 
 ---@param player PvpPlayer

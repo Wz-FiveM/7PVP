@@ -9,6 +9,7 @@ local GroupService = PVP.use('GroupService')
 local DownedService = PVP.use('DownedService')
 local VehicleService = PVP.use('VehicleService')
 local BountyService = PVP.use('BountyService')
+local DungeonService = PVP.use('DungeonService')
 local Locale = PVP.use('Locale')
 
 PvpMode.ID = 'pvp'
@@ -41,6 +42,7 @@ end
 
 ---@param player PvpPlayer
 function PvpMode.leave(player)
+    DungeonService.leave(player.source, false)
     DownedService.clear(player)
     GroupService.leave(player.source)
     VehicleService.release(player)

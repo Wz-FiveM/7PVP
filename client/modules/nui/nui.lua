@@ -18,6 +18,7 @@ local Lobby = PVP.use('Lobby')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 local Language = PVP.use('Language')
+local Dungeon = PVP.use('Dungeon')
 
 -- Commandes coupées quand le menu laisse le clavier au jeu : caméra et roue de la souris, tir,
 -- visée, corps à corps, roue des armes, armes et radio du véhicule, menu pause de GTA
@@ -286,11 +287,14 @@ end
 
 ---@param page? string page à afficher (ex : 'shop' en parlant à l'armurier)
 function Nui.sendMenuState(page)
+    local coords = GetEntityCoords(PlayerPedId())
+    -- Services des PNJ de la zone safe à portée (coffre, boutique, fabrication...)
+    local near = SafeNpcs.nearRoles(coords)
+    if Dungeon.isAtChest(coords) then near.stash = true end
     Nui.send('menu', {
         open = State.menuOpen,
         inSafe = State.isInSafeZone(),
-        -- Services des PNJ de la zone safe à portée (coffre, boutique, fabrication...)
-        near = SafeNpcs.nearRoles(GetEntityCoords(PlayerPedId())),
+        near = near,
         page = page,
     })
 end

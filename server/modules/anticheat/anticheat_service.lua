@@ -28,6 +28,7 @@ local PveWorldService = PVP.use('PveWorldService')
 local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local DungeonService = PVP.use('DungeonService')
 
 AntiCheatService.WATCH_INTERVAL = 1000
 AntiCheatService.VITALS_INTERVAL = 2000
@@ -271,6 +272,8 @@ end
 function AntiCheatService.onWeaponDamage(sender, data)
     sender = tonumber(sender)
     if not sender or type(data) ~= 'table' then return end
+    -- Tir du boss de donjon, piloté par ce client : l'arme n'est pas la sienne
+    if DungeonService.isBossShot(sender, data) then return end
     local player = AntiCheatService.watched(sender, true)
     local weapon = AntiCheatService.unsigned(data.weaponType)
     if player and weapon ~= 0 and not AntiCheatService.ownedWeapons(player)[weapon] then

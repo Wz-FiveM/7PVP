@@ -10,6 +10,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local WorldService = PVP.use('WorldService')
 local SpectateService = PVP.use('SpectateService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local DungeonService = PVP.use('DungeonService')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -71,7 +72,8 @@ function PveWorldService.check()
         local player = PlayerService.get(source)
         -- Mort : il reste où il est tombé (son sac aussi) ; la réapparition en zone safe le ramène.
         -- Admin en mode spectateur : son bucket suit le joueur regardé.
-        if player and not player.dead and not SpectateService.isWatching(source) then
+        -- Donjon : il a son propre bucket, où qu'il soit sur la carte.
+        if player and not player.dead and not SpectateService.isWatching(source) and not DungeonService.holdsWorld(source) then
             local inside = PveWorldService.isInside(source)
             local wanted = PveWorldService.isInZone(player:getCoords(), inside and Config.PveWorld.exitMargin or 0.0)
             if wanted ~= inside then PveWorldService.move(source, wanted) end
@@ -133,6 +135,7 @@ end
 ---@param data table
 function PveWorldService.onWeaponDamage(sender, data)
     if not PveWorldService.isInside(sender) or type(data) ~= 'table' then return end
+    if DungeonService.isBossShot(sender, data) then return end
 
     local ids = data.hitGlobalIds or { data.hitGlobalId }
     for _, netId in ipairs(ids) do

@@ -11,6 +11,7 @@ local Clock = PVP.use('Clock')
 local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
 local ZombieGear = PVP.use('ZombieGear')
+local Dungeon = PVP.use('Dungeon')
 
 Pve.SCAN_INTERVAL = 250
 Pve.RETASK_INTERVAL = 2000 -- relance la poursuite pour suivre une cible qui bouge
@@ -81,8 +82,11 @@ function Pve.scan()
         if NetworkGetEntityIsNetworked(ped) and not IsPedAPlayer(ped) then
             local zone = Zones.byId(Entity(ped).state.pvpNpc)
             if zone then
-                Pve.decorate(ped)
-                ZombieGear.update(ped, Pve.getType(ped))
+                -- Le boss du donjon est un soldat, pas un zombie
+                if not Entity(ped).state.dungeonBoss then
+                    Pve.decorate(ped)
+                    ZombieGear.update(ped, Pve.getType(ped))
+                end
                 if NetworkGetEntityOwner(ped) == myId then
                     Pve.updatePed(ped, zone)
                 end
@@ -92,7 +96,7 @@ function Pve.scan()
 end
 
 function Pve.cleanup()
-    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned }) do
+    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned, Dungeon.bossConfigured, Dungeon.bossTask }) do
         for ped in pairs(tracked) do
             if not DoesEntityExist(ped) then tracked[ped] = nil end
         end
@@ -118,6 +122,12 @@ end
 function Pve.updatePed(ped, zone)
     if IsEntityDead(ped) then
         Pve.reportDeath(ped)
+        return
+    end
+
+    if Entity(ped).state.dungeonBoss then
+        Hits.watchZombie(ped)
+        if not Pve.isStunned(ped) then Dungeon.driveBoss(ped) end
         return
     end
 

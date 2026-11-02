@@ -154,6 +154,9 @@ function LootConfigService.usedBy(name)
     end
     if Config.Airdrops.loot == name then list[#list + 1] = Locale.t('Largages aériens') end
     if Config.ConflictZones.reward.loot == name then list[#list + 1] = Locale.t('Zones de conflit') end
+    if Config.Dungeon.reward.loot == name or Config.Dungeon.zone.npc.loot == name or Config.Dungeon.boss.loot == name then
+        list[#list + 1] = Locale.t('Donjon')
+    end
     return list
 end
 

@@ -17,6 +17,7 @@ import type {
   GameClock,
   HordeState,
   ConflictHud,
+  DungeonHud,
   ControlZoneHud,
   FreeroamState,
   NearServices,
@@ -84,6 +85,7 @@ export interface GameState {
   controlZone: ControlZoneHud | null;
   /** Zone de conflit où se trouve le joueur ; `endsAt` en Date.now() */
   conflict: (ConflictHud & { endsAt: number }) | null;
+  dungeon: (DungeonHud & { endsAt: number }) | null;
   freeroam: FreeroamState;
   /** Aide affichée (touche + action), null si aucune */
   helpNotify: HelpNotification | null;
@@ -136,6 +138,7 @@ export type GameAction =
   | { type: 'leaderboard'; rows: LeaderboardRow[]; title: string }
   | { type: 'controlZone'; zone: ControlZoneHud | null }
   | { type: 'conflict'; conflict: ConflictHud | null }
+  | { type: 'dungeon'; dungeon: DungeonHud | null }
   | { type: 'freeroam'; patch: Partial<FreeroamState> }
   | { type: 'helpNotify'; help: HelpNotification | null }
   | { type: 'interaction'; open: boolean; items: InteractionItem[] | null }
@@ -187,6 +190,7 @@ export const initialState: GameState = {
   leaderboardTitle: '',
   controlZone: null,
   conflict: null,
+  dungeon: null,
   freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [], activity: null },
   helpNotify: null,
   interaction: { open: false, items: null },
@@ -341,5 +345,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, controlZone: action.zone };
     case 'conflict':
       return { ...state, conflict: action.conflict ? { ...action.conflict, endsAt: Date.now() + action.conflict.endsIn * 1000 } : null };
+    case 'dungeon':
+      return { ...state, dungeon: action.dungeon ? { ...action.dungeon, endsAt: Date.now() + action.dungeon.endsIn * 1000 } : null };
   }
 }

@@ -10,12 +10,14 @@ local FreeroamPositions = PVP.use('FreeroamPositions')
 PvpPositions.MODE = 'pvp'
 PvpPositions.CONTROL = 'control'
 PvpPositions.CONFLICT = 'conflict'
+PvpPositions.DUNGEON = 'dungeon'
 -- Réglage du panneau -> sorte de zones
 PvpPositions.ZONE_SETTINGS = {
     pvpSafeZones = 'safe',
     pvpPveZones = 'pve',
     pvpControlZones = PvpPositions.CONTROL,
     pvpConflictZones = PvpPositions.CONFLICT,
+    pvpDungeonSteps = PvpPositions.DUNGEON,
 }
 
 ---PNJ de service des zones du mode, rangés par zone (« Zone · Rôle »).
@@ -41,6 +43,7 @@ end
 function PvpPositions.zones(kind)
     if kind == PvpPositions.CONTROL then return Config.ControlZones.zones end
     if kind == PvpPositions.CONFLICT then return Config.ConflictZones.zones end
+    if kind == PvpPositions.DUNGEON then return Config.Dungeon.steps end
     return Zones.byType(kind, PvpPositions.MODE)
 end
 

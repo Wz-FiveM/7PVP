@@ -114,6 +114,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'controlZone', zone: message.data.zone || null });
         case 'conflict':
           return dispatch({ type: 'conflict', conflict: message.data.conflict || null });
+        case 'dungeon':
+          return dispatch({ type: 'dungeon', dungeon: message.data.dungeon || null });
         case 'clock':
           return dispatch({ type: 'clock', clock: message.data });
         case 'horde':

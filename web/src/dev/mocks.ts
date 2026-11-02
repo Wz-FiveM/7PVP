@@ -100,6 +100,19 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
+      name: 'pvpDungeonSteps', group: 'pvp', label: 'Donjon : étapes', short: 'Donjon', point: 'Point', kind: 'zones', category: false, modified: false,
+      hint: 'Le parcours, dans l\'ordre. Zombies : leurs points d\'apparition. Clé et C4 : les cachettes. Porte, mur, générateur : le premier point. Pose du C4 : la porte, puis les charges. Boss : le boss, puis ses renforts. Coffres de fin : un point par joueur. Le centre sert de point de reprise.',
+      value: [
+        { id: 'room_1', label: 'Salle 1 : zombies', center: { x: 1020, y: -3080, z: 5.9, w: 0 }, radius: 40, spawns: [{ x: 1000, y: -3065, z: 5.9, w: 180 }, { x: 1040, y: -3065, z: 5.9, w: 180 }] },
+        { id: 'door_1', label: 'Porte 1', center: { x: 1055, y: -3090, z: 5.9, w: 0 }, radius: 15, spawns: [{ x: 1055, y: -3090, z: 5.9, w: 270 }] },
+      ],
+    },
+    {
+      name: 'dungeonChests', group: 'pvp', label: 'Donjon : coffres', short: 'Coffres du donjon', point: 'Coffre', flat: true, kind: 'points', category: false, modified: false,
+      hint: 'Coffres personnels sur le parcours : les mêmes services que chez le banquier.',
+      value: [{ x: 1040, y: -3075, z: 5.9, w: 0 }, { x: 1065, y: -3110, z: 5.9, w: 0 }],
+    },
+    {
       name: 'airdropLocations', group: 'pvp', label: 'Largages', point: 'Point de chute', flat: true, kind: 'points', category: false, modified: false,
       hint: 'Une caisse tombe sur un de ces points, tiré au sort. Choisis des endroits dégagés : la hauteur est recalée sur le sol.',
       value: [

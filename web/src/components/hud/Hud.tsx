@@ -4,6 +4,7 @@ import { ClassAbility } from './ClassAbility';
 import { CombatTag } from './CombatTag';
 import { ConflictBanner } from './ConflictBanner';
 import { ControlZoneBar } from './ControlZoneBar';
+import { DungeonBar, DungeonHud } from './DungeonHud';
 import { HordeBanner } from './HordeBanner';
 import { HotbarHud } from './HotbarHud';
 import { Killfeed } from './Killfeed';
@@ -20,6 +21,7 @@ export function Hud() {
     <div className="hud">
       <ZoneBanner />
       <div className="hud__top-center">
+        <DungeonBar />
         <HordeBanner />
         <ControlZoneBar />
         <CombatTag />
@@ -34,6 +36,7 @@ export function Hud() {
       <Vitals />
       <HotbarHud />
       <ConflictBanner />
+      <DungeonHud />
       <AmmoCounter />
       <ClassAbility />
     </div>

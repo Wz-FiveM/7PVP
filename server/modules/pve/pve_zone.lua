@@ -14,6 +14,7 @@ local LootService = PVP.use('LootService')
 local Utils = PVP.use('Utils')
 local ModeRegistry = PVP.use('ModeRegistry')
 local PveWorldService = PVP.use('PveWorldService')
+local DungeonService = PVP.use('DungeonService')
 local Clock = PVP.use('Clock')
 local Events = PVP.use('Events')
 
@@ -40,7 +41,8 @@ end
 function PveZone:hasPlayersNear(extra)
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
         local ped = GetPlayerPed(id)
-        if ped ~= 0 and #(GetEntityCoords(ped) - self.zone.coords) <= self.zone.radius + extra then
+        -- Un donjon peut se jouer au même endroit : ces joueurs sont dans leur instance
+        if ped ~= 0 and not DungeonService.isInRun(id) and #(GetEntityCoords(ped) - self.zone.coords) <= self.zone.radius + extra then
             return true
         end
     end
@@ -135,9 +137,12 @@ end
 ---les dégâts tant qu'il reste dedans (voir client/modules/pve/zombie_gear.lua).
 ---@param coords vector3
 ---@param typeId string
-function PveZone.releaseGas(coords, typeId)
+---@param bucket? integer défaut : le monde zombies
+function PveZone.releaseGas(coords, typeId, bucket)
+    bucket = bucket or Config.PveWorld.bucket
     for _, id in ipairs(ModeRegistry.getPlayers('pvp')) do
-        if PveWorldService.isInside(id) and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveZone.GAS_BROADCAST_RANGE then
+        if GetPlayerRoutingBucket(id) == bucket and PveWorldService.isInside(id)
+            and #(GetEntityCoords(GetPlayerPed(id)) - coords) <= PveZone.GAS_BROADCAST_RANGE then
             TriggerClientEvent(Events.client.zombieGasCloud, id, coords, typeId)
         end
     end

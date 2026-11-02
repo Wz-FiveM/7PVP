@@ -10,6 +10,7 @@ local Callback = PVP.use('Callback')
 local Zones = PVP.use('Zones')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local DungeonService = PVP.use('DungeonService')
 
 TeleportService.CHECK_INTERVAL = 250
 
@@ -46,6 +47,9 @@ function TeleportService.check(player, zone)
     end
     if player.dead then
         return false, Locale.t('Attends de réapparaître.')
+    end
+    if DungeonService.isInRun(player.source) then
+        return false, Locale.t('Pas de téléportation dans un donjon : /donjon quitter.')
     end
     if not zone or zone.type ~= 'safe' or not Zones.inMode(zone, 'pvp') then
         return false, Locale.t('Zone safe inconnue.')

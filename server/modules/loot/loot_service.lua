@@ -14,6 +14,7 @@
 ---@field lootedBy table<integer, boolean> joueurs ayant déjà pris quelque chose (contrats)
 ---@field insured { identifier: string, items: table<string, boolean> }|nil armes assurées : reviennent si elles restent (InsuranceService)
 ---@field bucket integer bucket de routage où il est tombé (monde PvP ou monde zombies) : seuls ses joueurs le voient
+---@field owner integer|nil seul ce joueur le voit et peut l'ouvrir (coffre de fin de donjon)
 
 ---@class LootDropOptions
 ---@field netId integer|nil
@@ -25,6 +26,7 @@
 ---@field browse boolean|nil
 ---@field title string|nil
 ---@field bucket integer|nil bucket de routage (défaut 0, le monde PvP)
+---@field owner integer|nil seul ce joueur le voit et peut l'ouvrir
 
 ---@class LootServiceModule
 local LootService = PVP.define('LootService')
@@ -133,6 +135,7 @@ function LootService.drop(coords, items, options)
         lootedBy = {},
         insured = options.insured,
         bucket = options.bucket or 0,
+        owner = options.owner,
     }
     TriggerClientEvent(Events.client.lootAdd, -1, id, LootService.describe(LootService.bags[id]))
     return id
@@ -162,7 +165,7 @@ end
 function LootService.describe(bag)
     return {
         coords = bag.coords, netId = bag.netId, model = bag.model, label = bag.label, solid = bag.solid, browse = bag.browse,
-        bucket = bag.bucket,
+        bucket = bag.bucket, owner = bag.owner,
     }
 end
 
@@ -243,6 +246,7 @@ end
 ---@param bag LootBag
 ---@return boolean
 function LootService.canReach(player, bag)
+    if bag.owner and bag.owner ~= player.source then return false end
     return GetPlayerRoutingBucket(player.source) == bag.bucket and LootService.isInReach(player:getCoords(), LootService.getCoords(bag))
 end
 
