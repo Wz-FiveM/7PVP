@@ -72,7 +72,7 @@ export function CrewStashSection({ crew, selected, onSelect, onQuickTake, onItem
               <span className="mono crew-stash-log__date">{formatLogDate(entry.at)}</span>
               <span className="crew-stash-log__text">
                 {t(entry.taken ? '{name} retire {count} x {item}' : '{name} dépose {count} x {item}', {
-                  name: entry.name,
+                  name: t(entry.name),
                   count: formatNumber(entry.count),
                   item: itemLabel(config, entry.item),
                 })}

@@ -1,6 +1,6 @@
 import { fetchNui } from './nui';
 import type { ActionResult } from '../types/nui';
-import type { ContainerId, CrewBoardRow, LeaderboardScope } from '../types/game';
+import type { ContainerId, CrewBoardRow, CrewTournamentState, LeaderboardScope } from '../types/game';
 
 const MOCK_OK: ActionResult = { ok: true, message: 'Action simulée (navigateur)' };
 
@@ -25,6 +25,21 @@ export const crewApi = {
   transfer: (key: number) => fetchNui<ActionResult>('crewTransfer', { key }, MOCK_OK),
 
   disband: () => fetchNui<ActionResult>('crewDisband', {}, MOCK_OK),
+
+  warDeclare: (tag: string, stake: number) => fetchNui<ActionResult>('crewWarDeclare', { tag, stake }, MOCK_OK),
+
+  warRespond: (accept: boolean) => fetchNui<ActionResult>('crewWarRespond', { accept }, MOCK_OK),
+
+  tournament: () => fetchNui<CrewTournamentState>('crewTournamentGet', {}, {
+    running: false,
+    startsIn: 200000,
+    endsIn: 201800,
+    prize: 50000,
+    minCrews: 2,
+    crews: [{ tag: 'RXN', name: 'Rixe Nord', kills: 0, mine: false }],
+  }),
+
+  tournamentJoin: () => fetchNui<ActionResult>('crewTournamentJoin', {}, MOCK_OK),
 
   stashPut: (item: string, count: number, from: ContainerId) => fetchNui<ActionResult>('crewStashPut', { item, count, from }, MOCK_OK),
 

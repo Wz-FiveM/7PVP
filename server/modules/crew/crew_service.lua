@@ -21,6 +21,8 @@ local AdminService = PVP.use('AdminService')
 local DiscordService = PVP.use('DiscordService')
 local ControlService = PVP.use('ControlService')
 local CrewStashService = PVP.use('CrewStashService')
+local CrewWarService = PVP.use('CrewWarService')
+local CrewTournamentService = PVP.use('CrewTournamentService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -73,6 +75,8 @@ function CrewService.load()
     Logger.info('Crews chargés : %d', #crews)
     ControlService.restoreTerritories(CrewRepository.loadTerritories())
     CrewStashService.restore(CrewRepository.loadStashes())
+    CrewWarService.restore()
+    CrewTournamentService.restore()
 
     -- Joueurs arrivés avant la fin du chargement (redémarrage de la ressource)
     for _, player in pairs(PlayerService.all()) do
@@ -144,7 +148,8 @@ function CrewService.serialize(crew, gone)
         }
     end
     local stash = CrewStashService.get(crew.tag)
-    return { tag = crew.tag, name = crew.name, members = members, stash = stash.items, stashLog = stash.log }
+    local war, warChallenge = CrewWarService.describe(crew.tag)
+    return { tag = crew.tag, name = crew.name, members = members, stash = stash.items, stashLog = stash.log, war = war, warChallenge = warChallenge }
 end
 
 ---Renvoie le crew à jour à ses membres connectés.
@@ -422,6 +427,8 @@ end
 ---@param crew PvpCrew
 function CrewService.dissolve(crew)
     CrewService.notifyMembers(crew, Locale.t('Le crew [%s] est dissous.', crew.tag))
+    CrewWarService.onDissolve(crew.tag)
+    CrewTournamentService.onDissolve(crew.tag)
     CrewService.crews[crew.tag] = nil
     while crew.members[1] do
         CrewService.removeMember(crew, crew.members[1].identifier)

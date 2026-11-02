@@ -78,6 +78,20 @@ function CrewStashService.remove(tag)
     CrewStashService.stashes[tag] = nil
 end
 
+---Ajoute ou retire de l'argent sans joueur (guerre, tournoi). Le montant retiré doit avoir été vérifié.
+---@param tag string
+---@param amount integer négatif pour un retrait
+---@param label string motif affiché dans le journal, traduit par l'interface
+function CrewStashService.moveMoney(tag, amount, label)
+    local stash = CrewStashService.get(tag)
+    local left = math.max(0, (stash.items.money or 0) + amount)
+    stash.items.money = left > 0 and left or nil
+    table.insert(stash.log, 1, { name = label, item = 'money', count = math.abs(amount), taken = amount < 0, at = os.time() })
+    while #stash.log > Config.Crews.stash.logSize do table.remove(stash.log) end
+    CrewRepository.saveStash(tag, json.encode(stash.items), json.encode(stash.log))
+    Logger.info('[crew] coffre de [%s] : %+d $', tag, amount)
+end
+
 ---@param source integer
 ---@return PvpPlayer|nil, PvpCrew|nil, table|nil raison du refus (Locale.t)
 function CrewStashService.access(source)

@@ -496,6 +496,8 @@ export interface CrewConfig {
   stashCapacity: number;
   /** Config.Crews.stats.captureScore : points par territoire pris */
   captureScore: number;
+  /** Config.Crews.war */
+  war?: { minStake: number; maxStake: number; duration: number };
 }
 
 /** Opération du journal du coffre de crew (server/modules/crew/crew_stash_service.lua) */
@@ -540,6 +542,19 @@ export interface CrewData {
   /** coffre commun et son journal, du plus récent au plus ancien */
   stash: ItemStacks;
   stashLog: CrewStashEntry[];
+  /** Guerre en cours, sinon `false` */
+  war?: { enemyTag: string; enemyName: string; kills: number; enemyKills: number; stake: number; endsIn: number } | false;
+  /** Défi reçu d'un autre crew, sinon `false` */
+  warChallenge?: { tag: string; stake: number; expiresIn: number } | false;
+}
+
+export interface CrewTournamentState {
+  running: boolean;
+  startsIn: number;
+  endsIn: number;
+  prize: number;
+  minCrews: number;
+  crews: { tag: string; name: string; kills: number; mine: boolean }[];
 }
 
 export interface CrewInvite {

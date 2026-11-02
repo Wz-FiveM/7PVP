@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { crewApi } from '../api/crewApi';
+import { CrewTournamentPanel, CrewWarPanel } from '../components/crew/CrewWarPanels';
 import { Panel } from '../components/ui/Panel';
 import { formatNumber, useT } from '../i18n';
 import { useGame } from '../store/GameContext';
@@ -148,6 +149,9 @@ export function CrewPage() {
         </Panel>
       )}
 
+      {crew && <CrewWarPanel crew={crew} isLeader={isLeader} />}
+      <CrewTournamentPanel crew={crew} isLeader={isLeader} />
+
       {territories.length > 0 && (
         <Panel className="group-panel">
           <span className="label">{t('Territoires')}</span>
@@ -175,6 +179,7 @@ export function CrewPage() {
           <li>{t('Un territoire capturé paie chaque membre connecté en PvP, et reste au crew d\'une session à l\'autre. {count} territoires au plus par crew.', { count: config?.maxTerritories ?? 2 })}</li>
           <li>{t('Coffre du crew chez le banquier : tous les membres y déposent et y retirent, le journal garde qui a fait quoi. Vide-le avant de dissoudre le crew.')}</li>
           <li>{t('Classement des crews (menu Top joueurs) : 1 point par kill fait une fois dans le crew, {score} points par territoire pris.', { score: config?.captureScore ?? 10 })}</li>
+          <li>{t('Guerre et tournoi : les gains arrivent dans le coffre du crew, un kill sur la même victime ne compte pas deux fois de suite en peu de temps.')}</li>
           <li>{t('Chat : /crewinviter ID, /crewaccepter, /crewrefuser, /crewquitter.')}</li>
         </ul>
       </Panel>

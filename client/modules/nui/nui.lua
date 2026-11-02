@@ -230,6 +230,7 @@ function Nui.buildInitPayload()
                 territoryInterval = Config.ControlZones.territories.incomeInterval,
                 stashCapacity = Config.Crews.stash.capacity,
                 captureScore = Config.Crews.stats.captureScore,
+                war = { minStake = Config.Crews.war.minStake, maxStake = Config.Crews.war.maxStake, duration = Config.Crews.war.duration },
             },
             nameColors = Config.NameColors,
             achievements = Config.Achievements,

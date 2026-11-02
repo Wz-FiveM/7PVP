@@ -376,6 +376,15 @@
 .crew-form .btn {
   align-self: flex-start;
 }
+.crew-war {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.crew-war__score {
+  font-size: 1.125rem;
+  color: var(--brume-hi);
+}
 .crew-territories {
   display: flex;
   flex-direction: column;

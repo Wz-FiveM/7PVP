@@ -18,6 +18,8 @@ local CrewRepository = PVP.use('CrewRepository')
 local ControlService = PVP.use('ControlService')
 local GroupService = PVP.use('GroupService')
 local SeasonService = PVP.use('SeasonService')
+local CrewWarService = PVP.use('CrewWarService')
+local CrewTournamentService = PVP.use('CrewTournamentService')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
@@ -49,6 +51,10 @@ function CrewStatsService.onPlayerKill(killer, victim)
     local season = SeasonService.current()
     if killerTag then CrewRepository.addStats(killerTag, season, 1, 0, 0) end
     if victimTag then CrewRepository.addStats(victimTag, season, 0, 1, 0) end
+    if killerTag and victimTag then
+        CrewWarService.onKill(killerTag, victimTag)
+        CrewTournamentService.onKill(killerTag, victimTag)
+    end
 end
 
 ---Deux joueurs complices ne font pas monter un crew en se tuant en boucle.

@@ -99,6 +99,22 @@ Config.Crews = {
         captureScore = 10, -- points par territoire pris (1 kill = 1 point)
         sameVictimDelay = 60, -- secondes avant qu'un kill sur la même victime compte à nouveau
     },
+    -- Guerre de crews : la mise vient de l'argent du coffre de chaque crew
+    war = {
+        minStake = 1000,
+        maxStake = 100000,
+        duration = 3600, -- secondes
+        answerTime = 60, -- secondes pour répondre à un défi
+        cooldown = 7200, -- secondes avant que les deux mêmes crews se défient à nouveau
+    },
+    -- Tournoi de la semaine : kills entre crews inscrits, le prix va au coffre du crew en tête
+    tournament = {
+        weekday = 7, -- 1 = dimanche, 7 = samedi
+        hour = 20, -- heure du serveur
+        duration = 1800, -- secondes
+        minCrews = 2,
+        prize = 50000,
+    },
     -- Labels que personne ne peut prendre
     reservedTags = {
         ADM = true, MOD = true, DEV = true, GMS = true, STF = true, BOT = true,

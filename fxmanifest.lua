@@ -103,6 +103,8 @@ server_scripts {
     'server/modules/crew/crew_service.lua',
     'server/modules/crew/crew_stash_service.lua',
     'server/modules/crew/crew_stats_service.lua',
+    'server/modules/crew/crew_war_service.lua',
+    'server/modules/crew/crew_tournament_service.lua',
     'server/modules/trade/trade_service.lua',
     'server/modules/teleport/teleport_service.lua',
     'server/modules/vehicle/vehicle_service.lua',
