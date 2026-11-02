@@ -10,6 +10,7 @@ local ChatService = PVP.use('ChatService')
 local LootService = PVP.use('LootService')
 local AntiCheatService = PVP.use('AntiCheatService')
 local AirdropService = PVP.use('AirdropService')
+local BlackMarketService = PVP.use('BlackMarketService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
 local ConflictService = PVP.use('ConflictService')
@@ -38,6 +39,7 @@ AdminService.ACTIONS = {
     announce = { method = 'announce', target = false },
     clearLoot = { method = 'clearLoot', target = false },
     airdrop = { method = 'airdrop', target = false },
+    blackMarket = { method = 'blackMarket', target = false },
     horde = { method = 'horde', target = false },
     conflict = { method = 'conflict', target = false },
     conflictEnd = { method = 'conflictEnd', target = false },
@@ -369,6 +371,20 @@ function AdminService.airdrop(source)
     local coords = admin and admin.mode == 'pvp' and admin:getCoords() or nil
     AirdropService.spawn(coords)
     return true, Locale.t('Largage lancé.')
+end
+
+---Marchand noir immédiat, à côté de l'admin s'il est en PvP, sinon à un point de la config.
+---@param source integer
+function AdminService.blackMarket(source)
+    local admin = PlayerService.get(source)
+    local coords = nil
+    if admin and admin.mode == 'pvp' then
+        local pos = admin:getCoords()
+        coords = vector4(pos.x + 2.0, pos.y, pos.z, 90.0)
+    end
+    if BlackMarketService.current then BlackMarketService.close(BlackMarketService.current.id) end
+    BlackMarketService.open(coords)
+    return true, Locale.t('Marchand noir envoyé.')
 end
 
 ---Horde immédiate dans la zone PvE la plus proche de l'admin.

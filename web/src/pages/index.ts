@@ -13,11 +13,12 @@ import { InventoryPage } from './InventoryPage';
 import { MarketPage } from './MarketPage';
 import { LeaderboardPage } from './LeaderboardPage';
 import { ProfilePage } from './ProfilePage';
+import { BlackMarketPage } from './BlackMarketPage';
 import { ResalePage } from './ResalePage';
 import { SeasonPage } from './SeasonPage';
 import { ShopPage } from './ShopPage';
 
-export type PageId = 'achievements' | 'season' | 'inventory' | 'class' | 'group' | 'crew' | 'bounties' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
+export type PageId = 'blackmarket' | 'achievements' | 'season' | 'inventory' | 'class' | 'group' | 'crew' | 'bounties' | 'crafting' | 'contracts' | 'market' | 'resale' | 'profile' | 'leaderboard' | 'shop' | 'cases' | 'help';
 
 export interface PageDefinition {
   id: PageId;
@@ -39,6 +40,7 @@ export const PAGES: PageDefinition[] = [
   { id: 'contracts', label: 'Contrats', icon: 'contract', component: ContractsPage, npcOnly: true },
   { id: 'market', label: 'Place de marché', icon: 'shop', component: MarketPage, npcOnly: true },
   { id: 'resale', label: 'Revente', icon: 'money', component: ResalePage, npcOnly: true },
+  { id: 'blackmarket', label: 'Marchand noir', icon: 'money', component: BlackMarketPage, npcOnly: true },
   { id: 'profile', label: 'Profil', icon: 'profile', component: ProfilePage },
   { id: 'season', label: 'Saison', icon: 'gem', component: SeasonPage },
   { id: 'achievements', label: 'Hauts faits', icon: 'trophy', component: AchievementsPage },

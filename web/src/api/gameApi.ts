@@ -1,6 +1,6 @@
 import { fetchNui } from './nui';
 import { mockInit, mockLeaderboard } from '../dev/mocks';
-import type { ContainerId, LeaderboardRow, LeaderboardScope, StashId } from '../types/game';
+import type { BlackMarketState, ContainerId, LeaderboardRow, LeaderboardScope, StashId } from '../types/game';
 import type { ActionResult, CaseOpenResult, InitPayload } from '../types/nui';
 
 const MOCK_OK: ActionResult = { ok: true, message: 'Action simulée (navigateur)' };
@@ -64,6 +64,19 @@ export const gameApi = {
 
   /** Achat d'un fond du killfeed en points boutique, équipé aussitôt */
   buyKillfeedBackground: (id: string) => fetchNui<ActionResult>('killfeedBackgroundBuy', { id }, MOCK_OK),
+
+  blackMarketList: () => fetchNui<BlackMarketState>('blackMarketList', {}, {
+    open: true,
+    near: true,
+    endsIn: 540,
+    stock: [
+      { item: 'weapon_rpg', count: 1, price: 25000, left: 1 },
+      { item: 'drug_health', count: 3, price: 1000, left: 6 },
+      { item: 'antizin', count: 3, price: 700, left: 0 },
+    ],
+  }),
+
+  blackMarketBuy: (index: number) => fetchNui<ActionResult>('blackMarketBuy', { index }, MOCK_OK),
 
   seasonPassClaim: (tier: number, premium: boolean) => fetchNui<ActionResult>('seasonPassClaim', { tier, premium }, MOCK_OK),
 

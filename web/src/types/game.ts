@@ -187,6 +187,15 @@ export interface AchievementsState {
   seasonTitles: { id: string; label: string }[];
 }
 
+export interface BlackMarketState {
+  open: boolean;
+  /** Le joueur est assez près pour acheter */
+  near?: boolean;
+  /** Secondes avant son départ */
+  endsIn?: number;
+  stock: { item: string; count: number; price: number; left: number }[];
+}
+
 export interface SeasonPassReward {
   money?: number;
   xp?: number;
@@ -365,7 +374,11 @@ export interface Vitals {
 /** Message du chat (envoyé par server/modules/chat/chat_service.lua) */
 export interface ChatMessageData {
   kind: 'player' | 'system';
+  /** nom affiché : titre et label du crew éventuels, puis `name` */
   author?: string;
+  name?: string;
+  /** couleurs des lettres de `name` (Config.NameColors) */
+  colors?: string;
   text: string;
   /** horodatage serveur, en secondes */
   time: number;
@@ -373,6 +386,30 @@ export interface ChatMessageData {
 
 export interface ChatMessage extends ChatMessageData {
   id: number;
+}
+
+/** Commande proposée par le chat (config/chat_commands.lua) */
+export interface ChatCommand {
+  name: string;
+  description: string;
+  admin: boolean;
+  args: ChatCommandArg[];
+}
+
+export interface ChatCommandArg {
+  label: string;
+  required: boolean;
+  hint: string;
+  /** propose les joueurs du mode */
+  players: boolean;
+  values: { value: string; label: string }[];
+}
+
+/** Joueur du mode proposé par le chat */
+export interface ChatPlayer {
+  id: number;
+  name: string;
+  crew?: string;
 }
 
 /** Mode proposé au lobby (voir config/lobby.lua) */
