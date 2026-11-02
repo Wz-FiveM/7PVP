@@ -2,6 +2,7 @@ import { AmmoCounter } from './AmmoCounter';
 import { BountyList } from './BountyList';
 import { ClassAbility } from './ClassAbility';
 import { CombatTag } from './CombatTag';
+import { ConflictBanner } from './ConflictBanner';
 import { ControlZoneBar } from './ControlZoneBar';
 import { HordeBanner } from './HordeBanner';
 import { HotbarHud } from './HotbarHud';
@@ -30,6 +31,7 @@ export function Hud() {
       </div>
       <Vitals />
       <HotbarHud />
+      <ConflictBanner />
       <AmmoCounter />
       <ClassAbility />
     </div>

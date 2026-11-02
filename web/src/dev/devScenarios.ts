@@ -466,6 +466,19 @@ export const DEV_ACTIONS: DevAction[] = [
         data: { zone: { label: 'Carrière de Davis', ownerLabel: 'Groupe de Bravo', mine: false, capturing: true, enemyCapturing: false, progress: 45, contested: false } },
       }),
   },
+  {
+    label: 'Zone de conflit',
+    run: () =>
+      sendNui({
+        action: 'conflict',
+        data: { conflict: { label: 'Mirror Park', endsIn: 412, leader: { name: 'Bravo', kills: 5 }, leading: false, kills: 2 } },
+      }),
+  },
+  {
+    label: 'Zone de conflit (sans kill)',
+    run: () => sendNui({ action: 'conflict', data: { conflict: { label: 'Mirror Park', endsIn: 600, leader: false, leading: false, kills: 0 } } }),
+  },
+  { label: 'Fin zone de conflit', run: () => sendNui({ action: 'conflict', data: { conflict: false } }) },
   { label: 'Fin horde', run: () => sendNui({ action: 'horde', data: { horde: false } }) },
   {
     label: 'Parler à l\'armurier',

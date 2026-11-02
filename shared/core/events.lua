@@ -77,6 +77,7 @@ Events.client = {
     bountySync = '7pvp:client:bountySync',
     hordeState = '7pvp:client:hordeState',
     controlZones = '7pvp:client:controlZones',
+    conflictState = '7pvp:client:conflictState',
     freeroamCleanup = '7pvp:client:freeroamCleanup',
     teleport = '7pvp:client:teleport',
     teleportCancel = '7pvp:client:teleportCancel',

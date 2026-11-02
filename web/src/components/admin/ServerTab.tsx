@@ -40,6 +40,12 @@ export function ServerTab() {
       <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'horde' })}>
         {t('Lancer une horde (zone PvE la plus proche)')}
       </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'conflict' })}>
+        {t('Lancer une zone de conflit sur moi')}
+      </button>
+      <button className="btn btn--small cut-s" onClick={() => actions.adminAction({ action: 'conflictEnd' })}>
+        {t('Terminer la zone de conflit (récompense le leader)')}
+      </button>
       <button
         className="btn btn--small btn--danger cut-s"
         onClick={() => {

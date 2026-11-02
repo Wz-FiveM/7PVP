@@ -92,6 +92,14 @@ export const mockFreeroamAdmin: FreeroamAdminData = {
       ],
     },
     {
+      name: 'pvpConflictZones', group: 'pvp', label: 'Zones de conflit', kind: 'zones', category: false, modified: false,
+      hint: 'Centre et rayon de chaque zone de conflit, tirée au sort. Reste loin des zones safe et des zones zombies. Une zone en cours se déplace aussitôt.',
+      value: [
+        { id: 'mirror_park', label: 'Mirror Park', center: { x: 1150, y: -640, z: 57, w: 0 }, radius: 110 },
+        { id: 'vespucci', label: 'Plage de Vespucci', center: { x: -1300, y: -1500, z: 4.4, w: 0 }, radius: 120 },
+      ],
+    },
+    {
       name: 'airdropLocations', group: 'pvp', label: 'Largages', point: 'Point de chute', flat: true, kind: 'points', category: false, modified: false,
       hint: 'Une caisse tombe sur un de ces points, tiré au sort. Choisis des endroits dégagés : la hauteur est recalée sur le sol.',
       value: [

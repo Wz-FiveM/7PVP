@@ -124,6 +124,13 @@ FreeroamConfigService.SETTINGS = {
         hint = 'Centre et rayon de chaque zone à capturer. Une zone déplacée garde son propriétaire.',
     },
     {
+        name = 'pvpConflictZones',
+        group = 'pvp',
+        kind = 'zones',
+        label = 'Zones de conflit',
+        hint = 'Centre et rayon de chaque zone de conflit, tirée au sort. Reste loin des zones safe et des zones zombies. Une zone en cours se déplace aussitôt.',
+    },
+    {
         name = 'airdropLocations',
         group = 'pvp',
         kind = 'points',

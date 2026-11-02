@@ -38,6 +38,7 @@ Gamemode PvP / PvE pour FiveM, 100 % custom (aucun framework). Seule dépendance
 | **Contrats quotidiens** | 3 contrats par jour (les mêmes pour tous), récompense versée à l'objectif. | `config/contracts.lua` |
 | **Déblocages par niveau** | Les armes et accessoires de la boutique demandent un niveau minimum. | `level` dans `config/shop.lua` |
 | **Zones de contrôle** | Reste seul (ou avec ton groupe) dans le cercle pour capturer ; la zone rapporte de l'argent à ton camp. | `config/control.lua` |
+| **Zones de conflit** | De temps en temps, une zone apparaît avec un compteur. Le joueur qui y fait le plus de kills est le team leader (affiché en bas au milieu de l'écran dans la zone) ; à la fin du compteur, il remporte argent, XP et butin. | `config/conflict.lua` |
 | **Saisons** | Une par mois : classement de saison à part (onglets Saison / précédente / de tous les temps). L'inventaire, l'argent et l'XP sont gardés. | table `pvp_season_stats` |
 | **Freeroam** | Bac à sable : armes et véhicules gratuits (Verr. Maj), PvP désactivé par défaut (chacun l'active pour soi), réapparition sur place, aucune perte. Modes de jeu (CVC, course poursuite, 1VS1) auprès des PNJ de la zone safe, chacun avec son classement ELO affiché sur un écran à côté de son PNJ. | `config/freeroam.lua`, `config/boards.lua` |
 

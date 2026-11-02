@@ -13,6 +13,7 @@ import type {
   BountyEntry,
   GameClock,
   HordeState,
+  ConflictHud,
   ControlZoneHud,
   FreeroamState,
   NearServices,
@@ -76,6 +77,8 @@ export interface GameState {
   leaderboardTitle: string;
   /** Zone de contrôle où se trouve le joueur */
   controlZone: ControlZoneHud | null;
+  /** Zone de conflit où se trouve le joueur ; `endsAt` en Date.now() */
+  conflict: (ConflictHud & { endsAt: number }) | null;
   freeroam: FreeroamState;
   /** Aide affichée (touche + action), null si aucune */
   helpNotify: HelpNotification | null;
@@ -125,6 +128,7 @@ export type GameAction =
   | { type: 'killfeed/remove'; id: number }
   | { type: 'leaderboard'; rows: LeaderboardRow[]; title: string }
   | { type: 'controlZone'; zone: ControlZoneHud | null }
+  | { type: 'conflict'; conflict: ConflictHud | null }
   | { type: 'freeroam'; patch: Partial<FreeroamState> }
   | { type: 'helpNotify'; help: HelpNotification | null }
   | { type: 'interaction'; open: boolean; items: InteractionItem[] | null }
@@ -173,6 +177,7 @@ export const initialState: GameState = {
   leaderboard: [],
   leaderboardTitle: '',
   controlZone: null,
+  conflict: null,
   freeroam: { menuOpen: false, pvp: false, weapons: [], vehicles: [], activity: null },
   helpNotify: null,
   interaction: { open: false, items: null },
@@ -313,5 +318,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, freeroam: { ...state.freeroam, ...action.patch } };
     case 'controlZone':
       return { ...state, controlZone: action.zone };
+    case 'conflict':
+      return { ...state, conflict: action.conflict ? { ...action.conflict, endsAt: Date.now() + action.conflict.endsIn * 1000 } : null };
   }
 }

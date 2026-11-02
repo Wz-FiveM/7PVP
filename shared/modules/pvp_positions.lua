@@ -9,11 +9,13 @@ local FreeroamPositions = PVP.use('FreeroamPositions')
 
 PvpPositions.MODE = 'pvp'
 PvpPositions.CONTROL = 'control'
+PvpPositions.CONFLICT = 'conflict'
 -- Réglage du panneau -> sorte de zones
 PvpPositions.ZONE_SETTINGS = {
     pvpSafeZones = 'safe',
     pvpPveZones = 'pve',
     pvpControlZones = PvpPositions.CONTROL,
+    pvpConflictZones = PvpPositions.CONFLICT,
 }
 
 ---PNJ de service des zones du mode, rangés par zone (« Zone · Rôle »).
@@ -38,6 +40,7 @@ end
 ---@return table[] zones du mode, modifiées directement par setZones
 function PvpPositions.zones(kind)
     if kind == PvpPositions.CONTROL then return Config.ControlZones.zones end
+    if kind == PvpPositions.CONFLICT then return Config.ConflictZones.zones end
     return Zones.byType(kind, PvpPositions.MODE)
 end
 

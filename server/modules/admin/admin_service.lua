@@ -12,6 +12,7 @@ local AntiCheatService = PVP.use('AntiCheatService')
 local AirdropService = PVP.use('AirdropService')
 local PveService = PVP.use('PveService')
 local HordeService = PVP.use('HordeService')
+local ConflictService = PVP.use('ConflictService')
 local SpectateService = PVP.use('SpectateService')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
@@ -38,6 +39,8 @@ AdminService.ACTIONS = {
     clearLoot = { method = 'clearLoot', target = false },
     airdrop = { method = 'airdrop', target = false },
     horde = { method = 'horde', target = false },
+    conflict = { method = 'conflict', target = false },
+    conflictEnd = { method = 'conflictEnd', target = false },
 }
 
 function AdminService.init()
@@ -380,6 +383,28 @@ function AdminService.horde(source)
     end
     if not HordeService.start(closest) then return false, Locale.t('Une horde est déjà en cours.') end
     return true, Locale.t('Horde lancée : %s.', Locale.t(closest.zone.label))
+end
+
+---Zone de conflit immédiate, centrée sur l'admin.
+---@param source integer
+function AdminService.conflict(source)
+    local admin = PlayerService.get(source)
+    if not admin or admin.mode ~= 'pvp' then return false, Locale.t('Rejoins le PvP pour lancer une zone de conflit.') end
+    if admin:isInSafeZone() then return false, Locale.t('Sors de la zone safe pour lancer une zone de conflit.') end
+    local started = ConflictService.start({
+        id = 'admin',
+        label = 'Zone de conflit',
+        coords = admin:getCoords(),
+        radius = Config.ConflictZones.adminRadius,
+    })
+    if not started then return false, Locale.t('Une zone de conflit est déjà en cours.') end
+    return true, Locale.t('Zone de conflit lancée.')
+end
+
+---Termine tout de suite la zone en cours : le team leader reçoit sa récompense.
+function AdminService.conflictEnd()
+    if not ConflictService.finish() then return false, Locale.t('Aucune zone de conflit en cours.') end
+    return true, Locale.t('Zone de conflit terminée.')
 end
 
 function AdminService.clearLoot()
