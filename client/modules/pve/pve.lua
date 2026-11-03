@@ -1,6 +1,7 @@
 ---Zombies des zones PvE. Seul le client propriétaire (au sens réseau) d'un zombie
 ---le pilote : poursuite du joueur le plus proche, vomissement au contact, signalement de sa mort.
 ---Le vomi est validé par le serveur puis joué chez tous les joueurs proches ; la cible subit les dégâts.
+---Les humains armés (prison) se battent avec l'IA de GTA ; leurs touches sont tirées par le serveur.
 ---@class PveModule
 local Pve = PVP.define('Pve')
 local State = PVP.use('State')
@@ -12,6 +13,7 @@ local Effects = PVP.use('Effects')
 local Events = PVP.use('Events')
 local ZombieGear = PVP.use('ZombieGear')
 local Dungeon = PVP.use('Dungeon')
+local Horde = PVP.use('Horde')
 
 Pve.SCAN_INTERVAL = 250
 Pve.RETASK_INTERVAL = 2000 -- relance la poursuite pour suivre une cible qui bouge
@@ -25,6 +27,8 @@ Pve.RAGDOLL_BLOCKING_FLAGS = 57425
 -- Morts et vomis signalés par scan : ce client peut piloter toute une horde, le reste attend le scan suivant
 -- (Config.AntiCheat.rateLimits : 40 requêtes/s, et 4 scans par seconde)
 Pve.REQUESTS_PER_SCAN = 6
+-- Précision de l'IA de GTA (0-100) : visuelle seulement, la touche est tirée par le serveur
+Pve.HUMAN_ACCURACY = 40
 
 Pve.deathBudget = 0
 Pve.attackBudget = 0
@@ -36,11 +40,15 @@ Pve.chasing = {} -- [ped] = { target = ped du joueur, at = ms } poursuite en cou
 Pve.lastAttack = {} -- [ped] = ms du dernier vomissement lancé par ce client
 Pve.decorated = {} -- [ped] = true quand les blessures visuelles sont appliquées
 Pve.stunned = {} -- [ped] = ms de fin de l'étourdissement (compétences de classe)
+Pve.lastShot = {} -- [ped] = ms du dernier tir d'un humain armé envoyé au serveur
 
 function Pve.init()
     Pve.setupRelationships()
     RegisterNetEvent(Events.client.zombieVomit, function(netId, targetId, damage)
         Pve.onVomit(netId, targetId, damage)
+    end)
+    RegisterNetEvent(Events.client.npcShot, function(damage)
+        Pve.receiveShot(tonumber(damage) or 0)
     end)
     CreateThread(Pve.loop)
 end
@@ -52,6 +60,10 @@ function Pve.setupRelationships()
     SetRelationshipBetweenGroups(5, group, playerGroup)
     SetRelationshipBetweenGroups(5, playerGroup, group)
     SetRelationshipBetweenGroups(0, group, group)
+    -- Les balles et les coups des PNJ ne blessent personne : les touches des humains armés sont tirées
+    -- par le serveur (Pve.tryShoot), sinon ils feraient mal à leur propriétaire et pas aux autres
+    SetAiWeaponDamageModifier(0.0)
+    SetAiMeleeWeaponDamageModifier(0.0)
 end
 
 function Pve.loop()
@@ -93,7 +105,7 @@ function Pve.scan()
 end
 
 function Pve.cleanup()
-    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned }) do
+    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned, Pve.lastShot }) do
         for ped in pairs(tracked) do
             if not DoesEntityExist(ped) then tracked[ped] = nil end
         end
@@ -108,8 +120,10 @@ end
 function Pve.decorate(ped)
     if Pve.decorated[ped] then return end
     Pve.decorated[ped] = true
-    for _, pack in ipairs(Config.Zombie.damagePacks) do
-        ApplyPedDamagePack(ped, pack, 0.0, 1.0)
+    if not Pve.getType(ped).human then
+        for _, pack in ipairs(Config.Zombie.damagePacks) do
+            ApplyPedDamagePack(ped, pack, 0.0, 1.0)
+        end
     end
     SetRagdollBlockingFlags(ped, Pve.RAGDOLL_BLOCKING_FLAGS)
 end
@@ -126,6 +140,8 @@ function Pve.updatePed(ped, zone)
 
     if Entity(ped).state.dungeonBoss then Dungeon.setupBoss(ped) end
 
+    if Entity(ped).state.hordeBoss then Horde.setupBoss(ped) end
+
     if not Pve.configured[ped] then
         Pve.setupPed(ped, zone.npc)
         Pve.configured[ped] = true
@@ -134,7 +150,11 @@ function Pve.updatePed(ped, zone)
     Hits.watchZombie(ped)
 
     if Pve.isAttacking(ped) or Pve.isStunned(ped) then return end
-    Pve.updateBehaviour(ped, zone)
+    if Pve.getType(ped).human then
+        Pve.updateHuman(ped, zone)
+    else
+        Pve.updateBehaviour(ped, zone)
+    end
 end
 
 ---@param ped integer
@@ -224,7 +244,7 @@ function Pve.setupPed(ped, npc)
         if zombieType.armour then SetPedArmour(ped, zombieType.armour) end
         state:set('pvpNpcReady', true, true)
     end
-    if zombieType == Config.ZombieTypes.tank or zombieType == Config.ZombieTypes.dungeonBoss then
+    if zombieType == Config.ZombieTypes.tank or zombieType == Config.ZombieTypes.dungeonBoss or zombieType == Config.ZombieTypes.hordeBoss then
         -- Le colosse ne tombe pas et encaisse les tirs à la tête
         SetPedCanRagdoll(ped, false)
         SetPedSuffersCriticalHits(ped, false)
@@ -232,7 +252,11 @@ function Pve.setupPed(ped, npc)
     ZombieGear.setupOwned(ped, zombieType)
 
     SetPedRelationshipGroupHash(ped, Pve.npcGroup)
-    RemoveAllPedWeapons(ped, true)
+    if zombieType.human then
+        Pve.arm(ped, zombieType)
+    else
+        RemoveAllPedWeapons(ped, true)
+    end
     SetPedCanSwitchWeapon(ped, false)
     SetPedDropsWeaponsWhenDead(ped, false)
     -- Ignore les tirs, les cris et la peur : le zombie ne fait que poursuivre
@@ -243,7 +267,7 @@ function Pve.setupPed(ped, npc)
     SetPedConfigFlag(ped, 281, true) -- pas d'agonie au sol : il tombe d'un coup
     StopPedSpeaking(ped, true)
     DisablePedPainAudio(ped, true)
-    if HasClipSetLoaded(Config.Zombie.walkStyle) then
+    if not zombieType.human and HasClipSetLoaded(Config.Zombie.walkStyle) then
         SetPedMovementClipset(ped, Config.Zombie.walkStyle, 1.0)
     end
 end
@@ -253,14 +277,7 @@ end
 ---@param zone table
 function Pve.updateBehaviour(ped, zone)
     local target, distance = Pve.findTarget(ped)
-    if not target then
-        Pve.chasing[ped] = nil
-        if not Pve.wandering[ped] then
-            Pve.wandering[ped] = true
-            TaskWanderInArea(ped, zone.coords.x, zone.coords.y, zone.coords.z, zone.radius * 0.6, 2.0, 5.0)
-        end
-        return
-    end
+    if not target then return Pve.wander(ped, zone) end
 
     Pve.wandering[ped] = nil
     local zombieType = Pve.getType(ped)
@@ -271,6 +288,78 @@ function Pve.updateBehaviour(ped, zone)
     else
         Pve.chase(ped, target, Pve.getSpeed(zombieType, zone), range)
     end
+end
+
+---@param ped integer
+---@param zone table
+function Pve.wander(ped, zone)
+    Pve.chasing[ped] = nil
+    if not Pve.wandering[ped] then
+        Pve.wandering[ped] = true
+        TaskWanderInArea(ped, zone.coords.x, zone.coords.y, zone.coords.z, zone.radius * 0.6, 2.0, 5.0)
+    end
+end
+
+-- ---------------------------------------------------------------------------
+-- Humains armés (prison)
+-- ---------------------------------------------------------------------------
+
+---Arme et réglages de combat de GTA. Il ne lâche pas son arme en mourant : personne ne doit la ramasser.
+---@param ped integer
+---@param npcType table entrée humaine de Config.ZombieTypes
+function Pve.arm(ped, npcType)
+    local weapon = GetHashKey(npcType.weapon)
+    GiveWeaponToPed(ped, weapon, 9999, false, true)
+    SetCurrentPedWeapon(ped, weapon, true)
+    SetPedInfiniteAmmoClip(ped, true)
+    SetPedAccuracy(ped, Pve.HUMAN_ACCURACY)
+    SetPedCombatAbility(ped, 2) -- professionnel
+    SetPedCombatMovement(ped, 2) -- offensif
+    SetPedCombatRange(ped, 1) -- moyenne distance
+    SetPedCombatAttributes(ped, 46, true) -- se bat jusqu'au bout
+    SetPedCombatAttributes(ped, 5, true) -- attaque même un joueur mieux armé
+    SetPedSeeingRange(ped, Config.Zombie.aggroRange)
+    SetPedHearingRange(ped, Config.Zombie.aggroRange)
+end
+
+---Attaque le joueur le plus proche avec l'IA de combat de GTA, sinon erre dans la zone. Tant qu'il le voit
+---à portée, chaque tir est envoyé au serveur, qui décide s'il touche.
+---@param ped integer
+---@param zone table
+function Pve.updateHuman(ped, zone)
+    local target, distance = Pve.findTarget(ped)
+    if not target then return Pve.wander(ped, zone) end
+
+    Pve.wandering[ped] = nil
+    local now = GetGameTimer()
+    local current = Pve.chasing[ped]
+    if not current or current.target ~= target.ped or now - current.at >= Pve.RETASK_INTERVAL * 2 then
+        Pve.chasing[ped] = { target = target.ped, at = now }
+        TaskCombatPed(ped, target.ped, 0, 16)
+    end
+
+    local npcType = Pve.getType(ped)
+    if distance <= npcType.range and HasEntityClearLosToEntity(ped, target.ped, 17) then
+        Pve.tryShoot(ped, target, npcType)
+    end
+end
+
+---@param ped integer
+---@param target { ped: integer, serverId: integer }
+---@param npcType table
+function Pve.tryShoot(ped, target, npcType)
+    local now = GetGameTimer()
+    if now - (Pve.lastShot[ped] or 0) < npcType.cooldown or Pve.attackBudget <= 0 then return end
+    Pve.attackBudget = Pve.attackBudget - 1
+    Pve.lastShot[ped] = now
+    TriggerServerEvent(Events.server.npcShot, NetworkGetNetworkIdFromEntity(ped), target.serverId)
+end
+
+---Touche d'un humain armé, tirée par le serveur (l'armure encaisse d'abord).
+---@param damage integer
+function Pve.receiveShot(damage)
+    if damage <= 0 or not State.isAlive() or State.isInSafeZone() or State.godmode then return end
+    ApplyDamageToPed(PlayerPedId(), damage, true, 0)
 end
 
 ---La nuit, les zombies vont plus vite (3.0 = sprint au maximum).

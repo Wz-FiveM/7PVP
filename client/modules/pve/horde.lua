@@ -9,3 +9,15 @@ function Horde.init()
         Nui.send('horde', { horde = state or false })
     end)
 end
+
+---Le mini boss se bat comme un zombie (Pve.updatePed) : seule sa vie lui est propre. Appliquée une fois,
+---sinon un changement de propriétaire la remettrait au max.
+---@param ped integer
+function Horde.setupBoss(ped)
+    local state = Entity(ped).state
+    if state.pvpNpcReady then return end
+    local health = 100 + state.hordeBoss
+    SetPedMaxHealth(ped, health)
+    SetEntityHealth(ped, health)
+    state:set('pvpNpcReady', true, true)
+end

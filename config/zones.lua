@@ -133,6 +133,34 @@ Config.Zones = {
             },
         },
     },
+    -- Mutinerie : pas de zombies, des détenus et des matons armés qui tirent (types humains de
+    -- Config.ZombieTypes, poids dans `types`). Plus dangereux, meilleur butin.
+    {
+        id = 'prison',
+        type = 'pve',
+        label = 'Prison de Bolingbroke',
+        coords = vector3(1690.0, 2590.0, 45.6),
+        radius = 170.0,
+        blip = { sprite = 310, color = 17 },
+        npc = {
+            max = 12,
+            respawn = 60,
+            health = 200,
+            speed = 2.0,
+            loot = 'military',
+            horde = false, -- pas de horde de zombies ici
+            types = { inmate = 60, guard = 28, enforcer = 12 },
+            models = { 's_m_y_prisoner_01', 'u_m_y_prisoner_01' },
+            spawns = {
+                vector4(1691.2, 2565.7, 45.6, 0.0),
+                vector4(1641.6, 2571.5, 45.6, 90.0),
+                vector4(1718.0, 2528.0, 45.6, 180.0),
+                vector4(1660.0, 2520.0, 45.6, 270.0),
+                vector4(1760.0, 2590.0, 45.6, 45.0),
+                vector4(1700.0, 2620.0, 45.6, 135.0),
+            },
+        },
+    },
 }
 
 -- Téléportation entre zones safe (mode PvP) : menu ouvert avec Config.Teleport.key

@@ -11,6 +11,8 @@
 ---@field altitude number hauteur d'où part la caisse
 ---@field fallTime number secondes de chute
 ---@field unlockDelay number secondes entre l'atterrissage et l'ouverture
+---@field captureRadius number|nil largage du PvP : rayon du cercle à tenir pour l'ouvrir
+---@field capture { capturer: string|false, progress: number, contested: boolean }|nil avancement reçu du serveur
 ---@field isShown fun(): boolean|nil le joueur voit ce largage (par défaut : en PvP)
 ---@field locate fun(drop: ClientAirdrop, pos: vector3)|nil recalage sur le sol propre à ce largage
 ---@field dir vector3 direction de vol de l'avion
@@ -35,12 +37,15 @@ local PedUtils = PVP.use('PedUtils')
 local DuiLabels = PVP.use('DuiLabels')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local Control = PVP.use('Control')
 
 Airdrop.STREAM_DISTANCE = 450.0
 Airdrop.TEXT_DISTANCE = 60.0
 Airdrop.IDLE_INTERVAL = 100
 -- L'avion vole un peu au-dessus de la caisse qu'il largue
 Airdrop.PLANE_CLEARANCE = 15.0
+Airdrop.RING_HEIGHT = 1.5
+Airdrop.RING_ALPHA = 120
 
 ---@type table<integer, ClientAirdrop>
 Airdrop.drops = {}
@@ -51,6 +56,10 @@ function Airdrop.init()
     end)
     RegisterNetEvent(Events.client.airdropRemove, function(id)
         Airdrop.remove(id)
+    end)
+    RegisterNetEvent(Events.client.airdropCapture, function(state)
+        local drop = Airdrop.drops[state.id]
+        if drop and drop.captureRadius then drop.capture = state end
     end)
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then
@@ -73,7 +82,9 @@ function Airdrop.add(data, options)
         track = data.coords,
         altitude = data.altitude or data.coords.z + Config.Airdrops.fallHeight,
         fallTime = data.fallTime or Config.Airdrops.fallTime,
-        unlockDelay = data.unlockDelay or Config.Airdrops.unlockDelay,
+        unlockDelay = data.unlockDelay or Config.Airdrops.capture.time,
+        captureRadius = data.captureRadius,
+        capture = data.capture,
         isShown = options and options.isShown,
         locate = options and options.locate,
         heading = data.heading or 0.0,
@@ -280,10 +291,27 @@ function Airdrop.render(drop, pos, now)
         Airdrop.land(drop)
     end
 
+    if drop.captureRadius and not falling then Airdrop.drawRing(drop) end
     if dist < Airdrop.TEXT_DISTANCE then
         Airdrop.drawLabel(drop, vector3(drop.coords.x, drop.coords.y, z + drop.top + 0.6), falling, now)
     end
     return true
+end
+
+---Cercle à tenir autour de la caisse posée : vert quand ton camp capture, rouge pour un autre camp.
+---@param drop ClientAirdrop
+function Airdrop.drawRing(drop)
+    local r, g, b = 255, 210, 40
+    local capture = drop.capture
+    if capture and capture.contested then
+        r, g, b = 255, 130, 30
+    elseif capture and capture.capturer then
+        -- Pas de crew pour un largage : le camp est le groupe, sinon le joueur seul
+        if capture.capturer == Control.myTeam({}) then r, g, b = 181, 242, 61 else r, g, b = 255, 40, 30 end
+    end
+    local diameter = drop.captureRadius * 2
+    DrawMarker(1, drop.coords.x, drop.coords.y, drop.coords.z - 1.0, 0, 0, 0, 0, 0, 0, diameter, diameter, Airdrop.RING_HEIGHT,
+        r, g, b, Airdrop.RING_ALPHA, false, false, 2, false, nil, nil, false)
 end
 
 ---Recale la caisse sur le sol une fois le terrain chargé autour du point.
@@ -348,6 +376,19 @@ function Airdrop.startSmoke(drop)
         0.0, 0.0, 0.0, 1.5, false, false, false, false)
 end
 
+---@param drop ClientAirdrop
+---@return string texte, number avancement de la capture (0 à 1)
+function Airdrop.captureStatus(drop)
+    local capture = drop.capture
+    if not capture or not capture.capturer then
+        return Locale.t('Tiens le cercle %d s pour l\'ouvrir', drop.unlockDelay), 0
+    end
+    local percent = math.floor(capture.progress * 100)
+    if capture.contested then return Locale.t('Contesté · %d %%', percent), capture.progress end
+    if capture.capturer == Control.myTeam({}) then return Locale.t('Capture · %d %%', percent), capture.progress end
+    return Locale.t('Capture ennemie · %d %%', percent), capture.progress
+end
+
 ---Étiquette DUI au-dessus de la caisse : état et avancement (chute, puis ouverture).
 ---@param drop ClientAirdrop
 ---@param coords vector3
@@ -358,6 +399,8 @@ function Airdrop.drawLabel(drop, coords, falling, now)
     if falling then
         subtitle = Locale.t('En chute')
         progress = 1 - (drop.landAt - now) / (drop.fallTime * 1000)
+    elseif drop.captureRadius then
+        subtitle, progress = Airdrop.captureStatus(drop)
     else
         local seconds = math.max(0, math.ceil((drop.unlockAt - now) / 1000))
         -- En Warzone, la caisse reste fermée jusqu'à ce qu'un joueur l'ouvre

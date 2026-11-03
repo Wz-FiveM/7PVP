@@ -41,6 +41,11 @@ function PveService.init()
         PveService.onZombieAttack(source, netId, targetId)
     end)
 
+    -- Envoyé par le client propriétaire d'un humain armé quand il tire sur un joueur qu'il voit
+    RegisterNetEvent(Events.server.npcShot, function(netId, targetId)
+        PveService.onNpcShot(source, netId, targetId)
+    end)
+
     AddEventHandler('onResourceStop', function(resource)
         if resource == GetCurrentResourceName() then
             PveService.despawnAll()
@@ -83,6 +88,7 @@ function PveService.onZombieAttack(source, netId, targetId)
     if not target or target.dead or not PveWorldService.isInside(target.source) then return end
 
     local zombieType = Config.ZombieTypes[Entity(ped).state.zombieType] or Config.ZombieTypes.walker
+    if zombieType.human then return end
     local range = zombieType.range or Config.Zombie.attackRange
     local coords = GetEntityCoords(ped)
     if #(target:getCoords() - coords) > range + PveService.ATTACK_RANGE_TOLERANCE then return end
@@ -100,6 +106,33 @@ function PveService.onZombieAttack(source, netId, targetId)
             TriggerClientEvent(Events.client.zombieVomit, id, netId, target.source, damage)
         end
     end
+end
+
+---Tir d'un humain armé : ses balles ne blessent pas (voir Pve.setupRelationships), le serveur vérifie
+---le tir (propriétaire, portée, délai), tire la touche selon sa précision et prévient la cible.
+---@param source integer
+---@param netId any
+---@param targetId any
+function PveService.onNpcShot(source, netId, targetId)
+    if not AntiCheatService.allow(source, 'zombieAttack') then return end
+    netId = tonumber(netId)
+    local ped = netId and NetworkGetEntityFromNetworkId(netId) or 0
+    if ped == 0 or not DoesEntityExist(ped) or GetEntityHealth(ped) <= 0 then return end
+    if not PveService.getZoneOf(ped) or NetworkGetEntityOwner(ped) ~= source then return end
+    local npcType = Config.ZombieTypes[Entity(ped).state.zombieType]
+    if not npcType or not npcType.human then return end
+
+    local target = PlayerService.get(targetId)
+    if not target or target.dead or not PveWorldService.isInside(target.source) then return end
+    if GetPlayerRoutingBucket(target.source) ~= GetEntityRoutingBucket(ped) then return end
+    if #(target:getCoords() - GetEntityCoords(ped)) > npcType.range + PveService.ATTACK_RANGE_TOLERANCE then return end
+
+    local now = GetGameTimer()
+    if now - (PveService.lastAttack[ped] or 0) < npcType.cooldown - PveService.ATTACK_COOLDOWN_TOLERANCE then return end
+    PveService.lastAttack[ped] = now
+
+    if math.random() > npcType.accuracy then return end
+    TriggerClientEvent(Events.client.npcShot, target.source, ClassService.zombieDamage(target, npcType.shotDamage))
 end
 
 function PveService.despawnAll()

@@ -5,7 +5,7 @@
 ---@field zone table entrée de Config.Zones
 ---@field config table bloc `npc` de la zone
 ---@field peds table<integer, string> ped -> type de zombie (Config.ZombieTypes)
----@field horde { endsAt: integer, kills: integer }|nil horde en cours (voir HordeService)
+---@field horde { endsAt: integer, kills: integer, boss: integer|nil, bossMax: integer|nil, bossKilled: boolean|nil }|nil horde en cours (voir HordeService)
 ---@field respawnQueue integer[] timestamps (ms) auxquels une place se libère
 ---@field emptySince integer|nil
 local PveZone = PVP.define('PveZone')
@@ -16,6 +16,7 @@ local ModeRegistry = PVP.use('ModeRegistry')
 local PveWorldService = PVP.use('PveWorldService')
 local DungeonService = PVP.use('DungeonService')
 local Clock = PVP.use('Clock')
+local HordeService = PVP.use('HordeService')
 local Events = PVP.use('Events')
 
 PveZone.__index = PveZone
@@ -96,30 +97,50 @@ function PveZone.getWeight(zombieType, night)
     return night and zombieType.nightWeight or zombieType.weight
 end
 
----Tire un type de zombie selon les poids de Config.ZombieTypes.
+---Tire un type de zombie selon les poids de Config.ZombieTypes, ou ceux imposés par la zone.
+---@param weights? table<string, number> poids par type (npc.types de la zone)
 ---@return string
-function PveZone.pickType()
+function PveZone.pickType(weights)
     local night = Clock.isNight()
     local total = 0
-    for _, zombieType in pairs(Config.ZombieTypes) do total = total + PveZone.getWeight(zombieType, night) end
+    for id, zombieType in pairs(Config.ZombieTypes) do total = total + PveZone.weightOf(id, zombieType, night, weights) end
     local roll = math.random() * total
     for id, zombieType in pairs(Config.ZombieTypes) do
-        roll = roll - PveZone.getWeight(zombieType, night)
-        if roll <= 0 then return id end
+        local weight = PveZone.weightOf(id, zombieType, night, weights)
+        roll = roll - weight
+        if weight > 0 and roll <= 0 then return id end
     end
-    return 'walker'
+    return weights and next(weights) or 'walker'
+end
+
+---@param id string
+---@param zombieType table
+---@param night boolean
+---@param weights? table<string, number>
+---@return number
+function PveZone.weightOf(id, zombieType, night, weights)
+    if weights then return weights[id] or 0 end
+    return PveZone.getWeight(zombieType, night)
 end
 
 function PveZone:spawnNpc()
-    local point = Utils.pick(self.config.spawns)
-    local typeId = PveZone.pickType()
+    local typeId = PveZone.pickType(self.config.types)
     local zombieType = Config.ZombieTypes[typeId]
-    local model = GetHashKey(Utils.pick(zombieType.models or self.config.models))
-    local ped = CreatePed(4, model, point.x, point.y, point.z, point.w, true, true)
+    local ped = self:createPed(Utils.pick(self.config.spawns), Utils.pick(zombieType.models or self.config.models), typeId)
+    if ped then self.peds[ped] = typeId end
+end
+
+---PNJ de la zone, dans le monde zombies et sans arme (le client propriétaire équipe les humains).
+---@param point vector4
+---@param model string
+---@param typeId string entrée de Config.ZombieTypes
+---@return integer|nil
+function PveZone:createPed(point, model, typeId)
+    local ped = CreatePed(4, GetHashKey(model), point.x, point.y, point.z, point.w, true, true)
 
     local timeout = GetGameTimer() + 2000
     while not DoesEntityExist(ped) and GetGameTimer() < timeout do Wait(0) end
-    if not DoesEntityExist(ped) then return end
+    if not DoesEntityExist(ped) then return nil end
 
     -- Garde l'entité même si son propriétaire se déconnecte
     SetEntityOrphanMode(ped, 2)
@@ -127,10 +148,10 @@ function PveZone:spawnNpc()
     SetEntityRoutingBucket(ped, Config.PveWorld.bucket)
     -- Zombie : aucune arme, il attaque en vomissant (voir client/modules/pve/pve.lua)
     RemoveAllPedWeapons(ped, true)
-    Entity(ped).state:set('pvpNpc', self.zone.id, true)
+    -- Le type avant la zone : le client ne regarde que les PNJ qui ont une zone, et doit déjà savoir s'il est armé
     Entity(ped).state:set('zombieType', typeId, true)
-
-    self.peds[ped] = typeId
+    Entity(ped).state:set('pvpNpc', self.zone.id, true)
+    return ped
 end
 
 ---Nuage toxique d'un zombie mort : chaque joueur proche du monde zombies affiche la fumée et subit
@@ -159,6 +180,8 @@ end
 ---@param ped integer
 ---@param killer PvpPlayer|nil
 function PveZone:onNpcDeath(ped, killer)
+    -- Le mini boss de la horde n'est pas compté dans les zombies de la zone
+    if self.horde and self.horde.boss == ped then return HordeService.onBossDeath(self, ped, killer) end
     if not self:owns(ped) then return end
     local typeId = self.peds[ped]
     local zombieType = Config.ZombieTypes[typeId] or Config.ZombieTypes.walker

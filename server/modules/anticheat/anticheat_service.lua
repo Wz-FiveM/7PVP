@@ -275,9 +275,14 @@ end
 function AntiCheatService.onWeaponDamage(sender, data)
     sender = tonumber(sender)
     if not sender or type(data) ~= 'table' then return end
+    -- Monde zombies : une touche sur un joueur y est annulée (PveWorldService). Elle vient le plus souvent d'un
+    -- humain armé de la prison piloté par ce client : son arme n'est pas celle du joueur, sa cible ne perd rien
+    if PveWorldService.isInside(sender) and AntiCheatService.playerHitBy(sender, data) then return end
     -- Tir du boss de donjon, piloté par ce client : l'arme n'est pas la sienne
     local player = AntiCheatService.watched(sender, true)
     local weapon = AntiCheatService.unsigned(data.weaponType)
+    -- Même chose pour un humain armé qui touche un véhicule ou un décor
+    if PveWorldService.isInside(sender) and AntiCheatService.npcWeapons()[weapon] then return end
     if player and weapon ~= 0 and not AntiCheatService.ownedWeapons(player)[weapon] then
         CancelEvent()
         return AntiCheatService.flag(sender, 'weapon', ('arme %d absente de l\'inventaire'):format(weapon))
@@ -285,6 +290,17 @@ function AntiCheatService.onWeaponDamage(sender, data)
 
     AntiCheatService.observeHit(sender, player, weapon, data)
     if player then AntiCheatService.checkDamage(sender, player, weapon, data) end
+end
+
+---@return table<integer, boolean> armes des humains armés (Config.ZombieTypes), hash non signé
+function AntiCheatService.npcWeapons()
+    if not AntiCheatService.npcWeaponHashes then
+        AntiCheatService.npcWeaponHashes = {}
+        for _, npcType in pairs(Config.ZombieTypes) do
+            if npcType.weapon then AntiCheatService.npcWeaponHashes[AntiCheatService.unsigned(GetHashKey(npcType.weapon))] = true end
+        end
+    end
+    return AntiCheatService.npcWeaponHashes
 end
 
 ---@param player PvpPlayer tireur

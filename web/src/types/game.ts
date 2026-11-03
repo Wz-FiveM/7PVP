@@ -853,9 +853,11 @@ export interface GameClock {
 export interface HordeState {
   zoneId: string;
   label: string;
-  /** secondes restantes */
+  /** secondes restantes (pour tuer le boss une fois qu'il est là) */
   endsIn: number;
   kills: number;
+  /** mini boss de fin de horde, une fois apparu */
+  boss?: { label: string; value: number; max: number } | false;
 }
 
 export type LeaderboardScope = 'season' | 'previous' | 'all';

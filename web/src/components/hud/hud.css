@@ -213,6 +213,10 @@
   background: var(--panneau);
   box-shadow: var(--ombre);
 }
+.horde-banner__boss {
+  width: auto;
+  margin-bottom: 0.375rem;
+}
 .horde-banner__title {
   font-size: 0.9375rem;
   font-weight: 700;

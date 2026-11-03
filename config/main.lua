@@ -282,7 +282,9 @@ Config.Chat = {
 -- ---------------------------------------------------------------------------
 -- Largages aériens (PvP)
 -- Une caisse tombe en parachute à un des points ci-dessous, signalée sur la carte.
--- Une fois posée, elle s'ouvre après `unlockDelay` secondes : son butin se fouille avec E.
+-- Une fois posée, elle se capture comme une zone de domination : reste seul (toi ou ton groupe) dans
+-- le cercle autour d'elle pour l'ouvrir. Un autre camp dans le cercle fige la capture ; un camp qui
+-- arrive doit d'abord faire retomber celle de l'autre. Ouverte, son butin se fouille avec E.
 -- Les hauteurs (z) sont approximatives : le client recale la caisse sur le sol.
 -- ---------------------------------------------------------------------------
 
@@ -293,7 +295,12 @@ Config.Airdrops = {
     minPlayers = 2, -- joueurs en PvP nécessaires
     fallTime = 25, -- secondes de chute en parachute (après le largage par l'avion)
     fallHeight = 150.0,
-    unlockDelay = 60, -- secondes entre l'atterrissage et l'ouverture
+    capture = {
+        time = 90, -- secondes à tenir le cercle pour ouvrir la caisse
+        radius = 15.0, -- mètres autour de la caisse
+        decay = 0.5, -- cercle vide : la capture retombe à cette vitesse (1 = aussi vite qu'elle monte)
+        timeout = 600, -- secondes au sol sans être capturée : elle s'ouvre toute seule
+    },
     lifetime = 600, -- secondes avant que le butin ouvert disparaisse
     loot = 'airdrop', -- table de config/loot.lua
     -- Caisse militaire solide (collisions une fois posée). Autres modèles possibles :
@@ -373,6 +380,30 @@ Config.ZombieTypes = {
     },
     -- Boss du donjon : jamais tiré au sort, sa vie vient de Config.Dungeon.boss
     dungeonBoss = { label = 'Mastodonte', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
+    -- Mini boss de fin de horde : jamais tiré au sort, sa vie vient de Config.Hordes.boss
+    hordeBoss = { label = 'Abomination', weight = 0, health = 1.0, damage = 3.0, speed = 2.0 },
+    -- Humains armés (zone de la prison) : jamais tirés au sort ailleurs, la zone donne leurs poids (npc.types).
+    -- Ils tirent avec l'IA de GTA, mais leurs balles ne blessent pas : chaque tir qui a sa cible en vue est
+    -- validé par le serveur, qui tire la touche. weapon : arme portée ; range : portée de tir (m) ;
+    -- cooldown : ms entre deux tirs validés ; accuracy : chance de toucher par tir ; shotDamage : dégâts
+    -- d'une touche (l'armure encaisse en premier).
+    inmate = {
+        label = 'Détenu', human = true, weight = 0, health = 1.0,
+        models = { 's_m_y_prisoner_01', 'u_m_y_prisoner_01' },
+        weapon = 'WEAPON_PISTOL', range = 35.0, cooldown = 1200, accuracy = 0.35, shotDamage = 8,
+    },
+    guard = {
+        label = 'Maton corrompu', human = true, weight = 0, health = 1.2, lootRolls = 1,
+        models = { 's_m_m_prisguard_01' },
+        armour = 50,
+        weapon = 'WEAPON_SMG', range = 40.0, cooldown = 800, accuracy = 0.3, shotDamage = 6,
+    },
+    enforcer = {
+        label = 'Caïd', human = true, weight = 0, health = 2.0, lootRolls = 2,
+        models = { 's_m_y_prismuscl_01' },
+        armour = 100,
+        weapon = 'WEAPON_PUMPSHOTGUN', range = 15.0, cooldown = 1600, accuracy = 0.5, shotDamage = 18,
+    },
     -- Ancien du SWAT : gilet pare-balles qui encaisse les premiers tirs (hitmarker bleu)
     swat = {
         label = 'SWAT', weight = 5, nightWeight = 8, health = 1.0, damage = 1.2, lootRolls = 1,
@@ -435,8 +466,9 @@ Config.ZombieGear = {
     },
 }
 
--- Hordes : une zone PvE où se trouvent des joueurs est envahie pendant `duration` secondes.
--- Les joueurs encore en vie dans la zone à la fin touchent la récompense.
+-- Hordes : une zone PvE où se trouvent des joueurs est envahie pendant `duration` secondes, puis
+-- un mini boss arrive (`boss`). Les joueurs encore en vie dans la zone à la fin touchent la récompense,
+-- et celle du boss en plus s'il est tombé. Une zone avec `npc.horde = false` n'est jamais tirée au sort.
 Config.Hordes = {
     enabled = true,
     firstDelay = 900, -- secondes avant la première horde
@@ -446,4 +478,15 @@ Config.Hordes = {
     maxMultiplier = 2.5, -- zombies en même temps dans la zone
     spawnPerTick = 3, -- zombies créés toutes les 1,5 s (au lieu d'un)
     reward = { money = 600, xp = 250 },
+    -- Mini boss : il apparaît à la fin du temps, la horde continue autour de lui. Pas tué à temps, il repart.
+    boss = {
+        type = 'hordeBoss', -- entrée de Config.ZombieTypes
+        model = 'u_m_y_juggernaut_01',
+        health = 3000,
+        healthPerPlayer = 1500, -- par joueur en plus du premier dans la zone
+        duration = 180, -- secondes pour le tuer
+        loot = 'airdrop', -- table de config/loot.lua, sur son corps
+        lootRolls = 1,
+        reward = { money = 800, xp = 300 }, -- en plus de celle de la horde
+    },
 }

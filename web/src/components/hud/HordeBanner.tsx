@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 
-/** Horde en cours : zone, temps restant et zombies tués. */
+/** Horde en cours : zone, temps restant et zombies tués, puis la vie du mini boss. */
 export function HordeBanner() {
   const t = useT();
   const { state } = useGame();
@@ -18,9 +18,24 @@ export function HordeBanner() {
   if (!horde) return null;
   const seconds = Math.max(0, Math.ceil((horde.endsAt - now) / 1000));
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  const boss = horde.boss;
+  const percent = boss && boss.max > 0 ? Math.max(0, Math.min(100, (boss.value / boss.max) * 100)) : 0;
 
   return (
     <div className="horde-banner zone-pve">
+      {boss && (
+        <div className="dungeon-bar horde-banner__boss">
+          <div className="dungeon-bar__head">
+            <span className="disp dungeon-bar__label">{t(boss.label)}</span>
+            <span className="mono dungeon-bar__value">
+              {Math.ceil(boss.value)} / {boss.max}
+            </span>
+          </div>
+          <div className="dungeon-bar__track">
+            <div className="dungeon-bar__fill" style={{ width: `${percent}%` }} />
+          </div>
+        </div>
+      )}
       <div className="stripes" />
       <div className="horde-banner__body">
         <span className="disp horde-banner__title">{t('Horde')}</span>

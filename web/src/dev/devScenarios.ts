@@ -545,6 +545,14 @@ export const DEV_ACTIONS: DevAction[] = [
     run: () => sendNui({ action: 'horde', data: { horde: { zoneId: 'port', label: 'Port de Los Santos', endsIn: 282, kills: 27 } } }),
   },
   {
+    label: 'Boss de horde',
+    run: () =>
+      sendNui({
+        action: 'horde',
+        data: { horde: { zoneId: 'port', label: 'Port de Los Santos', endsIn: 164, kills: 61, boss: { label: 'Abomination', value: 3120, max: 4500 } } },
+      }),
+  },
+  {
     label: 'Zone de contrôle',
     run: () =>
       sendNui({
