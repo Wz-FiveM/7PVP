@@ -146,9 +146,22 @@ function Loadout.syncWeapon(ped, item, owned)
     end
 end
 
+Loadout.noAutoswap = false
+
+---Chargeur vidé = pool vide (les boîtes ne sont pas dans le pool) : GTA rangerait l'arme.
+---En PvP l'arme reste en main pour recharger avec une boîte, ou tirer à vide s'il n'y en a plus.
+function Loadout.syncAutoswap()
+    local wanted = State.inPvp()
+    if wanted ~= Loadout.noAutoswap then
+        Loadout.noAutoswap = wanted
+        SetWeaponsNoAutoswap(wanted)
+    end
+end
+
 function Loadout.trackLoop()
     while true do
         Wait(Loadout.TRACK_INTERVAL)
+        Loadout.syncAutoswap()
         if State.isAlive() and State.inPvp() then
             Loadout.track()
             if GetGameTimer() - Loadout.lastFlush >= Loadout.FLUSH_INTERVAL then
