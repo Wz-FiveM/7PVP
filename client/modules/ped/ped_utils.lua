@@ -3,7 +3,8 @@ local PedUtils = PVP.define('PedUtils')
 
 PedUtils.UNDERGROUND_Z = -15.0 -- plus bas : intérieurs souterrains
 PedUtils.UNDERGROUND_PROBE = 1.5
-PedUtils.SPOT_ATTEMPTS = 40
+PedUtils.SPOT_ATTEMPTS = 100
+PedUtils.INTERIOR_TIMEOUT = 10000 -- ms pour qu'un intérieur souterrain soit chargé
 PedUtils.SPOT_WAIT = 50
 PedUtils.SPOT_DROP = 4.0 -- un sol plus bas est celui de l'étage du dessous
 PedUtils.SPOT_SNAP = 25.0
@@ -76,14 +77,31 @@ function PedUtils.findSpot(x, y, z)
     if z >= PedUtils.UNDERGROUND_Z then return x, y, PedUtils.findGroundZ(x, y, z), true end
 
     local wanted = vector3(x, y, z)
+    local interior = PedUtils.waitInterior(wanted)
     for _ = 1, PedUtils.SPOT_ATTEMPTS do
+        RequestCollisionAtCoord(x, y, z)
         local found, ground = GetGroundZFor_3dCoord(x, y, z + PedUtils.UNDERGROUND_PROBE, false)
         if found and z - ground <= PedUtils.SPOT_DROP then return x, y, ground, true end
         local safe, point = GetSafeCoordForPed(x, y, z, true, 16)
         if safe and #(point - wanted) <= PedUtils.SPOT_SNAP then return point.x, point.y, point.z, true end
         Wait(PedUtils.SPOT_WAIT)
     end
+    -- Dans la console F8 : de quoi corriger le point
+    print(('[sol] rien sous %.1f, %.1f, %.1f (intérieur %d, chargé : %s)'):format(x, y, z, interior,
+        tostring(interior ~= 0 and IsInteriorReady(interior))))
     return x, y, z, false
+end
+
+---Sous terre, le sol est celui d'un intérieur : tant que le jeu ne l'a pas chargé, il n'y a rien sous
+---les pieds. Le joueur doit déjà être sur place, c'est sa position qui fait charger l'intérieur.
+---@param coords vector3
+---@return integer intérieur, 0 si le point n'est dans aucun
+function PedUtils.waitInterior(coords)
+    local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
+    if interior == 0 then return 0 end
+    local timeout = GetGameTimer() + PedUtils.INTERIOR_TIMEOUT
+    while not IsInteriorReady(interior) and GetGameTimer() < timeout do Wait(0) end
+    return interior
 end
 
 ---Distance entre `coords` et le joueur actif le plus proche.
