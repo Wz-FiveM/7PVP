@@ -414,11 +414,19 @@ export const mockInit: InitPayload = {
     seasonPass: {
       premiumPrice: 1000,
       pointsPerTier: 200,
-      tiers: [
-        { free: { money: 220 }, premium: { money: 550, xp: 100 } },
-        { free: { money: 240, items: { bandage: 5 } }, premium: { money: 600, xp: 100, items: { medkit: 5, armor: 1 } } },
-        { free: { money: 260 }, premium: { money: 650, xp: 100, title: 'Vétéran de saison' } },
-      ],
+      // Comme config/seasons.lua : argent à chaque palier, objets tous les 5 paliers, titre au dernier
+      tiers: Array.from({ length: 30 }, (_, index) => {
+        const tier = index + 1;
+        const bonus: { free: Record<string, number>; premium: Record<string, number> }[] = [
+          { free: { bandage: 5 }, premium: { medkit: 5, armor: 1 } },
+          { free: { ammo_556: 120 }, premium: { weapon_carbinerifle: 1, ammo_556: 240 } },
+        ];
+        const extra = tier % 5 === 0 ? bonus[(tier / 5) % 2] : undefined;
+        return {
+          free: { money: 200 + tier * 20, items: extra?.free },
+          premium: { money: 500 + tier * 50, xp: 100, items: extra?.premium, title: tier === 30 ? 'Vétéran de saison' : undefined },
+        };
+      }),
     },
     seasonRewards: [
       { from: 1, to: 1, points: 1000, title: 'Champion de saison', id: 'top1' },
@@ -737,7 +745,7 @@ export const mockInit: InitPayload = {
     playerClass: { id: 'scout', cooldown: 12, changeIn: 0 },
     achievements: { stats: { playerKill: 72, headshots: 9 }, done: { kills_50: true }, title: 'kills_50', seasonTitles: [{ id: '2026-10:top3', label: 'Podium de saison' }] },
     title: 'Chasseur',
-    seasonPass: { points: 310, tier: 1, premium: false, claimed: { f1: true } },
+    seasonPass: { points: 1310, tier: 6, premium: false, claimed: { f1: true, f2: true, f3: true } },
     insurance: { policies: ['weapon_pistol'], prices: { weapon_carbinerifle: 2500 }, max: 3 },
     tutorial: { done: { class: true }, finished: false },
     loadoutSets: [{ weapon_carbinerifle: 1, ammo_556: 120, bandage: 3 }, false, false],
