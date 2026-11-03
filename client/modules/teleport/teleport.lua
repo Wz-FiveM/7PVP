@@ -123,6 +123,10 @@ function Teleport.arrive(spawn, label)
 
         Zone.update()
         DoScreenFadeIn(Teleport.FADE)
-        if label then Nui.notify(Locale.t('Téléporté : %s.', Locale.t(label)), 'success') end
+        if not found then
+            Nui.notify(Locale.t('Aucun sol au point d\'arrivée : tu restes où tu étais.'), 'error')
+        elseif label then
+            Nui.notify(Locale.t('Téléporté : %s.', Locale.t(label)), 'success')
+        end
     end)
 end

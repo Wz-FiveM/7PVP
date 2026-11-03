@@ -10,6 +10,7 @@ local Appearance = PVP.use('Appearance')
 local Death = PVP.use('Death')
 local AppearanceSchema = PVP.use('AppearanceSchema')
 local Events = PVP.use('Events')
+local Locale = PVP.use('Locale')
 
 function Spawn.init()
     RegisterNetEvent(Events.client.spawn, function(spawn, appearance)
@@ -69,6 +70,7 @@ function Spawn.spawnAt(spawn, appearance)
     ShutdownLoadingScreen()
     ShutdownLoadingScreenNui()
     DoScreenFadeIn(500)
+    if not found then Nui.notify(Locale.t('Aucun sol au point d\'arrivée : tu restes où tu étais.'), 'error') end
 
     State.dead = false
     State.spawned = true
