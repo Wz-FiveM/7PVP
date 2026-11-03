@@ -5,6 +5,7 @@
 ---@field key integer numéro envoyé aux clients à la place de la licence
 ---@field identifier string
 ---@field name string
+---@field officer boolean dépense les points du crew avec le chef
 
 ---@class PvpCrew
 ---@field tag string
@@ -21,6 +22,7 @@ local AdminService = PVP.use('AdminService')
 local DiscordService = PVP.use('DiscordService')
 local ControlService = PVP.use('ControlService')
 local CrewStashService = PVP.use('CrewStashService')
+local CrewBonusService = PVP.use('CrewBonusService')
 local CrewWarService = PVP.use('CrewWarService')
 local CrewTournamentService = PVP.use('CrewTournamentService')
 local Callback = PVP.use('Callback')
@@ -46,6 +48,7 @@ function CrewService.init()
     Callback.register(Events.callbacks.crewLeave, CrewService.leave)
     Callback.register(Events.callbacks.crewKick, CrewService.kick)
     Callback.register(Events.callbacks.crewTransfer, CrewService.transfer)
+    Callback.register(Events.callbacks.crewOfficer, CrewService.toggleOfficer)
     Callback.register(Events.callbacks.crewDisband, CrewService.disband)
 
     AddEventHandler(Events.internal.playerLoaded, function(playerSource)
@@ -70,11 +73,12 @@ function CrewService.load()
     end
     for _, row in ipairs(members) do
         local crew = CrewService.crews[row.crew_tag]
-        if crew then CrewService.attach(crew, row.identifier, row.name) end
+        if crew then CrewService.attach(crew, row.identifier, row.name, row.officer == true or tonumber(row.officer) == 1) end
     end
     Logger.info('Crews chargés : %d', #crews)
     ControlService.restoreTerritories(CrewRepository.loadTerritories())
     CrewStashService.restore(CrewRepository.loadStashes())
+    CrewBonusService.restore(CrewRepository.loadBonuses())
     CrewWarService.restore()
     CrewTournamentService.restore()
 
@@ -130,6 +134,17 @@ function CrewService.findMember(crew, key)
 end
 
 ---@param crew PvpCrew
+---@param identifier string
+---@return boolean le chef ou un officier : dépense les points du crew
+function CrewService.canManage(crew, identifier)
+    if crew.leader == identifier then return true end
+    for _, member in ipairs(crew.members) do
+        if member.identifier == identifier then return member.officer end
+    end
+    return false
+end
+
+---@param crew PvpCrew
 ---@param gone? integer joueur en train de partir : déjà compté hors ligne
 ---@return table données envoyées aux clients (jamais les licences)
 function CrewService.serialize(crew, gone)
@@ -145,11 +160,17 @@ function CrewService.serialize(crew, gone)
             name = member.name,
             id = online[member.identifier] or false,
             leader = member.identifier == crew.leader,
+            officer = member.officer and member.identifier ~= crew.leader,
         }
     end
     local stash = CrewStashService.get(crew.tag)
     local war, warChallenge = CrewWarService.describe(crew.tag)
-    return { tag = crew.tag, name = crew.name, members = members, stash = stash.items, stashLog = stash.log, war = war, warChallenge = warChallenge }
+    return {
+        tag = crew.tag, name = crew.name, members = members,
+        stash = stash.items, stashLog = stash.log, stashCapacity = CrewBonusService.stashCapacity(crew.tag),
+        bonus = CrewBonusService.describe(crew.tag),
+        war = war, warChallenge = warChallenge,
+    }
 end
 
 ---Renvoie le crew à jour à ses membres connectés.
@@ -309,6 +330,7 @@ function CrewService.leave(source)
         CrewRepository.delete(crew.tag)
         ControlService.releaseCrew(crew.tag)
         CrewStashService.remove(crew.tag)
+        CrewBonusService.remove(crew.tag)
         return { ok = true, message = Locale.t('Tu as quitté le crew : il est dissous.') }
     end
 
@@ -358,6 +380,31 @@ function CrewService.transfer(source, key)
     return { ok = true }
 end
 
+---Nomme officier un membre, ou lui retire ce rang.
+---@param source integer chef
+---@param key any numéro du membre
+---@return { ok: boolean, message?: string }
+function CrewService.toggleOfficer(source, key)
+    local player = PlayerService.get(source)
+    local crew = CrewService.crewOf(source)
+    if not player or not crew or crew.leader ~= player.identifier then
+        return { ok = false, message = Locale.t('Seul le chef du crew nomme les officiers.') }
+    end
+    local member = CrewService.findMember(crew, key)
+    if not member or member.identifier == player.identifier then
+        return { ok = false, message = Locale.t('Joueur introuvable dans le crew.') }
+    end
+
+    member.officer = not member.officer
+    CrewRepository.setOfficer(member.identifier, member.officer)
+    CrewService.sync(crew)
+    if member.officer then
+        CrewService.notifyMembers(crew, Locale.t('%s est officier du crew.', member.name))
+        return { ok = true }
+    end
+    return { ok = true, message = Locale.t('%s n\'est plus officier.', member.name) }
+end
+
 ---@param source integer chef
 ---@return { ok: boolean, message?: string }
 function CrewService.disband(source)
@@ -396,9 +443,10 @@ end
 ---@param crew PvpCrew
 ---@param identifier string
 ---@param name string
-function CrewService.attach(crew, identifier, name)
+---@param officer? boolean
+function CrewService.attach(crew, identifier, name, officer)
     CrewService.nextKey = CrewService.nextKey + 1
-    crew.members[#crew.members + 1] = { key = CrewService.nextKey, identifier = identifier, name = name }
+    crew.members[#crew.members + 1] = { key = CrewService.nextKey, identifier = identifier, name = name, officer = officer == true }
     CrewService.memberOf[identifier] = crew.tag
 end
 
@@ -436,6 +484,7 @@ function CrewService.dissolve(crew)
     CrewRepository.delete(crew.tag)
     ControlService.releaseCrew(crew.tag)
     CrewStashService.remove(crew.tag)
+    CrewBonusService.remove(crew.tag)
 end
 
 ---@param source integer

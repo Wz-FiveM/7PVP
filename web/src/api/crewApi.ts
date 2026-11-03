@@ -26,6 +26,12 @@ export const crewApi = {
 
   disband: () => fetchNui<ActionResult>('crewDisband', {}, MOCK_OK),
 
+  officer: (key: number) => fetchNui<ActionResult>('crewOfficer', { key }, MOCK_OK),
+
+  upgrade: (kind: 'stash' | 'armory') => fetchNui<ActionResult>('crewUpgrade', { kind }, MOCK_OK),
+
+  armoryBuy: (item: string) => fetchNui<ActionResult>('crewArmoryBuy', { item }, MOCK_OK),
+
   warDeclare: (tag: string, stake: number) => fetchNui<ActionResult>('crewWarDeclare', { tag, stake }, MOCK_OK),
 
   warRespond: (accept: boolean) => fetchNui<ActionResult>('crewWarRespond', { accept }, MOCK_OK),

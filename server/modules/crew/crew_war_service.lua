@@ -15,6 +15,7 @@
 local CrewWarService = PVP.define('CrewWarService')
 local CrewService = PVP.use('CrewService')
 local CrewStashService = PVP.use('CrewStashService')
+local CrewBonusService = PVP.use('CrewBonusService')
 local PlayerService = PVP.use('PlayerService')
 local ChatService = PVP.use('ChatService')
 local Callback = PVP.use('Callback')
@@ -237,6 +238,7 @@ function CrewWarService.finish(war, forfeit)
 
     if winner then
         CrewWarService.pay(winner, war.stake * 2)
+        CrewBonusService.earn(winner, 'warWin')
         local loser = winner == war.tagA and war.tagB or war.tagA
         ChatService.announce('pvp', Locale.t('[%s] gagne la guerre contre [%s] (%d à %d) et prend $%d !', winner, loser,
             math.max(war.killsA, war.killsB), math.min(war.killsA, war.killsB), war.stake * 2))

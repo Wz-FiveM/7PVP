@@ -5,6 +5,7 @@
 local CrewTournamentService = PVP.define('CrewTournamentService')
 local CrewService = PVP.use('CrewService')
 local CrewStashService = PVP.use('CrewStashService')
+local CrewBonusService = PVP.use('CrewBonusService')
 local PlayerService = PVP.use('PlayerService')
 local ChatService = PVP.use('ChatService')
 local Callback = PVP.use('Callback')
@@ -136,6 +137,7 @@ function CrewTournamentService.settle(startAt, crews)
     local labels = {}
     for _, tag in ipairs(winners) do
         CrewStashService.moveMoney(tag, share, 'Tournoi de crews')
+        CrewBonusService.earn(tag, 'tournamentWin')
         CrewService.sync(CrewService.crews[tag])
         labels[#labels + 1] = '[' .. tag .. ']'
     end

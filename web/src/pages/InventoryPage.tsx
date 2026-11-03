@@ -317,7 +317,7 @@ export function InventoryPage() {
     // Échange en cours : toute la pile part dans son offre
     if (trade && !isStash(from)) return actions.tradeOffer(stack.name, Math.min(carriedOf(stack.name), offeredOf(stack.name) + stack.count));
     if (crewStash && !isStash(from)) {
-      const free = (config.crew?.stashCapacity ?? 0) - weightOf(crewStash.stash, config);
+      const free = (crewStash.stashCapacity ?? config.crew?.stashCapacity ?? 0) - weightOf(crewStash.stash, config);
       const fit = stack.item.weight > 0 ? Math.floor((free + 1e-6) / stack.item.weight) : stack.count;
       const count = Math.min(stack.count, fit);
       if (count <= 0) return actions.notify(t('Pas assez de place : {container}', { container: t('Coffre du crew') }), 'error');

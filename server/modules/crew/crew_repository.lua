@@ -41,6 +41,16 @@ CrewRepository.SCHEMAS = {
         PRIMARY KEY (crew_tag, season),
         KEY idx_season (season)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
+    [[CREATE TABLE IF NOT EXISTS pvp_crew_bonuses (
+        crew_tag CHAR(3) NOT NULL,
+        points INT UNSIGNED NOT NULL DEFAULT 0,
+        stash_level TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        armory_level TINYINT UNSIGNED NOT NULL DEFAULT 0,
+        last_buy INT UNSIGNED NOT NULL DEFAULT 0,
+        log LONGTEXT NOT NULL,
+        PRIMARY KEY (crew_tag)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]],
+    'ALTER TABLE pvp_crew_members ADD COLUMN IF NOT EXISTS officer TINYINT(1) NOT NULL DEFAULT 0 AFTER name',
 }
 
 ---Crée les tables si besoin et renvoie tous les crews et leurs membres.
@@ -50,8 +60,14 @@ function CrewRepository.loadAll()
         MySQL.query.await(schema)
     end
     local crews = MySQL.query.await('SELECT tag, name, leader FROM pvp_crews') or {}
-    local members = MySQL.query.await('SELECT identifier, crew_tag, name FROM pvp_crew_members ORDER BY joined_at, identifier') or {}
+    local members = MySQL.query.await('SELECT identifier, crew_tag, name, officer FROM pvp_crew_members ORDER BY joined_at, identifier') or {}
     return crews, members
+end
+
+---@param identifier string
+---@param officer boolean
+function CrewRepository.setOfficer(identifier, officer)
+    MySQL.update('UPDATE pvp_crew_members SET officer = ? WHERE identifier = ?', { officer and 1 or 0, identifier })
 end
 
 ---@param tag string
@@ -91,6 +107,7 @@ function CrewRepository.delete(tag)
     -- Un futur crew peut reprendre ce label : il ne doit hériter de rien
     MySQL.update('DELETE FROM pvp_crew_stashes WHERE crew_tag = ?', { tag })
     MySQL.update('DELETE FROM pvp_crew_stats WHERE crew_tag = ?', { tag })
+    MySQL.update('DELETE FROM pvp_crew_bonuses WHERE crew_tag = ?', { tag })
     MySQL.update('DELETE FROM pvp_crew_members WHERE crew_tag = ?', { tag })
     MySQL.update('DELETE FROM pvp_crews WHERE tag = ?', { tag })
 end
@@ -119,6 +136,19 @@ end
 ---@param log string JSON
 function CrewRepository.saveStash(tag, items, log)
     MySQL.insert('REPLACE INTO pvp_crew_stashes (crew_tag, items, log) VALUES (?, ?, ?)', { tag, items, log })
+end
+
+---À appeler après loadAll, qui crée la table.
+---@return table[] { crew_tag, points, stash_level, armory_level, last_buy, log } (log en JSON)
+function CrewRepository.loadBonuses()
+    return MySQL.query.await('SELECT crew_tag, points, stash_level, armory_level, last_buy, log FROM pvp_crew_bonuses') or {}
+end
+
+---@param tag string
+---@param bonus CrewBonus
+function CrewRepository.saveBonus(tag, bonus)
+    MySQL.insert('REPLACE INTO pvp_crew_bonuses (crew_tag, points, stash_level, armory_level, last_buy, log) VALUES (?, ?, ?, ?, ?, ?)',
+        { tag, bonus.points, bonus.stashLevel, bonus.armoryLevel, bonus.lastBuy, json.encode(bonus.log) })
 end
 
 ---@param tag string

@@ -12,7 +12,7 @@ local Locale = PVP.use('Locale')
 
 Crew.STATE_KEY = 'crewTag' -- publié par server/modules/crew
 
----@type table|false crew du joueur { tag, name, members = { { key, name, id, leader } } }
+---@type table|false crew du joueur { tag, name, members = { { key, name, id, leader, officer } }, bonus... }
 Crew.data = false
 
 function Crew.init()
@@ -57,6 +57,15 @@ function Crew.init()
     end)
     RegisterNUICallback('crewTransfer', function(data, cb)
         cb(Callback.await(Events.callbacks.crewTransfer, tonumber(data.key)) or { ok = false })
+    end)
+    RegisterNUICallback('crewOfficer', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewOfficer, tonumber(data.key)) or { ok = false })
+    end)
+    RegisterNUICallback('crewUpgrade', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewUpgrade, data.kind) or { ok = false })
+    end)
+    RegisterNUICallback('crewArmoryBuy', function(data, cb)
+        cb(Callback.await(Events.callbacks.crewArmoryBuy, data.item) or { ok = false })
     end)
     RegisterNUICallback('crewWarDeclare', function(data, cb)
         cb(Callback.await(Events.callbacks.crewWarDeclare, { tag = data.tag, stake = data.stake }) or { ok = false })

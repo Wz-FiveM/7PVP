@@ -16,6 +16,7 @@
 local CrewStashService = PVP.define('CrewStashService')
 local CrewService = PVP.use('CrewService')
 local CrewRepository = PVP.use('CrewRepository')
+local CrewBonusService = PVP.use('CrewBonusService')
 local InventoryObject = PVP.use('InventoryObject')
 local InventoryService = PVP.use('InventoryService')
 local PlayerRepository = PVP.use('PlayerRepository')
@@ -86,10 +87,32 @@ function CrewStashService.moveMoney(tag, amount, label)
     local stash = CrewStashService.get(tag)
     local left = math.max(0, (stash.items.money or 0) + amount)
     stash.items.money = left > 0 and left or nil
-    table.insert(stash.log, 1, { name = label, item = 'money', count = math.abs(amount), taken = amount < 0, at = os.time() })
+    CrewStashService.record(tag, stash, label, 'money', math.abs(amount), amount < 0)
+    Logger.info('[crew] coffre de [%s] : %+d $', tag, amount)
+end
+
+---Dépose des objets sans joueur (armurerie du crew). La place doit avoir été vérifiée (maxFit).
+---@param tag string
+---@param item string
+---@param count integer
+---@param label string motif affiché dans le journal, traduit par l'interface
+function CrewStashService.addItem(tag, item, count, label)
+    local stash = CrewStashService.get(tag)
+    stash.items[item] = (stash.items[item] or 0) + count
+    CrewStashService.record(tag, stash, label, item, count, false)
+    Logger.info('[crew] coffre de [%s] : %s (%s)', tag, Items.describe({ [item] = count }), label)
+end
+
+---@param tag string
+---@param stash CrewStash
+---@param name string joueur ou motif
+---@param item string
+---@param count integer
+---@param taken boolean
+function CrewStashService.record(tag, stash, name, item, count, taken)
+    table.insert(stash.log, 1, { name = name, item = item, count = count, taken = taken, at = os.time() })
     while #stash.log > Config.Crews.stash.logSize do table.remove(stash.log) end
     CrewRepository.saveStash(tag, json.encode(stash.items), json.encode(stash.log))
-    Logger.info('[crew] coffre de [%s] : %+d $', tag, amount)
 end
 
 ---@param source integer
@@ -105,13 +128,13 @@ function CrewStashService.access(source)
     return player, crew
 end
 
----@param stash CrewStash
+---@param tag string
 ---@param name string
----@return number unités de cet objet qui tiennent encore dans le coffre
-function CrewStashService.maxFit(stash, name)
+---@return number unités de cet objet qui tiennent encore dans le coffre (agrandissements compris)
+function CrewStashService.maxFit(tag, name)
     local weight = Items.get(name).weight
     if weight <= 0 then return math.huge end
-    local free = Config.Crews.stash.capacity - Items.weightOf(stash.items)
+    local free = CrewBonusService.stashCapacity(tag) - Items.weightOf(CrewStashService.get(tag).items)
     return math.max(0, math.floor((free + 1e-6) / weight))
 end
 
@@ -129,7 +152,7 @@ function CrewStashService.put(source, data)
     if player.inventory:countIn(data.from, item) < count then return { ok = false, message = Locale.t('Quantité invalide.') } end
 
     local stash = CrewStashService.get(crew.tag)
-    if CrewStashService.maxFit(stash, item) < count then
+    if CrewStashService.maxFit(crew.tag, item) < count then
         return { ok = false, message = Locale.t('Pas assez de place dans : %s.', Locale.t('Coffre du crew')) }
     end
 
@@ -186,10 +209,7 @@ end
 ---@param count integer
 ---@param taken boolean
 function CrewStashService.commit(crew, player, stash, item, count, taken)
-    table.insert(stash.log, 1, { name = player.name, item = item, count = count, taken = taken, at = os.time() })
-    while #stash.log > Config.Crews.stash.logSize do table.remove(stash.log) end
-
-    CrewRepository.saveStash(crew.tag, json.encode(stash.items), json.encode(stash.log))
+    CrewStashService.record(crew.tag, stash, player.name, item, count, taken)
     PlayerRepository.save(player)
     player:sync()
     CrewService.sync(crew)

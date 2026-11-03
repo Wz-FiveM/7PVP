@@ -15,6 +15,7 @@
 local CrewStatsService = PVP.define('CrewStatsService')
 local CrewService = PVP.use('CrewService')
 local CrewRepository = PVP.use('CrewRepository')
+local CrewBonusService = PVP.use('CrewBonusService')
 local ControlService = PVP.use('ControlService')
 local GroupService = PVP.use('GroupService')
 local SeasonService = PVP.use('SeasonService')
@@ -49,7 +50,10 @@ function CrewStatsService.onPlayerKill(killer, victim)
     if GroupService.areAllies(killer.source, victim.source) or not CrewStatsService.countsAgain(killer, victim) then return end
 
     local season = SeasonService.current()
-    if killerTag then CrewRepository.addStats(killerTag, season, 1, 0, 0) end
+    if killerTag then
+        CrewRepository.addStats(killerTag, season, 1, 0, 0)
+        CrewBonusService.earn(killerTag, 'kill')
+    end
     if victimTag then CrewRepository.addStats(victimTag, season, 0, 1, 0) end
     if killerTag and victimTag then
         CrewWarService.onKill(killerTag, victimTag)

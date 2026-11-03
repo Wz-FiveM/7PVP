@@ -20,7 +20,7 @@ interface CrewStashSectionProps {
 }
 
 /** Date courte du journal : « 02/11 18:42 ». */
-function formatLogDate(at: number): string {
+export function formatLogDate(at: number): string {
   const date = new Date(at * 1000);
   const pad = (value: number) => String(value).padStart(2, '0');
   return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -33,7 +33,7 @@ export function CrewStashSection({ crew, selected, onSelect, onQuickTake, onItem
   const { drag, begin } = useDrag();
   const { config } = state;
   const stacks = stacksOf(crew.stash, config);
-  const capacity = config.crew?.stashCapacity ?? 0;
+  const capacity = crew.stashCapacity ?? config.crew?.stashCapacity ?? 0;
   const weight = weightOf(crew.stash, config);
   const log = Array.isArray(crew.stashLog) ? crew.stashLog : [];
 

@@ -113,6 +113,7 @@ server_scripts {
     'server/modules/crew/crew_repository.lua',
     'server/modules/crew/crew_service.lua',
     'server/modules/crew/crew_stash_service.lua',
+    'server/modules/crew/crew_bonus_service.lua',
     'server/modules/crew/crew_stats_service.lua',
     'server/modules/crew/crew_war_service.lua',
     'server/modules/crew/crew_tournament_service.lua',

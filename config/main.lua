@@ -94,6 +94,43 @@ Config.Crews = {
         logSize = 15, -- opérations gardées dans le journal
         blocked = {}, -- objets interdits au coffre, ex : { weapon_rpg = true }
     },
+    -- Points de crew : gagnés ensemble, dépensés par le chef ou un officier (menu Crew).
+    -- Perdre un territoire coupe une source de points, jamais ce qui est déjà acheté.
+    bonus = {
+        earn = {
+            kill = 2, -- par kill compté au classement des crews
+            capture = 100, -- par territoire pris
+            territory = 10, -- par territoire tenu, à chaque versement, si un membre est connecté en PvP
+            warWin = 300, -- guerre de crews gagnée
+            tournamentWin = 500, -- tournoi de la semaine gagné (chaque crew à égalité les reçoit)
+        },
+        -- Agrandissement du coffre : pourcentage cumulé de Config.Crews.stash.capacity, chaque niveau exige le précédent
+        stashLevels = {
+            { bonus = 25, cost = 500 },
+            { bonus = 50, cost = 1200 },
+            { bonus = 75, cost = 2200 },
+        },
+        -- Armurerie : le niveau 1 ouvre les armes standard (tier 1), le niveau 2 les armes avancées (tier 2)
+        armoryLevels = {
+            { cost = 1000 },
+            { cost = 2500 },
+        },
+        -- Armes achetées pour le coffre du crew (une par achat)
+        weapons = {
+            { item = 'weapon_combatpistol', tier = 1, cost = 800 },
+            { item = 'weapon_smg', tier = 1, cost = 800 },
+            { item = 'weapon_pumpshotgun', tier = 1, cost = 800 },
+            { item = 'weapon_carbinerifle', tier = 1, cost = 800 },
+            { item = 'weapon_specialcarbine', tier = 2, cost = 1500 },
+            { item = 'weapon_carbinerifle_mk2', tier = 2, cost = 2000 },
+            { item = 'weapon_gusenberg', tier = 2, cost = 2000 },
+            { item = 'weapon_sniperrifle', tier = 2, cost = 2500 },
+            { item = 'weapon_combatmg', tier = 2, cost = 3000 },
+        },
+        stockLimit = 3, -- exemplaires d'une même arme au plus dans le coffre pour en acheter une autre
+        buyCooldown = 600, -- secondes entre deux achats d'armes du crew
+        logSize = 20, -- dépenses gardées dans l'historique
+    },
     -- Classement des crews (par saison) : seuls comptent les kills faits une fois dans le crew
     stats = {
         captureScore = 10, -- points par territoire pris (1 kill = 1 point)

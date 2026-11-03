@@ -427,7 +427,26 @@ export const mockInit: InitPayload = {
     ],
     seasonRewardsMinKills: 10,
     bountyPlayer: { min: 500, max: 50000, maxOnHead: 200000, fee: 0.1, delay: 30 },
-    crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24, maxTerritories: 2, territoryInterval: 300, stashCapacity: 500, captureScore: 10 },
+    crew: { maxMembers: 20, createPrice: 5000, nameMaxLength: 24, maxTerritories: 2, territoryInterval: 300, stashCapacity: 500, captureScore: 10,
+      bonus: {
+        earn: { kill: 2, capture: 100, territory: 10, warWin: 300, tournamentWin: 500 },
+        stashLevels: [{ bonus: 25, cost: 500 }, { bonus: 50, cost: 1200 }, { bonus: 75, cost: 2200 }],
+        armoryLevels: [{ cost: 1000 }, { cost: 2500 }],
+        weapons: [
+          { item: 'weapon_combatpistol', tier: 1, cost: 800 },
+          { item: 'weapon_smg', tier: 1, cost: 800 },
+          { item: 'weapon_pumpshotgun', tier: 1, cost: 800 },
+          { item: 'weapon_carbinerifle', tier: 1, cost: 800 },
+          { item: 'weapon_specialcarbine', tier: 2, cost: 1500 },
+          { item: 'weapon_carbinerifle_mk2', tier: 2, cost: 2000 },
+          { item: 'weapon_gusenberg', tier: 2, cost: 2000 },
+          { item: 'weapon_sniperrifle', tier: 2, cost: 2500 },
+          { item: 'weapon_combatmg', tier: 2, cost: 3000 },
+        ],
+        stockLimit: 3,
+        buyCooldown: 600,
+      },
+    },
     nameColors: {
       maxLetters: 32,
       list: [

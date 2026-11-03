@@ -523,6 +523,33 @@ export interface CrewConfig {
   captureScore: number;
   /** Config.Crews.war */
   war?: { minStake: number; maxStake: number; duration: number };
+  /** Config.Crews.bonus : points de crew, coffre agrandi, armurerie */
+  bonus?: CrewBonusConfig;
+}
+
+/** Config.Crews.bonus */
+export interface CrewBonusConfig {
+  /** points gagnés par source */
+  earn: { kill: number; capture: number; territory: number; warWin: number; tournamentWin: number };
+  /** bonus : pourcentage cumulé de la capacité de base */
+  stashLevels: { bonus: number; cost: number }[];
+  armoryLevels: { cost: number }[];
+  /** tier 1 : armurerie niveau 1, tier 2 : niveau 2 */
+  weapons: { item: string; tier: number; cost: number }[];
+  stockLimit: number;
+  /** secondes entre deux achats d'armes */
+  buyCooldown: number;
+}
+
+/** Dépense de points de crew (server/modules/crew/crew_bonus_service.lua) */
+export interface CrewBonusEntry {
+  name: string;
+  kind: 'stash' | 'armory' | 'weapon';
+  level?: number;
+  item?: string;
+  cost: number;
+  /** os.time() */
+  at: number;
 }
 
 /** Opération du journal du coffre de crew (server/modules/crew/crew_stash_service.lua) */
@@ -563,10 +590,14 @@ export interface CrewData {
   tag: string;
   name: string;
   /** key : numéro à renvoyer au serveur ; id : server id, `false` hors ligne */
-  members: { key: number; name: string; id: number | false; leader: boolean }[];
+  members: { key: number; name: string; id: number | false; leader: boolean; officer?: boolean }[];
   /** coffre commun et son journal, du plus récent au plus ancien */
   stash: ItemStacks;
   stashLog: CrewStashEntry[];
+  /** capacité du coffre en kg, agrandissements compris */
+  stashCapacity?: number;
+  /** points de crew, niveaux achetés, secondes avant le prochain achat d'arme, dépenses */
+  bonus?: { points: number; stashLevel: number; armoryLevel: number; buyIn: number; log: CrewBonusEntry[] };
   /** Guerre en cours, sinon `false` */
   war?: { enemyTag: string; enemyName: string; kills: number; enemyKills: number; stake: number; endsIn: number } | false;
   /** Défi reçu d'un autre crew, sinon `false` */

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { crewApi } from '../api/crewApi';
+import { CrewBonusPanel } from '../components/crew/CrewBonusPanel';
 import { CrewTournamentPanel, CrewWarPanel } from '../components/crew/CrewWarPanels';
 import { Panel } from '../components/ui/Panel';
 import { formatNumber, useT } from '../i18n';
@@ -36,7 +37,9 @@ export function CrewPage() {
     setTarget('');
   };
 
-  const isLeader = Boolean(crew?.members.some((member) => member.id === player?.source && member.leader));
+  const me = crew?.members.find((member) => member.id === player?.source);
+  const isLeader = Boolean(me?.leader);
+  const canManage = Boolean(me?.leader || me?.officer);
 
   return (
     <div className="group-page">
@@ -67,14 +70,21 @@ export function CrewPage() {
           </div>
           <ul className="group-members">
             {crew.members.map((member) => (
-              <li key={member.key} className={member.id === false ? 'group-member crew-member crew-member--offline' : 'group-member crew-member'}>
+              <li
+                key={member.key}
+                className={`group-member crew-member${member.id === false ? ' crew-member--offline' : ''}${isLeader && !member.leader ? ' crew-member--managed' : ''}`}
+              >
                 <span className="mono group-member__id">{member.id === false ? t('HORS LIGNE') : `#${member.id}`}</span>
                 <span className="group-member__name">
                   {member.name}
                   {member.leader && <span className="chip group-member__chief">{t('Chef')}</span>}
+                  {member.officer && <span className="chip group-member__chief">{t('Officier')}</span>}
                 </span>
                 {isLeader && !member.leader ? (
                   <span className="crew-member__actions">
+                    <button className="btn btn--small cut-s" onClick={() => crewApi.officer(member.key).then(report)}>
+                      {member.officer ? t('Retirer officier') : t('Nommer officier')}
+                    </button>
                     <button className="btn btn--small cut-s" onClick={() => crewApi.transfer(member.key).then(report)}>
                       {t('Nommer chef')}
                     </button>
@@ -149,6 +159,7 @@ export function CrewPage() {
         </Panel>
       )}
 
+      {crew && <CrewBonusPanel crew={crew} canManage={canManage} />}
       {crew && <CrewWarPanel crew={crew} isLeader={isLeader} />}
       <CrewTournamentPanel crew={crew} isLeader={isLeader} />
 
@@ -180,6 +191,7 @@ export function CrewPage() {
           <li>{t('Coffre du crew chez le banquier : tous les membres y déposent et y retirent, le journal garde qui a fait quoi. Vide-le avant de dissoudre le crew.')}</li>
           <li>{t('Classement des crews (menu Top joueurs) : 1 point par kill fait une fois dans le crew, {score} points par territoire pris.', { score: config?.captureScore ?? 10 })}</li>
           <li>{t('Guerre et tournoi : les gains arrivent dans le coffre du crew, un kill sur la même victime ne compte pas deux fois de suite en peu de temps.')}</li>
+          <li>{t('Points de crew : gagnés par les kills, les territoires, les guerres et le tournoi. Le chef et les officiers les dépensent pour agrandir le coffre et acheter des armes pour le coffre. Perdre un territoire ne retire rien de ce qui est acheté.')}</li>
           <li>{t('Chat : /crewinviter ID, /crewaccepter, /crewrefuser, /crewquitter.')}</li>
         </ul>
       </Panel>

@@ -19,6 +19,7 @@ local GroupService = PVP.use('GroupService')
 local CrewService = PVP.use('CrewService')
 local CrewRepository = PVP.use('CrewRepository')
 local CrewStatsService = PVP.use('CrewStatsService')
+local CrewBonusService = PVP.use('CrewBonusService')
 local AchievementService = PVP.use('AchievementService')
 local ChatService = PVP.use('ChatService')
 local Events = PVP.use('Events')
@@ -198,6 +199,7 @@ function ControlService.onTerritoryTaken(zone, previous)
     zone.alertedAt = nil
     CrewRepository.setTerritory(zone.def.id, zone.owner:sub(3), zone.protectedUntil)
     CrewStatsService.onCapture(zone.owner:sub(3))
+    CrewBonusService.earn(zone.owner:sub(3), 'capture')
     AchievementService.onCapture(zone.owner:sub(3))
 
     local label = Locale.t(zone.def.label)
@@ -250,13 +252,17 @@ function ControlService.payIncome(zone)
     local interval = zone.def.crew and Config.ControlZones.territories.incomeInterval or Config.ControlZones.incomeInterval
     if not zone.owner or GetGameTimer() - zone.paidAt < interval * 1000 then return end
     zone.paidAt = GetGameTimer()
+    local paid = false
     for _, player in pairs(PlayerService.all()) do
         if player.mode == 'pvp' and ControlService.teamOf(player, zone) == zone.owner then
             player:addMoney(zone.def.income)
             player:notify(Locale.t('%s : +$%d', Locale.t(zone.def.label), zone.def.income), 'success')
             player:sync()
+            paid = true
         end
     end
+    -- Un territoire ne rapporte de points au crew que si un membre est là pour le tenir
+    if paid and zone.def.crew then CrewBonusService.earn(zone.owner:sub(3), 'territory') end
 end
 
 ---@return table[]

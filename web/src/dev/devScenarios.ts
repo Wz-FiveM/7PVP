@@ -1050,9 +1050,21 @@ export const DEV_ACTIONS: DevAction[] = [
             name: 'Magazine',
             members: [
               { key: 1, name: 'Dev', id: 1, leader: true },
-              { key: 2, name: 'Bravo', id: 7, leader: false },
+              { key: 2, name: 'Bravo', id: 7, leader: false, officer: true },
               { key: 3, name: 'Kilo', id: false, leader: false },
             ],
+            stashCapacity: 625,
+            bonus: {
+              points: 1840,
+              stashLevel: 1,
+              armoryLevel: 1,
+              buyIn: 0,
+              log: [
+                { name: 'Bravo', kind: 'weapon', item: 'weapon_carbinerifle', cost: 800, at: 1793624400 },
+                { name: 'Dev', kind: 'armory', level: 1, cost: 1000, at: 1793620800 },
+                { name: 'Dev', kind: 'stash', level: 1, cost: 500, at: 1793617200 },
+              ],
+            },
             stash: { weapon_carbinerifle: 2, ammo_556: 240, money: 15000, bandage: 12 },
             stashLog: [
               { name: 'Bravo', item: 'weapon_carbinerifle', count: 1, taken: true, at: 1793620800 },
