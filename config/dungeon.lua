@@ -19,7 +19,9 @@
 --   prop          modèle posé sur spawns[1] jusqu'à la fin de l'étape
 --
 -- Les points du tunnel sont calculés sur l'axe de ses tronçons (origines relevées dans les dumps
--- DurtyFree/gta-v-data-dumps) à 1 m au-dessus du sol supposé ; joueurs, zombies et objets sont recalés sur le sol.
+-- DurtyFree/gta-v-data-dumps), 1 m sous ces origines : le sol est 2,5 à 4,5 m sous l'origine d'un tronçon (points
+-- d'entrée connus du tunnel). Joueurs, zombies et objets sont recalés sur le sol. Les tronçons sont des IPL à
+-- demander (config/ipls.lua).
 Config.Dungeon = {
     enabled = true,
     label = 'Secret cave',
@@ -40,12 +42,12 @@ Config.Dungeon = {
     reward = { money = 5000, xp = 1500, loot = 'dungeon', rolls = 2, items = 4, model = 'prop_mil_crate_01' }, -- items : objets par joueur, tirés de la table `loot` de config/loot.lua
     -- Intérieurs gardés chargés pendant le donjon : le milieu de chaque tronçon, puis la base
     interiors = {
-        vector3(914.1, 5646.8, -117.3),
-        vector3(821.7, 5675.7, -127.7),
-        vector3(746.4, 5738.6, -137.7),
-        vector3(714.0, 5810.1, -145.5),
-        vector3(700.3, 5868.9, -148.3),
-        vector3(688.3, 5929.3, -149.7),
+        vector3(914.1, 5646.8, -119.3),
+        vector3(821.7, 5675.7, -129.7),
+        vector3(746.4, 5738.6, -139.7),
+        vector3(714.0, 5810.1, -147.5),
+        vector3(700.3, 5868.9, -150.3),
+        vector3(688.3, 5929.3, -151.7),
         vector3(619.47, 5974.29, -151.43),
         vector3(579.52, 5956.2, -153.0),
     },
@@ -58,24 +60,24 @@ Config.Dungeon = {
         explosion = { type = 23, damage = 2.0, shake = 1.0 }, -- 23 : bouteille de gaz, non bloquée par l'anticheat
     },
     barrels = {
-        vector3(932.4, 5641.4, -115.1),
-        vector3(930.7, 5642.4, -115.3),
-        vector3(910.0, 5651.4, -117.8),
-        vector3(887.7, 5648.3, -120.3),
-        vector3(846.0, 5669.6, -125.2),
-        vector3(843.7, 5669.4, -125.4),
-        vector3(815.6, 5674.4, -128.2),
-        vector3(798.4, 5694.6, -130.7),
-        vector3(766.4, 5710.8, -134.2),
-        vector3(755.7, 5733.4, -136.7),
-        vector3(753.6, 5734.3, -136.9),
-        vector3(732.2, 5752.4, -139.7),
-        vector3(721.1, 5799.7, -144.4),
-        vector3(707.0, 5820.4, -146.6),
-        vector3(707.7, 5821.8, -146.7),
-        vector3(706.5, 5857.5, -148.3),
-        vector3(695.2, 5874.1, -148.3),
-        vector3(696.0, 5875.5, -148.3),
+        vector3(932.4, 5641.4, -117.1),
+        vector3(930.7, 5642.4, -117.3),
+        vector3(910.0, 5651.4, -119.8),
+        vector3(887.7, 5648.3, -122.3),
+        vector3(846.0, 5669.6, -127.2),
+        vector3(843.7, 5669.4, -127.4),
+        vector3(815.6, 5674.4, -130.2),
+        vector3(798.4, 5694.6, -132.7),
+        vector3(766.4, 5710.8, -136.2),
+        vector3(755.7, 5733.4, -138.7),
+        vector3(753.6, 5734.3, -138.9),
+        vector3(732.2, 5752.4, -141.7),
+        vector3(721.1, 5799.7, -146.4),
+        vector3(707.0, 5820.4, -148.6),
+        vector3(707.7, 5821.8, -148.7),
+        vector3(706.5, 5857.5, -150.3),
+        vector3(695.2, 5874.1, -150.3),
+        vector3(696.0, 5875.5, -150.3),
     },
     boss = {
         label = 'Mastodonte',
@@ -92,7 +94,7 @@ Config.Dungeon = {
         type = 'pve',
         label = 'Donjon',
         modes = {},
-        coords = vector3(955.9, 5646.3, -112.5),
+        coords = vector3(955.9, 5646.3, -114.5),
         radius = 140.0,
         npc = {
             health = 300,
@@ -106,46 +108,46 @@ Config.Dungeon = {
         {
             id = 'tunnel_1', type = 'kill', count = 10, label = 'Tunnel : entrée', warp = true, heading = 82.5,
             objective = 'Tue tous les zombies', hint = 'Tire sur les bonbonnes pour les faire sauter.',
-            coords = vector3(955.9, 5646.3, -112.5), radius = 30.0,
+            coords = vector3(955.9, 5646.3, -114.5), radius = 30.0,
             spawns = {
-                vector4(918.4, 5643.3, -116.7, 262.5), vector4(905.2, 5651.3, -118.3, 262.5),
-                vector4(890.7, 5649.5, -120.0, 262.5), vector4(882.1, 5656.2, -121.1, 262.5),
+                vector4(918.4, 5643.3, -118.7, 262.5), vector4(905.2, 5651.3, -120.3, 262.5),
+                vector4(890.7, 5649.5, -122.0, 262.5), vector4(882.1, 5656.2, -123.1, 262.5),
             },
         },
         {
             id = 'tunnel_2', type = 'kill', count = 12, label = 'Tunnel : 2e horde',
             objective = 'Tue tous les zombies',
-            coords = vector3(870.9, 5658.2, -122.4), radius = 25.0,
+            coords = vector3(870.9, 5658.2, -124.4), radius = 25.0,
             spawns = {
-                vector4(838.3, 5665.1, -125.7, 243.1), vector4(827.5, 5676.2, -127.2, 243.1),
-                vector4(812.2, 5678.6, -128.7, 243.1), vector4(801.5, 5690.0, -130.2, 243.1),
+                vector4(838.3, 5665.1, -127.7, 243.1), vector4(827.5, 5676.2, -129.2, 243.1),
+                vector4(812.2, 5678.6, -130.7, 243.1), vector4(801.5, 5690.0, -132.2, 243.1),
             },
         },
         {
             id = 'tunnel_3', type = 'kill', count = 14, label = 'Tunnel : 3e horde', checkpoint = true, heading = 37.1,
             objective = 'Tue tous les zombies',
-            coords = vector3(792.6, 5694.0, -131.2), radius = 25.0,
+            coords = vector3(792.6, 5694.0, -133.2), radius = 25.0,
             spawns = {
-                vector4(763.5, 5714.8, -134.7, 217.1), vector4(758.1, 5729.1, -136.2, 217.1),
-                vector4(744.8, 5737.4, -137.7, 217.1), vector4(739.6, 5751.9, -139.2, 217.1),
+                vector4(763.5, 5714.8, -136.7, 217.1), vector4(758.1, 5729.1, -138.2, 217.1),
+                vector4(744.8, 5737.4, -139.7, 217.1), vector4(739.6, 5751.9, -141.2, 217.1),
             },
         },
         {
             id = 'tunnel_4', type = 'kill', count = 16, label = 'Tunnel : 4e horde',
             objective = 'Tue tous les zombies',
-            coords = vector3(732.9, 5759.1, -140.2), radius = 25.0,
+            coords = vector3(732.9, 5759.1, -142.2), radius = 25.0,
             spawns = {
-                vector4(717.5, 5786.4, -143.3, 195.6), vector4(716.9, 5810.9, -145.5, 195.6),
-                vector4(705.8, 5832.4, -147.7, 195.6), vector4(705.7, 5851.1, -148.3, 190.9),
+                vector4(717.5, 5786.4, -145.3, 195.6), vector4(716.9, 5810.9, -147.5, 195.6),
+                vector4(705.8, 5832.4, -149.7, 195.6), vector4(705.7, 5851.1, -150.3, 190.9),
             },
         },
         {
             id = 'tunnel_5', type = 'kill', count = 18, label = 'Tunnel : 5e horde',
             objective = 'Tue tous les zombies',
-            coords = vector3(707.7, 5832.9, -147.7), radius = 25.0,
+            coords = vector3(707.7, 5832.9, -149.7), radius = 25.0,
             spawns = {
-                vector4(699.1, 5859.2, -148.3, 190.9), vector4(703.2, 5869.4, -148.3, 190.9),
-                vector4(696.6, 5877.5, -148.3, 190.9), vector4(698.8, 5887.4, -148.3, 190.9),
+                vector4(699.1, 5859.2, -150.3, 190.9), vector4(703.2, 5869.4, -150.3, 190.9),
+                vector4(696.6, 5877.5, -150.3, 190.9), vector4(698.8, 5887.4, -150.3, 190.9),
             },
         },
         {
@@ -153,11 +155,11 @@ Config.Dungeon = {
             health = 1500, healthPerPlayer = 500, adds = 8, hitRadius = 9.0,
             prop = 'xm_prop_base_blast_door_01', barLabel = 'Porte de la base',
             objective = 'Détruis la porte', hint = 'Vide tes chargeurs dessus.',
-            coords = vector3(697.4, 5884.0, -148.3), radius = 25.0,
+            coords = vector3(697.4, 5884.0, -150.3), radius = 25.0,
             spawns = {
-                vector4(690.2, 5920.2, -149.2, 11.6),
-                vector4(692.1, 5895.5, -148.3, 190.9), vector4(696.8, 5902.7, -148.4, 191.6),
-                vector4(690.7, 5907.8, -148.7, 191.6), vector4(693.7, 5912.8, -148.9, 191.6),
+                vector4(690.2, 5920.2, -151.2, 11.6),
+                vector4(692.1, 5895.5, -150.3, 190.9), vector4(696.8, 5902.7, -150.4, 191.6),
+                vector4(690.7, 5907.8, -150.7, 191.6), vector4(693.7, 5912.8, -150.9, 191.6),
             },
         },
         {

@@ -6,7 +6,7 @@ PedUtils.UNDERGROUND_PROBE = 1.5
 PedUtils.SPOT_ATTEMPTS = 100
 PedUtils.INTERIOR_TIMEOUT = 10000 -- ms pour qu'un intérieur souterrain soit chargé
 PedUtils.SPOT_WAIT = 50
-PedUtils.SPOT_DROP = 4.0 -- un sol plus bas est celui de l'étage du dessous
+PedUtils.SPOT_DROP = 10.0 -- un sol plus bas est celui de l'étage du dessous (sol des tunnels Doomsday : jusqu'à 5 m sous leur origine)
 PedUtils.SPOT_SNAP = 25.0
 
 ---Server id du joueur qui a tué `ped`, ou nil (PNJ, chute, suicide...).
