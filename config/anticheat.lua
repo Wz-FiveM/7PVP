@@ -18,7 +18,9 @@ Config.AntiCheat = {
         -- qu'ils épargnent les joueurs honnêtes. Passer action à 'kick' pour sanctionner. La touche n'est jamais annulée.
         damage = { label = 'Dégâts anormaux', action = 'log', strikes = 3 },
         damageModifier = { label = 'Multiplicateur de dégâts', action = 'log', strikes = 3 },
-        explosion = { label = 'Explosion interdite', action = 'ban', strikes = 2, banDays = 0 },
+        -- L'explosion est toujours annulée : l'expulsion suffit. Le 03/11, 4 joueurs ont été bannis à tort
+        -- (voir explosionSharedTime)
+        explosion = { label = 'Explosion interdite', action = 'kick', strikes = 3 },
         entity = { label = 'Véhicule créé en PvP', action = 'kick', strikes = 3 },
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },
         -- Une alerte toutes les 15 s d'invincibilité continue (godmodeMargin) : expulsion après 45 s
@@ -219,4 +221,8 @@ Config.AntiCheat = {
     },
     -- Secondes pendant lesquelles une arme de jet lancée (donc plus dans l'inventaire) reste permise
     throwGrace = 30,
+    -- Même explosion envoyée par plusieurs joueurs à moins de `explosionSharedTime` ms et `explosionSharedRange` m
+    -- l'une de l'autre : elle ne vient d'aucun d'eux (ou l'un d'eux avait l'arme), pas d'alerte
+    explosionSharedTime = 1500,
+    explosionSharedRange = 15.0,
 }

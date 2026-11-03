@@ -46,6 +46,7 @@ AntiCheatService.heldWeapons = {} -- [source] = arme non possédée vue en main 
 AntiCheatService.immunity = {} -- [source] = { hits, life, at } touches encaissées sans perte de vie
 AntiCheatService.aimSamples = {} -- [source] = { { at, head, offAim }, ... } touches récentes sur des joueurs
 AntiCheatService.damageHits = {} -- [source] = { os.time() des touches récentes au-dessus du maximum }
+AntiCheatService.recentExplosions = {} -- { { source, type, coords, at } } explosions d'armes reçues ces dernières secondes
 ---@type table<integer, string>|nil [hash non signé] = objet de l'arme, rempli au premier besoin
 AntiCheatService.weaponItems = nil
 ---@type table<integer, table>|nil [hash non signé] = ligne de Config.AntiCheat.weaponDamage, rempli au premier besoin
@@ -555,17 +556,65 @@ function AntiCheatService.weaponLabel(weapon)
     return tostring(weapon)
 end
 
----@param sender integer
----@param data table
+---Une explosion d'arme interdite est annulée tout de suite, mais l'alerte attend `explosionSharedTime` ms :
+---la même explosion envoyée au même moment par plusieurs joueurs ne vient pas de l'un d'eux (le 03/11,
+---4 joueurs ont envoyé ensemble deux bombes collantes que personne n'avait, et ont été bannis).
+---@param sender integer|string le jeu l'envoie en texte, les relevés sont indexés par nombre
+---@param data table explosionType, posX, posY, posZ
 function AntiCheatService.onExplosion(sender, data)
-    local player = AntiCheatService.watched(sender, true)
-    if not player or type(data) ~= 'table' then return end
+    sender = tonumber(sender)
+    if not sender or type(data) ~= 'table' then return end
     local explosionType = tonumber(data.explosionType)
-    if explosionType and Config.AntiCheat.blockedExplosions[explosionType]
-        and not AntiCheatService.explosionAllowed(player, explosionType) then
-        CancelEvent()
-        AntiCheatService.flag(sender, 'explosion', ('explosion de type %d'):format(explosionType))
+    if not explosionType or not Config.AntiCheat.blockedExplosions[explosionType] then return end
+
+    local report = AntiCheatService.rememberExplosion(sender, explosionType,
+        vector3(tonumber(data.posX) or 0.0, tonumber(data.posY) or 0.0, tonumber(data.posZ) or 0.0))
+    local player = AntiCheatService.watched(sender, true)
+    if not player or AntiCheatService.explosionAllowed(player, explosionType) then return end
+
+    CancelEvent()
+    SetTimeout(Config.AntiCheat.explosionSharedTime, function()
+        AntiCheatService.judgeExplosion(report)
+    end)
+end
+
+---@param sender integer
+---@param explosionType integer
+---@param coords vector3
+---@return table relevé { source, type, coords, at }
+function AntiCheatService.rememberExplosion(sender, explosionType, coords)
+    local now = GetGameTimer()
+    local kept = {}
+    for _, report in ipairs(AntiCheatService.recentExplosions) do
+        if now - report.at <= Config.AntiCheat.explosionSharedTime * 2 then kept[#kept + 1] = report end
     end
+    local report = { source = sender, type = explosionType, coords = coords, at = now }
+    kept[#kept + 1] = report
+    AntiCheatService.recentExplosions = kept
+    return report
+end
+
+---@param report table relevé de rememberExplosion
+function AntiCheatService.judgeExplosion(report)
+    local settings = Config.AntiCheat
+    local others = {}
+    for _, other in ipairs(AntiCheatService.recentExplosions) do
+        if other.source ~= report.source and other.type == report.type
+            and math.abs(other.at - report.at) <= settings.explosionSharedTime
+            and #(other.coords - report.coords) <= settings.explosionSharedRange then
+            others[other.source] = true
+        end
+    end
+    local where = ('%.0f, %.0f, %.0f'):format(report.coords.x, report.coords.y, report.coords.z)
+    if next(others) then
+        local count = 1
+        for _ in pairs(others) do count = count + 1 end
+        Logger.info('[anti-cheat] explosion de type %d (%s) envoyée par %d joueurs à la fois : annulée, sans alerte',
+            report.type, where, count)
+        return
+    end
+    if not PlayerService.get(report.source) then return end
+    AntiCheatService.flag(report.source, 'explosion', ('explosion de type %d (%s)'):format(report.type, where))
 end
 
 ---Véhicule créé par un joueur en PvP (le mode n'en donne pas : seuls les admins peuvent) ou au lobby
