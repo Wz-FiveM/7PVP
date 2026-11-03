@@ -9,12 +9,14 @@ local Hud = PVP.use('Hud')
 local Events = PVP.use('Events')
 
 Language.KVP = '7pvp:language'
+Language.STATE_KEY = 'lang' -- publié par server/modules/player/language_service (drapeau des gamertags)
 -- GetCurrentLanguage() -> code de la langue (0 anglais, 1 français, 2 allemand, 3 italien,
 -- 4 espagnol, 5 portugais du Brésil, 11 espagnol du Mexique)
 Language.GAME_LANGUAGES = { [0] = 'en', [1] = 'fr', [2] = 'de', [3] = 'it', [4] = 'es', [5] = 'pt', [11] = 'es' }
 
 function Language.init()
     Locale.lang = Language.initial()
+    TriggerServerEvent(Events.server.language, Locale.lang)
 
     RegisterNUICallback('setLanguage', function(data, cb)
         cb({ ok = Language.set(type(data) == 'table' and data.lang or nil) })
@@ -48,6 +50,7 @@ function Language.set(lang)
     if lang == Locale.lang then return true end
 
     Locale.lang = lang
+    TriggerServerEvent(Events.server.language, lang)
     Nui.send('locale', Language.payload())
     -- Le HUD renvoie ses données (textes compris) à la prochaine mise à jour
     Hud.invalidate()

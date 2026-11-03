@@ -88,6 +88,7 @@ server_scripts {
     'server/modules/player/player_object.lua',
     'server/modules/player/player_service.lua',
     'server/modules/player/name_color_service.lua',
+    'server/modules/player/language_service.lua',
     'server/modules/player/killfeed_background_service.lua',
     'server/modules/player/kill_message_service.lua',
     'server/modules/player/achievement_service.lua',
@@ -290,6 +291,7 @@ files {
     'web/build/items/*',
     'web/build/sounds/*',
     'web/build/brand/*',
+    'web/build/flags/*',
     'web/build/cod/banners/*',
     'web/build/cod/emblems/*',
 }

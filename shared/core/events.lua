@@ -48,6 +48,7 @@ Events.server = {
     codKillcamDone = '7pvp:server:codKillcamDone',
     spectateNext = '7pvp:server:spectateNext',
     spectateStop = '7pvp:server:spectateStop',
+    language = '7pvp:server:language',
 }
 
 -- Serveur -> client
