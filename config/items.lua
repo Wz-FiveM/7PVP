@@ -26,19 +26,19 @@ Config.Items = {
     -- Une boîte = un chargeur : l'utiliser (rechargement) remplit en entier le chargeur de l'arme en main,
     -- quelle que soit sa taille (12 balles au pistolet, 200 à la mitrailleuse de combat en grande capacité).
     -- Les balles qui restaient dans l'ancien chargeur sont perdues.
-    mag_9mm = { label = '9mm', type = 'ammo', weight = 0.3, image = 'ammo_9mm' }, -- AMMO_PISTOL : pistolets
-    mag_45acp = { label = '.45 ACP', type = 'ammo', weight = 0.4, image = 'ammo_45acp' }, -- AMMO_SMG : SMG
-    mag_556 = { label = '7.62mm', type = 'ammo', weight = 0.5, image = 'ammo_7.62' }, -- AMMO_RIFLE : fusils et carabines
-    mag_12g = { label = 'Calibre 12', type = 'ammo', weight = 0.4, image = 'ammo_calibre12' }, -- AMMO_SHOTGUN : fusils à pompe
-    mag_762 = { label = '.300 Magnum', type = 'ammo', weight = 0.3, image = 'ammo_300mag' }, -- AMMO_SNIPER : snipers
-    mag_mg = { label = '5.56mm', type = 'ammo', weight = 2.0, image = 'ammo_556' }, -- AMMO_MG : mitrailleuses
-    mag_flare = { label = 'Fusées éclairantes', type = 'ammo', weight = 0.1, image = 'ammo_flare' }, -- AMMO_FLAREGUN
-    mag_grenade40 = { label = 'Grenades 40 mm', type = 'ammo', weight = 2.5, image = 'ammo_grenade40' }, -- AMMO_GRENADELAUNCHER
-    mag_rocket = { label = 'Roquettes', type = 'ammo', weight = 2.0, image = 'ammo_rocket' }, -- AMMO_RPG
-    mag_homing = { label = 'Missiles guidés', type = 'ammo', weight = 2.5, image = 'ammo_homing' }, -- AMMO_HOMINGLAUNCHER
-    mag_minigun = { label = 'Bande de minigun', type = 'ammo', weight = 5.0, image = 'ammo_minigun' }, -- AMMO_MINIGUN
-    mag_firework = { label = 'Feux d\'artifice', type = 'ammo', weight = 0.5 }, -- AMMO_FIREWORK
-    mag_railgun = { label = 'Charges de railgun', type = 'ammo', weight = 1.0 }, -- AMMO_RAILGUN
+    mag_9mm = { label = '9mm', type = 'ammo', weight = 0.05, image = 'ammo_9mm' }, -- AMMO_PISTOL : pistolets
+    mag_45acp = { label = '.45 ACP', type = 'ammo', weight = 0.05, image = 'ammo_45acp' }, -- AMMO_SMG : SMG
+    mag_556 = { label = '7.62mm', type = 'ammo', weight = 0.05, image = 'ammo_7.62' }, -- AMMO_RIFLE : fusils et carabines
+    mag_12g = { label = 'Calibre 12', type = 'ammo', weight = 0.05, image = 'ammo_calibre12' }, -- AMMO_SHOTGUN : fusils à pompe
+    mag_762 = { label = '.300 Magnum', type = 'ammo', weight = 0.05, image = 'ammo_300mag' }, -- AMMO_SNIPER : snipers
+    mag_mg = { label = '5.56mm', type = 'ammo', weight = 0.05, image = 'ammo_556' }, -- AMMO_MG : mitrailleuses
+    mag_flare = { label = 'Fusées éclairantes', type = 'ammo', weight = 0.05, image = 'ammo_flare' }, -- AMMO_FLAREGUN
+    mag_grenade40 = { label = 'Grenades 40 mm', type = 'ammo', weight = 0.05, image = 'ammo_grenade40' }, -- AMMO_GRENADELAUNCHER
+    mag_rocket = { label = 'Roquettes', type = 'ammo', weight = 0.05, image = 'ammo_rocket' }, -- AMMO_RPG
+    mag_homing = { label = 'Missiles guidés', type = 'ammo', weight = 0.05, image = 'ammo_homing' }, -- AMMO_HOMINGLAUNCHER
+    mag_minigun = { label = 'Bande de minigun', type = 'ammo', weight = 0.05, image = 'ammo_minigun' }, -- AMMO_MINIGUN
+    mag_firework = { label = 'Feux d\'artifice', type = 'ammo', weight = 0.05 }, -- AMMO_FIREWORK
+    mag_railgun = { label = 'Charges de railgun', type = 'ammo', weight = 0.05 }, -- AMMO_RAILGUN
 
     -- Armes blanches
     weapon_knife = { label = 'Couteau', type = 'weapon', weight = 1.0, weapon = 'WEAPON_KNIFE' },
