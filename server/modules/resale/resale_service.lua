@@ -59,7 +59,8 @@ function ResaleService.load()
 end
 
 ---Prix de la boutique modifiés : les objets dont la reprise n'a pas été fixée suivent, sinon baisser
----un prix permettrait d'acheter puis de revendre à profit.
+---un prix permettrait d'acheter puis de revendre à profit. Les caisses créées depuis le panneau
+---(CaseConfigService) prennent leur prix par défaut.
 function ResaleService.refreshDefaults()
     local previous = ResaleService.defaults
     ResaleService.shopPrices = ResaleService.buildShopPrices()
@@ -70,6 +71,9 @@ function ResaleService.refreshDefaults()
         elseif price == ResaleService.defaults[name] then
             MySQL.update('DELETE FROM pvp_resale_prices WHERE item = ?', { name })
         end
+    end
+    for name, price in pairs(ResaleService.defaults) do
+        if ResaleService.prices[name] == nil then ResaleService.prices[name] = price end
     end
 end
 

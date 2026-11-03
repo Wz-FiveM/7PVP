@@ -4,7 +4,7 @@ import type { VehicleCustomPayload } from './vehicleCustom';
 import type { WeaponCustomPayload } from './weaponCustom';
 import type { LanguageInfo } from '../i18n';
 import type {
-  CaseReelEntry, ChatCommand, DungeonMenuInfo, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, DungeonHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
+  CaseDefinition, CaseReelEntry, ItemDefinition, ChatCommand, DungeonMenuInfo, ChatMessageData, ChatPlayer, EffectHud, GameConfig, CrewData, CrewInvite, GroupData, GroupInvite, GroupVital, HitEvent, KillfeedEntry, TerritoryInfo, PauseInfo, DeathRecap, BountyEntry, GameClock, HordeState, ControlZoneHud, ConflictHud, DungeonHud, FreeroamWeapon, FreeroamVehicle, TeleportMenuData, LootContainer, ActivityInfo, ChaseHudData, ChaseStateData, EloChange,
   ChaseScores, CvcHudData, CvcStateData, CvcScores, GunfightHudData, GunfightScores, GungameEndData, GungameHudData, GungameKillData, GungameStateData, SpeedometerData, NearServices, HelpNotification, InteractionItem, LobbyMode, MinimapAnchor, PlayerState, ToastKind, TradeData, Vitals, ZoneInfo,
 } from './game';
 import type {
@@ -39,6 +39,8 @@ export type NuiMessage =
   | { action: 'killfeed'; data: KillfeedEntry }
   /** prix de la boutique, objet -> prix (voir ShopService) */
   | { action: 'shopPrices'; data: Record<string, number> }
+  /** caisses modifiées par un admin ; `items` : leurs objets, retirées comprises (voir CaseConfigService) */
+  | { action: 'cases'; data: { cases: CaseDefinition[]; items: Record<string, ItemDefinition> } }
   | { action: 'hit'; data: HitEvent }
   /** statut « en combat » : secondes restantes, 0 = terminé */
   | { action: 'combat'; data: { seconds: number } }

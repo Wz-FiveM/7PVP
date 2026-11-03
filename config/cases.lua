@@ -1,6 +1,8 @@
 -- Caisses : des objets qu'on achète (page « Caisses » du menu, auprès de l'armurier) ou qu'on
 -- trouve dans les butins, puis qu'on ouvre depuis le menu. Le tirage est fait par le serveur.
 -- Une caisse est un objet comme un autre : dans le sac, elle est perdue à la mort.
+-- Les caisses se créent et se modifient aussi en jeu (panneau admin F10, onglet « Caisses ») :
+-- ce qui y est enregistré (table pvp_cases) remplace ce fichier au démarrage.
 --
 -- id      : nom de l'objet (case_<nom>) ; image : web/public/items/<id>.png (sinon icône de caisse)
 -- price   : prix à l'armurier (nil = introuvable en boutique, seulement en butin ou via les admins)

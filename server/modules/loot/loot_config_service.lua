@@ -5,6 +5,7 @@
 ---@class LootConfigServiceModule
 local LootConfigService = PVP.define('LootConfigService')
 local AdminService = PVP.use('AdminService')
+local CaseConfigService = PVP.use('CaseConfigService')
 local Items = PVP.use('Items')
 local Callback = PVP.use('Callback')
 local DiscordService = PVP.use('DiscordService')
@@ -57,6 +58,8 @@ end
 
 ---Applique ce qui a été enregistré depuis le panneau.
 function LootConfigService.load()
+    -- Une table peut donner une caisse créée depuis le panneau : objet inconnu avant son chargement
+    CaseConfigService.awaitLoaded()
     MySQL.query.await(LootConfigService.SCHEMA)
     local rows = MySQL.query.await('SELECT name, data FROM pvp_loot_tables') or {}
     for _, row in ipairs(rows) do

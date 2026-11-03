@@ -1,3 +1,5 @@
+import type { CaseDefinition } from './game';
+
 /** Joueur listé dans le panneau admin (server/modules/admin/admin_service.lua) */
 export interface AdminPlayer {
   id: number;
@@ -127,6 +129,46 @@ export interface ShopAdminData {
   message?: string;
   items: ShopAdminItem[];
   maxPrice: number;
+}
+
+/** Caisse du panneau (server/modules/cases/case_config_service.lua) */
+export interface CaseAdminCase extends CaseDefinition {
+  /** retirée de la page : plus vendue, celles déjà possédées s'ouvrent encore */
+  removed: boolean;
+  /** créée depuis le panneau (pas dans config/cases.lua) */
+  custom: boolean;
+  /** caisse de config/cases.lua modifiée depuis le panneau */
+  modified: boolean;
+}
+
+/** Caisse envoyée à l'enregistrement : prix et points à 0 = pas en vente */
+export interface CaseDefinitionDraft {
+  id?: string;
+  label: string;
+  description: string;
+  price: number;
+  points: number;
+  level: number;
+  rewards: { item: string; count: [number, number]; weight: number; rarity: string }[];
+}
+
+export interface CaseAdminLimits {
+  maxCases: number;
+  maxRewards: number;
+  maxPrice: number;
+  maxPoints: number;
+  maxLevel: number;
+  maxCount: number;
+  maxMoney: number;
+}
+
+export interface CaseAdminData {
+  ok: boolean;
+  message?: string;
+  cases: CaseAdminCase[];
+  /** objets qu'une caisse peut donner ('money' : argent) */
+  items: { name: string; label: string; type: string }[];
+  limits: CaseAdminLimits;
 }
 
 /** Véhicule d'une liste du Freeroam (server/modules/freeroam/freeroam_config_service.lua) */

@@ -1,4 +1,5 @@
----Caisses (config/cases.lua) : achat chez l'armurier, ouverture, et ouverture payée en points boutique.
+---Caisses (config/cases.lua, modifiables dans le panneau admin : CaseConfigService) : achat chez
+---l'armurier, ouverture, et ouverture payée en points boutique.
 ---Le tirage est fait ici : le client ne reçoit que la roulette à animer, déjà jouée.
 ---La récompense est donnée tout de suite (fermer le menu ne l'annule pas), mais l'inventaire
 ---n'est renvoyé au client qu'à la fin de l'animation (ou quand le joueur la passe), pour ne pas
@@ -17,28 +18,44 @@ local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
----@type table<string, table> id -> définition de la caisse
+---@type table<string, table> id -> définition de la caisse, retirées comprises (voir CaseConfigService)
 CaseService.byId = {}
 
 function CaseService.init()
     for _, case in ipairs(Config.Cases) do
-        CaseService.byId[case.id] = case
-        case.totalWeight = 0
-        for _, reward in ipairs(case.rewards) do
-            if not Items.exists(reward.item) then
-                Logger.warn('Caisse "%s" : objet inconnu "%s"', case.id, reward.item)
-            end
-            if not Config.CaseRarities[reward.rarity] then
-                Logger.warn('Caisse "%s" : rareté inconnue "%s"', case.id, tostring(reward.rarity))
-            end
-            case.totalWeight = case.totalWeight + reward.weight
-        end
+        CaseService.prepare(case)
     end
 
     Callback.register(Events.callbacks.caseBuy, CaseService.buy)
     Callback.register(Events.callbacks.caseOpen, CaseService.open)
     Callback.register(Events.callbacks.caseOpenPoints, CaseService.openWithPoints)
     Callback.register(Events.callbacks.caseSkip, CaseService.skip)
+end
+
+---Enregistre une caisse (ou la relit après une modification) : objet, poids total du tirage.
+---@param case table
+function CaseService.prepare(case)
+    CaseService.byId[case.id] = case
+    Config.Items[case.id] = Config.Items[case.id] or { type = 'case', weight = Config.CaseOptions.weight }
+    Config.Items[case.id].label = case.label
+    case.totalWeight = 0
+    for _, reward in ipairs(case.rewards) do
+        if not Items.exists(reward.item) then
+            Logger.warn('Caisse "%s" : objet inconnu "%s"', case.id, reward.item)
+        end
+        if not Config.CaseRarities[reward.rarity] then
+            Logger.warn('Caisse "%s" : rareté inconnue "%s"', case.id, tostring(reward.rarity))
+        end
+        case.totalWeight = case.totalWeight + reward.weight
+    end
+end
+
+---@param id any
+---@return table|nil caisse affichée sur la page (pas retirée par un admin)
+function CaseService.getListed(id)
+    local case = CaseService.byId[id]
+    if not case or case.removed then return nil end
+    return case
 end
 
 ---@param source integer
@@ -54,7 +71,7 @@ end
 ---@return { ok: boolean, message: string }
 function CaseService.buy(source, id)
     local player = CaseService.getActivePlayer(source)
-    local case = CaseService.byId[id]
+    local case = CaseService.getListed(id)
     if not player or not case or not case.price then
         return { ok = false, message = Locale.t('Achat impossible.') }
     end
@@ -104,7 +121,7 @@ end
 ---@return { ok: boolean, message?: string, reel?: table[], winner?: integer, duration?: number }
 function CaseService.openWithPoints(source, id)
     local player = CaseService.getActivePlayer(source)
-    local case = CaseService.byId[id]
+    local case = CaseService.getListed(id)
     if not player or not case or not case.points then
         return { ok = false, message = Locale.t('Ouverture impossible.') }
     end

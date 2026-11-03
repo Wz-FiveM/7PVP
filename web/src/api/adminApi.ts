@@ -1,9 +1,11 @@
 import { fetchNui } from './nui';
-import { mockAdminPlayers, mockFreeroamAdmin, mockLootAdmin, mockResaleAdmin, mockShopAdmin } from '../dev/mocks';
+import { mockAdminPlayers, mockCasesAdmin, mockFreeroamAdmin, mockLootAdmin, mockResaleAdmin, mockShopAdmin } from '../dev/mocks';
 import type {
   AdminActionPayload,
   AdminActionResult,
   AdminPlayer,
+  CaseAdminData,
+  CaseDefinitionDraft,
   CodMapData,
   FreeroamAdminData,
   FreeroamSetting,
@@ -42,6 +44,25 @@ export const adminApi = {
 
   shopReset: () =>
     fetchNui<AdminActionResult>('adminShopReset', {}, { ok: true, message: 'Prix remis par défaut (simulé)' }),
+
+  /** Onglet « Caisses » : création, contenu et prix des caisses */
+  cases: () => fetchNui<CaseAdminData>('adminCases', {}, mockCasesAdmin),
+
+  /** Création sans `id`, modification avec */
+  caseSave: (definition: CaseDefinitionDraft) =>
+    fetchNui<AdminActionResult & { id?: string }>(
+      'adminCaseSave',
+      { case: definition },
+      { ok: true, id: definition.id ?? 'case_new', message: 'Caisse enregistrée (simulé)' },
+    ),
+
+  /** `removed` : retirée de la page (plus vendue), ou remise */
+  caseRemove: (id: string, removed: boolean) =>
+    fetchNui<AdminActionResult>('adminCaseRemove', { id, removed }, { ok: true, message: 'Caisse mise à jour (simulé)' }),
+
+  /** Caisse de config/cases.lua remise telle que dans le fichier */
+  caseReset: (id: string) =>
+    fetchNui<AdminActionResult>('adminCaseReset', { id }, { ok: true, message: 'Caisse remise par défaut (simulé)' }),
 
   /** Onglet « Revente » : prix du receleur */
   resale: () => fetchNui<ResaleAdminData>('adminResale', {}, mockResaleAdmin),

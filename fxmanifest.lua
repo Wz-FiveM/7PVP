@@ -177,6 +177,7 @@ server_scripts {
     'server/modules/classes/class_service.lua',
     'server/modules/shop/shop_service.lua',
     'server/modules/cases/case_service.lua',
+    'server/modules/cases/case_config_service.lua',
     'server/modules/leaderboard/leaderboard_service.lua',
     'server/modules/presence/presence_service.lua',
     'server/modules/voice/voice_service.lua',

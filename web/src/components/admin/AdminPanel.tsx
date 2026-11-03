@@ -1,6 +1,7 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
+import { CasesTab } from './CasesTab';
 import { FreeroamTab } from './FreeroamTab';
 import { LootTab } from './LootTab';
 import { PlayersTab } from './PlayersTab';
@@ -21,6 +22,7 @@ const TABS: { id: string; label: string; component: ComponentType; wide?: boolea
   { id: 'server', label: 'Serveur', component: ServerTab },
   { id: 'loot', label: 'Butin', component: LootTab, wide: true },
   { id: 'shop', label: 'Boutique', component: ShopTab, wide: true },
+  { id: 'cases', label: 'Caisses', component: CasesTab, wide: true },
   { id: 'resale', label: 'Revente', component: ResaleTab, wide: true },
   { id: 'freeroam', label: 'Freeroam', component: FreeroamTab, wide: true },
   { id: 'positions', label: 'Positions', component: PositionsTab, wide: true, flush: true },

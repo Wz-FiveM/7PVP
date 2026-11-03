@@ -1,4 +1,5 @@
 import type {
+  CaseDefinition,
   CaseSpin,
   ChatCommand,
   ChatMessage,
@@ -23,6 +24,7 @@ import type {
   NearServices,
   HelpNotification,
   InteractionItem,
+  ItemDefinition,
   KillfeedItem,
   LeaderboardRow,
   LobbyMode,
@@ -102,6 +104,7 @@ export interface GameState {
 export type GameAction =
   | { type: 'init'; payload: InitPayload }
   | { type: 'shop/prices'; prices: Record<string, number> }
+  | { type: 'cases'; cases: CaseDefinition[]; items: Record<string, ItemDefinition> }
   | { type: 'sync'; player: PlayerState }
   | { type: 'zone'; zone: ZoneInfo }
   | { type: 'vitals'; vitals: Vitals }
@@ -220,6 +223,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...state.config,
           shop: state.config.shop.map((entry) => ({ ...entry, price: action.prices[entry.item] ?? entry.price })),
         },
+      };
+    case 'cases':
+      return {
+        ...state,
+        // Lua envoie une table vide comme un objet
+        config: { ...state.config, cases: Array.isArray(action.cases) ? action.cases : [], items: { ...state.config.items, ...action.items } },
       };
     case 'sync':
       return { ...state, player: action.player };

@@ -157,6 +157,7 @@ Events.client = {
     freeroamSettings = '7pvp:client:freeroamSettings',
     classEffect = '7pvp:client:classEffect',
     shopPrices = '7pvp:client:shopPrices',
+    cases = '7pvp:client:cases',
 }
 
 -- Événements internes (même côté, jamais réseau)
@@ -270,6 +271,10 @@ Events.callbacks = {
     adminShop = 'admin:shop',
     adminShopSave = 'admin:shopSave',
     adminShopReset = 'admin:shopReset',
+    adminCases = 'admin:cases',
+    adminCaseSave = 'admin:caseSave',
+    adminCaseRemove = 'admin:caseRemove',
+    adminCaseReset = 'admin:caseReset',
     adminFreeroam = 'admin:freeroam',
     adminFreeroamSave = 'admin:freeroamSave',
     adminFreeroamReset = 'admin:freeroamReset',

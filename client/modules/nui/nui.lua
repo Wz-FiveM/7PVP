@@ -205,6 +205,14 @@ function Nui.init()
         end
         Nui.send('shopPrices', prices)
     end)
+
+    -- Caisses modifiées par un admin (voir CaseConfigService) : Config.Cases et Config.Items sont aussi
+    -- relus si la page n'est pas encore prête. `items` garde les caisses retirées, encore possédées.
+    RegisterNetEvent(Events.client.cases, function(cases, items)
+        Config.Cases = cases
+        for name, item in pairs(items) do Config.Items[name] = item end
+        Nui.send('cases', { cases = cases, items = items })
+    end)
 end
 
 ---Les messages à traduire venus du serveur (Locale.t) sont traduits ici, dans la langue du joueur.

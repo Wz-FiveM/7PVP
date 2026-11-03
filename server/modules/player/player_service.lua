@@ -16,6 +16,7 @@ local SeasonPassService = PVP.use('SeasonPassService')
 local InsuranceService = PVP.use('InsuranceService')
 local VipService = PVP.use('VipService')
 local AntiCheatService = PVP.use('AntiCheatService')
+local CaseConfigService = PVP.use('CaseConfigService')
 local Events = PVP.use('Events')
 local Logger = PVP.use('Logger')
 
@@ -91,6 +92,8 @@ function PlayerService.load(source)
         return nil
     end
 
+    -- Une caisse créée depuis le panneau encore inconnue serait retirée de l'inventaire
+    CaseConfigService.awaitLoaded()
     local row = PlayerRepository.find(identifier)
     if not row then
         local inventory = InventoryObject.fromKit(Config.NewPlayerKit):encode()

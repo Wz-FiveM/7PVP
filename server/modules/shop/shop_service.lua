@@ -15,6 +15,7 @@ local Logger = PVP.use('Logger')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 local TutorialService = PVP.use('TutorialService')
+local CaseConfigService = PVP.use('CaseConfigService')
 
 -- Prix cités dans le journal d'une modification
 ShopService.LOG_LIMIT = 5
@@ -64,6 +65,8 @@ function ShopService.load()
         Logger.info('[boutique] %d prix chargé(s) depuis la base', #rows)
         ShopService.sendPrices(-1)
     end
+    -- Les caisses créées depuis le panneau sont des objets repris par le receleur
+    CaseConfigService.awaitLoaded()
     ResaleService.refreshDefaults()
     ResaleService.load()
 end

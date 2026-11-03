@@ -1,4 +1,4 @@
-import type { AdminPlayer, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData, ShopAdminData } from '../types/admin';
+import type { AdminPlayer, CaseAdminData, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData, ShopAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -838,6 +838,29 @@ export const mockShopAdmin: ShopAdminData = {
     { name: 'medkit', label: 'Trousse de soins', type: 'consumable', count: 1, price: 350, default: 350, resale: 175, resaleFollows: true },
     { name: 'vehicle_faggio', label: 'Faggio', type: 'vehicle', count: 1, price: 600, default: 600, resale: 300, resaleFollows: true },
   ],
+};
+
+/** Onglet « Caisses » du panneau admin (hors jeu) */
+export const mockCasesAdmin: CaseAdminData = {
+  ok: true,
+  cases: [
+    ...(mockInit.config.cases ?? []).map((definition) => ({ ...definition, removed: false, custom: false, modified: false })),
+    {
+      id: 'case_1793700000',
+      label: 'Caisse de Noël',
+      description: 'Créée depuis le panneau.',
+      points: 250,
+      rewards: [
+        { item: 'money', count: [1000, 3000] as [number, number], weight: 60, rarity: 'common' },
+        { item: 'weapon_carbinerifle', weight: 40, rarity: 'rare' },
+      ],
+      removed: true,
+      custom: true,
+      modified: false,
+    },
+  ],
+  items: Object.entries(mockInit.config.items).map(([name, item]) => ({ name, label: item.label, type: item.type })),
+  limits: { maxCases: 30, maxRewards: 30, maxPrice: 10000000, maxPoints: 100000, maxLevel: 100, maxCount: 1000, maxMoney: 1000000 },
 };
 
 export const mockLeaderboard: LeaderboardRow[] = [
