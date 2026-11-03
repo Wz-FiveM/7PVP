@@ -20,7 +20,6 @@ local CrewBonusService = PVP.use('CrewBonusService')
 local InventoryObject = PVP.use('InventoryObject')
 local InventoryService = PVP.use('InventoryService')
 local PlayerRepository = PVP.use('PlayerRepository')
-local LootService = PVP.use('LootService')
 local SafeNpcs = PVP.use('SafeNpcs')
 local Callback = PVP.use('Callback')
 local Items = PVP.use('Items')
@@ -158,23 +157,8 @@ function CrewStashService.put(source, data)
 
     player.inventory:removeFrom(data.from, item, count)
     stash.items[item] = (stash.items[item] or 0) + count
-    CrewStashService.returnAttachments(player, item)
     CrewStashService.commit(crew, player, stash, item, count, false)
     return { ok = true }
-end
-
----@param player PvpPlayer
----@param weapon string arme qu'il vient de déposer
-function CrewStashService.returnAttachments(player, weapon)
-    local fallen = {}
-    for attachment, released in pairs(player.inventory:releaseAttachments(weapon)) do
-        local overflow = released - player:giveItem(attachment, released)
-        if overflow > 0 then fallen[attachment] = overflow end
-    end
-    if next(fallen) ~= nil then
-        LootService.drop(player:getCoords(), fallen, { bucket = GetPlayerRoutingBucket(player.source) })
-        player:notify(Locale.t('Sac plein : le reste du butin est à tes pieds.'), 'info')
-    end
 end
 
 ---Retire des objets : autant que le conteneur choisi peut en recevoir.

@@ -6,7 +6,7 @@
 ---@field stash table<string, integer> coffre 1 : conservé, utilisable seulement auprès du banquier (idem stash2...)
 ---@field unlocked table<string, boolean> coffres payants achetés (Config.Containers[id].price)
 ---@field shortcuts (string|false)[] objet assigné à chaque touche (false = vide)
----@field attachments table<string, table<string, boolean>> arme -> accessoires fixés dessus
+---@field legacyAttachments table<string, table<string, boolean>> anciens accessoires fixés (arme -> accessoires), remboursés à la connexion (WeaponCustomService.refundLegacy)
 local InventoryObject = PVP.define('InventoryObject')
 local Items = PVP.use('Items')
 local Locale = PVP.use('Locale')
@@ -27,7 +27,7 @@ function InventoryObject.new(data)
 
     local inventory = {
         shortcuts = shortcuts,
-        attachments = InventoryObject.sanitizeAttachments(data.attachments),
+        legacyAttachments = InventoryObject.sanitizeAttachments(data.attachments),
         unlocked = InventoryObject.sanitizeUnlocked(data.unlocked),
         -- Objets sortis mais pas perdus (véhicule sorti) : leur raccourci est gardé (non sauvegardé)
         reserved = {},
@@ -69,7 +69,7 @@ function InventoryObject.sanitize(container)
     return clean
 end
 
----Ne garde que les accessoires compatibles avec leur arme (voir Config.Attachments).
+---Accessoires fixés du temps où c'étaient des objets : ne garde que ceux compatibles avec leur arme.
 ---@param data any
 ---@return table<string, table<string, boolean>>
 function InventoryObject.sanitizeAttachments(data)
@@ -116,7 +116,8 @@ end
 function InventoryObject:serialize()
     local data = {
         shortcuts = self.shortcuts,
-        attachments = self.attachments,
+        -- Gardés tant qu'ils n'ont pas été remboursés (inventaire d'un joueur absent modifié par un admin)
+        attachments = next(self.legacyAttachments) and self.legacyAttachments or nil,
         unlocked = self.unlocked,
     }
     for id in pairs(Config.Containers) do
@@ -264,73 +265,11 @@ function InventoryObject:move(from, to, name, count)
 end
 
 ---Vide le sac et renvoie son contenu (pour le sac de butin à la mort).
----Les accessoires d'une arme qui n'est plus possédée nulle part tombent avec elle.
 ---@return table<string, integer>
 function InventoryObject:takeBag()
     local bag = self.bag
     self.bag = {}
-    for name in pairs(Utils.shallowCopy(bag)) do
-        for attachment, count in pairs(self:releaseAttachments(name)) do
-            bag[attachment] = (bag[attachment] or 0) + count
-        end
-    end
     return bag
-end
-
--- ---------------------------------------------------------------------------
--- Accessoires d'armes
--- ---------------------------------------------------------------------------
-
----@param name string
----@return integer quantité possédée partout (sac, conteneur protégé et coffres)
-function InventoryObject:countEverywhere(name)
-    local total = self:count(name)
-    for _, id in ipairs(Items.stashIds()) do
-        total = total + (self[id][name] or 0)
-    end
-    return total
-end
-
----Fixe un accessoire de l'inventaire (sac ou conteneur protégé) sur une arme portée.
----@param weapon string
----@param attachment string
----@return boolean ok, string|nil message
-function InventoryObject:attach(weapon, attachment)
-    local compatible = Config.Attachments[attachment]
-    if not compatible or not compatible[weapon] then return false, Locale.t('Accessoire incompatible avec cette arme.') end
-    if self:count(weapon) <= 0 then return false, Locale.t('Tu dois porter l\'arme.') end
-    if self.attachments[weapon] and self.attachments[weapon][attachment] then return false, Locale.t('Déjà fixé.') end
-    if not self:remove(attachment, 1) then return false, Locale.t('Tu n\'as pas cet accessoire.') end
-
-    self.attachments[weapon] = self.attachments[weapon] or {}
-    self.attachments[weapon][attachment] = true
-    return true
-end
-
----Retire un accessoire d'une arme : il revient dans le sac.
----@param weapon string
----@param attachment string
----@return boolean ok, string|nil message
-function InventoryObject:detach(weapon, attachment)
-    local list = self.attachments[weapon]
-    if not list or not list[attachment] then return false, Locale.t('Accessoire absent.') end
-    if self:add('bag', attachment, 1) < 1 then return false, Locale.t('Ton sac est plein.') end
-
-    list[attachment] = nil
-    if next(list) == nil then self.attachments[weapon] = nil end
-    return true
-end
-
----Arme plus possédée nulle part : ses accessoires sont détachés et renvoyés (pour tomber au sol).
----@param weapon string
----@return table<string, integer>
-function InventoryObject:releaseAttachments(weapon)
-    local released = {}
-    local list = self.attachments[weapon]
-    if not list or self:countEverywhere(weapon) > 0 then return released end
-    for attachment in pairs(list) do released[attachment] = 1 end
-    self.attachments[weapon] = nil
-    return released
 end
 
 ---@param items table<string, integer>

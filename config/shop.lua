@@ -99,11 +99,4 @@ Config.Shop = {
     { item = 'vehicle_kuruma', count = 1, price = 7500, level = 8 },
     { item = 'vehicle_mesa3', count = 1, price = 9000, level = 10 },
     { item = 'vehicle_frogger', count = 1, price = 25000, level = 15 },
-
-    -- Accessoires
-    { item = 'att_flashlight', count = 1, price = 300, level = 2 },
-    { item = 'att_extclip', count = 1, price = 900, level = 4 },
-    { item = 'att_grip', count = 1, price = 1100, level = 6 },
-    { item = 'att_scope', count = 1, price = 1500, level = 7 },
-    { item = 'att_suppressor', count = 1, price = 2500, level = 9 },
 }

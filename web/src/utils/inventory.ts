@@ -91,16 +91,3 @@ export function itemLabel(config: GameConfig, name: string): string {
   return label ? t(label) : name;
 }
 
-/** Accessoires fixés sur une arme. */
-export function fittedAttachments(inventory: { attachments?: Record<string, Record<string, boolean>> | [] }, weapon: string): string[] {
-  const all = inventory.attachments;
-  if (!all || Array.isArray(all)) return [];
-  return Object.keys(all[weapon] ?? {});
-}
-
-/** Accessoires qui vont sur cette arme. */
-export function compatibleAttachments(config: GameConfig, weapon: string): string[] {
-  return Object.entries(config.attachments ?? {})
-    .filter(([, weapons]) => weapons[weapon])
-    .map(([attachment]) => attachment);
-}

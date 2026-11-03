@@ -98,9 +98,6 @@ export const gameApi = {
   /** Chaîne vide pour reprendre le fond par défaut */
   selectKillfeedBackground: (id: string) => fetchNui<ActionResult>('killfeedBackgroundSelect', { id }, MOCK_OK),
 
-  /** Fixe (`attach: true`) ou retire un accessoire d'une arme */
-  attachment: (weapon: string, attachment: string, attach: boolean) =>
-    fetchNui<ActionResult>('attachment', { weapon, attachment, attach }, MOCK_OK),
 
   leaderboard: (scope: LeaderboardScope) =>
     fetchNui<{ rows: LeaderboardRow[]; title: string }>('leaderboard', { scope }, { rows: mockLeaderboard, title: 'Saison octobre 2026' }),

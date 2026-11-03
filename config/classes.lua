@@ -144,7 +144,7 @@ Config.Classes = {
                 'Radar : zombies et ennemis à moins de 60 m sur la minimap, hors zones safe',
                 'Fusils de précision : +30 %, autres armes : -20 %',
             },
-            signature = { 'weapon_sniperrifle', 'weapon_marksmanrifle', 'att_suppressor' },
+            signature = { 'weapon_sniperrifle', 'weapon_marksmanrifle' },
             health = 85,
             speed = 110,
             damage = 0.8,

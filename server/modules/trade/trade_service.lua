@@ -395,10 +395,10 @@ function TradeService.transfer(a, b, offerA, offerB)
     end
 
     local backupA, backupB = TradeService.snapshot(a.inventory), TradeService.snapshot(b.inventory)
+    TradeService.take(a, offerA)
+    TradeService.take(b, offerB)
     local full
-    if not TradeService.take(a, offerA) then full = a
-    elseif not TradeService.take(b, offerB) then full = b
-    elseif not TradeService.give(a, offerB) then full = a
+    if not TradeService.give(a, offerB) then full = a
     elseif not TradeService.give(b, offerA) then full = b
     end
     if not full then return true end
@@ -408,21 +408,13 @@ function TradeService.transfer(a, b, offerA, offerB)
     return false, Locale.t('Pas assez de place dans le sac de %s.', full.name)
 end
 
----Retire l'offre de l'inventaire. Les accessoires d'une arme donnée restent à son ancien
----propriétaire (rendus dans son sac), comme à la place de marché.
+---Retire l'offre de l'inventaire.
 ---@param player PvpPlayer
 ---@param offer table<string, integer>
----@return boolean false si un accessoire ne tient pas dans le sac
 function TradeService.take(player, offer)
     for name, count in pairs(offer) do
         player.inventory:remove(name, count)
     end
-    for name in pairs(offer) do
-        for attachment, released in pairs(player.inventory:releaseAttachments(name)) do
-            if player:giveItem(attachment, released) < released then return false end
-        end
-    end
-    return true
 end
 
 ---@param player PvpPlayer
@@ -438,14 +430,9 @@ end
 ---@param inventory PvpInventory
 ---@return table copie de ce qu'un échange peut modifier
 function TradeService.snapshot(inventory)
-    local attachments = {}
-    for weapon, list in pairs(inventory.attachments) do
-        attachments[weapon] = Utils.shallowCopy(list)
-    end
     return {
         bag = Utils.shallowCopy(inventory.bag),
         protected = Utils.shallowCopy(inventory.protected),
-        attachments = attachments,
     }
 end
 
@@ -454,5 +441,4 @@ end
 function TradeService.restore(inventory, backup)
     inventory.bag = backup.bag
     inventory.protected = backup.protected
-    inventory.attachments = backup.attachments
 end

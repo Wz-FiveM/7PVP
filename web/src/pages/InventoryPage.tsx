@@ -15,7 +15,7 @@ import { useT } from '../i18n';
 import { useGame } from '../store/GameContext';
 import type { ContainerId, ItemStack } from '../types/game';
 import {
-  CARRIED, capacityOf, compatibleAttachments, entriesOf, stacksOf, weightOf, fittedAttachments, isShortcutItem, isStash, isUnlocked, isWeaponInBag, itemLabel,
+  CARRIED, capacityOf, entriesOf, stacksOf, weightOf, isShortcutItem, isStash, isUnlocked, isWeaponInBag, itemLabel,
   moveLabel, moveTargets,
 } from '../utils/inventory';
 import '../components/inventory/inventory.css';
@@ -256,9 +256,7 @@ export function InventoryPage() {
     if (carried && stack.item.type === 'weapon') {
       // Une arme ne sort que du sac : au conteneur protégé, elle est seulement à l'abri
       if (container === 'bag') list.push({ label: t('Équiper'), onSelect: () => actions.equip(stack.name) });
-      list.push(...attachmentActions(stack.name));
     }
-    if (carried && stack.item.type === 'attachment') list.push(...fitActions(stack.name));
     if (carried && stack.item.type === 'consumable') {
       list.push({ label: t('Utiliser'), onSelect: () => actions.consumeItem(stack.name) });
     }
@@ -276,36 +274,6 @@ export function InventoryPage() {
     }
     list.push({ label: t('Jeter'), danger: true, onSelect: () => requestDrop(stack.name, container, stack.count) });
     return list;
-  };
-
-  /** Accessoires : retirer ceux qui sont fixés, fixer ceux qu'on porte et qui sont compatibles. */
-  const attachmentActions = (weapon: string): ContextMenuAction[] => {
-    const fitted = fittedAttachments(player.inventory, weapon);
-    const carried = new Set(
-      [...entriesOf(player.inventory.bag), ...entriesOf(player.inventory.protected)].map(([name]) => name),
-    );
-    return compatibleAttachments(config, weapon).flatMap((attachment): ContextMenuAction[] => {
-      const label = itemLabel(config, attachment);
-      if (fitted.includes(attachment)) {
-        return [{ label: t('Retirer : {item}', { item: label }), onSelect: () => actions.attachment(weapon, attachment, false) }];
-      }
-      if (carried.has(attachment)) {
-        return [{ label: t('Fixer : {item}', { item: label }), onSelect: () => actions.attachment(weapon, attachment, true) }];
-      }
-      return [];
-    });
-  };
-
-  /** Clic droit sur un accessoire : le fixer sur une arme portée, ou dire pourquoi on ne peut pas. */
-  const fitActions = (attachment: string): ContextMenuAction[] => {
-    const weapons = Object.keys(config.attachments?.[attachment] ?? {}).filter(
-      (weapon) => carriedOf(weapon) > 0 && !fittedAttachments(player.inventory, weapon).includes(attachment),
-    );
-    if (weapons.length === 0) return [{ label: t('Aucune arme compatible sur toi'), disabled: true, onSelect: () => undefined }];
-    return weapons.map((weapon) => ({
-      label: t('Fixer sur : {item}', { item: itemLabel(config, weapon) }),
-      onSelect: () => actions.attachment(weapon, attachment, true),
-    }));
   };
 
   /**

@@ -16,7 +16,7 @@ WeaponCustom.SPIN_SPEED = 25.0 -- °/s, jusqu'à ce que le joueur tourne l'arme 
 WeaponCustom.CAMERA_DISTANCE = 1.2 -- m : défaut, avant de connaître la taille de l'arme
 WeaponCustom.CAMERA_HEIGHT = 0.55 -- m au-dessus du centre du personnage
 
----@type table<string, { tint: integer, finish: string|nil }> arme -> custom enregistrée
+---@type table<string, { tint: integer, finish: string|nil, attachments: string[]|nil }> arme -> custom enregistrée
 WeaponCustom.saved = {}
 WeaponCustom.active = false
 WeaponCustom.opening = false
@@ -75,14 +75,25 @@ function WeaponCustom.applyTo(ped, name, item)
         SetPedWeaponTintIndex(ped, hash, tint)
     end
     for _, finish in ipairs(Config.WeaponCustom.finishes[name] or {}) do
-        local component = GetHashKey(finish.component)
-        local wanted = custom ~= nil and custom.finish == finish.component
-        local has = HasPedGotWeaponComponent(ped, hash, component)
-        if wanted and not has then
-            GiveWeaponComponentToPed(ped, hash, component)
-        elseif has and not wanted then
-            RemoveWeaponComponentFromPed(ped, hash, component)
-        end
+        WeaponCustom.syncComponent(ped, hash, finish.component, custom ~= nil and custom.finish == finish.component)
+    end
+    local parts = WeaponCustom.partsOf(name, custom and custom.attachments)
+    for _, weapons in pairs(Config.Attachments) do
+        if weapons[name] then WeaponCustom.syncComponent(ped, hash, weapons[name], parts[weapons[name]] == true) end
+    end
+end
+
+---@param ped integer
+---@param hash integer arme
+---@param component string composant GTA
+---@param wanted boolean
+function WeaponCustom.syncComponent(ped, hash, component, wanted)
+    local componentHash = GetHashKey(component)
+    local has = HasPedGotWeaponComponent(ped, hash, componentHash)
+    if wanted and not has then
+        GiveWeaponComponentToPed(ped, hash, componentHash)
+    elseif has and not wanted then
+        RemoveWeaponComponentFromPed(ped, hash, componentHash)
     end
 end
 
@@ -92,8 +103,9 @@ end
 
 ---@param name string
 ---@param item table
----@return table|nil ce que le menu propose pour cette arme, nil si elle n'a ni teinte ni finition
-function WeaponCustom.describe(name, item)
+---@param kills integer zombies tués avec ce modèle
+---@return table|nil ce que le menu propose pour cette arme, nil si elle n'a ni teinte, ni finition, ni accessoire
+function WeaponCustom.describe(name, item, kills)
     local hash = GetHashKey(item.weapon)
     local tintCount = GetWeaponTintCount(hash)
     local tints = {}
@@ -109,34 +121,38 @@ function WeaponCustom.describe(name, item)
             finishes[#finishes + 1] = finish
         end
     end
-    if #tints == 0 and #finishes == 0 then return nil end
+    -- Accessoires dans l'ordre des paliers
     local attachments = {}
-    for attachment, weapons in pairs(Config.Attachments) do
-        if weapons[name] and DoesWeaponTakeWeaponComponent(hash, GetHashKey(weapons[name])) then
-            attachments[#attachments + 1] = attachment
+    for _, unlock in ipairs(Config.WeaponCustom.unlocks) do
+        local component = (Config.Attachments[unlock.attachment] or {})[name]
+        if component and DoesWeaponTakeWeaponComponent(hash, GetHashKey(component)) then
+            attachments[#attachments + 1] = { name = unlock.attachment, kills = unlock.kills }
         end
     end
-    table.sort(attachments)
+    if #tints == 0 and #finishes == 0 and #attachments == 0 then return nil end
     local custom = WeaponCustom.saved[name]
     return {
         name = name,
         label = item.label,
         tint = custom and custom.tint or 0,
         finish = custom and custom.finish or false,
+        fitted = custom and custom.attachments or {},
+        kills = kills,
         tints = tints,
         finishes = finishes,
         attachments = attachments,
     }
 end
 
+---@param kills table<string, integer> arme -> zombies tués avec
 ---@return table[] armes portées dans le sac qu'on peut customiser, par ordre alphabétique
-function WeaponCustom.carried()
+function WeaponCustom.carried(kills)
     local inventory = State.player and State.player.inventory
     local list = {}
     for name, count in pairs(inventory and inventory.bag or {}) do
         local item = Config.Items[name]
         if count > 0 and item and item.type == 'weapon' then
-            list[#list + 1] = WeaponCustom.describe(name, item)
+            list[#list + 1] = WeaponCustom.describe(name, item, tonumber(kills[name]) or 0)
         end
     end
     table.sort(list, function(a, b) return a.label < b.label end)
@@ -156,7 +172,7 @@ function WeaponCustom.open(npc)
     end
     if IsNuiFocused() or State.menuOpen or not State.isAlive() then return end
 
-    local weapons = WeaponCustom.carried()
+    local weapons = WeaponCustom.carried(type(result.kills) == 'table' and result.kills or {})
     if #weapons == 0 then
         return Nui.notify(Locale.t('Tu ne portes aucune arme à customiser : mets-la dans ton sac.'), 'error')
     end
@@ -167,7 +183,7 @@ function WeaponCustom.open(npc)
     DisplayRadar(false)
     SetNuiFocus(true, true)
     Nui.send('weaponCustom', { open = true, weapons = weapons })
-    WeaponCustom.preview(weapons[1].name, weapons[1].tint, weapons[1].finish)
+    WeaponCustom.preview(weapons[1].name, weapons[1].tint, weapons[1].finish, weapons[1].fitted)
     CreateThread(WeaponCustom.frameLoop)
     CreateThread(WeaponCustom.watch)
 end
@@ -180,7 +196,7 @@ function WeaponCustom.watch()
     end
 end
 
----@param data any arme -> { tint, finish } des armes modifiées
+---@param data any arme -> { tint, finish, attachments } des armes modifiées
 ---@return { ok: boolean, message?: string }
 function WeaponCustom.save(data)
     if not WeaponCustom.active then return { ok = false } end

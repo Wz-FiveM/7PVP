@@ -102,6 +102,7 @@ function LootConfigService.range(range, max, minimum)
 end
 
 ---Table propre (objets connus, nombres bornés), ou nil si les données sont inutilisables.
+---Les accessoires n'en font plus partie : ils se débloquent en tuant des zombies (config/weapon_custom.lua).
 ---@param data any
 ---@return table|nil
 function LootConfigService.validate(data)
@@ -114,7 +115,8 @@ function LootConfigService.validate(data)
         if #clean.drops >= LootConfigService.MAX_DROPS then break end
         local chance = tonumber(type(drop) == 'table' and drop.chance)
         local count = type(drop) == 'table' and LootConfigService.range(drop.count, LootConfigService.MAX_COUNT, 1)
-        if type(drop.item) == 'string' and Items.exists(drop.item) and drop.item ~= 'money' and count and chance then
+        if type(drop.item) == 'string' and Items.exists(drop.item) and drop.item ~= 'money'
+            and not Items.isType(drop.item, 'attachment') and count and chance then
             -- Chance au dixième de pour cent près, entre 0,1 et 100
             chance = math.max(0.1, math.min(100, math.floor(chance * 10 + 0.5) / 10))
             clean.drops[#clean.drops + 1] = { item = drop.item, count = count, chance = chance }

@@ -165,11 +165,6 @@ function ResaleService.sell(source, data)
 
     local total = price * count
     player.inventory:removeFrom(container, item, count)
-    -- Accessoires de l'arme : rendus, ou vendus avec elle s'ils ne rentrent plus dans le sac
-    for attachment, released in pairs(player.inventory:releaseAttachments(item)) do
-        local overflow = released - player:giveItem(attachment, released)
-        total = total + overflow * (ResaleService.prices[attachment] or 0)
-    end
     player:addMoney(total)
     player:sync()
     Logger.info('[revente] %s vend %s pour $%d', player.name, Items.describe({ [item] = count }), total)

@@ -38,7 +38,6 @@ export interface GameActions {
   craft: (id: string) => Promise<void>;
   selectClass: (id: string) => Promise<void>;
   /** Fixe ou retire un accessoire d'une arme */
-  attachment: (weapon: string, attachment: string, attach: boolean) => Promise<void>;
   refreshLeaderboard: (scope: LeaderboardScope) => Promise<void>;
   /** Admin : exécute une action (vérifiée côté serveur) ; renvoie true si réussie */
   adminAction: (payload: AdminActionPayload) => Promise<boolean>;

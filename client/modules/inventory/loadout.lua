@@ -61,15 +61,11 @@ function Loadout.apply()
     local ped = PlayerPedId()
     Loadout.ammoWeapon = {}
 
-    local attachments = type(inventory.attachments) == 'table' and inventory.attachments or {}
     for name, item in pairs(Config.Items) do
         if item.type == 'weapon' then
             local owned = Items.countUsable(inventory, name) > 0
             Loadout.syncWeapon(ped, item, owned)
-            if owned then
-                Loadout.syncAttachments(ped, name, item, attachments[name] or {})
-                WeaponCustom.applyTo(ped, name, item)
-            end
+            if owned then WeaponCustom.applyTo(ped, name, item) end
         end
     end
 
@@ -108,27 +104,6 @@ function Loadout.syncWeapon(ped, item, owned)
 
     if owned and item.ammo then
         Loadout.ammoWeapon[item.ammo] = hash
-    end
-end
-
----Ajoute ou retire les composants GTA selon les accessoires fixés sur l'arme.
----@param ped integer
----@param name string objet de l'arme
----@param item table
----@param fitted table<string, boolean>
-function Loadout.syncAttachments(ped, name, item, fitted)
-    local hash = GetHashKey(item.weapon)
-    for attachment, weapons in pairs(Config.Attachments) do
-        local component = weapons[name]
-        if component then
-            local componentHash = GetHashKey(component)
-            local has = HasPedGotWeaponComponent(ped, hash, componentHash)
-            if fitted[attachment] and not has then
-                GiveWeaponComponentToPed(ped, hash, componentHash)
-            elseif not fitted[attachment] and has then
-                RemoveWeaponComponentFromPed(ped, hash, componentHash)
-            end
-        end
     end
 end
 

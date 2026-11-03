@@ -140,9 +140,6 @@ function MarketService.sell(source, data)
 
     -- L'objet quitte l'inventaire avant l'écriture en base : pas de double vente possible
     player.inventory:removeFrom(container, item, count)
-    for attachment, released in pairs(player.inventory:releaseAttachments(item)) do
-        player:giveItem(attachment, released)
-    end
     player:sync()
 
     local id = MarketRepository.insert(player.identifier, player.name, item, count, price)

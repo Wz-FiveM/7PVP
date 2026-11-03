@@ -479,10 +479,6 @@ export const mockInit: InitPayload = {
       stash2: { label: 'Coffre 2', capacity: 500, safeOnly: true, order: 2, price: 15000 },
       stash3: { label: 'Coffre 3', capacity: 500, safeOnly: true, order: 3, price: 50000 },
     },
-    attachments: {
-      att_suppressor: { weapon_pistol: 'COMPONENT_AT_PI_SUPP_02', weapon_carbinerifle: 'COMPONENT_AT_AR_SUPP' },
-      att_scope: { weapon_carbinerifle: 'COMPONENT_AT_SCOPE_MEDIUM' },
-    },
     recipes: [
       { id: 'bandage', result: { item: 'bandage', count: 2 }, ingredients: { mat_cloth: 3 }, level: 1 },
       { id: 'ammo_9mm', result: { item: 'ammo_9mm', count: 24 }, ingredients: { mat_powder: 4, mat_scrap: 1 }, level: 1 },

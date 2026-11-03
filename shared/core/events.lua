@@ -187,7 +187,6 @@ Events.callbacks = {
     moveItem = 'inventory:move',
     dropItem = 'inventory:drop',
     setShortcut = 'inventory:setShortcut',
-    attachment = 'inventory:attachment',
     unlockStash = 'inventory:unlockStash',
     loadoutSetSave = 'loadoutSet:save',
     loadoutSetApply = 'loadoutSet:apply',

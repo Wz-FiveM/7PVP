@@ -2,7 +2,7 @@ import type { MouseEvent } from 'react';
 import { formatNumber, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { ContainerId, ItemStack, ItemStacks } from '../../types/game';
-import { capacityOf, entriesOf, fittedAttachments, isStash, stacksOf, weightOf } from '../../utils/inventory';
+import { capacityOf, entriesOf, isStash, stacksOf, weightOf } from '../../utils/inventory';
 import { Icon } from '../icons/Icon';
 import { SectionTitle } from '../menu/SectionTitle';
 import { SegmentBar } from '../ui/SegmentBar';
@@ -35,10 +35,10 @@ const STYLES: Record<'bag' | 'protected' | 'stash', { note: string; outline: boo
   stash: { note: 'Auprès du banquier', outline: false, color: 'var(--toxine)', segments: 50 },
 };
 
-/** Quantité (ou montant) et nombre d'accessoires fixés sur une arme. */
-function cornerText(stack: ItemStack, attachments: number): string {
+/** Quantité (ou montant). */
+function cornerText(stack: ItemStack): string {
   if (stack.item.type === 'money') return formatNumber(stack.count);
-  return attachments > 0 ? `x${stack.count} +${attachments}` : `x${stack.count}`;
+  return `x${stack.count}`;
 }
 
 export function ContainerSection({
@@ -92,7 +92,7 @@ export function ContainerSection({
                 key={stack.name}
                 name={stack.name}
                 item={stack.item}
-                corner={cornerText(stack, fittedAttachments(state.player?.inventory ?? {}, stack.name).length)}
+                corner={cornerText(stack)}
                 selected={selection?.name === stack.name && selection.container === id}
                 protectedItem={isProtected}
                 dragging={isDragged}

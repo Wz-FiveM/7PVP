@@ -17,7 +17,6 @@ function InventoryService.init()
     Callback.register(Events.callbacks.moveItem, InventoryService.move)
     Callback.register(Events.callbacks.dropItem, InventoryService.drop)
     Callback.register(Events.callbacks.setShortcut, InventoryService.setShortcut)
-    Callback.register(Events.callbacks.attachment, InventoryService.attachment)
     Callback.register(Events.callbacks.unlockStash, InventoryService.unlockStash)
 end
 
@@ -157,37 +156,9 @@ function InventoryService.drop(source, data)
         return { ok = false, message = Locale.t('Quantité invalide.') }
     end
 
-    local dropped = { [data.item] = removed }
-    for attachment, count in pairs(player.inventory:releaseAttachments(data.item)) do
-        dropped[attachment] = (dropped[attachment] or 0) + count
-    end
-    LootService.drop(player:getCoords(), dropped, { bucket = GetPlayerRoutingBucket(player.source) })
+    LootService.drop(player:getCoords(), { [data.item] = removed }, { bucket = GetPlayerRoutingBucket(player.source) })
     player:sync()
     return { ok = true, message = Locale.t('Jeté : %s', Items.describeText({ [data.item] = removed })) }
-end
-
----Fixe ou retire un accessoire sur une arme.
----@param source integer
----@param data { weapon: string, attachment: string, attach: boolean }
----@return { ok: boolean, message?: string }
-function InventoryService.attachment(source, data)
-    local player = InventoryService.getActivePlayer(source)
-    if not player or type(data) ~= 'table' then return { ok = false } end
-
-    local inventory = player.inventory
-    local ok, message
-    if data.attach == true then
-        ok, message = inventory:attach(data.weapon, data.attachment)
-    else
-        ok, message = inventory:detach(data.weapon, data.attachment)
-    end
-    if not ok then return { ok = false, message = message } end
-
-    player:sync()
-    local attachment, weapon = Locale.t(Items.label(data.attachment)), Locale.t(Items.label(data.weapon))
-    local message = data.attach == true and Locale.t('%s fixé sur : %s', attachment, weapon)
-        or Locale.t('%s retiré de : %s', attachment, weapon)
-    return { ok = true, message = message }
 end
 
 ---@param source integer

@@ -74,6 +74,25 @@
   font-size: 0.8125rem;
   font-weight: 600;
 }
+.weapon-custom__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+/* Zombies tués vers le palier d'un accessoire encore bloqué */
+.weapon-custom__progress {
+  display: block;
+  height: 0.1875rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+.weapon-custom__progress span {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  background: var(--signal);
+}
 .weapon-custom__changed {
   font-size: 0.6875rem;
   color: var(--signal);

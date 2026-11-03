@@ -30,8 +30,6 @@ export interface Inventory {
   [stash: StashId]: ItemStacks;
   /** objet assigné à chaque touche, `false` si vide */
   shortcuts: (string | false)[];
-  /** arme -> accessoires fixés (Lua envoie `[]` s'il n'y en a aucun) */
-  attachments?: Record<string, Record<string, boolean>> | [];
   /** coffres payants achetés (Lua envoie `[]` s'il n'y en a aucun) */
   unlocked?: Record<string, boolean> | [];
 }
@@ -255,8 +253,6 @@ export interface GameConfig {
   killMessage?: { price: number; maxLength: number };
   /** nom de la touche du menu (ex : TAB) */
   menuKey?: string;
-  /** accessoire -> { arme -> composant GTA } */
-  attachments?: Record<string, Record<string, string>>;
   recipes?: Recipe[];
   classes?: ClassesConfig;
   cases?: CaseDefinition[];

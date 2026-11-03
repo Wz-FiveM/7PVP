@@ -248,7 +248,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
       crewStashTake: (item, count, to) => run(crewApi.stashTake(item, count, to)),
       craft: (id) => run(gameApi.craft(id)),
       selectClass: (id) => run(gameApi.selectClass(id)),
-      attachment: (weapon, attachment, attach) => run(gameApi.attachment(weapon, attachment, attach)),
       dropItem: (item, container, count) => run(gameApi.dropItem(item, container, count)),
       unlockStash: (id) => run(gameApi.unlockStash(id)),
       loadoutSetSave: (slot) => run(gameApi.loadoutSetSave(slot)),

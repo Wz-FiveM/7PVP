@@ -156,7 +156,8 @@ Config.Items = {
     heavy_kevlar = { label = 'Gilet lourd', type = 'consumable', weight = 5.0, armor = 100 },
     repairkit = { label = 'Kit de réparation', type = 'consumable', weight = 2.0, repair = true },
 
-    -- Accessoires : se fixent sur une arme compatible (voir Config.Attachments ci-dessous)
+    -- Accessoires : plus des objets qu'on porte, ils se débloquent en tuant des zombies avec l'arme et se posent
+    -- chez le customiseur (config/weapon_custom.lua). Gardés ici pour leur nom et leur image.
     att_suppressor = { label = 'Silencieux', type = 'attachment', weight = 0.4 },
     att_scope = { label = 'Lunette', type = 'attachment', weight = 0.4 },
     att_extclip = { label = 'Chargeur grande capacité', type = 'attachment', weight = 0.5 },
@@ -184,7 +185,7 @@ Config.Effects = {
 -- Accessoires d'armes : accessoire -> { arme -> composant GTA }.
 -- Une arme ne prend un accessoire que si elle figure dans sa liste.
 -- Tous les composants ont été relevés dans les données du jeu. Jamais de composant posé d'origine (lunette
--- des snipers lourds et de tireur d'élite) : Loadout.syncAttachments le retirerait d'une arme sans accessoire.
+-- des snipers lourds et de tireur d'élite) : WeaponCustom.applyTo le retirerait d'une arme sans accessoire.
 Config.Attachments = {
     att_suppressor = {
         weapon_pistol = 'COMPONENT_AT_PI_SUPP_02',

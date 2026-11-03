@@ -11,17 +11,28 @@ const tints = [
   { id: 7, label: 'Platine', hex: '#cfd4d8' },
 ];
 
+/** Paliers de config/weapon_custom.lua */
+const ladder = [
+  { name: 'att_flashlight', kills: 25 },
+  { name: 'att_grip', kills: 50 },
+  { name: 'att_extclip', kills: 100 },
+  { name: 'att_scope', kills: 175 },
+  { name: 'att_suppressor', kills: 250 },
+];
+const only = (...names: string[]) => ladder.filter((entry) => names.includes(entry.name));
+
 /** Menu du customiseur hors jeu (client/modules/inventory/weapon_custom.lua, config/weapon_custom.lua) */
 export const mockWeaponCustom: WeaponCustomPayload = {
   open: true,
   weapons: [
     {
       name: 'weapon_carbinerifle', label: 'Carabine', tint: 2, finish: 'COMPONENT_CARBINERIFLE_VARMOD_LUXE', tints,
+      fitted: ['att_extclip'], kills: 132,
       finishes: [{ component: 'COMPONENT_CARBINERIFLE_VARMOD_LUXE', label: 'Luxe' }],
-      attachments: ['att_extclip', 'att_scope', 'att_suppressor'],
+      attachments: only('att_extclip', 'att_scope', 'att_suppressor'),
     },
     {
-      name: 'weapon_assaultrifle_mk2', label: 'Fusil d\'assaut Mk II', tint: 0, finish: false,
+      name: 'weapon_assaultrifle_mk2', label: 'Fusil d\'assaut Mk II', tint: 0, finish: false, fitted: {}, kills: 61,
       tints: [
         { id: 0, label: 'Noir classique', hex: '#1d1f21' },
         { id: 9, label: 'Rouge contrasté', hex: '#a0241f' },
@@ -33,11 +44,14 @@ export const mockWeaponCustom: WeaponCustomPayload = {
         { component: 'COMPONENT_ASSAULTRIFLE_MK2_CAMO', label: 'Numérique' },
         { component: 'COMPONENT_ASSAULTRIFLE_MK2_CAMO_04', label: 'Têtes de mort' },
       ],
-      attachments: ['att_extclip', 'att_flashlight', 'att_grip', 'att_scope', 'att_suppressor'],
+      attachments: ladder,
     },
-    { name: 'weapon_pistol', label: 'Pistolet', tint: 0, finish: false, tints, finishes: [], attachments: ['att_suppressor'] },
     {
-      name: 'weapon_knuckle', label: 'Poing américain', tint: 0, finish: false, tints: [],
+      name: 'weapon_pistol', label: 'Pistolet', tint: 0, finish: false, fitted: {}, kills: 0, tints, finishes: [],
+      attachments: only('att_extclip', 'att_suppressor'),
+    },
+    {
+      name: 'weapon_knuckle', label: 'Poing américain', tint: 0, finish: false, fitted: {}, kills: 12, tints: [],
       finishes: [
         { component: 'COMPONENT_KNUCKLE_VARMOD_BALLAS', label: 'Ballas' },
         { component: 'COMPONENT_KNUCKLE_VARMOD_DIAMOND', label: 'Diamant' },

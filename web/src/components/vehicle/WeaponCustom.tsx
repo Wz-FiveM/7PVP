@@ -2,11 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { isEnvBrowser } from '../../api/nui';
 import { weaponCustomApi } from '../../api/weaponCustomApi';
 import { useNuiMessage } from '../../hooks/useNuiMessage';
-import { useT } from '../../i18n';
+import { formatNumber, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import type { NuiMessage } from '../../types/nui';
 import type { WeaponCustomChoice, WeaponCustomWeapon } from '../../types/weaponCustom';
-import { entriesOf, fittedAttachments, itemLabel } from '../../utils/inventory';
+import { itemLabel } from '../../utils/inventory';
 import { Stepper } from '../creator/controls/Stepper';
 import { ItemIcon } from '../inventory/ItemIcon';
 import { Logo } from '../ui/Logo';
@@ -37,9 +37,18 @@ export function WeaponCustom({ onOpenChange }: { onOpenChange: (open: boolean) =
   return weapons ? <WeaponCustomPanel weapons={weapons} onClose={close} /> : null;
 }
 
+/** Accessoires posés enregistrés (Lua envoie `{}` pour une liste vide) */
+function fittedOf(weapon: WeaponCustomWeapon): string[] {
+  return Array.isArray(weapon.fitted) ? weapon.fitted : [];
+}
+
+function sameList(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((name) => b.includes(name));
+}
+
 function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]; onClose: () => void }) {
   const t = useT();
-  const { state, actions } = useGame();
+  const { state } = useGame();
   const [selected, setSelected] = useState(weapons[0].name);
   /** Choix en cours, par arme : rien n'est gardé avant « Enregistrer » */
   const [drafts, setDrafts] = useState<Record<string, WeaponCustomChoice>>({});
@@ -47,19 +56,17 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
   const [error, setError] = useState<string | null>(null);
 
   const choiceOf = (weapon: WeaponCustomWeapon): WeaponCustomChoice =>
-    drafts[weapon.name] ?? { tint: weapon.tint, finish: weapon.finish };
+    drafts[weapon.name] ?? { tint: weapon.tint, finish: weapon.finish, attachments: fittedOf(weapon) };
 
   const weapon = weapons.find((entry) => entry.name === selected) ?? weapons[0];
   const choice = choiceOf(weapon);
-
-  const inventory = state.player?.inventory;
-  const fitted = inventory ? fittedAttachments(inventory, weapon.name) : [];
-  const owned = new Set(inventory ? [...entriesOf(inventory.bag), ...entriesOf(inventory.protected)].map(([name]) => name) : []);
-  const fittedKey = fitted.join();
+  const fittedKey = choice.attachments.join();
 
   // Le modèle d'essai suit l'arme choisie, sa custom et ses accessoires, dès qu'un des trois change
   useEffect(() => {
-    weaponCustomApi.preview(weapon.name, { tint: choice.tint, finish: choice.finish }, fittedKey ? fittedKey.split(',') : []);
+    weaponCustomApi.preview(weapon.name, {
+      tint: choice.tint, finish: choice.finish, attachments: fittedKey ? fittedKey.split(',') : [],
+    });
   }, [weapon.name, choice.tint, choice.finish, fittedKey]);
 
   const change = (next: WeaponCustomChoice) => {
@@ -83,7 +90,7 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
     weapons
       .filter((entry) => {
         const draft = drafts[entry.name];
-        return draft && (draft.tint !== entry.tint || draft.finish !== entry.finish);
+        return draft && (draft.tint !== entry.tint || draft.finish !== entry.finish || !sameList(draft.attachments, fittedOf(entry)));
       })
       .map((entry) => [entry.name, drafts[entry.name]]),
   );
@@ -148,31 +155,50 @@ function WeaponCustomPanel({ weapons, onClose }: { weapons: WeaponCustomWeapon[]
 
           {weapon.attachments.length > 0 && (
             <div className="ctl">
-              <span className="ctl__label">{t('Accessoires')}</span>
+              <span className="ctl__row">
+                <span className="ctl__label">{t('Accessoires')}</span>
+                <span className="mono ctl__value">{t('{count} zombies tués', { count: formatNumber(weapon.kills) })}</span>
+              </span>
               <ul className="weapon-custom__list">
                 {weapon.attachments.map((attachment) => {
-                  const isFitted = fitted.includes(attachment);
-                  const available = isFitted || owned.has(attachment);
+                  const isFitted = choice.attachments.includes(attachment.name);
+                  const unlocked = weapon.kills >= attachment.kills;
+                  const toggle = () =>
+                    change({
+                      ...choice,
+                      attachments: isFitted
+                        ? choice.attachments.filter((name) => name !== attachment.name)
+                        : [...choice.attachments, attachment.name],
+                    });
                   return (
-                    <li key={attachment}>
+                    <li key={attachment.name}>
                       <button
                         className={isFitted ? 'weapon-custom__row weapon-custom__row--active' : 'weapon-custom__row'}
-                        disabled={!available}
-                        onClick={() => actions.attachment(weapon.name, attachment, !isFitted)}
+                        disabled={!unlocked}
+                        onClick={toggle}
                       >
                         <span className="weapon-custom__icon">
-                          <ItemIcon name={attachment} type="attachment" />
+                          <ItemIcon name={attachment.name} type="attachment" />
                         </span>
-                        <span className="disp weapon-custom__name">{itemLabel(state.config, attachment)}</span>
-                        <span className={available ? 'mono weapon-custom__changed' : 'mono muted weapon-custom__state'}>
-                          {isFitted ? t('Retirer') : available ? t('Fixer') : t('Pas sur toi')}
+                        <span className="weapon-custom__body">
+                          <span className="disp weapon-custom__name">{itemLabel(state.config, attachment.name)}</span>
+                          {!unlocked && (
+                            <span className="weapon-custom__progress" aria-hidden="true">
+                              <span style={{ width: `${(weapon.kills / attachment.kills) * 100}%` }} />
+                            </span>
+                          )}
+                        </span>
+                        <span className={unlocked ? 'mono weapon-custom__changed' : 'mono muted weapon-custom__state'}>
+                          {!unlocked
+                            ? `${formatNumber(weapon.kills)} / ${formatNumber(attachment.kills)}`
+                            : isFitted ? t('Retirer') : t('Poser')}
                         </span>
                       </button>
                     </li>
                   );
                 })}
               </ul>
-              <p className="muted vehicle-custom__note">{t('Un accessoire se fixe tout de suite, sans passer par Enregistrer.')}</p>
+              <p className="muted vehicle-custom__note">{t('Tue des zombies avec cette arme pour débloquer ses accessoires.')}</p>
             </div>
           )}
 

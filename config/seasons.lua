@@ -39,9 +39,9 @@ Config.SeasonPass = {
 do
     local items = {
         { free = { bandage = 5 }, premium = { medkit = 5, armor = 1 } },
-        { free = { ammo_556 = 120 }, premium = { heavy_kevlar = 1, att_extclip = 1 } },
+        { free = { ammo_556 = 120 }, premium = { heavy_kevlar = 1, drug_health = 2 } },
         { free = { firstaid = 3 }, premium = { weapon_carbinerifle = 1, ammo_556 = 240 } },
-        { free = { armor = 1 }, premium = { att_scope = 1, att_grip = 1, medkit = 5 } },
+        { free = { armor = 1 }, premium = { antizin = 3, drug_stamina = 2, medkit = 5 } },
         { free = { medkit = 3 }, premium = { weapon_combatmg = 1, ammo_mg = 300 } },
         { free = { heavy_kevlar = 1 }, premium = { weapon_heavysniper = 1, ammo_762 = 60 } },
     }

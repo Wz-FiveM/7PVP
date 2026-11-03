@@ -2,10 +2,29 @@
 -- On lui parle avec E : il propose les armes portées dans le sac, à l'essai sur un modèle posé devant soi.
 -- La custom est gardée en base, par joueur et par modèle d'arme : toutes ses prochaines Carabines auront
 -- la même, qu'elles viennent de la boutique, d'un butin ou d'un échange. Elle ne se perd jamais à la mort.
--- Elle est gratuite et ne change que l'apparence. Les accessoires (silencieux, lunette...) restent des objets :
--- le menu les fixe aussi, tout de suite et sans « Enregistrer », comme le clic droit de l'inventaire.
+-- Teinte et finition sont gratuites et ne changent que l'apparence. Les accessoires (silencieux, lunette...)
+-- ne sont plus des objets : ils se débloquent en tuant des zombies avec l'arme, puis se posent ici.
 Config.WeaponCustom = {
     role = 'weaponcustom', -- rôle du PNJ dans Config.SafeNpcs
+
+    -- Paliers des accessoires : zombies à tuer avec un modèle d'arme pour débloquer l'accessoire sur ce
+    -- modèle. Un compteur par joueur et par modèle, jamais perdu. L'arme tenue au moment du kill compte.
+    unlocks = {
+        { attachment = 'att_flashlight', kills = 25 },
+        { attachment = 'att_grip', kills = 50 },
+        { attachment = 'att_extclip', kills = 100 },
+        { attachment = 'att_scope', kills = 175 },
+        { attachment = 'att_suppressor', kills = 250 },
+    },
+    -- Anciens accessoires en objets (sac, coffres, fixés sur une arme) : rachetés à la connexion à ce prix
+    -- par unité (la reprise du receleur quand ils étaient encore en boutique), versé dans le coffre 1.
+    refund = {
+        att_flashlight = 150,
+        att_grip = 550,
+        att_extclip = 450,
+        att_scope = 750,
+        att_suppressor = 1250,
+    },
 
     -- Teintes des armes classiques (id : indice GTA), hex = aperçu dans le menu
     tints = {

@@ -186,10 +186,6 @@ function Nui.init()
         cb(Callback.await(Events.callbacks.titleSelect, data.id) or { ok = false })
     end)
 
-    RegisterNUICallback('attachment', function(data, cb)
-        cb(Callback.await(Events.callbacks.attachment, data) or { ok = false })
-    end)
-
     RegisterNUICallback('leaderboard', function(data, cb)
         cb(Callback.await(Events.callbacks.leaderboard, data.scope) or { rows = {}, title = '' })
     end)
@@ -269,7 +265,6 @@ function Nui.buildInitPayload()
             killfeedBackgrounds = Config.KillfeedBackgrounds,
             killMessage = Config.KillMessage,
             menuKey = Config.MenuKeyLabel,
-            attachments = Config.Attachments,
             recipes = Config.Recipes,
             classes = { keyLabel = Config.Classes.keyLabel, list = Config.Classes.list },
             cases = Config.Cases,
