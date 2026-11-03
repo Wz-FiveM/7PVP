@@ -4,6 +4,7 @@
 ---@class TradeModule
 local Trade = PVP.define('Trade')
 local Nui = PVP.use('Nui')
+local State = PVP.use('State')
 local Loot = PVP.use('Loot')
 local Interaction = PVP.use('Interaction')
 local Callback = PVP.use('Callback')
@@ -44,7 +45,7 @@ function Trade.init()
     end)
 end
 
----@param arg string|nil ID du joueur, accepter, refuser, annuler ; rien = le joueur le plus proche
+---@param arg string|nil character id du joueur, accepter, refuser, annuler ; rien = le joueur le plus proche
 function Trade.command(arg)
     if arg == 'accepter' or arg == 'refuser' then
         return Trade.request(Events.callbacks.tradeRespond, arg == 'accepter')
@@ -56,7 +57,7 @@ function Trade.command(arg)
     if not target then
         local nearest = Interaction.nearestPlayer()
         if not nearest then return Nui.notify(Locale.t('Personne à côté de toi.') .. ' ' .. Locale.t(Trade.USAGE), 'error') end
-        target = GetPlayerServerId(nearest)
+        target = State.charIdOf(GetPlayerServerId(nearest))
     end
     Trade.request(Events.callbacks.tradeRequest, target)
 end

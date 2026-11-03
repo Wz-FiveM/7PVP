@@ -184,7 +184,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
-            name: 'Dev', serverId: 1, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
+            name: 'Dev', charId: 482913, mode: 'pvp', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
             keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4', codPlate: 'X' },
           },
         },
@@ -272,7 +272,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           info: {
             avatar: 'https://cdn.discordapp.com/embed/avatars/2.png',
-            name: 'Dev', serverId: 1, mode: 'cod', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
+            name: 'Dev', charId: 482913, mode: 'cod', level: 3, kills: 42, deaths: 17, npcKills: 312, isAdmin: true,
             keys: { menu: 'TAB', chat: 'T', admin: 'F10', noclip: 'F11', teleport: 'F1', codClass: 'B', codStreak: 'G', codPrimary: '1', codSecondary: '2', codEquipment: '3', codTactical: '4', codPlate: 'X' },
           },
         },
@@ -342,7 +342,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           items: [
             { kind: 'info', id: 'self:name', label: 'Dev', icon: 'profile' },
-            { kind: 'info', id: 'serverId', label: 'ID Serveur', icon: 'contract', value: '1216' },
+            { kind: 'info', id: 'charId', label: 'Character ID', icon: 'contract', value: '482913' },
             { kind: 'info', id: 'level', label: 'Niveau', icon: 'trophy', value: '4' },
             { kind: 'separator', id: 'separator' },
             {

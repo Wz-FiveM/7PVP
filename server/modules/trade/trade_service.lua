@@ -173,11 +173,11 @@ end
 
 ---Demande d'échange. Si l'autre joueur nous en avait déjà fait une, l'échange commence.
 ---@param source integer
----@param targetId any server id du joueur
+---@param targetId any character id du joueur
 ---@return { ok: boolean, message?: string }
 function TradeService.request(source, targetId)
     local player = PlayerService.get(source)
-    local target = PlayerService.get(tonumber(targetId))
+    local target = PlayerService.getByCharId(targetId)
     if not player then return { ok = false } end
     if not target or target == player then return { ok = false, message = Locale.t('Joueur introuvable.') } end
 

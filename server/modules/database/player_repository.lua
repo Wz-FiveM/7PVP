@@ -20,6 +20,9 @@ PlayerRepository.MIGRATIONS = {
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS assists INT NOT NULL DEFAULT 0 AFTER loadout_sets',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS achievements TEXT NULL AFTER assists',
     'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS tutorial TEXT NULL AFTER achievements',
+    -- Character ID (Config.CharacterId) : donné par assignCharId, aux anciens comptes au démarrage
+    'ALTER TABLE pvp_players ADD COLUMN IF NOT EXISTS char_id INT UNSIGNED NULL AFTER identifier',
+    'ALTER TABLE pvp_players ADD UNIQUE INDEX IF NOT EXISTS uniq_char_id (char_id)',
     [[CREATE TABLE IF NOT EXISTS pvp_season_stats (
         season VARCHAR(7) NOT NULL,
         identifier VARCHAR(64) NOT NULL,
@@ -57,8 +60,40 @@ function PlayerRepository.init()
         for _, migration in ipairs(PlayerRepository.MIGRATIONS) do
             MySQL.query.await(migration)
         end
+        PlayerRepository.assignMissingCharIds()
         Logger.info('Base de données prête')
     end)
+end
+
+-- Tirages avant d'abandonner (900 000 numéros : une collision reste rare)
+PlayerRepository.CHAR_ID_ATTEMPTS = 25
+
+---Comptes créés avant les character id : ils en reçoivent un tout de suite, même hors ligne.
+function PlayerRepository.assignMissingCharIds()
+    local rows = MySQL.query.await('SELECT identifier FROM pvp_players WHERE char_id IS NULL') or {}
+    for _, row in ipairs(rows) do
+        PlayerRepository.assignCharId(row.identifier)
+    end
+    if #rows > 0 then Logger.info('Character ID donnés à %d comptes', #rows) end
+end
+
+---Tire un character id libre pour le joueur, s'il n'en a pas encore.
+---L'index unique refuse un numéro pris entre-temps par une autre connexion : on retire alors.
+---@param identifier string
+---@return integer|nil character id du joueur, nil si la base n'a pas répondu
+function PlayerRepository.assignCharId(identifier)
+    local settings = Config.CharacterId
+    for _ = 1, PlayerRepository.CHAR_ID_ATTEMPTS do
+        local charId = math.random(settings.min, settings.max)
+        if not MySQL.scalar.await('SELECT 1 FROM pvp_players WHERE char_id = ?', { charId }) then
+            pcall(MySQL.update.await, 'UPDATE pvp_players SET char_id = ? WHERE identifier = ? AND char_id IS NULL', {
+                charId, identifier,
+            })
+            local current = MySQL.scalar.await('SELECT char_id FROM pvp_players WHERE identifier = ?', { identifier })
+            if current then return math.tointeger(current) end
+        end
+    end
+    return nil
 end
 
 ---@param identifier string

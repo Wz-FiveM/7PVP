@@ -36,7 +36,7 @@ Interaction.PED_MARKER_SIZE = 0.25
 
 Interaction.open = false -- curseur affiché (touche maintenue ou menu ouvert)
 Interaction.menuShown = false -- un menu de cible est affiché
----@type table|nil cible du menu affiché { kind, entity, serverId, lootId, npcIndex }
+---@type table|nil cible du menu affiché { kind, entity, serverId, charId, lootId, npcIndex }
 Interaction.target = nil
 Interaction.outlined = nil
 
@@ -202,7 +202,7 @@ end
 
 ---Ce que représente l'entité visée, ou nil si elle n'a pas de menu (décor, zombie vivant...).
 ---@param entity integer|nil
----@return table|nil { kind, entity, serverId?, lootId?, npcIndex? }
+---@return table|nil { kind, entity, serverId?, charId?, lootId?, npcIndex? }
 function Interaction.resolve(entity)
     if not entity then return nil end
 
@@ -214,7 +214,8 @@ function Interaction.resolve(entity)
 
     if IsEntityAPed(entity) and IsPedAPlayer(entity) and entity ~= PlayerPedId() then
         local player = NetworkGetPlayerIndexFromPed(entity)
-        return { kind = 'player', entity = entity, serverId = GetPlayerServerId(player), name = GetPlayerName(player) }
+        local serverId = GetPlayerServerId(player)
+        return { kind = 'player', entity = entity, serverId = serverId, charId = State.charIdOf(serverId), name = GetPlayerName(player) }
     end
     if IsEntityAVehicle(entity) then return { kind = 'vehicle', entity = entity } end
     return nil
@@ -264,7 +265,7 @@ function Interaction.selfItems()
     return {
         -- Première ligne « :name » : affichée en en-tête du menu
         { kind = 'info', id = 'self:name', label = player.displayName or GetPlayerName(PlayerId()), icon = 'profile' },
-        { kind = 'info', id = 'serverId', label = Locale.t('ID Serveur'), icon = 'contract', value = tostring(GetPlayerServerId(PlayerId())) },
+        { kind = 'info', id = 'charId', label = Locale.t('Character ID'), icon = 'contract', value = tostring(player.charId or '-') },
         { kind = 'info', id = 'level', label = Locale.t('Niveau'), icon = 'trophy', value = tostring(player.level or 1) },
         { kind = 'separator', id = 'separator' },
         { kind = 'submenu', id = 'team', label = Locale.t('Équipe'), icon = 'group', children = Interaction.teamItems() },
@@ -275,7 +276,7 @@ end
 ---@return table[]
 function Interaction.playerItems(target)
     local items = {
-        { kind = 'info', id = 'player:name', label = target.name and Crew.label(target.serverId, target.name) or Locale.t('Joueur'), icon = 'profile', value = ('ID %d'):format(target.serverId) },
+        { kind = 'info', id = 'player:name', label = target.name and Crew.label(target.serverId, target.name) or Locale.t('Joueur'), icon = 'profile', value = target.charId and ('ID %d'):format(target.charId) or nil },
     }
     for _, entry in ipairs(Bounty.list) do
         if entry.id == target.serverId then
@@ -415,16 +416,16 @@ function Interaction.runOnTarget(id)
     Interaction.close()
 
     if id == 'player:invite' then
-        Interaction.report(Callback.await(Events.callbacks.groupInvite, target.serverId))
+        Interaction.report(Callback.await(Events.callbacks.groupInvite, target.charId))
     elseif id == 'player:kick' then
         Interaction.report(Callback.await(Events.callbacks.groupKick, target.serverId))
     elseif id == 'player:crewInvite' then
-        Interaction.report(Callback.await(Events.callbacks.crewInvite, target.serverId))
+        Interaction.report(Callback.await(Events.callbacks.crewInvite, target.charId))
     elseif id == 'player:trade' then
-        Interaction.report(Callback.await(Events.callbacks.tradeRequest, target.serverId))
+        Interaction.report(Callback.await(Events.callbacks.tradeRequest, target.charId))
     elseif id:find('^report:') then
         Interaction.report(Callback.await(Events.callbacks.reportPlayer, {
-            target = target.serverId,
+            target = target.charId,
             reason = Config.Reports.reasons[tonumber(id:sub(8))],
         }))
     elseif id == 'loot:take' then
@@ -446,5 +447,5 @@ end
 function Interaction.inviteNearest()
     local nearest = Interaction.nearestPlayer()
     if not nearest then return Nui.notify(Locale.t('Personne à côté de toi.'), 'error') end
-    Interaction.report(Callback.await(Events.callbacks.groupInvite, GetPlayerServerId(nearest)))
+    Interaction.report(Callback.await(Events.callbacks.groupInvite, State.charIdOf(GetPlayerServerId(nearest))))
 end

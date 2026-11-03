@@ -109,14 +109,14 @@ function ReportService.alertLines(target)
 end
 
 ---@param source integer
----@param data any { target, reason }
+---@param data any { target, reason } target : character id
 ---@return { ok: boolean, message?: string }
 function ReportService.report(source, data)
     local reporter = PlayerService.get(source)
     if not reporter or type(data) ~= 'table' then return { ok = false } end
     local settings = Config.Reports
 
-    local target = PlayerService.get(tonumber(data.target))
+    local target = PlayerService.getByCharId(data.target)
     if not target then return { ok = false, message = Locale.t('Joueur introuvable. Usage : /signaler ID raison') } end
     if target == reporter then return { ok = false, message = Locale.t('Tu ne peux pas te signaler toi-même.') } end
 

@@ -32,7 +32,7 @@ export function CrewPage() {
   const invite = (event: FormEvent) => {
     event.preventDefault();
     const id = Number(target);
-    if (!Number.isInteger(id) || id <= 0) return actions.notify(t('Entre l\'ID du joueur (visible dans le chat).'), 'error');
+    if (!Number.isInteger(id) || id <= 0) return actions.notify(t('Entre le Character ID du joueur (menu pause ou chat).'), 'error');
     crewApi.invite(id).then(report);
     setTarget('');
   };
@@ -74,7 +74,7 @@ export function CrewPage() {
                 key={member.key}
                 className={`group-member crew-member${member.id === false ? ' crew-member--offline' : ''}${isLeader && !member.leader ? ' crew-member--managed' : ''}`}
               >
-                <span className="mono group-member__id">{member.id === false ? t('HORS LIGNE') : `#${member.id}`}</span>
+                <span className="mono group-member__id">{member.id === false ? t('HORS LIGNE') : `#${member.charId || '-'}`}</span>
                 <span className="group-member__name">
                   {member.name}
                   {member.leader && <span className="chip group-member__chief">{t('Chef')}</span>}

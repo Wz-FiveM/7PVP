@@ -3,6 +3,7 @@
 ---@class PvpPlayer
 ---@field source integer
 ---@field identifier string
+---@field charId integer character id, unique et permanent (Config.CharacterId)
 ---@field name string
 ---@field xp integer
 ---@field kills integer
@@ -73,6 +74,7 @@ function PlayerObject.new(source, identifier, row)
     local player = setmetatable({
         source = source,
         identifier = identifier,
+        charId = math.tointeger(row.char_id),
         name = GetPlayerName(source),
         xp = row.xp,
         kills = row.kills,
@@ -163,6 +165,7 @@ end
 function PlayerObject:serialize()
     return {
         source = self.source,
+        charId = self.charId,
         name = self.name,
         displayName = CrewService.label(self.identifier, self.name),
         nameColor = self.nameColor,

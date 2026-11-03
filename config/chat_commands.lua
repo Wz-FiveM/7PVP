@@ -8,18 +8,18 @@
 --     label      affiché dans la syntaxe : <obligatoire>, [facultatif]
 --     required   Entrée refuse la commande tant qu'il manque
 --     hint       explication affichée quand l'argument est en cours de saisie
---     players    propose les joueurs du mode (complète avec leur id)
+--     players    propose les joueurs du mode (complète avec leur character id)
 --     values     valeurs proposées : { { value, label } }, ou 'languages' pour Config.Locale.languages
 local PLAYER = {
     label = '<id du joueur>',
     required = true,
-    hint = 'Choisis un joueur du mode ou saisis son id.',
+    hint = 'Choisis un joueur du mode ou saisis son Character ID.',
     players = true,
 }
 local ACCOUNT = {
     label = '<id du joueur | license:xxxx>',
     required = true,
-    hint = 'Choisis un joueur du mode ou saisis son id ou sa license.',
+    hint = 'Choisis un joueur du mode ou saisis son Character ID ou sa license.',
     players = true,
 }
 local OPTIONAL_PLAYER = {

@@ -106,6 +106,7 @@ function GroupService.serialize(group)
         local player = PlayerService.get(source)
         members[#members + 1] = {
             id = source,
+            charId = player and player.charId,
             name = player and player:displayName() or GetPlayerName(source),
             avatar = player and player.avatar,
         }
@@ -137,11 +138,11 @@ end
 -- ---------------------------------------------------------------------------
 
 ---@param source integer
----@param targetId any server id du joueur invité
+---@param targetId any character id du joueur invité
 ---@return { ok: boolean, message?: string }
 function GroupService.invite(source, targetId)
     local player = PlayerService.get(source)
-    local target = PlayerService.get(tonumber(targetId))
+    local target = PlayerService.getByCharId(targetId)
     if not player or player.mode ~= 'pvp' then return { ok = false, message = Locale.t('Disponible seulement en PvP.') } end
     if not target or target == player then return { ok = false, message = Locale.t('Joueur introuvable.') } end
     if target.mode ~= 'pvp' then return { ok = false, message = Locale.t('%s n\'est pas en PvP.', target.name) } end

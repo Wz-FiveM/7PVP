@@ -150,15 +150,17 @@ end
 function CrewService.serialize(crew, gone)
     local online = {}
     for _, player in pairs(PlayerService.all()) do
-        if player.source ~= gone then online[player.identifier] = player.source end
+        if player.source ~= gone then online[player.identifier] = player end
     end
 
     local members = {}
     for _, member in ipairs(crew.members) do
+        local player = online[member.identifier]
         members[#members + 1] = {
             key = member.key,
             name = member.name,
-            id = online[member.identifier] or false,
+            id = player and player.source or false,
+            charId = player and player.charId or false,
             leader = member.identifier == crew.leader,
             officer = member.officer and member.identifier ~= crew.leader,
         }
@@ -262,7 +264,7 @@ function CrewService.create(source, data)
 end
 
 ---@param source integer chef
----@param targetId any server id du joueur invité
+---@param targetId any character id du joueur invité
 ---@return { ok: boolean, message?: string }
 function CrewService.invite(source, targetId)
     local player = PlayerService.get(source)
@@ -271,7 +273,7 @@ function CrewService.invite(source, targetId)
     if not crew then return { ok = false, message = Locale.t('Tu n\'es dans aucun crew.') } end
     if crew.leader ~= player.identifier then return { ok = false, message = Locale.t('Seul le chef du crew peut inviter.') } end
 
-    local target = PlayerService.get(tonumber(targetId))
+    local target = PlayerService.getByCharId(targetId)
     if not target or target == player then return { ok = false, message = Locale.t('Joueur introuvable.') } end
     if target.mode ~= 'pvp' then return { ok = false, message = Locale.t('%s n\'est pas en PvP.', target.name) } end
     if CrewService.memberOf[target.identifier] then

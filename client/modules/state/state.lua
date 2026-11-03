@@ -15,6 +15,7 @@ State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
 State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam', 'cod'), nil = lobby ou création
 State.activity = nil -- mode de jeu du Freeroam en cours ('chase'), nil = Freeroam libre
+State.CHAR_ID_KEY = 'charId' -- state bag publié par server/modules/player/player_service.lua
 
 -- Options admin (voir client/modules/admin)
 State.noclip = false
@@ -33,6 +34,13 @@ function State.setPlayer(data)
     State.player = data
     Loadout.onSync(data)
     Nui.send('sync', data)
+end
+
+---Character id d'un joueur (Config.CharacterId), à envoyer au serveur pour l'inviter ou échanger.
+---@param serverId integer
+---@return integer|nil nil tant que le serveur n'a pas chargé ce joueur
+function State.charIdOf(serverId)
+    return Player(serverId).state[State.CHAR_ID_KEY]
 end
 
 ---@return boolean

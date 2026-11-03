@@ -92,10 +92,10 @@ end
 
 ---@param serverId integer
 ---@param name string
----@return string « [MGZ] Nom », précédé de l'ID avec l'option admin
+---@return string « [MGZ] Nom », précédé du character id avec l'option admin (server id s'il n'est pas chargé)
 function Gamertags.format(serverId, name)
     local label = Crew.label(serverId, name)
-    return Gamertags.active and ('[%d] %s'):format(serverId, label) or label
+    return Gamertags.active and ('[%d] %s'):format(State.charIdOf(serverId) or serverId, label) or label
 end
 
 ---Les couleurs ne comptent qu'en PvP.

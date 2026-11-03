@@ -93,7 +93,7 @@ function ChatService.listPlayers(source)
         local other = PlayerService.get(id)
         if other and id ~= source then
             list[#list + 1] = {
-                id = id,
+                id = other.charId,
                 name = other.name,
                 -- Le label du crew ne s'affiche qu'en PvP (voir PlayerObject:displayName)
                 crew = other.mode == 'pvp' and CrewService.memberOf[other.identifier] or nil,

@@ -21,6 +21,11 @@ local Logger = PVP.use('Logger')
 
 ---@type table<integer, PvpPlayer>
 PlayerService.players = {}
+---@type table<integer, integer> character id -> server id des joueurs chargés
+PlayerService.byCharId = {}
+
+-- State bag public du joueur : son character id, lu par les autres clients (menu d'interaction)
+PlayerService.CHAR_ID_STATE = 'charId'
 
 function PlayerService.init()
     RegisterNetEvent(Events.server.ready, function()
@@ -64,6 +69,14 @@ function PlayerService.get(source)
     return PlayerService.players[tonumber(source)]
 end
 
+---Joueur en ligne d'après son character id (Config.CharacterId), tel que saisi par un autre joueur.
+---@param charId any
+---@return PvpPlayer|nil
+function PlayerService.getByCharId(charId)
+    local source = PlayerService.byCharId[math.tointeger(tonumber(charId) or 0)]
+    return source and PlayerService.players[source] or nil
+end
+
 ---@return table<integer, PvpPlayer>
 function PlayerService.all()
     return PlayerService.players
@@ -85,6 +98,11 @@ function PlayerService.load(source)
         row = { xp = 0, kills = 0, deaths = 0, npc_kills = 0, inventory = inventory }
         Logger.info('Nouveau joueur : %s', GetPlayerName(source))
     end
+    row.char_id = row.char_id or PlayerRepository.assignCharId(identifier)
+    if not row.char_id then
+        DropPlayer(source, 'Impossible de créer ton Character ID, reconnecte-toi.')
+        return nil
+    end
 
     local player = PlayerObject.new(source, identifier, row)
     player.season = SeasonService.load(identifier)
@@ -96,6 +114,8 @@ function PlayerService.load(source)
     InsuranceService.load(player)
     VipService.load(identifier)
     PlayerService.players[source] = player
+    PlayerService.byCharId[player.charId] = source
+    Player(source).state:set(PlayerService.CHAR_ID_STATE, player.charId, true)
     -- Le chargement attend la base : les modules qui ont besoin du profil (ex : statut admin)
     -- réagissent ici plutôt qu'à l'événement « ready », qui peut passer avant la fin du chargement
     TriggerEvent(Events.internal.playerLoaded, source)
@@ -111,6 +131,7 @@ function PlayerService.unload(source)
     TriggerEvent(Events.internal.playerUnloading, player.source, player.name, player.mode)
     PlayerRepository.save(player)
     PlayerService.players[player.source] = nil
+    if PlayerService.byCharId[player.charId] == player.source then PlayerService.byCharId[player.charId] = nil end
 end
 
 function PlayerService.saveAll()

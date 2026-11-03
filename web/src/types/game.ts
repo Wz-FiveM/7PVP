@@ -37,6 +37,8 @@ export interface Inventory {
 export interface PlayerState {
   /** server id du joueur */
   source: number;
+  /** character id : numéro permanent que les joueurs se donnent (Config.CharacterId) */
+  charId?: number;
   name: string;
   /** nom précédé du label du crew : « [MGZ] Nom » */
   displayName?: string;
@@ -466,7 +468,8 @@ export interface GroupData {
   /** server id du chef */
   leader: number;
   /** avatar : URL de l'avatar Discord, absente sans Discord */
-  members: { id: number; name: string; avatar?: string }[];
+  /** id : server id ; charId : character id, absent si le joueur n'est pas chargé */
+  members: { id: number; charId?: number; name: string; avatar?: string }[];
 }
 
 /** Vie d'un coéquipier, lue par le serveur (connue à toute distance) */
@@ -585,8 +588,8 @@ export interface CrewData {
   /** label de 3 lettres : « MGZ » */
   tag: string;
   name: string;
-  /** key : numéro à renvoyer au serveur ; id : server id, `false` hors ligne */
-  members: { key: number; name: string; id: number | false; leader: boolean; officer?: boolean }[];
+  /** key : numéro à renvoyer au serveur ; id : server id et charId : character id, `false` hors ligne */
+  members: { key: number; name: string; id: number | false; charId?: number | false; leader: boolean; officer?: boolean }[];
   /** coffre commun et son journal, du plus récent au plus ancien */
   stash: ItemStacks;
   stashLog: CrewStashEntry[];
@@ -635,7 +638,8 @@ export interface TradeData {
 /** Informations du menu pause (client/modules/pause/pause.lua) */
 export interface PauseInfo {
   name: string;
-  serverId: number;
+  /** character id, absent avant la première synchro */
+  charId?: number;
   /** URL de l'avatar Discord, absente sans Discord */
   avatar?: string;
   /** mode en cours ('pvp', 'freeroam') */

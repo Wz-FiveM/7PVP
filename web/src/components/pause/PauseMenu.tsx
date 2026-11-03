@@ -58,7 +58,7 @@ export function PauseMenu() {
     <div className="pause">
       <aside className="pause__side">
         <header className="pause__heading">
-          <span className="mono pause__eyebrow">7PVP · {mode.toUpperCase()} · ID #{info.serverId}</span>
+          <span className="mono pause__eyebrow">7PVP · {mode.toUpperCase()} · ID #{info.charId ?? '-'}</span>
           <h1 className="disp pause__title">{t('Pause')}</h1>
         </header>
 
@@ -88,7 +88,7 @@ export function PauseMenu() {
             <Avatar src={info.avatar} fallback={<Icon name="profile" size={56} strokeWidth={1.5} />} />
           </span>
           <div className="pause__operator-text">
-            <span className="mono pause__label">{t('OPÉRATEUR')} · ID #{info.serverId}</span>
+            <span className="mono pause__label">{t('OPÉRATEUR')} · ID #{info.charId ?? '-'}</span>
             <span className="disp pause__name">{info.name}</span>
             <div className="pause__level">
               <span className="disp pause__level-value">{t('NIV. {level}', { level: info.level })}</span>

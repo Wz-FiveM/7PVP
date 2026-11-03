@@ -21,7 +21,7 @@ export function GroupPage() {
   const invite = (event: FormEvent) => {
     event.preventDefault();
     const id = Number(target);
-    if (!Number.isInteger(id) || id <= 0) return actions.notify(t('Entre l\'ID du joueur (visible dans le chat).'), 'error');
+    if (!Number.isInteger(id) || id <= 0) return actions.notify(t('Entre le Character ID du joueur (menu pause ou chat).'), 'error');
     groupApi.invite(id).then(report);
     setTarget('');
   };
@@ -52,7 +52,7 @@ export function GroupPage() {
               const vital = groupVitals.find((v) => v.id === member.id);
               return (
                 <li key={member.id} className="group-member">
-                  <span className="mono group-member__id">#{member.id}</span>
+                  <span className="mono group-member__id">#{member.charId ?? '-'}</span>
                   <span className="group-member__name">
                     {member.name}
                     {member.id === group.leader && <span className="chip group-member__chief">{t('Chef')}</span>}

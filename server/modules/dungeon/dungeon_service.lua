@@ -257,7 +257,7 @@ function DungeonService.invite(player, argument)
     if room.leader ~= player.source then return { ok = false, message = Locale.t('Seul celui qui a ouvert le donjon peut inviter.') } end
     if room:count() >= Config.Dungeon.maxPlayers then return { ok = false, message = Locale.t('Ce donjon est complet.') } end
 
-    local target = PlayerService.get(tonumber(argument) or 0)
+    local target = PlayerService.getByCharId(argument)
     if not target or target.mode ~= 'pvp' then return { ok = false, message = Locale.t('Ce joueur n\'est pas en mode PvP.') } end
     if DungeonService.roomOf[target.source] then return { ok = false, message = Locale.t('Ce joueur est déjà dans un donjon.') } end
 

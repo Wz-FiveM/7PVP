@@ -156,28 +156,28 @@ end
 
 ---Joueurs à qui l'on peut mettre une prime.
 ---@param source integer
----@return { list: { id: integer, name: string }[] }
+---@return { list: { id: integer, name: string }[] } id : character id
 function BountyService.targets(source)
     local list = {}
     for _, player in pairs(PlayerService.all()) do
         if player.mode == 'pvp' and player.source ~= source then
-            list[#list + 1] = { id = player.source, name = player:displayName() }
+            list[#list + 1] = { id = player.charId, name = player:displayName() }
         end
     end
-    table.sort(list, function(a, b) return a.id < b.id end)
+    table.sort(list, function(a, b) return a.name:lower() < b.name:lower() end)
     return { list = list }
 end
 
 ---Met une tête à prix : le montant et les frais sont payés tout de suite avec l'argent porté.
 ---@param source integer
----@param data any { target, amount }
+---@param data any { target, amount } target : character id
 ---@return { ok: boolean, message?: string }
 function BountyService.place(source, data)
     local player = PlayerService.get(source)
     if not player or player.dead or player.mode ~= 'pvp' or type(data) ~= 'table' then return { ok = false } end
 
     local settings = Config.Bounty.player
-    local target = PlayerService.get(tonumber(data.target))
+    local target = PlayerService.getByCharId(data.target)
     if not target or target.mode ~= 'pvp' or target == player then
         return { ok = false, message = Locale.t('Ce joueur n\'est pas en PvP.') }
     end

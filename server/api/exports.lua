@@ -10,7 +10,7 @@ local ShopPointsService = PVP.use('ShopPointsService')
 local VipService = PVP.use('VipService')
 
 ServerApi.EXPORTS = {
-    'getPlayer', 'getMoney', 'addMoney', 'removeMoney', 'addXp',
+    'getPlayer', 'getCharId', 'getSourceByCharId', 'getMoney', 'addMoney', 'removeMoney', 'addXp',
     'giveItem', 'removeItem', 'getItemCount', 'getZone', 'isInSafeZone', 'dropLoot',
     'sendSystemMessage', 'announce',
     'getShopPoints', 'addShopPoints', 'removeShopPoints',
@@ -28,6 +28,20 @@ end
 function ServerApi.getPlayer(source)
     local player = PlayerService.get(source)
     return player and player:serialize()
+end
+
+---@param source integer
+---@return integer|nil character id du joueur (Config.CharacterId)
+function ServerApi.getCharId(source)
+    local player = PlayerService.get(source)
+    return player and player.charId
+end
+
+---@param charId integer
+---@return integer|nil server id du joueur connecté qui a ce character id
+function ServerApi.getSourceByCharId(charId)
+    local player = PlayerService.getByCharId(charId)
+    return player and player.source
 end
 
 ---@param source integer

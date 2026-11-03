@@ -93,13 +93,13 @@ function AdminService.reply(source, text)
     end
 end
 
----Retrouve un joueur par ID en ligne ou par licence (même hors ligne).
+---Retrouve un joueur par character id ou server id en ligne, ou par licence (même hors ligne).
 ---@param arg string|nil
 ---@return string|nil identifier, string|nil name, PvpPlayer|nil player
 function AdminService.resolveTarget(arg)
     if not arg then return nil end
 
-    local online = tonumber(arg) and PlayerService.get(tonumber(arg))
+    local online = PlayerService.getByCharId(arg) or (tonumber(arg) and PlayerService.get(tonumber(arg)))
     if online then
         return online.identifier, online.name, online
     end

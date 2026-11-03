@@ -54,9 +54,11 @@ function CodAdminCommands.reply(source, message, kind)
 end
 
 ---@param source integer
----@param arg string|nil id du joueur visé
----@return integer|nil joueur connecté visé : soi-même par défaut, à préciser depuis la console
+---@param arg string|nil character id (ou server id) du joueur visé
+---@return integer|nil server id du joueur connecté visé : soi-même par défaut, à préciser depuis la console
 function CodAdminCommands.target(source, arg)
+    local byCharId = PlayerService.getByCharId(arg)
+    if byCharId then return byCharId.source end
     local target = arg and tonumber(arg) or (not arg and source) or nil
     target = target and math.tointeger(target)
     return target and PlayerService.get(target) and target or nil

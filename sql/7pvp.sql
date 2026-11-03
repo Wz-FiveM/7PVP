@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `pvp_players` (
     `identifier` VARCHAR(64) NOT NULL,
+    `char_id` INT UNSIGNED NULL,
     `name` VARCHAR(64) NOT NULL DEFAULT '',
     `xp` INT NOT NULL DEFAULT 0,
     `kills` INT NOT NULL DEFAULT 0,
@@ -19,5 +20,6 @@ CREATE TABLE IF NOT EXISTS `pvp_players` (
     `tutorial` TEXT NULL,
     `last_seen` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`identifier`),
+    UNIQUE KEY `uniq_char_id` (`char_id`),
     KEY `idx_kills` (`kills`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

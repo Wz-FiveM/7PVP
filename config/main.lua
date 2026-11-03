@@ -7,6 +7,10 @@ Config.Debug = false
 -- ---------------------------------------------------------------------------
 
 Config.AutoSaveInterval = 5 * 60 -- secondes
+-- Character ID : numéro unique et permanent de chaque joueur, tiré au hasard à sa première
+-- connexion. C'est lui que les joueurs se donnent pour inviter (groupe, crew, donjon), échanger,
+-- poser une prime ou signaler, à la place du server id qui change à chaque connexion.
+Config.CharacterId = { min = 100000, max = 999999 }
 Config.RespawnDelay = 8 -- secondes avant de réapparaître
 -- Repère sur la carte à l'endroit de sa dernière mort (310 = tête de mort, 4 = blanc)
 Config.DeathBlip = { duration = 60, sprite = 310, color = 4 }
