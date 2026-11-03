@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 
-/** Horde en cours : zone, temps restant et zombies tués, puis la vie du mini boss. */
+/** Horde en cours : zone, temps restant et zombies tués, puis la vie du mini boss (dans la zone). */
 export function HordeBanner() {
   const t = useT();
   const { state } = useGame();
@@ -18,7 +18,8 @@ export function HordeBanner() {
   if (!horde) return null;
   const seconds = Math.max(0, Math.ceil((horde.endsAt - now) / 1000));
   const time = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  const boss = horde.boss;
+  // Vie du boss seulement dans la zone de la horde ; ailleurs le bandeau reste pour indiquer où elle a lieu
+  const boss = state.zone.id === horde.zoneId ? horde.boss : false;
   const percent = boss && boss.max > 0 ? Math.max(0, Math.min(100, (boss.value / boss.max) * 100)) : 0;
 
   return (
