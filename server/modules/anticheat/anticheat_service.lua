@@ -275,6 +275,7 @@ end
 function AntiCheatService.onWeaponDamage(sender, data)
     sender = tonumber(sender)
     if not sender or type(data) ~= 'table' then return end
+    if Config.AntiCheat.hitJournal then AntiCheatService.journalHit(sender, data) end
     -- Monde zombies : une touche sur un joueur y est annulée (PveWorldService). Elle vient le plus souvent d'un
     -- humain armé de la prison piloté par ce client : son arme n'est pas celle du joueur, sa cible ne perd rien
     if PveWorldService.isInside(sender) and AntiCheatService.playerHitBy(sender, data) then return end
@@ -388,6 +389,43 @@ function AntiCheatService.playerHitBy(sender, data)
         end
     end
     return nil, nil
+end
+
+-- TEMPORAIRE (Config.AntiCheat.hitJournal) : une ligne par tireur et par cible au plus toutes les
+-- JOURNAL_INTERVAL ms (rafales), puis la vie de la cible JOURNAL_AFTER ms plus tard
+AntiCheatService.JOURNAL_INTERVAL = 1000
+AntiCheatService.JOURNAL_AFTER = 500
+AntiCheatService.journalAt = {} -- ['tireur:cible'] = GetGameTimer() de la dernière ligne
+
+---Touche d'un joueur sur un autre, telle que le jeu l'envoie : dit si le tireur envoie des dégâts et
+---si la cible les applique (vie relue un peu après).
+---@param sender integer
+---@param data table
+function AntiCheatService.journalHit(sender, data)
+    local victim, ped = AntiCheatService.playerHitBy(sender, data)
+    if not victim then return end
+    local key = sender .. ':' .. victim
+    local now = GetGameTimer()
+    if now - (AntiCheatService.journalAt[key] or 0) < AntiCheatService.JOURNAL_INTERVAL then return end
+    AntiCheatService.journalAt[key] = now
+
+    local shooterPed = GetPlayerPed(sender)
+    local weapon = AntiCheatService.unsigned(data.weaponType)
+    local held = AntiCheatService.unsigned(GetSelectedPedWeapon(shooterPed))
+    Logger.info('[touche] %s (ID %d, monde %d) -> %s (ID %d, monde %d) : arme %s%s, dégâts %s, tue %s, défaut remplacé %s, type %s, drapeaux %s, partie %s, distance %.1f m, vie %d + armure %d, invincible %s',
+        GetPlayerName(sender) or '?', sender, GetPlayerRoutingBucket(sender),
+        GetPlayerName(victim) or '?', victim, GetPlayerRoutingBucket(victim),
+        AntiCheatService.weaponLabel(weapon), held ~= weapon and (' (en main : %s)'):format(AntiCheatService.weaponLabel(held)) or '',
+        tostring(data.weaponDamage), tostring(data.willKill), tostring(data.overrideDefaultDamage),
+        tostring(data.damageType), tostring(data.damageFlags), tostring(data.hitComponent),
+        #(GetEntityCoords(shooterPed) - GetEntityCoords(ped)),
+        GetEntityHealth(ped), GetPedArmour(ped), tostring(GetPlayerInvincible(victim)))
+
+    SetTimeout(AntiCheatService.JOURNAL_AFTER, function()
+        if not DoesEntityExist(ped) then return end
+        Logger.info('[touche] %s (ID %d) %d ms après : vie %d + armure %d',
+            GetPlayerName(victim) or '?', victim, AntiCheatService.JOURNAL_AFTER, GetEntityHealth(ped), GetPedArmour(ped))
+    end)
 end
 
 ---Touche d'une arme à feu sur un joueur : ce qu'elle dit de la victime (godmode) et du tireur (aimbot).

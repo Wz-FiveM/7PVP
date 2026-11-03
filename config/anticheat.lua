@@ -125,6 +125,9 @@ Config.AntiCheat = {
     -- Touches d'armes à feu encaissées d'affilée sans perdre de vie ni d'armure, et silence (s) qui remet à zéro
     immunityHits = 15,
     immunityGap = 8,
+    -- TEMPORAIRE (enquête du 2026-11-03 : touches entre joueurs sans dégâts) : chaque touche d'un joueur
+    -- sur un autre est écrite dans la console, avec la vie de la cible juste après. À retirer ensuite.
+    hitJournal = true,
     -- Armes à feu observées (munitions de Config.Items) : ni fusils à pompe (plusieurs plombs par tir),
     -- ni explosifs. `head` : compte pour la part de tirs à la tête (un bon sniper vise la tête, c'est normal).
     trackedAmmo = {
