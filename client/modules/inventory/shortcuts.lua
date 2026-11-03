@@ -56,7 +56,8 @@ function Shortcuts.use(slot)
     Shortcuts.flashHotbar()
     local name = State.player.inventory.shortcuts[slot]
     local item = Items.get(name)
-    if not item or Inventory.count(name) <= 0 then return end
+    -- Objet au conteneur protégé : son raccourci est caché jusqu'à son retour dans le sac
+    if not item or (State.player.inventory.bag[name] or 0) <= 0 then return end
 
     if item.type == 'weapon' then
         if Inventory.canHold(name) then Shortcuts.toggleWeapon(item) end

@@ -71,17 +71,17 @@ export function weightOf(stacks: ItemStacks | undefined, config: GameConfig): nu
 export const isShortcutItem = (type: ItemType | undefined): boolean =>
   type === 'weapon' || type === 'consumable' || type === 'vehicle';
 
-/** Une arme ne sort que du sac. */
-export const isWeaponInBag = (inventory: Inventory, name: string): boolean =>
+/** Les raccourcis ne servent que ce qui est dans le sac. */
+export const isInBag = (inventory: Inventory, name: string): boolean =>
   entriesOf(inventory.bag).some(([item]) => item === name);
 
 /**
- * Objet à afficher sur un raccourci. Une arme au conteneur protégé y reste assignée mais cachée :
- * elle réapparaît dès son retour dans le sac, sauf si un autre objet a pris sa place.
+ * Objet à afficher sur un raccourci. Un objet au conteneur protégé y reste assigné mais caché :
+ * il réapparaît dès son retour dans le sac, sauf si un autre objet a pris sa place.
  */
-export function shortcutItem(inventory: Inventory, config: GameConfig, index: number): string | null {
+export function shortcutItem(inventory: Inventory, _config: GameConfig, index: number): string | null {
   const name = inventory.shortcuts[index] || null;
-  if (name && config.items[name]?.type === 'weapon' && !isWeaponInBag(inventory, name)) return null;
+  if (name && !isInBag(inventory, name)) return null;
   return name;
 }
 

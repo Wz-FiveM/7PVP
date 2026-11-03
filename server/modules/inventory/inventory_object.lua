@@ -295,7 +295,8 @@ function InventoryObject:unreserve(name)
     self.reserved[name] = nil
 end
 
----Seules les armes et les consommables portés (sac ou conteneur protégé) vont dans un raccourci.
+---Seules les armes, les consommables et les véhicules du sac vont dans un raccourci
+---(rangés ensuite au conteneur protégé, ils y restent assignés mais cachés).
 ---@param slot any
 ---@param name any nil/false pour vider l'emplacement
 ---@return boolean
@@ -305,7 +306,7 @@ function InventoryObject:setShortcut(slot, name)
     if name and not (Items.isType(name, 'weapon') or Items.isType(name, 'consumable') or Items.isType(name, 'vehicle')) then
         return false
     end
-    if name and self:count(name) <= 0 then return false end
+    if name and (self.bag[name] or 0) <= 0 then return false end
     self.shortcuts[slot] = name or false
     return true
 end
