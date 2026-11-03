@@ -175,9 +175,8 @@ end
 function HordeService.bossHealth(horde)
     local ped = horde.boss
     if not ped or not DoesEntityExist(ped) then return 0 end
-    -- Sa vie n'est appliquée qu'une fois qu'un client le pilote
-    if not Entity(ped).state.pvpNpcReady then return horde.bossMax end
-    return math.max(0, GetEntityHealth(ped) - 100)
+    -- Publiée par le client qui le pilote (voir Horde.setupBoss) : GetEntityHealth lirait 200 à pleine vie
+    return Entity(ped).state.hordeBossHealth or horde.bossMax
 end
 
 ---@return table|false état envoyé aux clients
