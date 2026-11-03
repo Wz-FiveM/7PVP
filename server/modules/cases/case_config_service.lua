@@ -178,6 +178,11 @@ end
 ---@return table|nil
 function CaseConfigService.cleanReward(reward)
     if type(reward) ~= 'table' or type(reward.item) ~= 'string' then return nil end
+    -- Anciennes munitions à la balle enregistrées depuis le panneau : en boîtes
+    if Config.LegacyAmmo[reward.item] then
+        local name, count = Items.fromLegacy(reward.item, reward.count or 1)
+        reward = { item = name, count = count, weight = reward.weight, rarity = reward.rarity }
+    end
     local item = Items.get(reward.item)
     if not item or item.type == 'attachment' then return nil end
     if type(reward.rarity) ~= 'string' or not Config.CaseRarities[reward.rarity] then return nil end

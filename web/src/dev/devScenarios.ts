@@ -117,7 +117,7 @@ export const DEV_SCREENS: DevScreen[] = [
           open: true,
           id: 1,
           label: 'Largage',
-          items: { weapon_carbinerifle: 1, ammo_556: 120, medkit: 3, armor: 2, money: 1250 },
+          items: { weapon_carbinerifle: 1, mag_556: 4, medkit: 3, armor: 2, money: 1250 },
         },
       });
     },
@@ -135,7 +135,7 @@ export const DEV_SCREENS: DevScreen[] = [
             id: 1,
             partner: { id: 12, name: 'Kaïros' },
             mine: { items: { money: 300, bandage: 2 }, ready: true, confirmed: false },
-            theirs: { items: { weapon_carbinerifle: 1, ammo_556: 60 }, ready: false, confirmed: false },
+            theirs: { items: { weapon_carbinerifle: 1, mag_556: 2 }, ready: false, confirmed: false },
           },
         },
       });
@@ -1073,7 +1073,7 @@ export const DEV_ACTIONS: DevAction[] = [
                 { name: 'Dev', kind: 'stash', level: 1, cost: 500, at: 1793617200 },
               ],
             },
-            stash: { weapon_carbinerifle: 2, ammo_556: 240, money: 15000, bandage: 12 },
+            stash: { weapon_carbinerifle: 2, mag_556: 8, money: 15000, bandage: 12 },
             stashLog: [
               { name: 'Bravo', item: 'weapon_carbinerifle', count: 1, taken: true, at: 1793620800 },
               { name: 'Dev', item: 'money', count: 15000, taken: false, at: 1793617200 },

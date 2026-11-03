@@ -19,6 +19,12 @@ MarketRepository.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_market_listings (
 ---@return table[]
 function MarketRepository.loadAll()
     MySQL.query.await(MarketRepository.SCHEMA)
+    -- Annonces d'anciennes munitions à la balle : vendues en boîtes, au même prix
+    for name, legacy in pairs(Config.LegacyAmmo) do
+        MySQL.update.await('UPDATE pvp_market_listings SET item = ?, count = CEIL(count / ?) WHERE item = ?', {
+            legacy.item, legacy.rounds, name,
+        })
+    end
     return MySQL.query.await('SELECT id, seller, seller_name, item, count, price FROM pvp_market_listings ORDER BY id') or {}
 end
 

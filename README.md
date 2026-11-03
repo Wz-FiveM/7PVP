@@ -69,7 +69,7 @@ Le panneau admin (F10 > Serveur) peut lancer un largage sur soi et une horde dan
 
 - **Tout est objet** : armes (x1), munitions par calibre (9mm, 5.56mm…), soins, argent. Catalogue dans `config/items.lua`.
 - **Deux conteneurs avec limite de poids** (`Config.Containers`) : le **sac** (perdu à la mort) et le **conteneur protégé** (conservé). Une arme ne se tient en main que depuis le sac : au conteneur protégé, elle est à l'abri mais ne sert pas.
-- **Munitions partagées** : toutes les armes d'un même calibre puisent dans le même objet de munitions. Les balles tirées sont décomptées de l'inventaire (le sac d'abord, puis le conteneur protégé).
+- **Munitions en boîtes** : toutes les armes d'un même calibre puisent dans la même boîte de munitions. Une boîte = un chargeur : recharger (chargeur vide ou touche R) en utilise une et remplit en entier le chargeur de l'arme en main (200 balles pour la mitrailleuse de combat en grande capacité), les balles restantes sont perdues. Les boîtes sont prises dans le sac d'abord, puis dans le conteneur protégé.
 - **Raccourcis** : 7 emplacements (touches `1` à `7`) pour sortir une arme ou utiliser un soin.
 - **Interface** : glisser-déposer entre conteneurs et vers les raccourcis, double-clic pour utiliser, clic droit pour déplacer ou jeter (avec choix de la quantité).
 - **Images** : dépose `web/public/items/<nom_objet>.png` (ex : `weapon_pistol.png`) puis relance `npm run build`. Sans image, une icône selon le type est affichée.
@@ -260,7 +260,7 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 ├── client/
 │   ├── core/callback.lua       Callback.await(...)
 │   ├── modules/                State, Nui, PedUtils, Zone, Spawn, Death, Loot, Pve, Dev
-│   │   ├── inventory/          Inventory (soins, équiper), Loadout (armes + suivi des munitions), Shortcuts (touches 1-7)
+│   │   ├── inventory/          Inventory (soins, équiper), Loadout (armes, munitions et rechargement à la boîte), Shortcuts (touches 1-7)
 │   │   └── hud/                Hud (santé, armure, arme en main -> interface)
 │   ├── api/exports.lua         API publique client
 │   └── main.lua                Démarrage
@@ -330,11 +330,11 @@ exports['7PVP']:removeMoney(source, amount)   -- false si pas assez d'argent
 exports['7PVP']:addXp(source, amount)
 exports['7PVP']:giveItem(source, 'weapon_pistol', 1)          -- renvoie la quantité ajoutée (limite de poids)
 exports['7PVP']:giveItem(source, 'medkit', 2, 'protected')    -- directement dans le conteneur protégé
-exports['7PVP']:removeItem(source, 'ammo_9mm', 24)
-exports['7PVP']:getItemCount(source, 'ammo_9mm')
+exports['7PVP']:removeItem(source, 'mag_9mm', 2)
+exports['7PVP']:getItemCount(source, 'mag_9mm')
 exports['7PVP']:getZone(source)               -- { id, label, type }
 exports['7PVP']:isInSafeZone(source)
-exports['7PVP']:dropLoot(coords, { weapon_pistol = 1, ammo_9mm = 24, money = 100 })
+exports['7PVP']:dropLoot(coords, { weapon_pistol = 1, mag_9mm = 2, money = 100 })
 exports['7PVP']:getShopPoints(source)                                 -- solde de points boutique
 exports['7PVP']:addShopPoints(source | 'license:xxxx', 500, 'raison', 'ref-unique')  -- 'ok' | 'duplicate' | 'invalid' | 'error'
 exports['7PVP']:removeShopPoints(source, 500, 'raison')               -- false si le solde est insuffisant

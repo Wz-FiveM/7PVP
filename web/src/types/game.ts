@@ -391,7 +391,10 @@ export interface Vitals {
   /** objet arme en main, `false` si aucune */
   weapon: string | false;
   clip: number;
+  /** balles hors du chargeur, ou boîtes de munitions si `magazines` */
   reserve: number;
+  /** PvP : une boîte de munitions recharge un chargeur entier */
+  magazines?: boolean;
 }
 
 /** Message du chat (envoyé par server/modules/chat/chat_service.lua) */

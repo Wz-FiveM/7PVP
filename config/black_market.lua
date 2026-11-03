@@ -18,9 +18,9 @@ Config.BlackMarket = {
     stock = {
         { item = 'weapon_specialcarbine_mk2', count = 1, lots = 3, price = 12000 },
         { item = 'weapon_grenadelauncher', count = 1, lots = 2, price = 18000 },
-        { item = 'ammo_grenade40', count = 6, lots = 4, price = 2400 },
+        { item = 'mag_grenade40', count = 1, lots = 4, price = 4000 },
         { item = 'weapon_rpg', count = 1, lots = 1, price = 25000 },
-        { item = 'ammo_rocket', count = 2, lots = 4, price = 3000 },
+        { item = 'mag_rocket', count = 2, lots = 4, price = 3000 },
         { item = 'weapon_stickybomb', count = 3, lots = 3, price = 4500 },
         { item = 'drug_health', count = 3, lots = 6, price = 1000 },
         { item = 'antizin', count = 3, lots = 6, price = 700 },

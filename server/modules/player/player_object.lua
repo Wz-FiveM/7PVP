@@ -283,7 +283,8 @@ function PlayerObject:applyRespawnKit()
     self.inventory:setBag(Config.RespawnKit)
 end
 
----Munitions tirées, rapportées par le client. `seq` évite de traiter deux fois un rapport.
+---Boîtes de munitions utilisées (un rechargement chacune) et armes de jet lancées, rapportées par
+---le client. `seq` évite de traiter deux fois un rapport.
 ---@param seq any
 ---@param report any table<string, number>
 ---@return boolean

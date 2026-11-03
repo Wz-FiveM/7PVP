@@ -39,11 +39,11 @@ Config.SeasonPass = {
 do
     local items = {
         { free = { bandage = 5 }, premium = { medkit = 5, armor = 1 } },
-        { free = { ammo_556 = 120 }, premium = { heavy_kevlar = 1, drug_health = 2 } },
-        { free = { firstaid = 3 }, premium = { weapon_carbinerifle = 1, ammo_556 = 240 } },
+        { free = { mag_556 = 4 }, premium = { heavy_kevlar = 1, drug_health = 2 } },
+        { free = { firstaid = 3 }, premium = { weapon_carbinerifle = 1, mag_556 = 8 } },
         { free = { armor = 1 }, premium = { antizin = 3, drug_stamina = 2, medkit = 5 } },
-        { free = { medkit = 3 }, premium = { weapon_combatmg = 1, ammo_mg = 300 } },
-        { free = { heavy_kevlar = 1 }, premium = { weapon_heavysniper = 1, ammo_762 = 60 } },
+        { free = { medkit = 3 }, premium = { weapon_combatmg = 1, mag_mg = 3 } },
+        { free = { heavy_kevlar = 1 }, premium = { weapon_heavysniper = 1, mag_762 = 6 } },
     }
     for tier = 1, 30 do
         local entry = {

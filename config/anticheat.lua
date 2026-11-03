@@ -128,11 +128,11 @@ Config.AntiCheat = {
     -- Armes à feu observées (munitions de Config.Items) : ni fusils à pompe (plusieurs plombs par tir),
     -- ni explosifs. `head` : compte pour la part de tirs à la tête (un bon sniper vise la tête, c'est normal).
     trackedAmmo = {
-        ammo_9mm = { head = true },
-        ammo_45acp = { head = true },
-        ammo_556 = { head = true },
-        ammo_mg = { head = true },
-        ammo_762 = { head = false },
+        mag_9mm = { head = true },
+        mag_45acp = { head = true },
+        mag_556 = { head = true },
+        mag_mg = { head = true },
+        mag_762 = { head = false },
     },
     -- Touches sur des joueurs, sur les `window` dernières secondes et au-delà de `minDistance` m (de près,
     -- viser la tête est facile et la caméra décalée fausse l'angle)

@@ -3,7 +3,7 @@
 -- type   : 'weapon' | 'ammo' | 'consumable' | 'money' | 'attachment' | 'material'
 -- weight : poids d'une unité, en kg
 -- weapon : (armes) nom GTA de l'arme
--- ammo   : (armes) objet de munitions utilisé. Les armes qui partagent un objet de
+-- ammo   : (armes) boîte de munitions utilisée (un chargeur plein par boîte). Les armes qui partagent un objet de
 --          munitions doivent partager le même type de munitions GTA (pistolets, SMG, fusils...)
 -- heal / armor : (consommables) points de vie / d'armure rendus
 -- effect       : (consommables) effet à durée, affiché à l'écran avec son compte à rebours :
@@ -12,6 +12,8 @@
 -- throwable    : (armes) arme de jet, l'objet sert lui-même de munition (`ammo` = son propre nom) :
 --                une grenade lancée retire une grenade de l'inventaire
 --
+-- image  : nom du PNG s'il ne porte pas le nom de l'objet
+--
 -- Image : dépose un PNG dans web/public/items/<nom>.png (ex: weapon_pistol.png).
 -- Sans image, l'interface affiche une icône selon le type.
 Config.Items = {
@@ -19,20 +21,23 @@ Config.Items = {
     -- Entrée des donjons (config/dungeon.lua)
     dungeon_key = { label = 'Clé de donjon', type = 'material', weight = 0.05 },
 
-    -- Munitions : une par « pool » de munitions GTA (deux objets ne peuvent pas partager un pool)
-    ammo_9mm = { label = 'Munitions de pistolet', type = 'ammo', weight = 0.01 }, -- AMMO_PISTOL
-    ammo_45acp = { label = 'Munitions de SMG', type = 'ammo', weight = 0.012 }, -- AMMO_SMG
-    ammo_556 = { label = 'Munitions de fusil', type = 'ammo', weight = 0.012 }, -- AMMO_RIFLE
-    ammo_12g = { label = 'Cartouches calibre 12', type = 'ammo', weight = 0.04 }, -- AMMO_SHOTGUN
-    ammo_762 = { label = 'Munitions de sniper', type = 'ammo', weight = 0.025 }, -- AMMO_SNIPER
-    ammo_mg = { label = 'Bande de mitrailleuse', type = 'ammo', weight = 0.02 }, -- AMMO_MG
-    ammo_flare = { label = 'Fusées éclairantes', type = 'ammo', weight = 0.1 }, -- AMMO_FLAREGUN
-    ammo_grenade40 = { label = 'Grenades 40 mm', type = 'ammo', weight = 0.25 }, -- AMMO_GRENADELAUNCHER
-    ammo_rocket = { label = 'Roquettes', type = 'ammo', weight = 2.0 }, -- AMMO_RPG
-    ammo_homing = { label = 'Missiles guidés', type = 'ammo', weight = 2.5 }, -- AMMO_HOMINGLAUNCHER
-    ammo_minigun = { label = 'Bande de minigun', type = 'ammo', weight = 0.02 }, -- AMMO_MINIGUN
-    ammo_firework = { label = 'Feux d\'artifice', type = 'ammo', weight = 0.5 }, -- AMMO_FIREWORK
-    ammo_railgun = { label = 'Charges de railgun', type = 'ammo', weight = 1.0 }, -- AMMO_RAILGUN
+    -- Munitions : une boîte par « pool » de munitions GTA (deux objets ne peuvent pas partager un pool).
+    -- Une boîte = un chargeur : l'utiliser (rechargement) remplit en entier le chargeur de l'arme en main,
+    -- quelle que soit sa taille (12 balles au pistolet, 200 à la mitrailleuse de combat en grande capacité).
+    -- Les balles qui restaient dans l'ancien chargeur sont perdues.
+    mag_9mm = { label = 'Munitions de pistolet', type = 'ammo', weight = 0.3, image = 'ammo_9mm' }, -- AMMO_PISTOL
+    mag_45acp = { label = 'Munitions de SMG', type = 'ammo', weight = 0.4, image = 'ammo_45acp' }, -- AMMO_SMG
+    mag_556 = { label = 'Munitions de fusil', type = 'ammo', weight = 0.5, image = 'ammo_556' }, -- AMMO_RIFLE
+    mag_12g = { label = 'Cartouches calibre 12', type = 'ammo', weight = 0.4, image = 'ammo_calibre12' }, -- AMMO_SHOTGUN
+    mag_762 = { label = 'Munitions de sniper', type = 'ammo', weight = 0.3, image = 'ammo_762' }, -- AMMO_SNIPER
+    mag_mg = { label = 'Bande de mitrailleuse', type = 'ammo', weight = 2.0, image = 'ammo_7.62' }, -- AMMO_MG
+    mag_flare = { label = 'Fusées éclairantes', type = 'ammo', weight = 0.1, image = 'ammo_flare' }, -- AMMO_FLAREGUN
+    mag_grenade40 = { label = 'Grenades 40 mm', type = 'ammo', weight = 2.5, image = 'ammo_grenade40' }, -- AMMO_GRENADELAUNCHER
+    mag_rocket = { label = 'Roquettes', type = 'ammo', weight = 2.0, image = 'ammo_rocket' }, -- AMMO_RPG
+    mag_homing = { label = 'Missiles guidés', type = 'ammo', weight = 2.5, image = 'ammo_homing' }, -- AMMO_HOMINGLAUNCHER
+    mag_minigun = { label = 'Bande de minigun', type = 'ammo', weight = 5.0, image = 'ammo_minigun' }, -- AMMO_MINIGUN
+    mag_firework = { label = 'Feux d\'artifice', type = 'ammo', weight = 0.5 }, -- AMMO_FIREWORK
+    mag_railgun = { label = 'Charges de railgun', type = 'ammo', weight = 1.0 }, -- AMMO_RAILGUN
 
     -- Armes blanches
     weapon_knife = { label = 'Couteau', type = 'weapon', weight = 0.3, weapon = 'WEAPON_KNIFE' },
@@ -54,84 +59,84 @@ Config.Items = {
     weapon_flashlight = { label = 'Lampe torche', type = 'weapon', weight = 0.5, weapon = 'WEAPON_FLASHLIGHT' },
 
     -- Pistolets et revolvers (munitions de pistolet)
-    weapon_pistol = { label = 'Pistolet', type = 'weapon', weight = 1.0, weapon = 'WEAPON_PISTOL', ammo = 'ammo_9mm' },
-    weapon_pistol_mk2 = { label = 'Pistolet Mk II', type = 'weapon', weight = 1.0, weapon = 'WEAPON_PISTOL_MK2', ammo = 'ammo_9mm' },
-    weapon_combatpistol = { label = 'Pistolet de combat', type = 'weapon', weight = 1.0, weapon = 'WEAPON_COMBATPISTOL', ammo = 'ammo_9mm' },
-    weapon_appistol = { label = 'Pistolet automatique', type = 'weapon', weight = 1.2, weapon = 'WEAPON_APPISTOL', ammo = 'ammo_9mm' },
-    weapon_pistol50 = { label = 'Pistolet .50', type = 'weapon', weight = 1.4, weapon = 'WEAPON_PISTOL50', ammo = 'ammo_9mm' },
-    weapon_heavypistol = { label = 'Pistolet lourd', type = 'weapon', weight = 1.3, weapon = 'WEAPON_HEAVYPISTOL', ammo = 'ammo_9mm' },
-    weapon_snspistol = { label = 'Pistolet de poche', type = 'weapon', weight = 0.7, weapon = 'WEAPON_SNSPISTOL', ammo = 'ammo_9mm' },
-    weapon_snspistol_mk2 = { label = 'Pistolet de poche Mk II', type = 'weapon', weight = 0.7, weapon = 'WEAPON_SNSPISTOL_MK2', ammo = 'ammo_9mm' },
-    weapon_vintagepistol = { label = 'Pistolet vintage', type = 'weapon', weight = 1.0, weapon = 'WEAPON_VINTAGEPISTOL', ammo = 'ammo_9mm' },
-    weapon_ceramicpistol = { label = 'Pistolet en céramique', type = 'weapon', weight = 0.8, weapon = 'WEAPON_CERAMICPISTOL', ammo = 'ammo_9mm' },
-    weapon_marksmanpistol = { label = 'Pistolet de précision', type = 'weapon', weight = 1.2, weapon = 'WEAPON_MARKSMANPISTOL', ammo = 'ammo_9mm' },
-    weapon_revolver = { label = 'Revolver lourd', type = 'weapon', weight = 1.6, weapon = 'WEAPON_REVOLVER', ammo = 'ammo_9mm' },
-    weapon_revolver_mk2 = { label = 'Revolver lourd Mk II', type = 'weapon', weight = 1.7, weapon = 'WEAPON_REVOLVER_MK2', ammo = 'ammo_9mm' },
-    weapon_doubleaction = { label = 'Revolver double action', type = 'weapon', weight = 1.3, weapon = 'WEAPON_DOUBLEACTION', ammo = 'ammo_9mm' },
-    weapon_navyrevolver = { label = 'Revolver de la Navy', type = 'weapon', weight = 1.4, weapon = 'WEAPON_NAVYREVOLVER', ammo = 'ammo_9mm' },
+    weapon_pistol = { label = 'Pistolet', type = 'weapon', weight = 1.0, weapon = 'WEAPON_PISTOL', ammo = 'mag_9mm' },
+    weapon_pistol_mk2 = { label = 'Pistolet Mk II', type = 'weapon', weight = 1.0, weapon = 'WEAPON_PISTOL_MK2', ammo = 'mag_9mm' },
+    weapon_combatpistol = { label = 'Pistolet de combat', type = 'weapon', weight = 1.0, weapon = 'WEAPON_COMBATPISTOL', ammo = 'mag_9mm' },
+    weapon_appistol = { label = 'Pistolet automatique', type = 'weapon', weight = 1.2, weapon = 'WEAPON_APPISTOL', ammo = 'mag_9mm' },
+    weapon_pistol50 = { label = 'Pistolet .50', type = 'weapon', weight = 1.4, weapon = 'WEAPON_PISTOL50', ammo = 'mag_9mm' },
+    weapon_heavypistol = { label = 'Pistolet lourd', type = 'weapon', weight = 1.3, weapon = 'WEAPON_HEAVYPISTOL', ammo = 'mag_9mm' },
+    weapon_snspistol = { label = 'Pistolet de poche', type = 'weapon', weight = 0.7, weapon = 'WEAPON_SNSPISTOL', ammo = 'mag_9mm' },
+    weapon_snspistol_mk2 = { label = 'Pistolet de poche Mk II', type = 'weapon', weight = 0.7, weapon = 'WEAPON_SNSPISTOL_MK2', ammo = 'mag_9mm' },
+    weapon_vintagepistol = { label = 'Pistolet vintage', type = 'weapon', weight = 1.0, weapon = 'WEAPON_VINTAGEPISTOL', ammo = 'mag_9mm' },
+    weapon_ceramicpistol = { label = 'Pistolet en céramique', type = 'weapon', weight = 0.8, weapon = 'WEAPON_CERAMICPISTOL', ammo = 'mag_9mm' },
+    weapon_marksmanpistol = { label = 'Pistolet de précision', type = 'weapon', weight = 1.2, weapon = 'WEAPON_MARKSMANPISTOL', ammo = 'mag_9mm' },
+    weapon_revolver = { label = 'Revolver lourd', type = 'weapon', weight = 1.6, weapon = 'WEAPON_REVOLVER', ammo = 'mag_9mm' },
+    weapon_revolver_mk2 = { label = 'Revolver lourd Mk II', type = 'weapon', weight = 1.7, weapon = 'WEAPON_REVOLVER_MK2', ammo = 'mag_9mm' },
+    weapon_doubleaction = { label = 'Revolver double action', type = 'weapon', weight = 1.3, weapon = 'WEAPON_DOUBLEACTION', ammo = 'mag_9mm' },
+    weapon_navyrevolver = { label = 'Revolver de la Navy', type = 'weapon', weight = 1.4, weapon = 'WEAPON_NAVYREVOLVER', ammo = 'mag_9mm' },
     weapon_stungun = { label = 'Taser', type = 'weapon', weight = 0.6, weapon = 'WEAPON_STUNGUN' },
-    weapon_flaregun = { label = 'Pistolet de détresse', type = 'weapon', weight = 0.8, weapon = 'WEAPON_FLAREGUN', ammo = 'ammo_flare' },
+    weapon_flaregun = { label = 'Pistolet de détresse', type = 'weapon', weight = 0.8, weapon = 'WEAPON_FLAREGUN', ammo = 'mag_flare' },
 
     -- Mitraillettes (munitions de SMG)
-    weapon_microsmg = { label = 'Micro SMG', type = 'weapon', weight = 2.0, weapon = 'WEAPON_MICROSMG', ammo = 'ammo_45acp' },
-    weapon_minismg = { label = 'Mini SMG', type = 'weapon', weight = 1.8, weapon = 'WEAPON_MINISMG', ammo = 'ammo_45acp' },
-    weapon_machinepistol = { label = 'Pistolet-mitrailleur', type = 'weapon', weight = 1.6, weapon = 'WEAPON_MACHINEPISTOL', ammo = 'ammo_45acp' },
-    weapon_smg = { label = 'SMG', type = 'weapon', weight = 2.5, weapon = 'WEAPON_SMG', ammo = 'ammo_45acp' },
-    weapon_smg_mk2 = { label = 'SMG Mk II', type = 'weapon', weight = 2.6, weapon = 'WEAPON_SMG_MK2', ammo = 'ammo_45acp' },
-    weapon_assaultsmg = { label = 'SMG d\'assaut', type = 'weapon', weight = 2.7, weapon = 'WEAPON_ASSAULTSMG', ammo = 'ammo_45acp' },
-    weapon_combatpdw = { label = 'PDW de combat', type = 'weapon', weight = 2.6, weapon = 'WEAPON_COMBATPDW', ammo = 'ammo_45acp' },
+    weapon_microsmg = { label = 'Micro SMG', type = 'weapon', weight = 2.0, weapon = 'WEAPON_MICROSMG', ammo = 'mag_45acp' },
+    weapon_minismg = { label = 'Mini SMG', type = 'weapon', weight = 1.8, weapon = 'WEAPON_MINISMG', ammo = 'mag_45acp' },
+    weapon_machinepistol = { label = 'Pistolet-mitrailleur', type = 'weapon', weight = 1.6, weapon = 'WEAPON_MACHINEPISTOL', ammo = 'mag_45acp' },
+    weapon_smg = { label = 'SMG', type = 'weapon', weight = 2.5, weapon = 'WEAPON_SMG', ammo = 'mag_45acp' },
+    weapon_smg_mk2 = { label = 'SMG Mk II', type = 'weapon', weight = 2.6, weapon = 'WEAPON_SMG_MK2', ammo = 'mag_45acp' },
+    weapon_assaultsmg = { label = 'SMG d\'assaut', type = 'weapon', weight = 2.7, weapon = 'WEAPON_ASSAULTSMG', ammo = 'mag_45acp' },
+    weapon_combatpdw = { label = 'PDW de combat', type = 'weapon', weight = 2.6, weapon = 'WEAPON_COMBATPDW', ammo = 'mag_45acp' },
 
     -- Fusils à pompe (cartouches calibre 12)
-    weapon_pumpshotgun = { label = 'Fusil à pompe', type = 'weapon', weight = 3.5, weapon = 'WEAPON_PUMPSHOTGUN', ammo = 'ammo_12g' },
-    weapon_pumpshotgun_mk2 = { label = 'Fusil à pompe Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_PUMPSHOTGUN_MK2', ammo = 'ammo_12g' },
-    weapon_sawnoffshotgun = { label = 'Fusil à canon scié', type = 'weapon', weight = 2.5, weapon = 'WEAPON_SAWNOFFSHOTGUN', ammo = 'ammo_12g' },
-    weapon_dbshotgun = { label = 'Fusil à double canon', type = 'weapon', weight = 2.4, weapon = 'WEAPON_DBSHOTGUN', ammo = 'ammo_12g' },
-    weapon_bullpupshotgun = { label = 'Fusil à pompe bullpup', type = 'weapon', weight = 3.4, weapon = 'WEAPON_BULLPUPSHOTGUN', ammo = 'ammo_12g' },
-    weapon_assaultshotgun = { label = 'Fusil à pompe d\'assaut', type = 'weapon', weight = 4.2, weapon = 'WEAPON_ASSAULTSHOTGUN', ammo = 'ammo_12g' },
-    weapon_autoshotgun = { label = 'Fusil à pompe automatique', type = 'weapon', weight = 3.8, weapon = 'WEAPON_AUTOSHOTGUN', ammo = 'ammo_12g' },
-    weapon_heavyshotgun = { label = 'Fusil à pompe lourd', type = 'weapon', weight = 4.5, weapon = 'WEAPON_HEAVYSHOTGUN', ammo = 'ammo_12g' },
-    weapon_combatshotgun = { label = 'Fusil à pompe de combat', type = 'weapon', weight = 3.9, weapon = 'WEAPON_COMBATSHOTGUN', ammo = 'ammo_12g' },
-    weapon_musket = { label = 'Mousquet', type = 'weapon', weight = 4.0, weapon = 'WEAPON_MUSKET', ammo = 'ammo_12g' },
+    weapon_pumpshotgun = { label = 'Fusil à pompe', type = 'weapon', weight = 3.5, weapon = 'WEAPON_PUMPSHOTGUN', ammo = 'mag_12g' },
+    weapon_pumpshotgun_mk2 = { label = 'Fusil à pompe Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_PUMPSHOTGUN_MK2', ammo = 'mag_12g' },
+    weapon_sawnoffshotgun = { label = 'Fusil à canon scié', type = 'weapon', weight = 2.5, weapon = 'WEAPON_SAWNOFFSHOTGUN', ammo = 'mag_12g' },
+    weapon_dbshotgun = { label = 'Fusil à double canon', type = 'weapon', weight = 2.4, weapon = 'WEAPON_DBSHOTGUN', ammo = 'mag_12g' },
+    weapon_bullpupshotgun = { label = 'Fusil à pompe bullpup', type = 'weapon', weight = 3.4, weapon = 'WEAPON_BULLPUPSHOTGUN', ammo = 'mag_12g' },
+    weapon_assaultshotgun = { label = 'Fusil à pompe d\'assaut', type = 'weapon', weight = 4.2, weapon = 'WEAPON_ASSAULTSHOTGUN', ammo = 'mag_12g' },
+    weapon_autoshotgun = { label = 'Fusil à pompe automatique', type = 'weapon', weight = 3.8, weapon = 'WEAPON_AUTOSHOTGUN', ammo = 'mag_12g' },
+    weapon_heavyshotgun = { label = 'Fusil à pompe lourd', type = 'weapon', weight = 4.5, weapon = 'WEAPON_HEAVYSHOTGUN', ammo = 'mag_12g' },
+    weapon_combatshotgun = { label = 'Fusil à pompe de combat', type = 'weapon', weight = 3.9, weapon = 'WEAPON_COMBATSHOTGUN', ammo = 'mag_12g' },
+    weapon_musket = { label = 'Mousquet', type = 'weapon', weight = 4.0, weapon = 'WEAPON_MUSKET', ammo = 'mag_12g' },
 
     -- Fusils d'assaut (munitions de fusil)
-    weapon_carbinerifle = { label = 'Carabine', type = 'weapon', weight = 3.5, weapon = 'WEAPON_CARBINERIFLE', ammo = 'ammo_556' },
-    weapon_carbinerifle_mk2 = { label = 'Carabine Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_CARBINERIFLE_MK2', ammo = 'ammo_556' },
-    weapon_assaultrifle = { label = 'Fusil d\'assaut', type = 'weapon', weight = 3.5, weapon = 'WEAPON_ASSAULTRIFLE', ammo = 'ammo_556' },
-    weapon_assaultrifle_mk2 = { label = 'Fusil d\'assaut Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_ASSAULTRIFLE_MK2', ammo = 'ammo_556' },
-    weapon_advancedrifle = { label = 'Fusil avancé', type = 'weapon', weight = 3.3, weapon = 'WEAPON_ADVANCEDRIFLE', ammo = 'ammo_556' },
-    weapon_specialcarbine = { label = 'Carabine spéciale', type = 'weapon', weight = 3.4, weapon = 'WEAPON_SPECIALCARBINE', ammo = 'ammo_556' },
-    weapon_specialcarbine_mk2 = { label = 'Carabine spéciale Mk II', type = 'weapon', weight = 3.5, weapon = 'WEAPON_SPECIALCARBINE_MK2', ammo = 'ammo_556' },
-    weapon_bullpuprifle = { label = 'Fusil bullpup', type = 'weapon', weight = 3.2, weapon = 'WEAPON_BULLPUPRIFLE', ammo = 'ammo_556' },
-    weapon_bullpuprifle_mk2 = { label = 'Fusil bullpup Mk II', type = 'weapon', weight = 3.3, weapon = 'WEAPON_BULLPUPRIFLE_MK2', ammo = 'ammo_556' },
-    weapon_compactrifle = { label = 'Fusil compact', type = 'weapon', weight = 2.8, weapon = 'WEAPON_COMPACTRIFLE', ammo = 'ammo_556' },
-    weapon_militaryrifle = { label = 'Fusil militaire', type = 'weapon', weight = 3.7, weapon = 'WEAPON_MILITARYRIFLE', ammo = 'ammo_556' },
-    weapon_heavyrifle = { label = 'Fusil lourd', type = 'weapon', weight = 4.0, weapon = 'WEAPON_HEAVYRIFLE', ammo = 'ammo_556' },
-    weapon_tacticalrifle = { label = 'Fusil tactique', type = 'weapon', weight = 3.4, weapon = 'WEAPON_TACTICALRIFLE', ammo = 'ammo_556' },
+    weapon_carbinerifle = { label = 'Carabine', type = 'weapon', weight = 3.5, weapon = 'WEAPON_CARBINERIFLE', ammo = 'mag_556' },
+    weapon_carbinerifle_mk2 = { label = 'Carabine Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_CARBINERIFLE_MK2', ammo = 'mag_556' },
+    weapon_assaultrifle = { label = 'Fusil d\'assaut', type = 'weapon', weight = 3.5, weapon = 'WEAPON_ASSAULTRIFLE', ammo = 'mag_556' },
+    weapon_assaultrifle_mk2 = { label = 'Fusil d\'assaut Mk II', type = 'weapon', weight = 3.6, weapon = 'WEAPON_ASSAULTRIFLE_MK2', ammo = 'mag_556' },
+    weapon_advancedrifle = { label = 'Fusil avancé', type = 'weapon', weight = 3.3, weapon = 'WEAPON_ADVANCEDRIFLE', ammo = 'mag_556' },
+    weapon_specialcarbine = { label = 'Carabine spéciale', type = 'weapon', weight = 3.4, weapon = 'WEAPON_SPECIALCARBINE', ammo = 'mag_556' },
+    weapon_specialcarbine_mk2 = { label = 'Carabine spéciale Mk II', type = 'weapon', weight = 3.5, weapon = 'WEAPON_SPECIALCARBINE_MK2', ammo = 'mag_556' },
+    weapon_bullpuprifle = { label = 'Fusil bullpup', type = 'weapon', weight = 3.2, weapon = 'WEAPON_BULLPUPRIFLE', ammo = 'mag_556' },
+    weapon_bullpuprifle_mk2 = { label = 'Fusil bullpup Mk II', type = 'weapon', weight = 3.3, weapon = 'WEAPON_BULLPUPRIFLE_MK2', ammo = 'mag_556' },
+    weapon_compactrifle = { label = 'Fusil compact', type = 'weapon', weight = 2.8, weapon = 'WEAPON_COMPACTRIFLE', ammo = 'mag_556' },
+    weapon_militaryrifle = { label = 'Fusil militaire', type = 'weapon', weight = 3.7, weapon = 'WEAPON_MILITARYRIFLE', ammo = 'mag_556' },
+    weapon_heavyrifle = { label = 'Fusil lourd', type = 'weapon', weight = 4.0, weapon = 'WEAPON_HEAVYRIFLE', ammo = 'mag_556' },
+    weapon_tacticalrifle = { label = 'Fusil tactique', type = 'weapon', weight = 3.4, weapon = 'WEAPON_TACTICALRIFLE', ammo = 'mag_556' },
 
     -- Mitrailleuses (bande de mitrailleuse)
-    weapon_mg = { label = 'Mitrailleuse', type = 'weapon', weight = 7.0, weapon = 'WEAPON_MG', ammo = 'ammo_mg' },
-    weapon_combatmg = { label = 'Mitrailleuse de combat', type = 'weapon', weight = 7.5, weapon = 'WEAPON_COMBATMG', ammo = 'ammo_mg' },
-    weapon_combatmg_mk2 = { label = 'Mitrailleuse de combat Mk II', type = 'weapon', weight = 7.6, weapon = 'WEAPON_COMBATMG_MK2', ammo = 'ammo_mg' },
-    weapon_gusenberg = { label = 'Gusenberg', type = 'weapon', weight = 4.5, weapon = 'WEAPON_GUSENBERG', ammo = 'ammo_mg' },
-    weapon_raycarbine = { label = 'Carabine laser', type = 'weapon', weight = 4.0, weapon = 'WEAPON_RAYCARBINE', ammo = 'ammo_mg' },
+    weapon_mg = { label = 'Mitrailleuse', type = 'weapon', weight = 7.0, weapon = 'WEAPON_MG', ammo = 'mag_mg' },
+    weapon_combatmg = { label = 'Mitrailleuse de combat', type = 'weapon', weight = 7.5, weapon = 'WEAPON_COMBATMG', ammo = 'mag_mg' },
+    weapon_combatmg_mk2 = { label = 'Mitrailleuse de combat Mk II', type = 'weapon', weight = 7.6, weapon = 'WEAPON_COMBATMG_MK2', ammo = 'mag_mg' },
+    weapon_gusenberg = { label = 'Gusenberg', type = 'weapon', weight = 4.5, weapon = 'WEAPON_GUSENBERG', ammo = 'mag_mg' },
+    weapon_raycarbine = { label = 'Carabine laser', type = 'weapon', weight = 4.0, weapon = 'WEAPON_RAYCARBINE', ammo = 'mag_mg' },
 
     -- Fusils de précision (munitions de sniper)
-    weapon_sniperrifle = { label = 'Sniper', type = 'weapon', weight = 5.0, weapon = 'WEAPON_SNIPERRIFLE', ammo = 'ammo_762' },
-    weapon_heavysniper = { label = 'Sniper lourd', type = 'weapon', weight = 7.0, weapon = 'WEAPON_HEAVYSNIPER', ammo = 'ammo_762' },
-    weapon_heavysniper_mk2 = { label = 'Sniper lourd Mk II', type = 'weapon', weight = 7.2, weapon = 'WEAPON_HEAVYSNIPER_MK2', ammo = 'ammo_762' },
-    weapon_marksmanrifle = { label = 'Fusil de tireur d\'élite', type = 'weapon', weight = 4.5, weapon = 'WEAPON_MARKSMANRIFLE', ammo = 'ammo_762' },
-    weapon_marksmanrifle_mk2 = { label = 'Fusil de tireur d\'élite Mk II', type = 'weapon', weight = 4.6, weapon = 'WEAPON_MARKSMANRIFLE_MK2', ammo = 'ammo_762' },
-    weapon_precisionrifle = { label = 'Fusil de précision', type = 'weapon', weight = 4.2, weapon = 'WEAPON_PRECISIONRIFLE', ammo = 'ammo_762' },
+    weapon_sniperrifle = { label = 'Sniper', type = 'weapon', weight = 5.0, weapon = 'WEAPON_SNIPERRIFLE', ammo = 'mag_762' },
+    weapon_heavysniper = { label = 'Sniper lourd', type = 'weapon', weight = 7.0, weapon = 'WEAPON_HEAVYSNIPER', ammo = 'mag_762' },
+    weapon_heavysniper_mk2 = { label = 'Sniper lourd Mk II', type = 'weapon', weight = 7.2, weapon = 'WEAPON_HEAVYSNIPER_MK2', ammo = 'mag_762' },
+    weapon_marksmanrifle = { label = 'Fusil de tireur d\'élite', type = 'weapon', weight = 4.5, weapon = 'WEAPON_MARKSMANRIFLE', ammo = 'mag_762' },
+    weapon_marksmanrifle_mk2 = { label = 'Fusil de tireur d\'élite Mk II', type = 'weapon', weight = 4.6, weapon = 'WEAPON_MARKSMANRIFLE_MK2', ammo = 'mag_762' },
+    weapon_precisionrifle = { label = 'Fusil de précision', type = 'weapon', weight = 4.2, weapon = 'WEAPON_PRECISIONRIFLE', ammo = 'mag_762' },
 
     -- Armes lourdes (largages et admins seulement)
-    weapon_grenadelauncher = { label = 'Lance-grenades', type = 'weapon', weight = 6.0, weapon = 'WEAPON_GRENADELAUNCHER', ammo = 'ammo_grenade40' },
-    weapon_compactlauncher = { label = 'Lance-grenades compact', type = 'weapon', weight = 3.5, weapon = 'WEAPON_COMPACTLAUNCHER', ammo = 'ammo_grenade40' },
-    weapon_rpg = { label = 'Lance-roquettes', type = 'weapon', weight = 8.0, weapon = 'WEAPON_RPG', ammo = 'ammo_rocket' },
-    weapon_hominglauncher = { label = 'Lance-missiles guidés', type = 'weapon', weight = 9.0, weapon = 'WEAPON_HOMINGLAUNCHER', ammo = 'ammo_homing' },
-    weapon_minigun = { label = 'Minigun', type = 'weapon', weight = 15.0, weapon = 'WEAPON_MINIGUN', ammo = 'ammo_minigun' },
-    weapon_rayminigun = { label = 'Minigun laser', type = 'weapon', weight = 15.0, weapon = 'WEAPON_RAYMINIGUN', ammo = 'ammo_minigun' },
-    weapon_firework = { label = 'Lanceur de feux d\'artifice', type = 'weapon', weight = 4.0, weapon = 'WEAPON_FIREWORK', ammo = 'ammo_firework' },
-    weapon_railgun = { label = 'Railgun', type = 'weapon', weight = 10.0, weapon = 'WEAPON_RAILGUN', ammo = 'ammo_railgun' },
+    weapon_grenadelauncher = { label = 'Lance-grenades', type = 'weapon', weight = 6.0, weapon = 'WEAPON_GRENADELAUNCHER', ammo = 'mag_grenade40' },
+    weapon_compactlauncher = { label = 'Lance-grenades compact', type = 'weapon', weight = 3.5, weapon = 'WEAPON_COMPACTLAUNCHER', ammo = 'mag_grenade40' },
+    weapon_rpg = { label = 'Lance-roquettes', type = 'weapon', weight = 8.0, weapon = 'WEAPON_RPG', ammo = 'mag_rocket' },
+    weapon_hominglauncher = { label = 'Lance-missiles guidés', type = 'weapon', weight = 9.0, weapon = 'WEAPON_HOMINGLAUNCHER', ammo = 'mag_homing' },
+    weapon_minigun = { label = 'Minigun', type = 'weapon', weight = 15.0, weapon = 'WEAPON_MINIGUN', ammo = 'mag_minigun' },
+    weapon_rayminigun = { label = 'Minigun laser', type = 'weapon', weight = 15.0, weapon = 'WEAPON_RAYMINIGUN', ammo = 'mag_minigun' },
+    weapon_firework = { label = 'Lanceur de feux d\'artifice', type = 'weapon', weight = 4.0, weapon = 'WEAPON_FIREWORK', ammo = 'mag_firework' },
+    weapon_railgun = { label = 'Railgun', type = 'weapon', weight = 10.0, weapon = 'WEAPON_RAILGUN', ammo = 'mag_railgun' },
 
     -- Armes de jet : chaque objet est une munition
     weapon_grenade = { label = 'Grenade', type = 'weapon', weight = 0.4, weapon = 'WEAPON_GRENADE', ammo = 'weapon_grenade', throwable = true },
@@ -363,12 +368,30 @@ Config.Containers = {
     stash3 = { label = 'Coffre 3', capacity = 500.0, safeOnly = true, order = 3, price = 50000 },
 }
 
+-- Anciennes munitions à la balle (avant les boîtes) : converties en boîtes au chargement d'un
+-- inventaire, d'un coffre de crew ou d'une annonce du marché, `rounds` balles par boîte (arrondi au-dessus)
+Config.LegacyAmmo = {
+    ammo_9mm = { item = 'mag_9mm', rounds = 12 },
+    ammo_45acp = { item = 'mag_45acp', rounds = 30 },
+    ammo_556 = { item = 'mag_556', rounds = 30 },
+    ammo_12g = { item = 'mag_12g', rounds = 8 },
+    ammo_762 = { item = 'mag_762', rounds = 10 },
+    ammo_mg = { item = 'mag_mg', rounds = 100 },
+    ammo_flare = { item = 'mag_flare', rounds = 1 },
+    ammo_grenade40 = { item = 'mag_grenade40', rounds = 10 },
+    ammo_rocket = { item = 'mag_rocket', rounds = 1 },
+    ammo_homing = { item = 'mag_homing', rounds = 1 },
+    ammo_minigun = { item = 'mag_minigun', rounds = 100 },
+    ammo_firework = { item = 'mag_firework', rounds = 1 },
+    ammo_railgun = { item = 'mag_railgun', rounds = 1 },
+}
+
 -- Nombre d'emplacements de raccourcis (touches 1 à N)
 Config.ShortcutSlots = 7
 
 -- Inventaire d'un nouveau joueur (donné une seule fois, à sa toute première apparition)
 Config.NewPlayerKit = {
-    bag = { money = 500, weapon_pistol = 1, ammo_9mm = 48, bandage = 2, vehicle_panto = 1 },
+    bag = { money = 500, weapon_pistol = 1, mag_9mm = 4, bandage = 2, vehicle_panto = 1 },
     protected = {},
 }
 

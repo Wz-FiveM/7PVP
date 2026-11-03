@@ -130,7 +130,7 @@ function ServerApi.isInSafeZone(source)
 end
 
 ---@param coords vector3
----@param items table<string, integer> ex: { weapon_pistol = 1, ammo_9mm = 24, money = 100 }
+---@param items table<string, integer> ex: { weapon_pistol = 1, mag_9mm = 2, money = 100 }
 ---@return integer|nil id du sac
 function ServerApi.dropLoot(coords, items)
     return LootService.drop(coords, items)

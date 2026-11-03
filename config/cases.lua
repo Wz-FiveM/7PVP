@@ -38,9 +38,9 @@ Config.Cases = {
         price = 750,
         points = 100,
         rewards = {
-            { item = 'ammo_9mm', count = { 48, 96 }, weight = 22, rarity = 'common' },
+            { item = 'mag_9mm', count = { 4, 8 }, weight = 22, rarity = 'common' },
             { item = 'bandage', count = { 3, 5 }, weight = 18, rarity = 'common' },
-            { item = 'ammo_45acp', count = { 60, 120 }, weight = 14, rarity = 'common' },
+            { item = 'mag_45acp', count = { 2, 4 }, weight = 14, rarity = 'common' },
             { item = 'money', count = { 300, 600 }, weight = 12, rarity = 'common' },
             { item = 'weapon_combatpistol', weight = 10, rarity = 'uncommon' },
             { item = 'firstaid', count = { 2, 3 }, weight = 8, rarity = 'uncommon' },
@@ -61,7 +61,7 @@ Config.Cases = {
         points = 300,
         level = 6,
         rewards = {
-            { item = 'ammo_556', count = { 120, 240 }, weight = 20, rarity = 'common' },
+            { item = 'mag_556', count = { 4, 8 }, weight = 20, rarity = 'common' },
             { item = 'medkit', count = { 2, 3 }, weight = 16, rarity = 'common' },
             { item = 'money', count = { 1500, 2500 }, weight = 12, rarity = 'common' },
             { item = 'armor', count = 2, weight = 10, rarity = 'uncommon' },
@@ -86,7 +86,7 @@ Config.Cases = {
         rewards = {
             { item = 'money', count = { 5000, 8000 }, weight = 18, rarity = 'common' },
             { item = 'heavy_kevlar', count = 2, weight = 14, rarity = 'common' },
-            { item = 'ammo_762', count = { 40, 80 }, weight = 14, rarity = 'common' },
+            { item = 'mag_762', count = { 4, 8 }, weight = 14, rarity = 'common' },
             { item = 'weapon_carbinerifle_mk2', weight = 10, rarity = 'uncommon' },
             { item = 'weapon_mg', weight = 8, rarity = 'uncommon' },
             { item = 'weapon_heavysniper', weight = 5, rarity = 'rare' },

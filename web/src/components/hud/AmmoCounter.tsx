@@ -2,7 +2,7 @@ import { useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
 import { itemLabel } from '../../utils/inventory';
 
-/** Arme en main et munitions (chargeur / réserve), en bas à droite. */
+/** Arme en main et munitions (chargeur / réserve, ou chargeur × boîtes en PvP), en bas à droite. */
 export function AmmoCounter() {
   const t = useT();
   const { state } = useGame();
@@ -21,7 +21,7 @@ export function AmmoCounter() {
       {item.ammo && (
         <span className="ammo__count">
           <span className="disp ammo__clip">{vitals.clip}</span>
-          <span className="mono ammo__reserve">/ {vitals.reserve}</span>
+          <span className="mono ammo__reserve">{vitals.magazines ? `× ${vitals.reserve}` : `/ ${vitals.reserve}`}</span>
         </span>
       )}
     </div>

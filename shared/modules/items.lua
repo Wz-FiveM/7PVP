@@ -26,6 +26,18 @@ function Items.exists(name)
     return Items.get(name) ~= nil
 end
 
+---Anciennes munitions à la balle : boîtes correspondantes (Config.LegacyAmmo). Tout autre objet est rendu tel quel.
+---@param name any
+---@param count any quantité, ou fourchette { min, max } (butins, caisses)
+---@return any nom, any quantité
+function Items.fromLegacy(name, count)
+    local legacy = type(name) == 'string' and Config.LegacyAmmo[name]
+    if not legacy then return name, count end
+    local function boxes(rounds) return math.max(1, math.ceil((tonumber(rounds) or 1) / legacy.rounds)) end
+    if type(count) == 'table' then return legacy.item, { boxes(count[1]), boxes(count[2]) } end
+    return legacy.item, math.ceil((tonumber(count) or 0) / legacy.rounds)
+end
+
 ---@param name string
 ---@return string
 function Items.label(name)

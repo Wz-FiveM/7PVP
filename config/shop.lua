@@ -71,12 +71,12 @@ Config.Shop = {
     { item = 'weapon_grenade', count = 1, price = 900, level = 8 },
 
     -- Munitions
-    { item = 'ammo_9mm', count = 48, price = 80 },
-    { item = 'ammo_45acp', count = 60, price = 150 },
-    { item = 'ammo_12g', count = 16, price = 120 },
-    { item = 'ammo_556', count = 60, price = 250 },
-    { item = 'ammo_762', count = 10, price = 300 },
-    { item = 'ammo_mg', count = 100, price = 450, level = 13 },
+    { item = 'mag_9mm', count = 4, price = 80 },
+    { item = 'mag_45acp', count = 2, price = 150 },
+    { item = 'mag_12g', count = 2, price = 120 },
+    { item = 'mag_556', count = 2, price = 250 },
+    { item = 'mag_762', count = 1, price = 300 },
+    { item = 'mag_mg', count = 1, price = 450, level = 13 },
 
     -- Soins et équipement
     { item = 'bandage', count = 1, price = 100 },

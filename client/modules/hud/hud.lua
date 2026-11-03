@@ -133,12 +133,14 @@ function Hud.collect()
         weapon = weapon or false,
         clip = 0,
         reserve = 0,
+        magazines = false, -- réserve en boîtes (PvP) plutôt qu'en balles
     }
 
     if item and item.ammo then
         local _, clip = GetAmmoInClip(ped, hash)
         data.clip = clip
-        data.reserve = math.max(0, GetAmmoInPedWeapon(ped, hash) - clip) + Loadout.surplusOf(item.ammo)
+        data.reserve = Loadout.reserveOf(item.ammo, ped, hash, clip)
+        data.magazines = State.inPvp() and Loadout.isMagazine(item.ammo)
     end
     return data
 end

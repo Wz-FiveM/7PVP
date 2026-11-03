@@ -54,7 +54,8 @@ function InventoryObject.sanitizeUnlocked(data)
     return clean
 end
 
----Ne garde que les objets connus avec une quantité entière positive.
+---Ne garde que les objets connus avec une quantité entière positive. Les anciennes munitions à la
+---balle deviennent des boîtes (Items.fromLegacy).
 ---@param container any
 ---@return table<string, integer>
 function InventoryObject.sanitize(container)
@@ -62,8 +63,9 @@ function InventoryObject.sanitize(container)
     if type(container) ~= 'table' then return clean end
     for name, count in pairs(container) do
         count = math.floor(tonumber(count) or 0)
+        name, count = Items.fromLegacy(name, count)
         if Items.exists(name) and count > 0 then
-            clean[name] = count
+            clean[name] = (clean[name] or 0) + count
         end
     end
     return clean
