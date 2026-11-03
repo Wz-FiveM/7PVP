@@ -80,6 +80,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return pushKill(message.data);
         case 'shopPrices':
           return dispatch({ type: 'shop/prices', prices: message.data });
+        case 'itemWeights':
+          return dispatch({ type: 'items/weights', weights: message.data });
         case 'cases':
           return dispatch({ type: 'cases', cases: message.data.cases, items: message.data.items });
         case 'death':

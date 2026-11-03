@@ -104,6 +104,7 @@ export interface GameState {
 export type GameAction =
   | { type: 'init'; payload: InitPayload }
   | { type: 'shop/prices'; prices: Record<string, number> }
+  | { type: 'items/weights'; weights: Record<string, number> }
   | { type: 'cases'; cases: CaseDefinition[]; items: Record<string, ItemDefinition> }
   | { type: 'sync'; player: PlayerState }
   | { type: 'zone'; zone: ZoneInfo }
@@ -222,6 +223,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         config: {
           ...state.config,
           shop: state.config.shop.map((entry) => ({ ...entry, price: action.prices[entry.item] ?? entry.price })),
+        },
+      };
+    case 'items/weights':
+      return {
+        ...state,
+        config: {
+          ...state.config,
+          items: Object.fromEntries(
+            Object.entries(state.config.items).map(([name, item]) => [name, { ...item, weight: action.weights[name] ?? item.weight }]),
+          ),
         },
       };
     case 'cases':

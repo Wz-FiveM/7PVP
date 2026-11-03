@@ -1,5 +1,5 @@
 import { fetchNui } from './nui';
-import { mockAdminPlayers, mockCasesAdmin, mockFreeroamAdmin, mockLootAdmin, mockResaleAdmin, mockShopAdmin } from '../dev/mocks';
+import { mockAdminPlayers, mockCasesAdmin, mockFreeroamAdmin, mockLootAdmin, mockResaleAdmin, mockShopAdmin, mockWeightsAdmin } from '../dev/mocks';
 import type {
   AdminActionPayload,
   AdminActionResult,
@@ -14,6 +14,7 @@ import type {
   MapPoint,
   ResaleAdminData,
   ShopAdminData,
+  WeightAdminData,
 } from '../types/admin';
 
 /** Requêtes du panneau admin (voir client/modules/admin/admin.lua). */
@@ -44,6 +45,16 @@ export const adminApi = {
 
   shopReset: () =>
     fetchNui<AdminActionResult>('adminShopReset', {}, { ok: true, message: 'Prix remis par défaut (simulé)' }),
+
+  /** Onglet « Poids » : poids de chaque objet */
+  weights: () => fetchNui<WeightAdminData>('adminWeights', {}, mockWeightsAdmin),
+
+  /** `weights` : seulement les poids modifiés, en kg */
+  weightsSave: (weights: Record<string, number>) =>
+    fetchNui<AdminActionResult>('adminWeightsSave', { weights }, { ok: true, message: 'Poids enregistrés (simulé)' }),
+
+  weightsReset: () =>
+    fetchNui<AdminActionResult>('adminWeightsReset', {}, { ok: true, message: 'Poids remis par défaut (simulé)' }),
 
   /** Onglet « Caisses » : création, contenu et prix des caisses */
   cases: () => fetchNui<CaseAdminData>('adminCases', {}, mockCasesAdmin),

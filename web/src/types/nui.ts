@@ -39,6 +39,7 @@ export type NuiMessage =
   | { action: 'killfeed'; data: KillfeedEntry }
   /** prix de la boutique, objet -> prix (voir ShopService) */
   | { action: 'shopPrices'; data: Record<string, number> }
+  | { action: 'itemWeights'; data: Record<string, number> }
   /** caisses modifiées par un admin ; `items` : leurs objets, retirées comprises (voir CaseConfigService) */
   | { action: 'cases'; data: { cases: CaseDefinition[]; items: Record<string, ItemDefinition> } }
   | { action: 'hit'; data: HitEvent }

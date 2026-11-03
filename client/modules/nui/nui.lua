@@ -206,6 +206,14 @@ function Nui.init()
         Nui.send('shopPrices', prices)
     end)
 
+    -- Poids des objets modifiés par un admin (voir WeightService) : sacs et coffres pèsent juste
+    RegisterNetEvent(Events.client.itemWeights, function(weights)
+        for name, weight in pairs(weights) do
+            if Config.Items[name] then Config.Items[name].weight = weight end
+        end
+        Nui.send('itemWeights', weights)
+    end)
+
     -- Caisses modifiées par un admin (voir CaseConfigService) : Config.Cases et Config.Items sont aussi
     -- relus si la page n'est pas encore prête. `items` garde les caisses retirées, encore possédées.
     RegisterNetEvent(Events.client.cases, function(cases, items)

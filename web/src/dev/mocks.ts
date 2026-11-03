@@ -1,4 +1,4 @@
-import type { AdminPlayer, CaseAdminData, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData, ShopAdminData } from '../types/admin';
+import type { AdminPlayer, CaseAdminData, FreeroamAdminData, FreeroamSetting, LootAdminData, ResaleAdminData, ShopAdminData, WeightAdminData } from '../types/admin';
 import type { CreatorPayload, Rgb } from '../types/appearance';
 
 export const mockAdminPlayers: AdminPlayer[] = [
@@ -915,5 +915,23 @@ export const mockLootAdmin: LootAdminData = {
     { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon' },
     { name: 'medkit', label: 'Trousse de soins', type: 'consumable' },
     { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon' },
+  ],
+};
+
+export const mockWeightsAdmin: WeightAdminData = {
+  ok: true,
+  maxWeight: 100,
+  items: [
+    { name: 'weapon_specialcarbine_mk2', label: 'Carabine spéciale Mk II', type: 'weapon', weight: 1, default: 1 },
+    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', weight: 1, default: 1 },
+    { name: 'weapon_minigun', label: 'Minigun', type: 'weapon', weight: 5, default: 1 },
+    { name: 'weapon_grenade', label: 'Grenade', type: 'weapon', weight: 0.4, default: 0.4 },
+    { name: 'mag_556', label: '7.62mm', type: 'ammo', weight: 0.05, default: 0.05 },
+    { name: 'mag_9mm', label: '9mm', type: 'ammo', weight: 0.05, default: 0.05 },
+    { name: 'armor', label: 'Gilet pare-balles', type: 'consumable', weight: 3, default: 3 },
+    { name: 'medkit', label: 'Trousse de soins', type: 'consumable', weight: 0.5, default: 0.5 },
+    { name: 'mat_scrap', label: 'Ferraille', type: 'material', weight: 0.2, default: 0.2 },
+    { name: 'vehicle_bmx', label: 'BMX', type: 'vehicle', weight: 1, default: 1 },
+    { name: 'vehicle_mesa3', label: 'Mesa Merryweather', type: 'vehicle', weight: 1, default: 1 },
   ],
 };

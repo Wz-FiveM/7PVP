@@ -26,7 +26,10 @@ export type IconName =
   | 'gem'
   | 'mic'
   | 'bomb'
-  | 'parachute';
+  | 'parachute'
+  | 'server'
+  | 'scale'
+  | 'pin';
 
 /** Icônes au trait (viewBox 24x24), dans le style de la D.A Frontline. */
 const PATHS: Record<IconName, string> = {
@@ -62,6 +65,9 @@ const PATHS: Record<IconName, string> = {
   gem: 'M6 3h12l4 6-10 12L2 9zM2 9h20M9 3l3 6 3-6M12 21L9 9M12 21l3-12',
   mic: 'M9 6a3 3 0 0 1 6 0v5a3 3 0 0 1-6 0zM5 11a7 7 0 0 0 14 0M12 18v3M8 21h8',
   bomb: 'M10 8a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM14 9l3-3M16 3v2M19 4l-2 1M20 7h-2',
+  server: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01M12 7h4M12 17h4',
+  scale: 'M12 4v16M7 20h10M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z',
+  pin: 'M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11zM14.5 10a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z',
 };
 
 interface IconProps {

@@ -131,6 +131,24 @@ export interface ShopAdminData {
   maxPrice: number;
 }
 
+/** Objet de l'onglet Poids (server/modules/inventory/weight_service.lua) */
+export interface WeightAdminItem {
+  name: string;
+  label: string;
+  type: string;
+  /** kg par unité */
+  weight: number;
+  /** valeur de la config */
+  default: number;
+}
+
+export interface WeightAdminData {
+  ok: boolean;
+  message?: string;
+  items: WeightAdminItem[];
+  maxWeight: number;
+}
+
 /** Caisse du panneau (server/modules/cases/case_config_service.lua) */
 export interface CaseAdminCase extends CaseDefinition {
   /** retirée de la page : plus vendue, celles déjà possédées s'ouvrent encore */

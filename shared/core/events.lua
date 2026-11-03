@@ -158,6 +158,7 @@ Events.client = {
     freeroamSettings = '7pvp:client:freeroamSettings',
     classEffect = '7pvp:client:classEffect',
     shopPrices = '7pvp:client:shopPrices',
+    itemWeights = '7pvp:client:itemWeights',
     cases = '7pvp:client:cases',
 }
 
@@ -272,6 +273,9 @@ Events.callbacks = {
     adminShop = 'admin:shop',
     adminShopSave = 'admin:shopSave',
     adminShopReset = 'admin:shopReset',
+    adminWeights = 'admin:weights',
+    adminWeightsSave = 'admin:weightsSave',
+    adminWeightsReset = 'admin:weightsReset',
     adminCases = 'admin:cases',
     adminCaseSave = 'admin:caseSave',
     adminCaseRemove = 'admin:caseRemove',
