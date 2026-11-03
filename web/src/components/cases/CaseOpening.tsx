@@ -78,15 +78,23 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
     const tiles = strip?.children;
     if (!viewport || !strip || !tiles || tiles.length < 2) return;
 
-    const first = tiles[0] as HTMLElement;
-    const step = (tiles[1] as HTMLElement).offsetLeft - first.offsetLeft;
-    const tileWidth = first.offsetWidth;
-    const jitter = (Math.random() - 0.5) * tileWidth * 0.8;
-    const target = (spin.winner - 1) * step + tileWidth / 2 + jitter - viewport.clientWidth / 2;
-    targetRef.current = target;
-
     strip.style.transition = 'none';
     strip.style.transform = 'translateX(0px)';
+
+    // Mesures à virgule : hors 1080p le rem n'est pas entier (ex. 21,33px en 1440p) et les
+    // offsetLeft arrondis faisaient dériver la roulette d'une case sur 48
+    const viewBox = viewport.getBoundingClientRect();
+    const ratio = viewBox.width > 0 ? viewport.offsetWidth / viewBox.width : 1;
+    const boxOf = (index: number) => (tiles[index] as HTMLElement).getBoundingClientRect();
+    const firstBox = boxOf(0);
+    const winnerBox = boxOf(Math.min(spin.winner, tiles.length) - 1);
+    const step = (boxOf(1).left - firstBox.left) * ratio;
+    const firstLeft = (firstBox.left - viewBox.left) * ratio;
+    const tileWidth = winnerBox.width * ratio;
+    const jitter = (Math.random() - 0.5) * tileWidth * 0.7;
+    const target = (winnerBox.left - viewBox.left) * ratio + tileWidth / 2 + jitter - viewport.clientWidth / 2;
+    targetRef.current = target;
+
     void strip.offsetWidth; // applique la position de départ avant de lancer la transition
     strip.style.transition = `transform ${spin.duration}s ${EASING}`;
     strip.style.transform = `translateX(${-target}px)`;
@@ -97,7 +105,7 @@ export function CaseOpening({ spin }: { spin: CaseSpin }) {
     const watch = () => {
       if (doneRef.current) return;
       const offset = -new DOMMatrix(getComputedStyle(strip).transform).m41;
-      const index = Math.floor((offset + viewport.clientWidth / 2) / step);
+      const index = Math.floor((offset + viewport.clientWidth / 2 - firstLeft) / step);
       if (index !== lastIndex) {
         if (lastIndex !== -1) playCaseTick();
         lastIndex = index;
