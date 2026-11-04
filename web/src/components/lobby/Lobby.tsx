@@ -12,6 +12,7 @@ const MODE_ACCENT: Record<string, string> = {
   pvp: 'zone-pvp',
   freeroam: 'zone-safe',
   cod: 'zone-pve',
+  tactical: 'zone-pvp',
 };
 
 /** Points forts affichés dans le détail du mode */
@@ -19,6 +20,7 @@ const MODE_FEATURES: Record<string, string[]> = {
   pvp: ['Équipes de 4', 'Zombies et largages', 'Sac perdu à la mort', 'Classement de saison'],
   freeroam: ['Armes et véhicules gratuits', 'PvP au choix', 'Aucune perte'],
   cod: ['4 modes de jeu', 'Classes et atouts', 'Séries d\'éliminations', 'Rangs à monter'],
+  tactical: ['De 2 contre 2 à 5 contre 5', 'Achats à chaque manche', '4 rôles et leurs capacités', 'Classement par divisions'],
 };
 
 const playersLabel = (count: number) =>

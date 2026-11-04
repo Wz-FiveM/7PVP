@@ -20,6 +20,8 @@ function ClockClient.loop()
         local hour, minute = Clock.time()
         if State.mode == 'cod' then
             ClockClient.forceSky(Config.Cod.sky)
+        elseif State.mode == 'tactical' then
+            ClockClient.forceSky(Config.Tactical.sky)
         elseif Dungeon.isInside() then
             ClockClient.forceSky(Config.Dungeon.sky)
         else

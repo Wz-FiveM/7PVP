@@ -1,6 +1,7 @@
 import type { NoclipInfo } from '../types/admin';
 import type { NuiMessage } from '../types/nui';
 import { mockCodBoard, mockCodCards, mockCodCatalog, mockCodProfile, mockCodProfilePrestige } from './codMocks';
+import { mockTacCatalog, mockTacDead, mockTacEnd, mockTacLineup, mockTacProfile, mockTacSelf, mockTacState } from './tacticalMocks';
 import { mockChatCommands, mockChatPlayers, mockCreator, mockInit, mockLobbyModes, mockVitals } from './mocks';
 import { mockVehicleCustom } from './vehicleCustomMock';
 import { mockWeaponCustom } from './weaponCustomMock';
@@ -32,6 +33,9 @@ function resetScreens(): void {
   sendNui({ action: 'codLoading', data: { open: false } });
   sendNui({ action: 'codLoadout', data: { open: false } });
   sendNui({ action: 'codPicker', data: { open: false } });
+  sendNui({ action: 'tacMenu', data: { open: false } });
+  sendNui({ action: 'tacHud', data: { open: false } });
+  sendNui({ action: 'tacEnd', data: false });
   sendNui({ action: 'chat', data: { open: false } });
   sendNui({ action: 'admin', data: { open: false } });
   sendNui({ action: 'pause', data: { open: false } });
@@ -277,6 +281,91 @@ export const DEV_SCREENS: DevScreen[] = [
           },
         },
       });
+    },
+  },
+  {
+    id: 'tac-menu',
+    label: 'Sabotage : menu',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'tactical' } });
+      sendNui({ action: 'tacMenu', data: { open: true, profile: mockTacProfile, catalog: mockTacCatalog, maps: 3 } });
+      sendNui({
+        action: 'tacQueue',
+        data: {
+          count: 6, needed: 4, max: 10, startIn: 14, names: ['Dev', 'Kaze', 'Nyx', 'Volt', 'Raven', 'Orca'],
+          players: mockTacLineup.players.map(({ name, role, rating, division }) => ({ name, role, rating, division })),
+        },
+      });
+    },
+  },
+  {
+    id: 'tac-hud',
+    label: 'Sabotage : partie',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'tactical' } });
+      sendNui({
+        action: 'tacHud',
+        data: { open: true, self: 1, team: 'alpha', role: 'smoker', map: { label: 'Terminal', place: 'Port de Los Santos' }, roundsToWin: 7, catalog: mockTacCatalog },
+      });
+      sendNui({ action: 'tacRound', data: { round: 9, attackers: 'bravo', attacking: false, buyTime: 30, scores: { alpha: 5, bravo: 3 }, overtime: false } });
+      sendNui({ action: 'tacSelf', data: mockTacSelf });
+      sendNui({ action: 'tacState', data: mockTacState('running', true) });
+      sendNui({ action: 'tacKill', data: { killer: 'Dev', killerTeam: 'alpha', victim: 'Raven', victimTeam: 'bravo', weapon: 'Carabine', headshot: true } });
+      sendNui({ action: 'tacKill', data: { killer: 'Volt', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'SMG', headshot: false } });
+      sendNui({ action: 'tacNotice', data: { text: 'Charge posée sur le site B', danger: true, big: true } });
+      sendNui({ action: 'tacAction', data: { kind: 'defuse', seconds: 7 } });
+      sendNui({ action: 'vitals', data: { ...mockVitals, weapon: 'weapon_carbinerifle', clip: 30, reserve: 180 } });
+    },
+  },
+  {
+    id: 'tac-lineup',
+    label: 'Sabotage : équipes (VS)',
+    open: () => {
+      resetScreens();
+      sendNui({ action: 'mode', data: { mode: 'tactical' } });
+      sendNui({ action: 'tacLineup', data: mockTacLineup });
+      sendNui({
+        action: 'tacHud',
+        data: { open: true, self: 1, team: 'alpha', role: 'smoker', map: { label: 'Terminal', place: 'Port de Los Santos' }, roundsToWin: 7, catalog: mockTacCatalog },
+      });
+    },
+  },
+  {
+    id: 'tac-dead',
+    label: 'Sabotage : mort (rapport)',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'tac-hud')?.open();
+      sendNui({ action: 'tacAction', data: { kind: false } });
+      sendNui({ action: 'tacDead', data: mockTacDead });
+    },
+  },
+  {
+    id: 'tac-buy',
+    label: 'Sabotage : achat',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'tac-hud')?.open();
+      sendNui({ action: 'tacAction', data: { kind: false } });
+      sendNui({ action: 'tacState', data: mockTacState('buy') });
+      sendNui({ action: 'tacBuy', data: { open: true } });
+    },
+  },
+  {
+    id: 'tac-scoreboard',
+    label: 'Sabotage : tableau',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'tac-hud')?.open();
+      sendNui({ action: 'tacScoreboard', data: { open: true } });
+    },
+  },
+  {
+    id: 'tac-end',
+    label: 'Sabotage : résultats',
+    open: () => {
+      DEV_SCREENS.find((screen) => screen.id === 'tac-hud')?.open();
+      sendNui({ action: 'tacHud', data: { open: false } });
+      sendNui({ action: 'tacEnd', data: mockTacEnd });
     },
   },
   {
@@ -925,7 +1014,7 @@ export const DEV_ACTIONS: DevAction[] = [
     label: 'CoD : kill',
     run: () => {
       sendNui({ action: 'codKill', data: { killer: 'Nyx', killerTeam: 'bravo', victim: 'Rook', victimTeam: 'alpha', weapon: 'WEAPON_GRENADE', headshot: false } });
-      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', killerId: 1, victimCard: mockCodCards.rook, victim: 'Rook', victimTeam: 'bravo', weapon: 'WEAPON_CARBINERIFLE', headshot: true } });
+      sendNui({ action: 'codKill', data: { killer: 'Wezor', killerTeam: 'alpha', killerId: 1, victimCard: mockCodCards.rook, victim: 'Rook', victimTeam: 'bravo', weapon: 'Carabine', headshot: true } });
       sendNui({ action: 'codKill', data: { killer: 'Rook', killerTeam: 'bravo', victim: 'Kaze', victimTeam: 'alpha', weapon: 'WEAPON_HEAVYSNIPER', headshot: false } });
       sendNui({ action: 'codKill', data: { killer: 'Kaze', killerTeam: 'alpha', victim: 'Nyx', victimTeam: 'bravo', streak: 'predator', headshot: false } });
       sendNui({ action: 'codKill', data: { victim: 'Kaze', victimTeam: 'alpha', headshot: false } });

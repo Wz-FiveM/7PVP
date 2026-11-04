@@ -4,6 +4,7 @@
 local VoiceService = PVP.define('VoiceService')
 local PlayerService = PVP.use('PlayerService')
 local CodService = PVP.use('CodService')
+local TacticalService = PVP.use('TacticalService')
 local Events = PVP.use('Events')
 
 VoiceService.INTERVAL = 1000 -- ms
@@ -77,6 +78,12 @@ end
 ---@return { proximity: boolean, mates: { id: integer, name: string }[] }
 function VoiceService.rulesOf(source, player)
     if not player.mode then return { proximity = false, mates = {} } end
+    if player.mode == 'tactical' then
+        -- Sabotage : proximité, et radio de l'équipe pendant toute la partie
+        local tactical = TacticalService.matchOf(source)
+        if not tactical or not tactical.stats[source] then return { proximity = false, mates = {} } end
+        return { proximity = true, mates = VoiceService.matesOf(source, tactical) }
+    end
     if player.mode ~= 'cod' then return { proximity = true, mates = {} } end
 
     local match = CodService.matchOf(source)

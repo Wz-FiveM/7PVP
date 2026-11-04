@@ -150,8 +150,8 @@ end
 ---tous restent dans le même groupe). Le serveur annule aussi ces touches, mais une touche annulée seule
 ---abîme la cible chez le tireur alors qu'elle reste en vie chez elle : il la voit tomber ou disparaître.
 function Group.updateFire()
-    -- En Call of Duty, seules les équipes de la partie comptent (Cod.applyTeam)
-    if State.mode == 'cod' then
+    -- En Call of Duty et en Sabotage, seules les équipes de la partie comptent (Cod.applyTeam)
+    if State.mode == 'cod' or State.mode == 'tactical' then
         if Group.firePed ~= 0 then
             Group.applyFire(false, false)
             Group.firePed = 0

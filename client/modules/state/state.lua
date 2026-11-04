@@ -13,7 +13,7 @@ State.downed = false
 State.zone = nil -- entrée de Config.Zones, nil = PvP libre, false = à recalculer
 State.menuOpen = false
 State.appearance = nil -- apparence du personnage, reçue au spawn
-State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam', 'cod'), nil = lobby ou création
+State.mode = nil -- mode de jeu en cours ('pvp', 'freeroam', 'cod', 'tactical'), nil = lobby ou création
 State.activity = nil -- mode de jeu du Freeroam en cours ('chase'), nil = Freeroam libre
 State.CHAR_ID_KEY = 'charId' -- state bag publié par server/modules/player/player_service.lua
 

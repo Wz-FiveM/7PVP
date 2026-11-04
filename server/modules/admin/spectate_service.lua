@@ -18,6 +18,7 @@ local CvcService = PVP.use('CvcService')
 local GunfightService = PVP.use('GunfightService')
 local GungameService = PVP.use('GungameService')
 local CodService = PVP.use('CodService')
+local TacticalService = PVP.use('TacticalService')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -52,7 +53,7 @@ end
 ---@return boolean
 function SpectateService.inActivity(source)
     if ChaseService.playerMatch[source] or CvcService.playerMatch[source] or GunfightService.isBusy(source) then return true end
-    if GungameService.isBusy(source) or CodService.isBusy(source) then return true end
+    if GungameService.isBusy(source) or CodService.isBusy(source) or TacticalService.playerMatch[source] then return true end
     for _, queue in ipairs({ ChaseService.queue, CvcService.queue }) do
         for _, queued in ipairs(queue) do
             if queued == source then return true end
@@ -71,7 +72,7 @@ function SpectateService.describe(source)
     if duel then return duel end
     local gungame = GungameService.describePlayer(source)
     if gungame then return gungame end
-    return CodService.describePlayer(source)
+    return CodService.describePlayer(source) or TacticalService.describePlayer(source)
 end
 
 ---Commence à regarder un joueur, ou passe à un autre si l'admin regarde déjà quelqu'un.

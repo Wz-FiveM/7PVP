@@ -11,6 +11,7 @@ local LeaderboardService = PVP.use('LeaderboardService')
 local SeasonService = PVP.use('SeasonService')
 local Progression = PVP.use('Progression')
 local CodService = PVP.use('CodService')
+local TacticalService = PVP.use('TacticalService')
 local CodProfileService = PVP.use('CodProfileService')
 local CvcService = PVP.use('CvcService')
 local ChaseService = PVP.use('ChaseService')
@@ -163,6 +164,7 @@ end
 function LiveService.activityOf(source)
     local codMatch = CodService.matches[CodService.playerMatch[source]]
     if codMatch then return codMatch.playlist.label end
+    if TacticalService.playerMatch[source] then return 'Sabotage' end
     if CvcService.playerMatch[source] then return Config.FreeroamActivities.cvc.label end
     if ChaseService.playerMatch[source] then return Config.FreeroamActivities.chase.label end
     if GungameService.playerMatch[source] then return Config.FreeroamActivities.gungame.label end
@@ -173,7 +175,7 @@ end
 
 ---@return table
 function LiveService.players()
-    local list, modes = {}, { lobby = 0, pvp = 0, freeroam = 0, cod = 0 }
+    local list, modes = {}, { lobby = 0, pvp = 0, freeroam = 0, cod = 0, tactical = 0 }
     for source, player in pairs(PlayerService.all()) do
         local mode = player.mode or 'lobby'
         modes[mode] = (modes[mode] or 0) + 1

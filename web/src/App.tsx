@@ -7,6 +7,7 @@ import { Cvc } from './components/activity/Cvc';
 import { Gunfight } from './components/activity/Gunfight';
 import { Gungame } from './components/activity/Gungame';
 import { Cod } from './components/cod/Cod';
+import { Tactical } from './components/tactical/Tactical';
 import { AdminPanel } from './components/admin/AdminPanel';
 import { NoclipHelp } from './components/admin/NoclipHelp';
 import { Chat } from './components/chat/Chat';
@@ -50,6 +51,7 @@ export function App() {
   const inPvp = !creating && !inLobby && state.mode === 'pvp';
   const inFreeroam = !creating && !inLobby && state.mode === 'freeroam';
   const inCod = !creating && !inLobby && state.mode === 'cod';
+  const inTactical = !creating && !inLobby && state.mode === 'tactical';
 
   return (
     <div className={isEnvBrowser() ? 'app app--browser' : 'app'}>
@@ -83,8 +85,9 @@ export function App() {
       {inFreeroam && <UiGuard name="gungame"><Gungame /></UiGuard>}
       {/* Toujours monté : le serveur peut ouvrir le menu juste après le changement de mode */}
       <UiGuard name="cod"><Cod visible={inCod} /></UiGuard>
+      <UiGuard name="tactical"><Tactical visible={inTactical} /></UiGuard>
       <UiGuard name="voice"><VoiceIndicator /></UiGuard>
-      {(inPvp || inFreeroam || inCod) && !state.menu.open && !state.freeroam.menuOpen && !customizing && (
+      {(inPvp || inFreeroam || inCod || inTactical) && !state.menu.open && !state.freeroam.menuOpen && !customizing && (
         <UiGuard name="chat" onCrash={actions.closeChat}><Chat /></UiGuard>
       )}
       {!creating && !inLobby && state.admin.open && <UiGuard name="admin" onCrash={actions.closeAdmin}><AdminPanel /></UiGuard>}

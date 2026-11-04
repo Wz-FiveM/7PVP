@@ -10,6 +10,9 @@ import type {
 import type {
   CodCardData, CodCatalog, CodDeadData, CodEndData, CodHudData, CodKillcamData, CodKillData, CodLoadingData, CodMedalData, CodProfile, CodPartyData, CodQueueData, CodWzShopItem, CodWzState, CodRoundEndData, CodStateData, CodStreakState, CodTabletStatus,
 } from './cod';
+import type {
+  TacCatalog, TacDead, TacEnd, TacHud, TacKill, TacLineup, TacNotice, TacProfile, TacQueue, TacRound, TacRoundEnd, TacSelf, TacState,
+} from './tactical';
 
 /** Messages envoyés par Lua via `Nui.send(action, data)` */
 export type NuiMessage =
@@ -150,6 +153,22 @@ export type NuiMessage =
   | { action: 'codTablet'; data: { state: 'opening' | 'flying' | 'lost' | false; seconds?: number; title?: string; help?: string[]; clear?: boolean } }
   | { action: 'codTabletStatus'; data: CodTabletStatus }
   | { action: 'codEnd'; data: CodEndData }
+  | { action: 'tacMenu'; data: { open: boolean; profile?: TacProfile; maps?: number; catalog?: TacCatalog } }
+  | { action: 'tacQueue'; data: TacQueue | false }
+  | { action: 'tacHud'; data: { open: boolean } & Partial<TacHud> }
+  | { action: 'tacRound'; data: TacRound }
+  | { action: 'tacSelf'; data: TacSelf }
+  | { action: 'tacState'; data: TacState }
+  | { action: 'tacKill'; data: TacKill }
+  | { action: 'tacDead'; data: TacDead }
+  | { action: 'tacLineup'; data: TacLineup }
+  | { action: 'tacRoundEnd'; data: TacRoundEnd }
+  | { action: 'tacEnd'; data: TacEnd | false }
+  | { action: 'tacAction'; data: { kind: string | false; seconds?: number } }
+  | { action: 'tacNotice'; data: TacNotice }
+  | { action: 'tacBuy'; data: { open: boolean } }
+  | { action: 'tacScoreboard'; data: { open: boolean } }
+  | { action: 'tacOutside'; data: { outside: boolean } }
   | { action: 'speedometer'; data: SpeedometerData }
   | { action: 'alive'; data?: undefined };
 

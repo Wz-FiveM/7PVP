@@ -34,4 +34,12 @@ Config.Lobby.Modes = {
         bucket = Config.Cod.bucket,
         enabled = true,
     },
+    {
+        id = 'tactical',
+        label = 'Sabotage',
+        tagline = 'Tactique en manches',
+        description = 'Deux équipes, une seule vie par manche : achète ton équipement, pose la charge ou désamorce-la. Rôles et capacités.',
+        bucket = Config.Tactical.bucket,
+        enabled = true,
+    },
 }

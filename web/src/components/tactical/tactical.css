@@ -1,0 +1,1748 @@
+/* Mode Sabotage : D.A Opérations (Nuit, Acier, Signal), ton équipe en Abri, l'adversaire en Hazard.
+   Règles NUI : ni blur ni filter, tailles en rem. */
+
+.tac {
+  --tac-friend: var(--abri);
+  --tac-enemy: var(--hazard);
+  --tac-line: rgba(236, 238, 232, 0.14);
+  --tac-panel: rgba(12, 14, 13, 0.86);
+  position: absolute;
+  inset: 0;
+  color: var(--os);
+  pointer-events: none;
+}
+.tac[hidden] {
+  display: none;
+}
+.tac button {
+  pointer-events: auto;
+}
+.tac-friend {
+  color: var(--tac-friend);
+}
+.tac-enemy {
+  color: var(--tac-enemy);
+}
+
+.tac-card {
+  background: var(--tac-panel);
+  border: 0.0625rem solid var(--tac-line);
+  box-shadow: var(--ombre);
+  padding: 1rem 1.125rem;
+}
+
+/* Rôles et divisions ------------------------------------------------------ */
+
+.tac-role--scout { --role-color: #9ad14b; }
+.tac-role--smoker { --role-color: #b49cff; }
+.tac-role--warden { --role-color: #f0c33c; }
+.tac-role--medic { --role-color: #5fd1e8; }
+
+.tac-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--nuit);
+  background: var(--role-color, var(--signal));
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.tac-role-badge__icon {
+  width: 58%;
+  height: 58%;
+}
+.tac-role-badge--s { width: 1.375rem; height: 1.5rem; }
+.tac-role-badge--m { width: 2.375rem; height: 2.625rem; }
+.tac-role-badge--l { width: 3.25rem; height: 3.625rem; }
+.tac-role-badge--xl { width: 17rem; height: 19rem; }
+.tac-role-badge--xl .tac-role-badge__icon { width: 50%; height: 50%; }
+
+.tac-division {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.1875rem 0.625rem;
+  border: 0.0625rem solid var(--division, var(--brume));
+  color: var(--division, var(--brume));
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tac-division__rating {
+  color: var(--os);
+  font-size: 0.8125rem;
+}
+.tac-division--0 { --division: #c08457; }
+.tac-division--1 { --division: #b9c2c7; }
+.tac-division--2 { --division: #f0c33c; }
+.tac-division--3 { --division: #5fd1e8; }
+.tac-division--4 { --division: #9fd8ff; }
+.tac-division--5 { --division: #ff5a3c; }
+
+/* Boutons communs --------------------------------------------------------- */
+
+.tac-play__start {
+  min-width: 20rem;
+  height: 4.25rem;
+  padding: 0 2rem;
+  border: none;
+  background: var(--signal);
+  color: var(--nuit);
+  box-shadow: var(--ombre-bouton);
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.tac-play__start:hover:not(:disabled) {
+  background: var(--critique);
+}
+.tac-play__start--on {
+  background: var(--hazard);
+}
+.tac-play__start--on:hover:not(:disabled) {
+  background: #ff7558;
+}
+.tac-play__start:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tac-play__side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-width: 14rem;
+  height: 3rem;
+  padding: 0 1.25rem;
+  background: var(--acier);
+  border: 0.0625rem solid var(--trait);
+  color: var(--os);
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.tac-play__side-button:hover {
+  border-color: var(--signal);
+}
+.tac-play__side-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Menu du mode : barre ---------------------------------------------------- */
+
+.tac-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  overflow: hidden;
+}
+.tac-menu__veil {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(26, 30, 28, 0.82) 0%, rgba(12, 14, 13, 0.96) 70%),
+    linear-gradient(180deg, rgba(12, 14, 13, 0.6), rgba(12, 14, 13, 0.9));
+}
+.tac-menu__bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  height: 4.5rem;
+  padding: 0 2.5rem;
+  background: rgba(12, 14, 13, 0.72);
+  border-bottom: 0.0625rem solid var(--tac-line);
+}
+.tac-menu__back {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  justify-self: start;
+  background: none;
+  border: none;
+  color: var(--brume-hi);
+  cursor: pointer;
+}
+.tac-menu__back:hover {
+  color: var(--os);
+}
+.tac-menu__back-arrow {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+.tac-menu__crumb {
+  color: var(--os);
+  font-size: 1.375rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tac-menu__tabs {
+  display: flex;
+  align-items: stretch;
+}
+.tac-menu__tab {
+  padding: 0 1.75rem;
+  background: none;
+  border: none;
+  color: var(--brume);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.tac-menu__tab:hover {
+  color: var(--os);
+}
+.tac-menu__tab--on {
+  color: var(--os);
+  box-shadow: inset 0 -0.1875rem 0 var(--signal);
+}
+.tac-menu__tab--main {
+  min-width: 15rem;
+  margin: 0 1rem;
+  background: var(--acier);
+  font-size: 2rem;
+  clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+}
+.tac-menu__tab--main.tac-menu__tab--on {
+  background: var(--signal);
+  color: var(--nuit);
+  box-shadow: none;
+}
+.tac-menu__me {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 0.875rem;
+}
+.tac-menu__me-name {
+  font-weight: 700;
+}
+
+/* Menu du mode : Jouer ---------------------------------------------------- */
+
+.tac-play {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr) 14rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 1rem 2rem;
+  padding: 1.5rem 2.5rem 2.25rem;
+}
+.tac-play__status {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 3.5rem;
+  text-align: center;
+}
+.tac-play__clock {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+.tac-play__info {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.tac-play__line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 0.0625rem solid var(--tac-line);
+}
+.tac-play__line strong {
+  font-size: 1.375rem;
+  text-transform: uppercase;
+}
+.tac-play__stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.875rem 0.5rem;
+  margin-top: 1.25rem;
+}
+.tac-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.tac-stat__value {
+  font-size: 1.5rem;
+}
+.tac-play__banners {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.125rem;
+}
+.tac-play__extra {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: center;
+  font-size: 1.25rem;
+  color: var(--brume-hi);
+}
+.tac-play__actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.tac-play__warning {
+  position: absolute;
+  bottom: 0.625rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--hazard);
+  font-size: 0.875rem;
+}
+
+/* Bannière d'un joueur */
+.tac-banner-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 11rem;
+  min-width: 0;
+  height: 24rem;
+}
+.tac-banner-card__art {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--carbone);
+  border: 0.0625rem solid var(--tac-line);
+  border-bottom: none;
+}
+.tac-banner-card__art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, var(--role-color, var(--brume)) 0%, transparent 80%);
+  opacity: 0.5;
+}
+.tac-banner-card__art::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0 0.375rem, transparent 0.375rem 0.875rem);
+}
+.tac-banner-card__ghost {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.25rem;
+  writing-mode: vertical-rl;
+  font-size: 4.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--os);
+  opacity: 0.08;
+}
+.tac-banner-card__icon {
+  position: relative;
+  z-index: 1;
+  width: 5.5rem;
+  height: 5.5rem;
+  color: var(--os);
+}
+.tac-banner-card__status {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  text-align: center;
+  font-size: 0.6875rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.tac-banner-card__plate {
+  padding: 0.375rem 0.5rem;
+  background: var(--os);
+  color: var(--nuit);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tac-banner-card__foot {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.5rem 2rem;
+  background: var(--acier);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%);
+}
+.tac-banner-card--me {
+  flex-basis: 12.5rem;
+  flex-shrink: 0.6;
+  height: 27rem;
+}
+.tac-banner-card--me .tac-banner-card__art {
+  border-color: var(--signal);
+}
+.tac-banner-card--me .tac-banner-card__plate {
+  background: var(--signal);
+}
+.tac-banner-card--me .tac-banner-card__icon {
+  width: 6.5rem;
+  height: 6.5rem;
+}
+.tac-banner-card--empty {
+  height: 21rem;
+  flex-basis: 11rem;
+  align-items: center;
+  justify-content: center;
+  border: 0.0625rem dashed rgba(236, 238, 232, 0.16);
+  background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 0.375rem, transparent 0.375rem 0.875rem);
+}
+.tac-banner-card__slot {
+  color: var(--brume);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Menu du mode : Rôles ---------------------------------------------------- */
+
+.tac-roles-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  padding: 1rem 4rem 2rem;
+  overflow: hidden;
+}
+.tac-roles-view__ghost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 8.5rem;
+  line-height: 0.88;
+  text-transform: uppercase;
+  color: var(--role-color);
+  opacity: 0.07;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.tac-roles-view__emblem {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.tac-roles-view__emblem::before {
+  content: '';
+  position: absolute;
+  width: 21rem;
+  height: 23.5rem;
+  background: rgba(236, 238, 232, 0.06);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+}
+.tac-roles-view__detail {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  max-width: 34rem;
+  padding-left: 1.5rem;
+  border-left: 0.0625rem solid var(--tac-line);
+}
+.tac-roles-view__kind {
+  letter-spacing: 0.32em;
+}
+.tac-roles-view__name {
+  font-size: 6rem;
+  line-height: 0.9;
+  color: var(--role-color);
+  text-transform: uppercase;
+}
+.tac-roles-view__tabs {
+  display: flex;
+  gap: 0.125rem;
+  margin-top: 1.5rem;
+}
+.tac-roles-view__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: 5.25rem;
+  padding: 0.375rem 0 0.625rem;
+  background: rgba(236, 238, 232, 0.05);
+  border: none;
+  color: var(--brume);
+  cursor: pointer;
+}
+.tac-roles-view__tab:hover {
+  color: var(--os);
+}
+.tac-roles-view__tab--on {
+  background: rgba(236, 238, 232, 0.14);
+  color: var(--os);
+  box-shadow: inset 0 0.1875rem 0 var(--role-color);
+}
+.tac-roles-view__tab-key {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.tac-roles-view__tab-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.tac-roles-view__tab-icon--text {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.75rem;
+  text-align: center;
+}
+.tac-roles-view__text {
+  margin-top: 1.25rem;
+  min-height: 9rem;
+}
+.tac-roles-view__text h3 {
+  font-size: 1.75rem;
+  text-transform: uppercase;
+}
+.tac-roles-view__text p {
+  margin-top: 0.25rem;
+  color: var(--brume-hi);
+  line-height: 1.5;
+}
+.tac-roles-view__lead {
+  color: var(--os) !important;
+  font-size: 1.0625rem;
+}
+.tac-roles-view__cost {
+  display: block;
+  margin-top: 0.625rem;
+  color: var(--signal);
+  font-size: 0.875rem;
+}
+.tac-roles-view__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  list-style: none;
+}
+.tac-roles-view__list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.tac-roles-view__foot {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+.tac-roles-view__actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.tac-roles-view__choose {
+  min-width: 18rem;
+  height: 3.5rem;
+  font-size: 1.625rem;
+}
+.tac-roles-view__picker {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem solid var(--tac-line);
+}
+.tac-role-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  width: 7.5rem;
+  height: 6rem;
+  background: var(--acier);
+  border: 0.0625rem solid var(--trait);
+  color: var(--brume-hi);
+  cursor: pointer;
+}
+.tac-role-tile:hover {
+  color: var(--os);
+}
+.tac-role-tile__icon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--role-color);
+}
+.tac-role-tile__name {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tac-role-tile--viewed {
+  background: var(--acier-hi);
+  border-color: var(--role-color);
+  color: var(--os);
+  box-shadow: inset 0 -0.1875rem 0 var(--role-color);
+}
+.tac-role-tile--chosen::after {
+  content: '';
+  position: absolute;
+  top: 0.4375rem;
+  right: 0.4375rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--signal);
+  transform: rotate(45deg);
+}
+
+/* Menu du mode : Classement ----------------------------------------------- */
+
+.tac-board-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  padding: 2rem 2.5rem;
+  overflow-y: auto;
+}
+.tac-board {
+  width: min(60rem, 100%);
+  align-self: flex-start;
+}
+
+.tac-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.tac-table th {
+  padding: 0.375rem 0.5rem;
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brume);
+  border-bottom: 0.0625rem solid var(--tac-line);
+}
+.tac-table td {
+  padding: 0.4375rem 0.5rem;
+  border-bottom: 0.0625rem solid rgba(236, 238, 232, 0.05);
+}
+.tac-table__me td {
+  background: rgba(240, 195, 60, 0.1);
+}
+.tac-table__dead td {
+  opacity: 0.45;
+}
+.tac-table__friend td:nth-child(2) {
+  color: var(--tac-friend);
+}
+.tac-table__enemy td:nth-child(2) {
+  color: var(--tac-enemy);
+}
+
+/* Présentation des équipes ------------------------------------------------ */
+
+.tac-lineup {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 12rem minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem 2rem;
+  padding: 2.5rem 3rem 3rem;
+  background: radial-gradient(ellipse at 50% 40%, #1d2220 0%, var(--nuit) 72%);
+}
+.tac-lineup__map {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+.tac-lineup__map h1 {
+  font-size: 7rem;
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tac-lineup__mode {
+  color: var(--signal);
+}
+.tac-lineup__team {
+  grid-row: 2;
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.tac-lineup__team--friend {
+  grid-column: 1;
+}
+.tac-lineup__team--enemy {
+  grid-column: 3;
+}
+.tac-lineup__title {
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+.tac-lineup__team--friend .tac-lineup__title {
+  color: var(--tac-friend);
+}
+.tac-lineup__team--enemy .tac-lineup__title {
+  color: var(--tac-enemy);
+  text-align: right;
+}
+.tac-lineup__row {
+  display: flex;
+  height: 5.25rem;
+  background: var(--carbone);
+  animation: tac-slide 0.4s ease-out both;
+}
+.tac-lineup__team--enemy .tac-lineup__row {
+  flex-direction: row-reverse;
+  animation-name: tac-slide-left;
+}
+.tac-lineup__row--me {
+  box-shadow: inset 0 0 0 0.0625rem var(--signal);
+}
+.tac-lineup__portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 7.5rem;
+  background: var(--acier-hi);
+  border-left: 0.25rem solid var(--tac-friend);
+}
+.tac-lineup__team--enemy .tac-lineup__portrait {
+  border-left: none;
+  border-right: 0.25rem solid var(--tac-enemy);
+}
+.tac-lineup__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--role-color);
+}
+.tac-lineup__name {
+  max-width: 6.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.tac-lineup__strip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.375rem;
+  padding: 0 1.25rem;
+  background: linear-gradient(90deg, rgba(236, 238, 232, 0.07), transparent);
+}
+.tac-lineup__team--enemy .tac-lineup__strip {
+  align-items: flex-end;
+  background: linear-gradient(270deg, rgba(236, 238, 232, 0.07), transparent);
+}
+.tac-lineup__role {
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--role-color);
+  text-transform: uppercase;
+}
+.tac-lineup__versus {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 7rem;
+  height: 7rem;
+  background: var(--carbone);
+  border: 0.125rem solid var(--trait);
+  transform: rotate(45deg);
+}
+.tac-lineup__versus span {
+  transform: rotate(-45deg);
+  font-size: 3rem;
+}
+@keyframes tac-slide {
+  from { opacity: 0; transform: translateX(-1.5rem); }
+}
+@keyframes tac-slide-left {
+  from { opacity: 0; transform: translateX(1.5rem); }
+}
+
+/* Menu d'achat ------------------------------------------------------------ */
+
+.tac-buy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 14, 13, 0.62);
+  pointer-events: auto;
+}
+.tac-buy__panel {
+  width: min(112rem, 96vw);
+  max-height: 94vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--tac-panel);
+  border: 0.0625rem solid var(--tac-line);
+  box-shadow: var(--ombre);
+}
+.tac-buy__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 0.0625rem solid var(--tac-line);
+}
+.tac-buy__title {
+  font-size: 2.25rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.tac-buy__timer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+  margin-left: auto;
+}
+.tac-buy__timer .disp {
+  font-size: 2rem;
+  line-height: 1;
+}
+.tac-buy__body {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr) 15rem;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+.tac-buy__category {
+  padding-bottom: 0.25rem;
+  border-bottom: 0.0625rem solid var(--tac-line);
+}
+.tac-buy__team {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.tac-buy__mate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--panneau-clair);
+  border-left: 0.1875rem solid var(--tac-friend);
+}
+.tac-buy__mate--me {
+  background: rgba(240, 195, 60, 0.08);
+  border-left-color: var(--signal);
+}
+.tac-buy__mate--dead {
+  opacity: 0.45;
+}
+.tac-buy__mate-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tac-buy__mate-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.tac-buy__mate-money {
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--signal);
+}
+.tac-buy__mate-cash {
+  font-size: 0.8125rem;
+  color: var(--signal);
+}
+.tac-buy__mate-weapon {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 1.75rem;
+  object-fit: contain;
+  object-position: left center;
+}
+.tac-buy__mate-none {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--brume);
+}
+.tac-buy__arsenal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.tac-buy__columns {
+  display: grid;
+  gap: 0.875rem;
+}
+.tac-buy__column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+.tac-buy__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+}
+.tac-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 1.25rem 0.5rem 0.5rem;
+  background: var(--panneau-clair);
+  border: 0.0625rem solid var(--tac-line);
+  color: var(--os);
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+}
+.tac-item:hover:not(:disabled) {
+  border-color: var(--signal);
+}
+.tac-item:disabled {
+  cursor: default;
+}
+.tac-item--owned {
+  border-color: var(--tac-friend);
+  background: rgba(95, 209, 232, 0.1);
+}
+.tac-item--locked {
+  opacity: 0.38;
+}
+.tac-item__price {
+  position: absolute;
+  top: 0.3125rem;
+  left: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--signal);
+}
+.tac-item--owned .tac-item__price {
+  color: var(--tac-friend);
+}
+.tac-item__image {
+  width: 100%;
+  height: 2.75rem;
+  object-fit: contain;
+}
+.tac-item__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.tac-item__armor {
+  font-size: 2rem;
+  line-height: 1.375;
+  color: var(--armure);
+}
+.tac-buy__abilities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+}
+.tac-buy__ability-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+.tac-ability-tile {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--panneau-clair);
+  border: 0.0625rem solid var(--tac-line);
+}
+.tac-ability-tile--charged {
+  border-color: rgba(236, 238, 232, 0.32);
+}
+.tac-ability-tile--ult {
+  box-shadow: inset 0.1875rem 0 0 var(--signal);
+}
+.tac-ability-tile__icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.tac-ability-tile__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  min-width: 0;
+}
+.tac-ability-tile__text strong {
+  font-size: 0.875rem;
+}
+.tac-ability-tile__actions {
+  display: flex;
+  gap: 0.25rem;
+}
+.tac-ability-tile__note {
+  font-size: 0.75rem;
+  color: var(--brume-hi);
+}
+.tac-buy__detail {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1rem;
+  background: var(--panneau-clair);
+  border-left: 0.1875rem solid var(--signal);
+}
+.tac-buy__detail-name {
+  font-size: 2rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.tac-buy__detail-image {
+  width: 100%;
+  height: 6rem;
+  margin: 0.5rem 0;
+  object-fit: contain;
+}
+.tac-buy__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+.tac-buy__facts dt {
+  color: var(--brume);
+}
+.tac-buy__facts dd {
+  text-align: right;
+}
+.tac-buy__loadout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 0.0625rem solid var(--tac-line);
+  font-size: 0.875rem;
+}
+.tac-buy__foot {
+  padding: 0.625rem 1.25rem;
+  border-top: 0.0625rem solid var(--tac-line);
+  font-size: 0.8125rem;
+}
+
+.tac-charges {
+  display: inline-flex;
+  gap: 0.1875rem;
+}
+.tac-charges__pip {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 0.0625rem solid var(--brume);
+  transform: rotate(45deg);
+}
+.tac-charges__pip--on {
+  background: var(--os);
+  border-color: var(--os);
+}
+.tac-charges__pip--ult.tac-charges__pip--on {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+/* HUD --------------------------------------------------------------------- */
+
+.tac-hud {
+  position: absolute;
+  inset: 0;
+  text-shadow: var(--ombre-texte);
+}
+
+.tac-top {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.tac-top__score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.5rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--tac-panel);
+  border-bottom: 0.1875rem solid currentColor;
+}
+.tac-top__score .disp {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+.tac-top__score .label {
+  color: var(--brume-hi);
+  font-size: 0.6875rem;
+}
+.tac-top__clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 7.5rem;
+  padding: 0.25rem 1rem;
+  background: var(--tac-panel);
+  border-bottom: 0.1875rem solid var(--signal);
+}
+.tac-top__clock .disp {
+  font-size: 2rem;
+  line-height: 1.05;
+}
+.tac-top__clock--bomb {
+  border-bottom-color: var(--hazard);
+  color: var(--hazard);
+  animation: tac-pulse 1s ease-in-out infinite;
+}
+@keyframes tac-pulse {
+  50% { background: rgba(255, 90, 60, 0.22); }
+}
+.tac-roster {
+  display: flex;
+  gap: 0.25rem;
+}
+.tac-roster--enemy {
+  flex-direction: row-reverse;
+}
+.tac-roster__face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.5rem;
+  background: var(--tac-panel);
+  color: var(--role-color);
+  border-bottom: 0.1875rem solid var(--tac-friend);
+}
+.tac-roster--enemy .tac-roster__face {
+  border-bottom-color: var(--tac-enemy);
+}
+.tac-roster__icon {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+.tac-roster__face--dead {
+  opacity: 0.35;
+  color: var(--brume);
+  border-bottom-color: transparent !important;
+}
+
+.tac-banner {
+  position: absolute;
+  top: 34%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  text-align: center;
+}
+.tac-banner strong {
+  font-size: 4rem;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.tac-phase {
+  position: absolute;
+  top: 6.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tac-phase__side {
+  padding: 0.375rem 1rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--tac-panel);
+}
+.tac-phase__side--attack {
+  box-shadow: inset 0 -0.1875rem 0 var(--hazard);
+}
+.tac-phase__side--defend {
+  box-shadow: inset 0 -0.1875rem 0 var(--abri);
+}
+.tac-phase__hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+}
+.tac-phase__overtime {
+  margin-left: 0.75rem;
+  padding: 0.0625rem 0.5rem;
+  background: var(--signal);
+  color: var(--nuit);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.tac-killfeed {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+.tac-kill {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.3125rem 0.75rem;
+  background: var(--tac-panel);
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+.tac-kill__weapon {
+  color: var(--brume-hi);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.tac-notices {
+  position: absolute;
+  top: 11rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+}
+.tac-notice {
+  padding: 0.375rem 1rem;
+  background: var(--tac-panel);
+  font-weight: 600;
+  animation: tac-in 0.2s ease-out;
+}
+.tac-notice--big {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: none;
+}
+.tac-notice--friend {
+  box-shadow: inset 0.1875rem 0 0 var(--tac-friend);
+}
+.tac-notice--enemy {
+  box-shadow: inset 0.1875rem 0 0 var(--tac-enemy);
+}
+.tac-notice--danger {
+  color: var(--hazard);
+}
+@keyframes tac-in {
+  from { opacity: 0; transform: translateY(-0.5rem); }
+}
+
+.tac-action {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  width: 18rem;
+}
+.tac-action__bar {
+  width: 100%;
+  height: 0.5rem;
+  background: rgba(236, 238, 232, 0.15);
+}
+.tac-action__bar div {
+  height: 100%;
+  background: var(--signal);
+}
+
+.tac-outside {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1.25rem;
+  background: rgba(255, 90, 60, 0.85);
+  color: var(--nuit);
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.tac-round-end {
+  position: absolute;
+  top: 30%;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1.25rem 0;
+  background: linear-gradient(90deg, transparent, rgba(12, 14, 13, 0.85) 25%, rgba(12, 14, 13, 0.85) 75%, transparent);
+  animation: tac-in 0.25s ease-out;
+}
+.tac-round-end strong {
+  font-size: 3.5rem;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.tac-round-end--won strong {
+  color: var(--tac-friend);
+}
+.tac-round-end--lost strong {
+  color: var(--tac-enemy);
+}
+
+/* Rapport de combat (à la mort) */
+.tac-report {
+  position: absolute;
+  top: 9rem;
+  right: 1.5rem;
+  width: 23rem;
+  background: var(--tac-panel);
+  border-top: 0.1875rem solid var(--hazard);
+  text-shadow: none;
+  animation: tac-in 0.25s ease-out;
+}
+.tac-report__killer {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(90deg, rgba(255, 90, 60, 0.24), transparent);
+}
+.tac-report__who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.375rem;
+}
+.tac-report__who strong {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.tac-report__weapon {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--brume-hi);
+}
+.tac-report__table {
+  padding: 0.75rem 1rem 0.25rem;
+}
+.tac-report__columns,
+.tac-report__row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) 4.5rem;
+  align-items: center;
+}
+.tac-report__columns {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+}
+.tac-report__columns span:last-child {
+  text-align: right;
+}
+.tac-report__row {
+  padding: 0.375rem 0;
+  border-top: 0.0625rem solid rgba(236, 238, 232, 0.06);
+}
+.tac-report__row--killer {
+  background: rgba(255, 90, 60, 0.08);
+}
+.tac-report__value {
+  display: flex;
+  flex-direction: column;
+}
+.tac-report__value strong {
+  font-size: 1.125rem;
+  color: var(--tac-friend);
+}
+.tac-report__value span {
+  font-size: 0.6875rem;
+}
+.tac-report__value--taken {
+  align-items: flex-end;
+}
+.tac-report__value--taken strong {
+  color: var(--tac-enemy);
+}
+.tac-report__enemy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.tac-report__foot {
+  padding: 0.5rem 1rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.tac-bottom {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5rem;
+}
+.tac-abilities {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tac-ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 5.5rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--tac-panel);
+  border-bottom: 0.1875rem solid rgba(236, 238, 232, 0.15);
+  opacity: 0.55;
+}
+.tac-ability--ready {
+  opacity: 1;
+  border-bottom-color: var(--os);
+}
+.tac-ability--ult.tac-ability--ready {
+  border-bottom-color: var(--signal);
+}
+.tac-ability__icon {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+.tac-ability__name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.tac-ability__count {
+  font-size: 0.875rem;
+}
+.tac-wallet {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--tac-panel);
+}
+.tac-wallet__money {
+  font-size: 1.5rem;
+  color: var(--signal);
+}
+.tac-wallet__gear {
+  font-size: 0.8125rem;
+  color: var(--brume-hi);
+}
+
+.tac-scoreboard {
+  position: absolute;
+  top: 7rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(62rem, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-shadow: none;
+}
+.tac-scoreboard__team {
+  background: var(--tac-panel);
+  border-top: 0.1875rem solid var(--team);
+}
+.tac-scoreboard__team--friend { --team: var(--tac-friend); }
+.tac-scoreboard__team--enemy { --team: var(--tac-enemy); }
+.tac-scoreboard__team header {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  color: var(--team);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+/* Résultats --------------------------------------------------------------- */
+
+.tac-end {
+  --end-color: var(--signal);
+  --end-tint: rgba(240, 195, 60, 0.22);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 3rem 1.75rem;
+  background: linear-gradient(180deg, var(--end-tint) 0%, rgba(12, 14, 13, 0.97) 58%), var(--nuit);
+  pointer-events: auto;
+  overflow: hidden;
+}
+.tac-end--won {
+  --end-color: var(--tac-friend);
+  --end-tint: rgba(95, 209, 232, 0.3);
+}
+.tac-end--lost {
+  --end-color: var(--tac-enemy);
+  --end-tint: rgba(255, 90, 60, 0.28);
+}
+.tac-end__word {
+  position: absolute;
+  top: 0.5rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15rem;
+  line-height: 0.85;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--end-color);
+  opacity: 0.85;
+  text-shadow: 0 0.5rem 2.5rem rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.tac-end__score {
+  position: absolute;
+  top: 1.5rem;
+  font-size: 4.5rem;
+  line-height: 1;
+}
+.tac-end__score--mine {
+  left: 2.5rem;
+  color: var(--tac-friend);
+}
+.tac-end__score--enemy {
+  right: 2.5rem;
+  color: var(--tac-enemy);
+}
+.tac-end__head {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 12.5rem;
+}
+.tac-end__cards {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  gap: 1.125rem;
+  margin: auto 0;
+}
+.tac-end-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 14rem;
+  background: var(--tac-panel);
+  border: 0.0625rem solid var(--tac-line);
+  animation: tac-in 0.35s ease-out both;
+}
+.tac-end-card__art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 11rem;
+  overflow: hidden;
+  background: var(--carbone);
+}
+.tac-end-card__art::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(170deg, var(--role-color, var(--brume)) 0%, transparent 85%);
+  opacity: 0.5;
+}
+.tac-end-card__icon {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  color: var(--os);
+}
+.tac-end-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.75rem 0.5rem 1rem;
+  text-align: center;
+}
+.tac-end-card__name {
+  max-width: 100%;
+  margin-bottom: 0.625rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.125rem;
+}
+.tac-end-card__kda {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.tac-end-card__score {
+  margin-top: 0.625rem;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.tac-end-card--me .tac-end-card__name {
+  color: var(--signal);
+}
+.tac-end-card--mvp {
+  border-color: var(--signal);
+}
+.tac-end-card--mvp .tac-end-card__body {
+  background: linear-gradient(180deg, rgba(240, 195, 60, 0.24), transparent);
+}
+.tac-end-card__mvp {
+  position: absolute;
+  top: -1.125rem;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 0.125rem 0.875rem;
+  background: var(--signal);
+  color: var(--nuit);
+  font-size: 1.125rem;
+  letter-spacing: 0.15em;
+}
+.tac-end__table {
+  position: relative;
+  width: min(70rem, 100%);
+  margin: auto 0;
+  background: var(--tac-panel);
+}
+.tac-end__mvp-tag {
+  margin-left: 0.5rem;
+  padding: 0 0.375rem;
+  background: var(--signal);
+  color: var(--nuit);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+.tac-end__foot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.tac-end__rating {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.tac-end__change {
+  font-size: 2rem;
+  line-height: 1;
+}
+.tac-end__promoted {
+  color: var(--signal);
+  font-weight: 700;
+}
+.tac-end__buttons {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.tac-end__continue {
+  min-width: 16rem;
+  height: 3.5rem;
+  font-size: 1.75rem;
+}
+.tac-end__timer {
+  font-size: 0.8125rem;
+}

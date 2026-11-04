@@ -41,6 +41,7 @@ function Presence.status()
         return config.freeroam
     end
     if State.mode == 'cod' then return config.cod end
+    if State.mode == 'tactical' then return config.tactical end
     return config.lobby
 end
 
