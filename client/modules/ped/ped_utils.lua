@@ -8,6 +8,9 @@ PedUtils.INTERIOR_TIMEOUT = 10000 -- ms pour qu'un intérieur souterrain soit ch
 PedUtils.SPOT_WAIT = 50
 PedUtils.SPOT_DROP = 10.0 -- un sol plus bas est celui de l'étage du dessous (sol des tunnels Doomsday : jusqu'à 5 m sous leur origine)
 PedUtils.SPOT_SNAP = 25.0
+PedUtils.FLOOR_DEPTH = 40.0 -- sous un point souterrain, sol cherché jusque-là s'il a un plafond au-dessus
+PedUtils.FLOORS = 8 -- surfaces traversées au plus (toits des intérieurs) pour le trouver
+PedUtils.CEILING_HEIGHT = 30.0
 
 ---Server id du joueur qui a tué `ped`, ou nil (PNJ, chute, suicide...).
 ---@param ped integer
@@ -80,8 +83,14 @@ function PedUtils.findSpot(x, y, z)
     local interior = PedUtils.waitInterior(wanted)
     for _ = 1, PedUtils.SPOT_ATTEMPTS do
         RequestCollisionAtCoord(x, y, z)
-        local found, ground = GetGroundZFor_3dCoord(x, y, z + PedUtils.UNDERGROUND_PROBE, false)
-        if found and z - ground <= PedUtils.SPOT_DROP then return x, y, ground, true end
+        local found, ground, covered = PedUtils.findFloor(x, y, z)
+        if found then
+            if covered and z - ground > PedUtils.SPOT_DROP then
+                -- Dans la console F8 : de quoi baisser le point
+                print(('[sol] %.1f, %.1f, %.1f : sol de l\'intérieur %.1f m plus bas (z %.1f)'):format(x, y, z, z - ground, ground))
+            end
+            return x, y, ground, true
+        end
         local safe, point = GetSafeCoordForPed(x, y, z, true, 16)
         if safe and #(point - wanted) <= PedUtils.SPOT_SNAP then return point.x, point.y, point.z, true end
         Wait(PedUtils.SPOT_WAIT)
@@ -90,6 +99,37 @@ function PedUtils.findSpot(x, y, z)
     print(('[sol] rien sous %.1f, %.1f, %.1f (intérieur %d, chargé : %s)'):format(x, y, z, interior,
         tostring(interior ~= 0 and IsInteriorReady(interior))))
     return x, y, z, false
+end
+
+---Sous terre, le premier sol sous un point peut être le dessus d'un intérieur (son toit) : on descend
+---jusqu'au premier sol qui a un plafond au-dessus de lui. Sans plafond nulle part, le premier sol pas
+---trop bas fait l'affaire.
+---@param x number
+---@param y number
+---@param z number
+---@return boolean found
+---@return number ground
+---@return boolean covered sol sous un plafond
+function PedUtils.findFloor(x, y, z)
+    local start = z + PedUtils.UNDERGROUND_PROBE
+    local first = nil
+    for _ = 1, PedUtils.FLOORS do
+        local found, ground = GetGroundZFor_3dCoord(x, y, start, false)
+        if not found or z - ground > PedUtils.FLOOR_DEPTH then break end
+        first = first or ground
+        if PedUtils.hasCeiling(x, y, ground) then return true, ground, true end
+        start = ground - 0.5
+    end
+    if first and z - first <= PedUtils.SPOT_DROP then return true, first, false end
+    return false, z, false
+end
+
+---@return boolean une surface du décor au-dessus de ce sol
+function PedUtils.hasCeiling(x, y, ground)
+    local probe = StartExpensiveSynchronousShapeTestLosProbe(x, y, ground + 1.0, x, y, ground + PedUtils.CEILING_HEIGHT,
+        1, PlayerPedId(), 7)
+    local _, hit = GetShapeTestResult(probe)
+    return hit == true or hit == 1
 end
 
 ---Sous terre, le sol est celui d'un intérieur : tant que le jeu ne l'a pas chargé, il n'y a rien sous

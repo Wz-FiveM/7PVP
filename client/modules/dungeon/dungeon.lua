@@ -19,6 +19,7 @@ Dungeon.PLACE_TRIES = 300
 Dungeon.SNAP_DISTANCE = 12.0 -- au-delà, un zombie n'est plus dans la salle prévue
 Dungeon.SNAP_HEIGHT = 3.0 -- ni au bon étage
 Dungeon.SNAP_NEAR_PLAYER = 10.0
+Dungeon.FLOOR_OFFSET = 0.5 -- un objet est créé un peu au-dessus du sol, puis posé dessus
 
 ---@type table|false état reçu du serveur
 Dungeon.state = false
@@ -225,7 +226,10 @@ function Dungeon.createProp(key)
     if Dungeon.props[key] ~= prop or not HasModelLoaded(model) then return end
 
     local coords = prop.data.coords
-    prop.entity = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+    -- Le point peut être au-dessus du toit du tunnel : l'objet est posé dans le tunnel, sous lui
+    local found, ground, covered = PedUtils.findFloor(coords.x, coords.y, coords.z)
+    local z = (found and covered) and ground + Dungeon.FLOOR_OFFSET or coords.z
+    prop.entity = CreateObject(model, coords.x, coords.y, z, false, false, false)
     SetEntityHeading(prop.entity, coords.w)
     FreezeEntityPosition(prop.entity, true)
     -- Une bonbonne du jeu saute toute seule : ici, c'est le serveur qui décide, pour toute la salle
@@ -335,25 +339,26 @@ end
 ---@param impact vector3
 ---@param now integer
 function Dungeon.onImpact(state, impact, now)
-    local wall = state.step.wall
-    if wall and #(impact - wall.xyz) <= state.step.hitRadius then
+    local wall = state.step.wall and Dungeon.propPoint(state.step.id, state.step.wall)
+    if wall and #(impact - wall) <= state.step.hitRadius then
         Dungeon.wallHits = Dungeon.wallHits + 1
     end
     for _, prop in ipairs(state.props) do
         if prop.barrel and now - (Dungeon.barrelSentAt[prop.barrel] or 0) >= Dungeon.BARREL_RESEND
-            and #(impact - Dungeon.barrelPoint(prop)) <= Config.Dungeon.barrel.hitRadius then
+            and #(impact - Dungeon.propPoint(prop.key, prop.coords)) <= Config.Dungeon.barrel.hitRadius then
             Dungeon.barrelSentAt[prop.barrel] = now
             TriggerServerEvent(Events.server.dungeonBarrelHit, prop.barrel)
         end
     end
 end
 
----@param prop table bonbonne de l'état
----@return vector3 où elle est vraiment : elle a été posée sur le sol
-function Dungeon.barrelPoint(prop)
-    local placed = Dungeon.props[prop.key]
+---@param key string objet de l'état (bonbonne, porte)
+---@param coords vector4 son point dans la config
+---@return vector3 où il est vraiment : il a été posé sur le sol
+function Dungeon.propPoint(key, coords)
+    local placed = Dungeon.props[key]
     if placed and placed.entity and DoesEntityExist(placed.entity) then return GetEntityCoords(placed.entity) end
-    return prop.coords.xyz
+    return coords.xyz
 end
 
 -- ---------------------------------------------------------------------------
@@ -369,12 +374,19 @@ function Dungeon.settlePed(ped)
     state:set('dungeonSettled', true, true)
 
     local pos = GetEntityCoords(ped)
+    -- Apparu sur le toit du tunnel : descendu dans le tunnel
+    local found, ground, covered = PedUtils.findFloor(pos.x, pos.y, pos.z)
+    if found and covered then pos = vector3(pos.x, pos.y, ground + Dungeon.FLOOR_OFFSET) end
     local safe, point = GetSafeCoordForPed(pos.x, pos.y, pos.z, true, 16)
     if not safe or #(point - pos) > Dungeon.SNAP_DISTANCE or math.abs(point.z - pos.z) > Dungeon.SNAP_HEIGHT then
-        local player = GetEntityCoords(PlayerPedId())
-        local angle = math.random() * math.pi * 2
-        safe, point = GetSafeCoordForPed(player.x + math.cos(angle) * Dungeon.SNAP_NEAR_PLAYER,
-            player.y + math.sin(angle) * Dungeon.SNAP_NEAR_PLAYER, player.z, true, 16)
+        if covered then
+            safe, point = true, pos
+        else
+            local player = GetEntityCoords(PlayerPedId())
+            local angle = math.random() * math.pi * 2
+            safe, point = GetSafeCoordForPed(player.x + math.cos(angle) * Dungeon.SNAP_NEAR_PLAYER,
+                player.y + math.sin(angle) * Dungeon.SNAP_NEAR_PLAYER, player.z, true, 16)
+        end
     end
     if safe then SetEntityCoords(ped, point.x, point.y, point.z, false, false, false, false) end
     PedUtils.enterRoom(ped)

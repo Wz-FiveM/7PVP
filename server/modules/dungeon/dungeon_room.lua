@@ -462,12 +462,13 @@ function DungeonRoom:tick()
     end
 end
 
----La horde attend le groupe : c'est lui qui avance dans le tunnel.
+---La horde attend le groupe : c'est lui qui avance dans le tunnel. Distance à plat : le sol du tunnel
+---peut être bien plus bas que le point de l'étape.
 ---@param step table
 function DungeonRoom:checkArrival(step)
     for source in pairs(self.players) do
         local player = PlayerService.get(source)
-        if player and not player.dead and #(player:getCoords() - step.coords) <= step.radius then
+        if player and not player.dead and #(player:getCoords().xy - step.coords.xy) <= step.radius then
             self.reached = true
             return self:sync()
         end
