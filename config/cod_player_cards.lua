@@ -10,10 +10,10 @@ Config.CodPlayerCards = {
 
     banners = {
         { id = 'steel', label = 'Acier brossé', rank = 1, format = 'webp' },
-        { id = 'woodland', label = 'Camouflage forêt', rank = 1 },
-        { id = 'desert', label = 'Camouflage désert', rank = 1 },
+        { id = 'woodland', label = 'Camouflage forêt', rank = 1, format = 'webp' },
+        { id = 'desert', label = 'Camouflage désert', rank = 1, format = 'webp' },
         { id = 'digital', label = 'Camouflage urbain', rank = 1, format = 'webp' },
-        { id = 'carbon', label = 'Carbone', rank = 1 },
+        { id = 'carbon', label = 'Carbone', rank = 1, format = 'webp' },
         { id = 'hazard', label = 'Zone dangereuse', rank = 2, format = 'webp' },
         { id = 'skyline', label = 'Los Santos', rank = 4, format = 'webp' },
         { id = 'radar', label = 'Balayage radar', rank = 8, format = 'webp' },
@@ -25,7 +25,7 @@ Config.CodPlayerCards = {
         { id = 'skulls', label = 'Ossuaire', rank = 23, format = 'webp' },
         { id = 'circuit', label = 'Circuit imprimé', rank = 26, format = 'webp' },
         { id = 'squadron', label = 'Escadrille', rank = 29, format = 'webp' },
-        { id = 'scope', label = 'Lunette de tir', rank = 32 },
+        { id = 'scope', label = 'Lunette de tir', rank = 32, format = 'webp' },
         { id = 'blood', label = 'Bain de sang', rank = 36 },
         { id = 'chopper', label = 'Soleil couchant', rank = 40, format = 'webp' },
         { id = 'nuke', label = 'Champignon', rank = 45, format = 'webp' },
