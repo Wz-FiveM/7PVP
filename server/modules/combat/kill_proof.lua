@@ -137,17 +137,22 @@ function KillProof.unsigned(hash)
     return math.floor(tonumber(hash) or 0) & 0xFFFFFFFF
 end
 
+---@param ped integer victime
+---@return boolean sa mort synchronisée vient d'un véhicule (écrasée ou percutée)
+function KillProof.isVehicleDeath(ped)
+    local cause = KillProof.unsigned(GetPedCauseOfDeath(ped))
+    for _, name in ipairs(KillProof.VEHICLE_WEAPONS) do
+        if KillProof.unsigned(GetHashKey(name)) == cause then return true end
+    end
+    return false
+end
+
 ---La victime a été écrasée par ce joueur : c'est ce qu'indique la cause de sa mort synchronisée.
 ---@param ped integer victime
 ---@param killerPed integer
 ---@return boolean
 function KillProof.isRunOver(ped, killerPed)
-    local cause = KillProof.unsigned(GetPedCauseOfDeath(ped))
-    local byVehicle = false
-    for _, name in ipairs(KillProof.VEHICLE_WEAPONS) do
-        if KillProof.unsigned(GetHashKey(name)) == cause then byVehicle = true end
-    end
-    if not byVehicle then return false end
+    if not KillProof.isVehicleDeath(ped) then return false end
 
     local origin = GetPedSourceOfDeath(ped)
     if origin == 0 then return false end

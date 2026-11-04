@@ -172,13 +172,13 @@ function Zone.preventCarKill()
     end
 end
 
--- Monde zombies : en dessous de cette vitesse (m/s), un véhicule sans conducteur reste solide
--- (on peut y grimper pour fuir les zombies)
+-- Mode PvP : en dessous de cette vitesse (m/s), un véhicule sans conducteur reste solide
+-- (on peut y grimper pour fuir les zombies, s'en servir de couvert)
 Zone.CAR_KILL_MIN_SPEED = 1.0
 
 function Zone.pveLoop()
     while true do
-        if LocalPlayer.state.pveWorld == true then
+        if State.inPvp() or LocalPlayer.state.pveWorld == true then
             Zone.preventPveCarKill()
             Wait(0)
         else
@@ -187,9 +187,10 @@ function Zone.pveLoop()
     end
 end
 
----Monde zombies, sans PvP : un véhicule en marche traverse les joueurs à pied (les zombies, eux, se font
----toujours écraser). Le choc ne passe pas par le serveur, c'est le client de la victime qui l'encaisse.
----Réglé aussi pour les autres joueurs : sans ça, le conducteur bute sur une cible qui ne bouge pas chez elle.
+---Mode PvP (monde PvP et monde zombies) : pas de carkill, un véhicule en marche traverse les joueurs à pied
+---(les zombies, eux, se font toujours écraser). Le choc ne passe pas par le serveur, c'est le client de la
+---victime qui l'encaisse. Réglé aussi pour les autres joueurs : sans ça, le conducteur bute sur une cible
+---qui ne bouge pas chez elle.
 function Zone.preventPveCarKill()
     local peds = {}
     for _, player in ipairs(GetActivePlayers()) do

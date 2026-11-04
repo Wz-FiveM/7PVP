@@ -194,6 +194,7 @@ end
 
 ---Tueur annoncé par la victime, s'il est dans le même monde et que le serveur a vu ce kill.
 ---Jamais dans le monde zombies, sans PvP : ce qui passe encore (explosion, véhicule) ne rapporte rien.
+---Jamais non plus pour une mort par véhicule (pas de carkill en PvP).
 ---Peut attendre la vie synchronisée de la victime (voir KillProof.confirm).
 ---@param victim PvpPlayer
 ---@param killerId any
@@ -213,6 +214,8 @@ function CombatService.resolveKiller(victim, killerId)
         end
         return nil
     end
+    -- Pas de carkill en PvP : une mort par véhicule ne rapporte rien (voir Zone.preventPveCarKill côté client)
+    if KillProof.isVehicleDeath(GetPlayerPed(victim.source)) then return nil end
     return PlayerService.get(killerId) == killer and killer or nil
 end
 
