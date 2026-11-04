@@ -23,6 +23,10 @@ Dungeon.FLOOR_OFFSET = 0.5 -- un objet est créé un peu au-dessus du sol, puis 
 Dungeon.PANEL_MIN_SIZE = 1.0 -- m : un modèle plus petit compte pour cette taille dans une porte en panneaux
 Dungeon.MAX_PANELS = 60
 Dungeon.DOORS_INTERVAL = 1000 -- ms entre deux passes sur les portes de la base
+Dungeon.REVEAL_SCAN = 500 -- ms entre deux recherches des derniers zombies à montrer
+Dungeon.REVEAL_HEIGHT = 1.4 -- flèche au-dessus de leur tête
+Dungeon.REVEAL_COLOR = { 230, 40, 40, 200 }
+Dungeon.REVEAL_BLIP = { sprite = 1, color = 1, scale = 0.7 }
 
 ---@type table|false état reçu du serveur
 Dungeon.state = false
@@ -42,6 +46,9 @@ Dungeon.doorHides = {}
 Dungeon.hiddenDoors = {}
 ---@type integer[] intérieurs gardés chargés
 Dungeon.interiors = {}
+---@type table<integer, integer> derniers zombies montrés : [ped] = blip
+Dungeon.revealed = {}
+Dungeon.revealScanAt = 0
 
 function Dungeon.init()
     RegisterNetEvent(Events.client.dungeonState, function(data)
@@ -137,6 +144,7 @@ function Dungeon.clear()
     Dungeon.syncProps({})
     Dungeon.closeBaseDoors()
     Dungeon.removeBlips()
+    Dungeon.clearRevealed()
     Dungeon.releaseInteriors()
     Nui.send('dungeon', { dungeon = false })
 end
@@ -376,6 +384,66 @@ function Dungeon.frame(state)
     Dungeon.placeProps(GetEntityCoords(ped))
     Dungeon.watchShots(state, ped)
     if state.doorsOpen then Dungeon.openBaseDoors() end
+    Dungeon.revealZombies(state)
+end
+
+---Les derniers zombies d'une horde (Config.Dungeon.revealLeft ou moins à tuer) : flèche rouge au-dessus
+---de la tête et point rouge sur la carte, pour les retrouver dans le tunnel.
+---@param state table
+function Dungeon.revealZombies(state)
+    local step = state.step
+    if step.type ~= 'kill' or not step.reached or not step.left or step.left > Config.Dungeon.revealLeft then
+        if next(Dungeon.revealed) then Dungeon.clearRevealed() end
+        return
+    end
+    local now = GetGameTimer()
+    if now - Dungeon.revealScanAt >= Dungeon.REVEAL_SCAN then
+        Dungeon.revealScanAt = now
+        Dungeon.scanRevealed()
+    end
+    local color = Dungeon.REVEAL_COLOR
+    for ped in pairs(Dungeon.revealed) do
+        local coords = GetEntityCoords(ped)
+        DrawMarker(2, coords.x, coords.y, coords.z + Dungeon.REVEAL_HEIGHT, 0.0, 0.0, 0.0, 180.0, 0.0, 0.0, 0.4, 0.4, 0.4,
+            color[1], color[2], color[3], color[4], true, true, 2, false, nil, nil, false)
+    end
+end
+
+---Zombies vivants du donjon que ce client voit : seuls ceux de son instance (son bucket) lui parviennent.
+function Dungeon.scanRevealed()
+    local alive = {}
+    for _, ped in ipairs(GetGamePool('CPed')) do
+        if not IsPedAPlayer(ped) and not IsPedDeadOrDying(ped, true) and Entity(ped).state.dungeonRoom then
+            alive[ped] = true
+        end
+    end
+    for ped, blip in pairs(Dungeon.revealed) do
+        if not alive[ped] or not DoesEntityExist(ped) then
+            if DoesBlipExist(blip) then RemoveBlip(blip) end
+            Dungeon.revealed[ped] = nil
+        end
+    end
+    local settings = Dungeon.REVEAL_BLIP
+    for ped in pairs(alive) do
+        if not Dungeon.revealed[ped] then
+            local blip = AddBlipForEntity(ped)
+            SetBlipSprite(blip, settings.sprite)
+            SetBlipColour(blip, settings.color)
+            SetBlipScale(blip, settings.scale)
+            SetBlipAsShortRange(blip, false)
+            BeginTextCommandSetBlipName('STRING')
+            AddTextComponentSubstringPlayerName(Locale.t('Zombie'))
+            EndTextCommandSetBlipName(blip)
+            Dungeon.revealed[ped] = blip
+        end
+    end
+end
+
+function Dungeon.clearRevealed()
+    for _, blip in pairs(Dungeon.revealed) do
+        if DoesBlipExist(blip) then RemoveBlip(blip) end
+    end
+    Dungeon.revealed = {}
 end
 
 ---La porte du donjon cassée, on descend à pied dans la base : ses portes du jeu sont cachées et sans

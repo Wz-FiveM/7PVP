@@ -37,6 +37,7 @@ Config.Dungeon = {
     keys = { item = 'dungeon_key', count = 7 }, -- par joueur, retirées au lancement (admins dispensés)
     leashDistance = 170.0, -- à cette distance de l'étape en cours, on est ramené au point de reprise
     maxAlive = 30, -- zombies en même temps
+    revealLeft = 5, -- à ce nombre de zombies à tuer ou moins, les derniers sont montrés (flèche et point sur la carte)
     spawnPerTick = 4,
     hitDamage = 10, -- dégâts d'une balle sur une porte
     sky = { hour = 1, minute = 0, weather = 'FOGGY' }, -- nuit imposée pendant tout le donjon

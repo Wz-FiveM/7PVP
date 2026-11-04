@@ -189,15 +189,16 @@ end
 ---Le jeu ne met une entité dans un intérieur que lorsqu'elle y entre par une ouverture : posée
 ---directement dedans, elle reste « dehors », sur le sol de l'intérieur mais sans qu'il s'affiche
 ---(et sans être vue de ceux qui y sont). On lui donne la pièce où elle se trouve, seulement si elle
----n'en a pas et qu'une pièce la contient vraiment : une mauvaise pièce cacherait tout l'intérieur.
+---n'en a pas et qu'une pièce la contient vraiment : une mauvaise pièce cacherait tout l'intérieur. Une pièce
+---d'un autre intérieur que celui où elle se trouve (déplacée d'un tronçon à l'autre) est remplacée aussi.
 ---@param entity integer
 ---@param viewport? boolean aussi la caméra du joueur (pour son propre personnage)
 ---@return boolean placée dans une pièce
 function PedUtils.enterRoom(entity, viewport)
-    if GetRoomKeyFromEntity(entity) ~= 0 then return false end
     local coords = GetEntityCoords(entity)
     local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
     if interior == 0 then return false end
+    if GetRoomKeyFromEntity(entity) ~= 0 and GetInteriorFromEntity(entity) == interior then return false end
     local room = PedUtils.roomAt(interior, coords)
     if not room then return false end
     ForceRoomForEntity(entity, interior, room)

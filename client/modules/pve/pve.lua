@@ -41,6 +41,8 @@ Pve.lastAttack = {} -- [ped] = ms du dernier vomissement lancé par ce client
 Pve.decorated = {} -- [ped] = true quand les blessures visuelles sont appliquées
 Pve.stunned = {} -- [ped] = ms de fin de l'étourdissement (compétences de classe)
 Pve.lastShot = {} -- [ped] = ms du dernier tir d'un humain armé envoyé au serveur
+Pve.roomCheckedAt = {} -- [ped] = ms du dernier contrôle de la pièce d'un zombie du donjon
+Pve.ROOM_CHECK_INTERVAL = 1500
 
 function Pve.init()
     Pve.setupRelationships()
@@ -95,6 +97,7 @@ function Pve.scan()
             local zone = Zones.byId(Entity(ped).state.pvpNpc)
             if zone then
                 Pve.decorate(ped)
+                Pve.checkRoom(ped)
                 ZombieGear.update(ped, Pve.getType(ped))
                 if NetworkGetEntityOwner(ped) == myId then
                     Pve.updatePed(ped, zone)
@@ -105,13 +108,24 @@ function Pve.scan()
 end
 
 function Pve.cleanup()
-    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned, Pve.lastShot }) do
+    for _, tracked in ipairs({ Pve.configured, Pve.reported, Pve.wandering, Pve.chasing, Pve.lastAttack, Pve.decorated, Pve.stunned, Pve.lastShot, Pve.roomCheckedAt }) do
         for ped in pairs(tracked) do
             if not DoesEntityExist(ped) then tracked[ped] = nil end
         end
     end
     Hits.pruneZombies()
     ZombieGear.cleanup()
+end
+
+---Un zombie du donjon qui sort de la pièce du tunnel (créé dedans, ramené par le serveur, passé d'un tronçon
+---à l'autre sans ouverture) disparaîtrait : sa pièce est revue de temps en temps, par chaque client qui le voit.
+---@param ped integer
+function Pve.checkRoom(ped)
+    if not Entity(ped).state.dungeonRoom then return end
+    local now = GetGameTimer()
+    if now - (Pve.roomCheckedAt[ped] or 0) < Pve.ROOM_CHECK_INTERVAL then return end
+    Pve.roomCheckedAt[ped] = now
+    PedUtils.enterRoom(ped)
 end
 
 ---Sang et blessures, et pas de chute sous les balles : appliqué par chaque client qui voit le

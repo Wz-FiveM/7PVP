@@ -28,6 +28,7 @@ local AntiCheatService = PVP.use('AntiCheatService')
 local Utils = PVP.use('Utils')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local KillProof = PVP.use('KillProof')
 
 DungeonRoom.__index = DungeonRoom
 -- Temps laissé aux joueurs pour arriver sur place avant les premiers zombies
@@ -45,6 +46,23 @@ DungeonRoom.FALL_DEPTH = 30.0
 DungeonRoom.CHEST_SPACING = 1.5
 -- Un zombie n'apparaît pas sous les yeux d'un joueur, s'il y a un autre point
 DungeonRoom.SPAWN_MIN_DISTANCE = 20.0
+-- Mort sans que son client l'ait déclaré (déclaration perdue ou refusée) : compté par le serveur après ce délai,
+-- le temps que la déclaration du tueur arrive et lui crédite le kill
+DungeonRoom.DEATH_GRACE = 5000
+-- Zombie bloqué (dans un mur, hors du tube, sans chemin) : ramené sur le chemin du groupe s'il est resté
+-- STUCK_TIME sans joueur à ENGAGE_RANGE, ou CLOSE_TIME sans joueur à CLOSE_RANGE
+DungeonRoom.ENGAGE_RANGE = 35.0
+DungeonRoom.STUCK_TIME = 20000
+DungeonRoom.CLOSE_RANGE = 12.0
+DungeonRoom.CLOSE_TIME = 45000
+-- Chemin du groupe : positions des joueurs relevées en route, sur un sol forcément praticable
+DungeonRoom.TRAIL_INTERVAL = 2000
+DungeonRoom.TRAIL_SPACING = 4.0
+DungeonRoom.TRAIL_SIZE = 80
+-- Un zombie ramené l'est à cette distance des joueurs (hors de leur vue si possible)
+DungeonRoom.RELOCATE_MIN = 20.0
+DungeonRoom.RELOCATE_MAX = 50.0
+DungeonRoom.RELOCATE_FALLBACK = 8.0
 
 ---@param id integer
 ---@param leader integer server id
@@ -60,6 +78,9 @@ function DungeonRoom.new(id, leader)
         stepIndex = 0,
         endsAt = GetGameTimer() + Config.Dungeon.waitingTime * 1000,
         peds = {},
+        watch = {}, -- [ped] = { near, close, deadAt } : dernières fois qu'un joueur était proche, mort vue
+        trail = {},
+        trailAt = 0,
         boss = nil,
         reached = false,
         kills = 0,
@@ -349,6 +370,8 @@ function DungeonRoom:spawnZombie(point)
     if not ped then return end
     Entity(ped).state:set('zombieType', typeId, true)
     self.peds[ped] = typeId
+    local now = GetGameTimer()
+    self.watch[ped] = { near = now, close = now }
 end
 
 ---@param step table
@@ -371,18 +394,119 @@ function DungeonRoom:hasFallen(ped, step)
     return GetEntityCoords(ped).z < step.coords.z - DungeonRoom.FALL_DEPTH
 end
 
+---Zombies vivants. Un zombie mort que son client n'a pas déclaré (déclaration perdue, refusée ou
+---limitée) compte quand même : sinon il occuperait sa place et le compteur resterait bloqué.
 ---@return integer zombies vivants
 function DungeonRoom:alive()
     local step = self:step()
+    local now = GetGameTimer()
+    local dead = {}
     for ped in pairs(self.peds) do
         if not DoesEntityExist(ped) then
             self.peds[ped] = nil
+            self.watch[ped] = nil
         elseif step and self:hasFallen(ped, step) then
             DeleteEntity(ped)
             self.peds[ped] = nil
+            self.watch[ped] = nil
+        elseif GetEntityHealth(ped) <= KillProof.DEAD_HEALTH then
+            local watch = self.watch[ped] or {}
+            self.watch[ped] = watch
+            watch.deadAt = watch.deadAt or now
+            if now - watch.deadAt >= DungeonRoom.DEATH_GRACE then dead[#dead + 1] = ped end
         end
     end
+    for _, ped in ipairs(dead) do
+        if self.peds[ped] then self:onNpcDeath(ped, nil) end
+    end
     return Utils.count(self.peds)
+end
+
+---Positions des joueurs en route : un sol où l'on tient debout, dans le tunnel.
+---@param now integer
+function DungeonRoom:recordTrail(now)
+    if now - self.trailAt < DungeonRoom.TRAIL_INTERVAL then return end
+    self.trailAt = now
+    for source in pairs(self.players) do
+        local player = PlayerService.get(source)
+        if player and not player.dead then
+            local coords = player:getCoords()
+            local known = false
+            for index = math.max(1, #self.trail - 10), #self.trail do
+                if #(coords - self.trail[index]) < DungeonRoom.TRAIL_SPACING then known = true break end
+            end
+            if not known then
+                self.trail[#self.trail + 1] = coords
+                if #self.trail > DungeonRoom.TRAIL_SIZE then table.remove(self.trail, 1) end
+            end
+        end
+    end
+end
+
+---@return vector3[] positions des joueurs vivants
+function DungeonRoom:livingCoords()
+    local list = {}
+    for source in pairs(self.players) do
+        local player = PlayerService.get(source)
+        if player and not player.dead then list[#list + 1] = player:getCoords() end
+    end
+    return list
+end
+
+---@param players vector3[]
+---@param coords vector3
+---@return number distance au joueur le plus proche
+function DungeonRoom.nearest(players, coords)
+    local best = math.huge
+    for _, point in ipairs(players) do best = math.min(best, #(point - coords)) end
+    return best
+end
+
+---Point du chemin où ramener un zombie : entre RELOCATE_MIN et RELOCATE_MAX des joueurs, sinon le plus
+---éloigné à moins de RELOCATE_MAX (au moins RELOCATE_FALLBACK).
+---@param players vector3[]
+---@return vector3|nil
+function DungeonRoom:trailPoint(players)
+    local candidates, fallback, fallbackDistance = {}, nil, DungeonRoom.RELOCATE_FALLBACK
+    for _, point in ipairs(self.trail) do
+        local distance = DungeonRoom.nearest(players, point)
+        if distance >= DungeonRoom.RELOCATE_MIN and distance <= DungeonRoom.RELOCATE_MAX then
+            candidates[#candidates + 1] = point
+        elseif distance <= DungeonRoom.RELOCATE_MAX and distance >= fallbackDistance then
+            fallback, fallbackDistance = point, distance
+        end
+    end
+    if #candidates > 0 then return candidates[math.random(#candidates)] end
+    return fallback
+end
+
+---Ramène sur le chemin du groupe les zombies qui ne s'approchent de personne : bloqués dans un mur, hors
+---du tube ou sans chemin, ils resteraient introuvables et l'étape ne finirait jamais.
+---@param now integer
+function DungeonRoom:unstick(now)
+    local players = self:livingCoords()
+    if #players == 0 then return end
+    for ped in pairs(self.peds) do
+        local watch = self.watch[ped]
+        if not watch then
+            watch = { near = now, close = now }
+            self.watch[ped] = watch
+        end
+        if DoesEntityExist(ped) and not watch.deadAt and GetEntityHealth(ped) > KillProof.DEAD_HEALTH then
+            local distance = DungeonRoom.nearest(players, GetEntityCoords(ped))
+            if distance <= DungeonRoom.ENGAGE_RANGE then watch.near = now end
+            if distance <= DungeonRoom.CLOSE_RANGE then watch.close = now end
+            if now - watch.near >= DungeonRoom.STUCK_TIME or now - watch.close >= DungeonRoom.CLOSE_TIME then
+                local point = self:trailPoint(players)
+                if point then
+                    SetEntityCoords(ped, point.x, point.y, point.z, false, false, false, false)
+                    -- Son client le recale sur le sol et dans la pièce du tunnel
+                    Entity(ped).state:set('dungeonSettled', false, true)
+                    watch.near, watch.close = now, now
+                end
+            end
+        end
+    end
 end
 
 ---@return integer zombies à tuer dans l'étape, selon le nombre de joueurs
@@ -403,6 +527,7 @@ function DungeonRoom:onNpcDeath(ped, killer)
     if not typeId then return end
     local zombieType = Config.ZombieTypes[typeId] or Config.ZombieTypes.walker
     self.peds[ped] = nil
+    self.watch[ped] = nil
     Entity(ped).state:set('pvpNpcDead', true, true)
 
     if killer then CombatService.rewardNpcKill(killer, Config.Dungeon.zone.id) end
@@ -463,6 +588,7 @@ function DungeonRoom:despawnPeds()
         if DoesEntityExist(ped) then DeleteEntity(ped) end
     end
     self.peds = {}
+    self.watch = {}
 end
 
 -- ---------------------------------------------------------------------------
@@ -475,7 +601,9 @@ function DungeonRoom:tick()
     if not step then return end
 
     self:keepPlayersClose(now, step)
+    self:recordTrail(now)
     if now < self.spawnAfter then return end
+    self:unstick(now)
 
     if step.type == 'kill' then
         if not self.reached then return self:checkArrival(step) end
