@@ -1,6 +1,6 @@
 -- Carte de joueur du mode Call of Duty : bannière, emblème et tag de clan, vus au kill, à la mort et au salon.
 -- rank = rang requis. Les dessins sont web/public/cod/banners/<id>.svg et emblems/<id>.svg (tools/cod_card_art.js).
--- Bannière en image : poser web/public/cod/banners/<id>.webp (1200 x 240, ratio 5:1) et ajouter format = 'webp'
+-- Bannière en image : poser web/public/cod/banners/<id>.webp (ratio 5:1, sans perte) et ajouter format = 'webp'
 -- à sa ligne, par exemple { id = 'storm', label = 'Orage', rank = 20, format = 'webp' }. Les prompts sont dans
 -- tools/cod_banner_prompts.md. Tant que le menu CoD n'a pas été ouvert, l'interface montre le SVG.
 
