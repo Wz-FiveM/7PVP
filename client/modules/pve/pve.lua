@@ -17,6 +17,7 @@ local Horde = PVP.use('Horde')
 
 Pve.SCAN_INTERVAL = 250
 Pve.RETASK_INTERVAL = 2000 -- relance la poursuite pour suivre une cible qui bouge
+Pve.CHASE_PROGRESS = 1.0 -- m gagnés au moins entre deux relances, sinon un zombie du donjon change de façon d'avancer
 Pve.ASSET_TIMEOUT = 3000
 Pve.HEAD_BONE = 31086 -- SKEL_Head
 Pve.SCREEN_EFFECT_TIME = 1200
@@ -393,7 +394,9 @@ end
 ---@return { ped: integer, serverId: integer }|nil target, number distance
 function Pve.findTarget(ped)
     local coords = GetEntityCoords(ped)
-    local best, bestDistance = nil, Config.Zombie.aggroRange
+    -- Dans le donjon, la horde sait où est le groupe : sinon les zombies apparus loin erreraient dans le tunnel
+    local range = Entity(ped).state.dungeonRoom and Config.Dungeon.aggroRange or Config.Zombie.aggroRange
+    local best, bestDistance = nil, range
     for _, player in ipairs(GetActivePlayers()) do
         local playerPed = GetPlayerPed(player)
         -- Les admins invisibles (noclip) ne sont pas repérés
@@ -417,8 +420,21 @@ function Pve.chase(ped, target, speed, range)
     local current = Pve.chasing[ped]
     if current and current.target == target.ped and now - current.at < Pve.RETASK_INTERVAL then return end
 
-    Pve.chasing[ped] = { target = target.ped, at = now }
-    TaskGoToEntity(ped, target.ped, -1, range * 0.6, speed, 1073741824, 0)
+    local targetCoords = GetEntityCoords(target.ped)
+    local distance = #(targetCoords - GetEntityCoords(ped))
+    -- Sans navmesh (tunnels du donjon), TaskGoToEntity n'avance pas : un zombie du donjon qui n'a pas gagné de
+    -- terrain change de façon d'avancer, et fonce en ligne droite sur sa cible (le tube guide ses pas)
+    local straight = false
+    if Entity(ped).state.dungeonRoom and current and current.target == target.ped and current.distance then
+        straight = current.straight
+        if current.distance - distance < Pve.CHASE_PROGRESS then straight = not straight end
+    end
+    Pve.chasing[ped] = { target = target.ped, at = now, distance = distance, straight = straight }
+    if straight then
+        TaskGoStraightToCoord(ped, targetCoords.x, targetCoords.y, targetCoords.z, speed, -1, 0.0, range * 0.6)
+    else
+        TaskGoToEntity(ped, target.ped, -1, range * 0.6, speed, 1073741824, 0)
+    end
 end
 
 ---@param ped integer

@@ -37,6 +37,7 @@ Config.Dungeon = {
     keys = { item = 'dungeon_key', count = 7 }, -- par joueur, retirées au lancement (admins dispensés)
     leashDistance = 170.0, -- à cette distance de l'étape en cours, on est ramené au point de reprise
     maxAlive = 30, -- zombies en même temps
+    aggroRange = 250.0, -- les zombies du donjon foncent sur le joueur le plus proche à cette distance (zombies du monde : Config.Zombie.aggroRange)
     revealLeft = 5, -- à ce nombre de zombies à tuer ou moins, les derniers sont montrés (flèche et point sur la carte)
     spawnPerTick = 4,
     hitDamage = 10, -- dégâts d'une balle sur une porte
