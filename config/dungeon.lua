@@ -17,6 +17,8 @@
 --   warp, heading l'étape ouvre une nouvelle salle : le groupe y est amené avec un fondu, tourné vers `heading`
 --   checkpoint    point de reprise sans téléportation : on y réapparaît, tourné vers `heading`
 --   prop          modèle posé sur spawns[1] jusqu'à la fin de l'étape
+--   wall          { width, height } : `prop` répété en panneaux sur cette largeur et cette hauteur (m), pour boucher
+--                 le tunnel, face au cap de spawns[1]
 --
 -- Les points du tunnel sont calculés sur l'axe de ses tronçons (origines relevées dans les dumps
 -- DurtyFree/gta-v-data-dumps), 1 m sous ces origines : le sol est 2,5 à 4,5 m sous l'origine d'un tronçon (points
@@ -50,6 +52,16 @@ Config.Dungeon = {
         vector3(688.3, 5929.3, -151.7),
         vector3(619.47, 5974.29, -151.43),
         vector3(579.52, 5956.2, -153.0),
+    },
+    -- Portes de GTA entre le tunnel et la base, cachées (et sans collision) une fois la porte du donjon cassée
+    baseDoors = {
+        center = vector3(640.0, 5950.0, -152.0),
+        radius = 120.0,
+        models = {
+            'xm_prop_base_blast_door_01', 'xm_prop_base_blast_door_01a', 'xm_prop_base_blast_door_02_l',
+            'xm_prop_base_blast_door_02_r', 'xm_prop_base_blast_door_02a', 'xm_prop_base_heavy_door_01',
+            'xm_prop_base_slide_door',
+        },
     },
     -- Bonbonnes : une balle les fait sauter, le souffle blesse les zombies et les joueurs.
     barrel = {
@@ -150,8 +162,8 @@ Config.Dungeon = {
         },
         {
             id = 'door', type = 'destroy', label = 'Porte de la base', checkpoint = true, heading = 10.9,
-            health = 1500, healthPerPlayer = 500, adds = 8, hitRadius = 9.0,
-            prop = 'xm_prop_base_blast_door_01', barLabel = 'Porte de la base',
+            health = 1500, healthPerPlayer = 500, adds = 8, hitRadius = 14.0,
+            prop = 'xm_prop_base_blast_door_01', wall = { width = 26.0, height = 12.0 }, barLabel = 'Porte de la base',
             objective = 'Détruis la porte', hint = 'Vide tes chargeurs dessus.',
             coords = vector3(697.4, 5884.0, -150.3), radius = 25.0,
             spawns = {
@@ -161,7 +173,8 @@ Config.Dungeon = {
             },
         },
         {
-            id = 'hangar', type = 'kill', count = 20, label = 'Hangar : zombies', warp = true, heading = 90.0,
+            -- Atteint à pied par le tunnel, une fois la porte cassée
+            id = 'hangar', type = 'kill', count = 20, label = 'Hangar : zombies', checkpoint = true, heading = 90.0,
             objective = 'Tue tous les zombies',
             coords = vector3(596.0, 5957.0, -151.0), radius = 30.0,
             spawns = {

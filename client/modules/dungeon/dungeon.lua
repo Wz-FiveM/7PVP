@@ -20,6 +20,9 @@ Dungeon.SNAP_DISTANCE = 12.0 -- au-delà, un zombie n'est plus dans la salle pr�
 Dungeon.SNAP_HEIGHT = 3.0 -- ni au bon étage
 Dungeon.SNAP_NEAR_PLAYER = 10.0
 Dungeon.FLOOR_OFFSET = 0.5 -- un objet est créé un peu au-dessus du sol, puis posé dessus
+Dungeon.PANEL_MIN_SIZE = 1.0 -- m : un modèle plus petit compte pour cette taille dans une porte en panneaux
+Dungeon.MAX_PANELS = 60
+Dungeon.DOORS_INTERVAL = 1000 -- ms entre deux passes sur les portes de la base
 
 ---@type table|false état reçu du serveur
 Dungeon.state = false
@@ -32,6 +35,11 @@ Dungeon.shotAt = 0
 Dungeon.barrelSentAt = {} -- [numéro de bonbonne] = dernier envoi (ms)
 Dungeon.endsAt = 0
 Dungeon.menuOpen = false
+Dungeon.doorsCheckedAt = 0
+---@type table<integer, boolean> modèles des portes de la base cachés
+Dungeon.doorHides = {}
+---@type table<integer, boolean> portes de la base rendues invisibles
+Dungeon.hiddenDoors = {}
 ---@type integer[] intérieurs gardés chargés
 Dungeon.interiors = {}
 
@@ -117,6 +125,7 @@ function Dungeon.onState(data)
         Dungeon.loadInteriors()
         Dungeon.syncProps(data.props)
         Dungeon.syncBlips(data)
+        if not data.doorsOpen then Dungeon.closeBaseDoors() end
     end
     Dungeon.sendHud()
 end
@@ -126,6 +135,7 @@ function Dungeon.clear()
     Dungeon.state = false
     Dungeon.barrelSentAt = {}
     Dungeon.syncProps({})
+    Dungeon.closeBaseDoors()
     Dungeon.removeBlips()
     Dungeon.releaseInteriors()
     Nui.send('dungeon', { dungeon = false })
@@ -207,9 +217,16 @@ function Dungeon.syncProps(wanted)
     end
     for key, prop in pairs(Dungeon.props) do
         if not keys[key] then
-            if prop.entity and DoesEntityExist(prop.entity) then DeleteObject(prop.entity) end
+            Dungeon.deleteProp(prop)
             Dungeon.props[key] = nil
         end
+    end
+end
+
+---@param prop table
+function Dungeon.deleteProp(prop)
+    for _, entity in ipairs(prop.panels or { prop.entity }) do
+        if DoesEntityExist(entity) then DeleteObject(entity) end
     end
 end
 
@@ -228,6 +245,11 @@ function Dungeon.createProp(key)
     local coords = prop.data.coords
     -- Le point peut être sur le toit du tunnel ou à côté : l'objet est posé dans le tunnel, au plus près
     local x, y, ground = PedUtils.findIndoorFloor(coords.x, coords.y, coords.z)
+    if prop.data.wall then
+        Dungeon.createWall(prop, model, x or coords.x, y or coords.y, ground or coords.z)
+        SetModelAsNoLongerNeeded(model)
+        return
+    end
     if x then
         prop.entity = CreateObject(model, x, y, ground + Dungeon.FLOOR_OFFSET, false, false, false)
     else
@@ -238,6 +260,42 @@ function Dungeon.createProp(key)
     -- Une bonbonne du jeu saute toute seule : ici, c'est le serveur qui décide, pour toute la salle
     SetEntityInvincible(prop.entity, true)
     SetModelAsNoLongerNeeded(model)
+end
+
+---Porte qui bouche le tunnel : le modèle répété en panneaux, côte à côte et empilés depuis le sol, face au
+---cap du point. Les panneaux qui dépassent du tube restent dans la roche.
+---@param prop table
+---@param model integer
+---@param x number centre de la porte, sur le sol
+---@param y number
+---@param ground number
+function Dungeon.createWall(prop, model, x, y, ground)
+    local size = prop.data.wall
+    local min, max = GetModelDimensions(model)
+    local width = math.max(max.x - min.x, Dungeon.PANEL_MIN_SIZE)
+    local height = math.max(max.z - min.z, Dungeon.PANEL_MIN_SIZE)
+    local columns = math.max(1, math.ceil(size.width / width))
+    local rows = math.max(1, math.min(math.ceil(size.height / height), math.floor(Dungeon.MAX_PANELS / columns)))
+    local heading = prop.data.coords.w
+    -- Côté droit d'une entité tournée de `heading` : son axe x
+    local rightX, rightY = math.cos(math.rad(heading)), math.sin(math.rad(heading))
+    local middle = (min.x + max.x) / 2
+    prop.panels = {}
+    for row = 1, rows do
+        for column = 1, columns do
+            local offset = (column - (columns + 1) / 2) * width - middle
+            local entity = CreateObject(model, x + rightX * offset, y + rightY * offset,
+                ground + (row - 1) * height - min.z, false, false, false)
+            SetEntityHeading(entity, heading)
+            FreezeEntityPosition(entity, true)
+            SetEntityInvincible(entity, true)
+            PedUtils.enterRoom(entity)
+            prop.panels[#prop.panels + 1] = entity
+        end
+    end
+    prop.entity = prop.panels[1]
+    prop.center = vector3(x, y, ground + rows * height / 2)
+    prop.placed = true
 end
 
 ---Créé de loin, un objet resterait hors de la salle et invisible : il n'apparaît qu'à portée, puis
@@ -317,6 +375,48 @@ function Dungeon.frame(state)
     local ped = PlayerPedId()
     Dungeon.placeProps(GetEntityCoords(ped))
     Dungeon.watchShots(state, ped)
+    if state.doorsOpen then Dungeon.openBaseDoors() end
+end
+
+---La porte du donjon cassée, on descend à pied dans la base : ses portes du jeu sont cachées et sans
+---collision, pour ce joueur seulement.
+function Dungeon.openBaseDoors()
+    local now = GetGameTimer()
+    if now - Dungeon.doorsCheckedAt < Dungeon.DOORS_INTERVAL then return end
+    Dungeon.doorsCheckedAt = now
+    local settings = Config.Dungeon.baseDoors
+    local center = settings.center
+    for _, name in ipairs(settings.models) do
+        local model = GetHashKey(name)
+        if not Dungeon.doorHides[model] then
+            CreateModelHide(center.x, center.y, center.z, settings.radius, model, true)
+            Dungeon.doorHides[model] = true
+        end
+        local door = GetClosestObjectOfType(center.x, center.y, center.z, settings.radius, model, false, false, false)
+        if door ~= 0 and not Dungeon.hiddenDoors[door] then
+            Dungeon.hiddenDoors[door] = true
+            SetEntityVisible(door, false, false)
+            SetEntityCollision(door, false, false)
+        end
+    end
+end
+
+---Portes de la base remises comme le jeu les a mises.
+function Dungeon.closeBaseDoors()
+    if not next(Dungeon.doorHides) and not next(Dungeon.hiddenDoors) then return end
+    local settings = Config.Dungeon.baseDoors
+    local center = settings.center
+    for model in pairs(Dungeon.doorHides) do
+        RemoveModelHide(center.x, center.y, center.z, settings.radius, model, false)
+    end
+    for door in pairs(Dungeon.hiddenDoors) do
+        if DoesEntityExist(door) then
+            SetEntityVisible(door, true, false)
+            SetEntityCollision(door, true, true)
+        end
+    end
+    Dungeon.doorHides = {}
+    Dungeon.hiddenDoors = {}
 end
 
 ---Une balle tirée par ce joueur : sur la porte, ou sur une bonbonne.
@@ -360,6 +460,7 @@ end
 ---@return vector3 où il est vraiment : il a été posé sur le sol
 function Dungeon.propPoint(key, coords)
     local placed = Dungeon.props[key]
+    if placed and placed.center then return placed.center end
     if placed and placed.entity and DoesEntityExist(placed.entity) then return GetEntityCoords(placed.entity) end
     return coords.xyz
 end

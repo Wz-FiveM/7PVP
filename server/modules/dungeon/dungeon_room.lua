@@ -158,8 +158,8 @@ function DungeonRoom:nextStep()
     if self:step(self.stepIndex + 1) then self:enterStep(self.stepIndex + 1) end
 end
 
----Le groupe passe dans la salle de l'étape : la base n'est pas reliée au tunnel, sa porte est fermée dans le jeu.
----Ce qui reste de zombies n'y arriverait pas, et les suivants attendent que les joueurs soient là.
+---Le groupe passe dans la salle de l'étape (étape à `warp`) : ce qui reste de zombies n'y arriverait pas,
+---et les suivants attendent que les joueurs soient là.
 function DungeonRoom:warpPlayers()
     self:despawnPeds()
     self.spawnAfter = GetGameTimer() + DungeonRoom.WARP_DELAY + DungeonRoom.ARRIVAL_TIME
@@ -562,7 +562,7 @@ function DungeonRoom:describeProps()
     end
     for _, step in ipairs(Config.Dungeon.steps) do
         if step.prop and not self.cleared[step.id] then
-            props[#props + 1] = { key = step.id, model = step.prop, coords = step.spawns[1] }
+            props[#props + 1] = { key = step.id, model = step.prop, coords = step.spawns[1], wall = step.wall }
         end
     end
     return props
@@ -597,6 +597,8 @@ function DungeonRoom:describe(source)
 
     data.bucket = self.bucket
     data.props = self:describeProps()
+    -- La porte du donjon cassée : le passage vers la base est libre
+    data.doorsOpen = next(self.cleared) ~= nil
     data.step = {
         id = step.id,
         type = step.type,
