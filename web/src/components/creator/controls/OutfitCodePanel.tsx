@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useT } from '../../../i18n';
 import { useCreator } from '../../../store/CreatorProvider';
 import type { Appearance } from '../../../types/appearance';
+import { copyText } from '../../../utils/clipboard';
 
 const CODE_LENGTH = 6;
 
@@ -10,22 +11,6 @@ const outfitKey = (appearance: Appearance) => JSON.stringify([appearance.sex, ap
 
 /** Code tapé ou collé : majuscules, sans espaces ni tirets. */
 const cleanCode = (value: string) => value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH);
-
-/** Copie dans le presse-papiers ; l'API récente manque souvent dans le navigateur du jeu. */
-async function copyText(text: string, input: HTMLInputElement | null): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    if (!input) return false;
-    input.select();
-    try {
-      return document.execCommand('copy');
-    } catch {
-      return false;
-    }
-  }
-}
 
 /**
  * Code de tenue : partager la sienne (crew, amis) ou essayer celle d'un autre joueur.

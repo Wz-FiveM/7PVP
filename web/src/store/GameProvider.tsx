@@ -11,6 +11,7 @@ import { mockCaseReel, mockChatCommands, mockChatPlayers, mockLobbyModes, mockVi
 import { useNuiMessage } from '../hooks/useNuiMessage';
 import { setLanguage, t } from '../i18n';
 import type { KillfeedEntry, ToastKind } from '../types/game';
+import { copyText } from '../utils/clipboard';
 import type { ActionResult, CaseOpenResult, NuiMessage } from '../types/nui';
 import { GameContext, type GameActions } from './GameContext';
 import { gameReducer, initialState } from './gameReducer';
@@ -74,6 +75,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           return dispatch({ type: 'menu', ...message.data });
         case 'notify':
           return notify(message.data.text, message.data.kind);
+        case 'copy': {
+          const { text, copied, failed } = message.data;
+          return void copyText(text).then((ok) => notify(ok ? copied : failed, ok ? 'success' : 'error'));
+        }
         case 'locale':
           return void setLanguage(message.data.lang, message.data.languages);
         case 'killfeed':

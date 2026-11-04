@@ -35,6 +35,8 @@ export type NuiMessage =
   | { action: 'weaponCustom'; data: WeaponCustomPayload }
   | { action: 'menu'; data: { open: boolean; inSafe: boolean; near?: NearServices; page?: string } }
   | { action: 'notify'; data: { text: string; kind: ToastKind } }
+  /** texte à copier dans le presse-papiers, et la notification selon que la copie a marché */
+  | { action: 'copy'; data: { text: string; copied: string; failed: string } }
   | { action: 'locale'; data: LocalePayload }
   | { action: 'killfeed'; data: KillfeedEntry }
   /** prix de la boutique, objet -> prix (voir ShopService) */
