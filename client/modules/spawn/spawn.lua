@@ -63,6 +63,7 @@ function Spawn.spawnAt(spawn, appearance)
     if not found then x, y, z = from.x, from.y, from.z end
     SetEntityCoordsNoOffset(ped, x, y, z, false, false, false)
     SetEntityHeading(ped, spawn.w)
+    if found and z < PedUtils.UNDERGROUND_Z then PedUtils.enterRoom(ped, true) end
 
     Spawn.resetPed(ped)
     FreezeEntityPosition(ped, false)

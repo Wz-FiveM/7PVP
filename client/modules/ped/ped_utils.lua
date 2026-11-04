@@ -104,6 +104,66 @@ function PedUtils.waitInterior(coords)
     return interior
 end
 
+---Le jeu ne met une entité dans un intérieur que lorsqu'elle y entre par une ouverture : posée
+---directement dedans, elle reste « dehors », sur le sol de l'intérieur mais sans qu'il s'affiche
+---(et sans être vue de ceux qui y sont). On lui donne la pièce où elle se trouve.
+---@param entity integer
+---@param viewport? boolean aussi la caméra du joueur (pour son propre personnage)
+---@return boolean placée dans une pièce
+function PedUtils.enterRoom(entity, viewport)
+    local coords = GetEntityCoords(entity)
+    local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
+    if interior == 0 then return false end
+    local room = PedUtils.roomAt(interior, coords)
+    if not room then return false end
+    ForceRoomForEntity(entity, interior, room)
+    if viewport then ForceRoomForGameViewport(interior, room) end
+    return true
+end
+
+---@param interior integer
+---@param coords vector3
+---@return integer|nil clé de la pièce qui contient `coords` (sinon la plus proche), nil si l'intérieur n'en a pas
+function PedUtils.roomAt(interior, coords)
+    local count = GetInteriorRoomCount(interior)
+    if not count or count < 2 then return nil end
+    local point = PedUtils.toInterior(interior, coords)
+    local best, bestDistance = nil, math.huge
+    -- La pièce 0 est « limbo », le dehors
+    for index = 1, count - 1 do
+        local minX, minY, minZ, maxX, maxY, maxZ = GetInteriorRoomExtents(interior, index)
+        local center = vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2)
+        local inside = point.x >= minX and point.x <= maxX and point.y >= minY and point.y <= maxY
+            and point.z >= minZ and point.z <= maxZ
+        local distance = inside and -1 or #(point - center)
+        if distance < bestDistance then
+            best, bestDistance = index, distance
+        end
+    end
+    return best and GetHashKey(GetInteriorRoomName(interior, best)) or nil
+end
+
+---Les dimensions des pièces sont données dans le repère de l'intérieur.
+---@param interior integer
+---@param coords vector3
+---@return vector3
+function PedUtils.toInterior(interior, coords)
+    local px, py, pz = GetInteriorPosition(interior)
+    local qx, qy, qz, qw = GetInteriorRotation(interior)
+    local v = coords - vector3(px, py, pz)
+    -- Rotation inverse (quaternion conjugué) : v + 2w(q × v) + 2q × (q × v), avec q = -(qx, qy, qz)
+    local q = vector3(-qx, -qy, -qz)
+    local t = PedUtils.cross(q, v) * 2.0
+    return v + t * qw + PedUtils.cross(q, t)
+end
+
+---@param a vector3
+---@param b vector3
+---@return vector3
+function PedUtils.cross(a, b)
+    return vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
+end
+
 ---Distance entre `coords` et le joueur actif le plus proche.
 ---@param coords vector3
 ---@return number

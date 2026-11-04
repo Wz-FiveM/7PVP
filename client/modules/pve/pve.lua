@@ -126,6 +126,8 @@ function Pve.decorate(ped)
         end
     end
     SetRagdollBlockingFlags(ped, Pve.RAGDOLL_BLOCKING_FLAGS)
+    -- Créé sous terre par le serveur, un zombie du donjon resterait invisible dans le tunnel
+    if Entity(ped).state.dungeonRoom then PedUtils.enterRoom(ped) end
 end
 
 ---@param ped integer

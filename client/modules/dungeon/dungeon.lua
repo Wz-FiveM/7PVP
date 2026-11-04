@@ -8,6 +8,7 @@ local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
+local PedUtils = PVP.use('PedUtils')
 
 Dungeon.MODEL_TIMEOUT = 3000
 Dungeon.WALL_SEND_INTERVAL = 500
@@ -246,6 +247,7 @@ function Dungeon.placeProps(pos)
             elseif prop.entity then
                 prop.tries = prop.tries + 1
                 prop.placed = PlaceObjectOnGroundProperly(prop.entity) or prop.tries >= Dungeon.PLACE_TRIES
+                if prop.placed then PedUtils.enterRoom(prop.entity) end
             end
         end
     end
@@ -375,6 +377,7 @@ function Dungeon.settlePed(ped)
             player.y + math.sin(angle) * Dungeon.SNAP_NEAR_PLAYER, player.z, true, 16)
     end
     if safe then SetEntityCoords(ped, point.x, point.y, point.z, false, false, false, false) end
+    PedUtils.enterRoom(ped)
 end
 
 ---Le boss se bat comme un zombie (Pve.updatePed) : seule sa vie lui est propre. Appliquée une fois,

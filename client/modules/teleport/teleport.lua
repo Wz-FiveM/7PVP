@@ -119,6 +119,7 @@ function Teleport.arrive(spawn, label)
         if not found then x, y, z = from.x, from.y, from.z end
         SetEntityCoordsNoOffset(ped, x, y, z, false, false, false)
         SetEntityHeading(ped, spawn.w)
+        if found and z < PedUtils.UNDERGROUND_Z then PedUtils.enterRoom(ped, true) end
         FreezeEntityPosition(ped, State.noclip)
 
         Zone.update()
