@@ -18,6 +18,7 @@ local HelpNotify = PVP.use('HelpNotify')
 local Nui = PVP.use('Nui')
 local Callback = PVP.use('Callback')
 local Events = PVP.use('Events')
+local PedUtils = PVP.use('PedUtils')
 local Locale = PVP.use('Locale')
 
 Loot.STREAM_DISTANCE = 60.0
@@ -131,8 +132,17 @@ function Loot.createObject(bag)
     local timeout = GetGameTimer() + 2000
     while not HasModelLoaded(bag.model) and GetGameTimer() < timeout do Wait(0) end
 
-    bag.object = CreateObject(bag.model, bag.coords.x, bag.coords.y, bag.coords.z, false, false, false)
+    local x, y, z = bag.coords.x, bag.coords.y, bag.coords.z
+    local underground = z < PedUtils.UNDERGROUND_Z
+    -- Sous terre (donjon) : sur le sol de l'intérieur le plus proche, PlaceObjectOnGroundProperly pouvant viser le toit
+    if underground then
+        local fx, fy, fz = PedUtils.findIndoorFloor(x, y, z)
+        if fx then x, y, z = fx, fy, fz end
+    end
+    bag.object = CreateObject(bag.model, x, y, z, false, false, false)
     PlaceObjectOnGroundProperly(bag.object)
+    -- Créée directement dans le tunnel, la caisse resterait invisible tant qu'elle n'est pas dans sa pièce
+    if underground then PedUtils.enterRoom(bag.object) end
     FreezeEntityPosition(bag.object, true)
     -- Une caisse bloque les joueurs ; un sac se traverse pour ne pas gêner les combats
     SetEntityCollision(bag.object, bag.solid, bag.solid)

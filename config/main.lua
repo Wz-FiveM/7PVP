@@ -382,8 +382,12 @@ Config.ZombieTypes = {
             shake = 1.0, -- tremblement de caméra
         },
     },
-    -- Boss du donjon : jamais tiré au sort, sa vie vient de Config.Dungeon.boss
-    dungeonBoss = { label = 'Mastodonte', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
+    -- Boss du donjon : jamais tiré au sort, sa vie vient de Config.Dungeon.boss. Armé comme les humains
+    -- de la prison (voir plus bas) : il tire avec l'IA de GTA et le serveur valide chaque touche.
+    dungeonBoss = {
+        label = 'Mastodonte', human = true, weight = 0, health = 1.0, damage = 4.0, speed = 2.0,
+        weapon = 'WEAPON_COMBATMG', range = 40.0, cooldown = 500, accuracy = 0.35, shotDamage = 12,
+    },
     -- Mini boss de fin de horde : jamais tiré au sort, sa vie vient de Config.Hordes.boss
     hordeBoss = { label = 'Abomination', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
     -- Humains armés (zone de la prison) : jamais tirés au sort ailleurs, la zone donne leurs poids (npc.types).

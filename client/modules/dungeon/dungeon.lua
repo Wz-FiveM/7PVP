@@ -497,7 +497,7 @@ function Dungeon.settlePed(ped)
     PedUtils.enterRoom(ped)
 end
 
----Le boss se bat comme un zombie (Pve.updatePed) : seule sa vie lui est propre. Appliquée une fois,
+---Le boss se bat comme un humain armé (Pve.updatePed, Pve.arm) : seule sa vie lui est propre. Appliquée une fois,
 ---sinon un changement de propriétaire la remettrait au max.
 ---@param ped integer
 function Dungeon.setupBoss(ped)

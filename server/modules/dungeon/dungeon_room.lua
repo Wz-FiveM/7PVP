@@ -41,8 +41,8 @@ DungeonRoom.LEASH_INTERVAL = 6000
 DungeonRoom.WARP_DELAY = 1500
 -- Plus bas que ça sous l'étape, on est passé à travers le sol (le tunnel descend : on peut avoir pris de l'avance)
 DungeonRoom.FALL_DEPTH = 30.0
--- Distance du butin de fin devant le joueur
-DungeonRoom.CHEST_OFFSET = 1.2
+-- Écart entre deux caisses de fin quand il y a plus de joueurs que de points (étape chest)
+DungeonRoom.CHEST_SPACING = 1.5
 -- Un zombie n'apparaît pas sous les yeux d'un joueur, s'il y a un autre point
 DungeonRoom.SPAWN_MIN_DISTANCE = 20.0
 
@@ -191,18 +191,21 @@ end
 ---Caisse de chaque joueur, et récompense immédiate.
 function DungeonRoom:finish()
     local reward = Config.Dungeon.reward
+    local chest = self:step()
     self.status = 'exit'
     self.endsAt = GetGameTimer() + Config.Dungeon.exitDuration * 1000
     self:despawnPeds()
 
+    local index = 0
     for source in pairs(self.players) do
         local player = PlayerService.get(source)
         if player then
+            index = index + 1
             player:addMoney(reward.money)
             player:addXp(reward.xp)
             player:notify(Locale.t('Donjon terminé : +$%d, +%d XP', reward.money, reward.xp), 'success')
             player:sync()
-            LootService.drop(self:chestPoint(player), DungeonRoom.rollReward(reward), {
+            LootService.drop(DungeonRoom.chestPoint(chest, index),DungeonRoom.rollReward(reward), {
                 model = reward.model,
                 solid = true,
                 browse = true,
@@ -237,13 +240,28 @@ function DungeonRoom.rollReward(reward)
     return chosen
 end
 
----Devant le joueur : là où il se tient, le sol existe forcément.
----@param player PvpPlayer
+---Caisse du `index`-ième joueur, sur un point fixe de l'étape chest (spawns, déplaçables dans F10 > Positions) :
+---au-delà du dernier point, les caisses s'alignent à sa droite.
+---@param step table étape chest
+---@param index integer
 ---@return vector3
-function DungeonRoom:chestPoint(player)
-    local coords = player:getCoords()
-    local heading = math.rad(GetEntityHeading(GetPlayerPed(player.source)))
-    return vector3(coords.x - math.sin(heading) * DungeonRoom.CHEST_OFFSET, coords.y + math.cos(heading) * DungeonRoom.CHEST_OFFSET, coords.z)
+function DungeonRoom.chestPoint(step, index)
+    local spawns = step.spawns or {}
+    local point = spawns[index]
+    if point then return vector3(point.x, point.y, point.z) end
+    local last = spawns[#spawns] or vector4(step.coords.x, step.coords.y, step.coords.z, 0.0)
+    local heading = math.rad(last.w or 0.0)
+    local offset = (index - #spawns) * DungeonRoom.CHEST_SPACING
+    return vector3(last.x + math.cos(heading) * offset, last.y + math.sin(heading) * offset, last.z)
+end
+
+---Étape du butin de fin, où se pose aussi celui du boss.
+---@return table|nil
+function DungeonRoom.chestStep()
+    for _, step in ipairs(Config.Dungeon.steps) do
+        if step.type == 'chest' then return step end
+    end
+    return nil
 end
 
 -- ---------------------------------------------------------------------------
@@ -421,8 +439,22 @@ function DungeonRoom:onBossDeath(ped, killer)
     self.boss = nil
     Entity(ped).state:set('pvpNpcDead', true, true)
     if killer then CombatService.rewardNpcKill(killer, Config.Dungeon.zone.id) end
-    LootService.drop(GetEntityCoords(ped), LootService.rollMany(settings.loot, settings.lootRolls),
-        { netId = NetworkGetNetworkIdFromEntity(ped), bucket = self.bucket })
+    -- Sur un point fixe du hangar (centre de l'étape chest), pas sur le corps qui peut finir dans un mur ou sous le sol
+    local chest = DungeonRoom.chestStep()
+    local items = LootService.rollMany(settings.loot, settings.lootRolls)
+    if chest then
+        LootService.drop(chest.coords, items, {
+            model = settings.lootModel,
+            solid = true,
+            browse = true,
+            label = Locale.t('Fouiller le butin'),
+            title = Locale.t('Butin du boss'),
+            bucket = self.bucket,
+            lifetime = Config.Dungeon.exitDuration,
+        })
+    else
+        LootService.drop(GetEntityCoords(ped), items, { netId = NetworkGetNetworkIdFromEntity(ped), bucket = self.bucket })
+    end
     self:nextStep()
 end
 

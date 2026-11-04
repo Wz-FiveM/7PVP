@@ -12,7 +12,7 @@
 --     kill        tuer `count` zombies par joueur    spawns : apparition des zombies
 --     destroy     détruire une porte en tirant       spawns[1] : la porte, les suivants : zombies (`adds` en même temps)
 --     boss        tuer le boss                       spawns[1] : le boss, les suivants : ses renforts
---     chest       butin de fin, devant chaque joueur spawns : inutilisés
+--     chest       butin de fin                       coords : caisse du boss, spawns : une caisse par joueur
 --   coords, radius  centre de l'étape : ses zombies n'apparaissent qu'une fois un joueur à `radius` de ce point
 --   warp, heading l'étape ouvre une nouvelle salle : le groupe y est amené avec un fondu, tourné vers `heading`
 --   checkpoint    point de reprise sans téléportation : on y réapparaît, tourné vers `heading`
@@ -90,12 +90,13 @@ Config.Dungeon = {
     },
     boss = {
         label = 'Mastodonte',
-        type = 'dungeonBoss', -- entrée de Config.ZombieTypes : il se bat au corps à corps, comme un zombie
+        type = 'dungeonBoss', -- entrée de Config.ZombieTypes : arme et tirs (mitrailleuse de combat)
         model = 'u_m_y_imporage',
         health = 6000,
         healthPerPlayer = 3000, -- par joueur en plus du premier
         loot = 'airdrop',
         lootRolls = 2,
+        lootModel = 'prop_mil_crate_02', -- caisse posée au centre de l'étape chest (point fixe), pas sur son corps
     },
     -- Les zombies du donjon, comme une zone zombies (voir config/zones.lua)
     zone = {
@@ -196,7 +197,11 @@ Config.Dungeon = {
             id = 'chest', type = 'chest', label = 'Butin de fin',
             objective = 'Les loots sont up', hint = 'Ouvre ta caisse avant la fin du compteur.',
             coords = vector3(580.0, 5956.0, -153.0), radius = 30.0,
-            spawns = { vector4(580.0, 5956.0, -153.0, 0.0) },
+            -- Caisses des joueurs à 3 m du butin du boss ; au-delà du 4e joueur, alignées vers +y (cap 90)
+            spawns = {
+                vector4(583.0, 5952.0, -153.0, 90.0), vector4(583.0, 5954.5, -153.0, 90.0),
+                vector4(583.0, 5957.5, -153.0, 90.0), vector4(583.0, 5960.0, -153.0, 90.0),
+            },
         },
     },
 }
