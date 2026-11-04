@@ -489,7 +489,7 @@ Config.Hordes = {
         health = 3000,
         healthPerPlayer = 1500, -- par joueur en plus du premier dans la zone
         duration = 180, -- secondes pour le tuer
-        loot = 'airdrop', -- table de config/loot.lua, sur son corps
+        loot = 'hordeBoss', -- table de config/loot.lua, sur son corps (onglet admin Butin)
         lootRolls = 1,
         reward = { money = 800, xp = 300 }, -- en plus de celle de la horde
     },

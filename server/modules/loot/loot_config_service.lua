@@ -29,6 +29,7 @@ LootConfigService.LABELS = {
     gang = 'Zombies — zones communes',
     military = 'Zombies — zones militaires',
     airdrop = 'Largages',
+    hordeBoss = 'Boss de horde',
 }
 
 LootConfigService.MAX_DROPS = 60
@@ -161,6 +162,7 @@ function LootConfigService.usedBy(name)
         if zone.npc and zone.npc.loot == name then list[#list + 1] = Locale.t(zone.label) end
     end
     if Config.Airdrops.loot == name then list[#list + 1] = Locale.t('Largages aériens') end
+    if Config.Hordes.boss and Config.Hordes.boss.loot == name then list[#list + 1] = Locale.t('Boss de horde') end
     if Config.ConflictZones.reward.loot == name then list[#list + 1] = Locale.t('Zones de conflit') end
     if Config.Dungeon.reward.loot == name or Config.Dungeon.zone.npc.loot == name or Config.Dungeon.boss.loot == name then
         list[#list + 1] = Locale.t('Donjon')
