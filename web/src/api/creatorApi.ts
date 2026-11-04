@@ -1,5 +1,11 @@
 import { fetchNui } from './nui';
-import type { Appearance, CameraPreset, CreatorApplyResult } from '../types/appearance';
+import type {
+  Appearance,
+  CameraPreset,
+  CreatorApplyResult,
+  OutfitCodeResult,
+  OutfitUseResult,
+} from '../types/appearance';
 import type { ActionResult } from '../types/nui';
 
 /** Requêtes du créateur de personnage (voir client/modules/creator/creator.lua). */
@@ -13,4 +19,9 @@ export const creatorApi = {
   save: () => fetchNui<ActionResult>('creatorSave', {}, { ok: true }),
 
   cancel: () => fetchNui<void>('creatorCancel'),
+
+  outfitCode: () => fetchNui<OutfitCodeResult>('creatorOutfitCode', {}, { ok: true, code: 'K7QM2X' }),
+
+  outfitUse: (code: string) =>
+    fetchNui<OutfitUseResult>('creatorOutfitUse', { code }, { ok: false, message: 'Aucune tenue avec ce code.' }),
 };

@@ -139,6 +139,7 @@ server_scripts {
     'server/modules/inventory/weapon_custom_service.lua',
     'server/modules/world/world_service.lua',
     'server/modules/appearance/appearance_service.lua',
+    'server/modules/appearance/outfit_code_service.lua',
     'server/modules/modes/mode_registry.lua',
     'server/modules/modes/pvp_mode.lua',
     'server/modules/modes/freeroam_mode.lua',

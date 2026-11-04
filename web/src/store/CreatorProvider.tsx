@@ -9,6 +9,8 @@ import type {
   CreatorMode,
   CreatorPalettes,
   CreatorSchema,
+  OutfitCodeResult,
+  OutfitUseResult,
 } from '../types/appearance';
 import type { NuiMessage } from '../types/nui';
 
@@ -33,6 +35,10 @@ export interface CreatorActions {
   rotate: (delta: number) => void;
   save: () => Promise<void>;
   cancel: () => void;
+  /** Code de la tenue affichée, à partager */
+  shareOutfit: () => Promise<OutfitCodeResult>;
+  /** Essaie la tenue d'un code (enregistrée seulement au clic sur Enregistrer) */
+  useOutfitCode: (code: string) => Promise<OutfitUseResult>;
 }
 
 interface CreatorContextValue {
@@ -93,6 +99,13 @@ export function CreatorProvider({ children }: { children: ReactNode }) {
 
   useNuiMessage(handleMessage);
 
+  /** Envoie tout de suite la modification en attente : le jeu doit afficher la tenue de l'interface. */
+  const flushNow = useCallback(async () => {
+    if (timer.current === null) return;
+    window.clearTimeout(timer.current);
+    await flush();
+  }, [flush]);
+
   const actions = useMemo<CreatorActions>(
     () => ({
       update: (change) => {
@@ -124,8 +137,24 @@ export function CreatorProvider({ children }: { children: ReactNode }) {
         creatorApi.cancel();
         if (isEnvBrowser()) setState(null);
       },
+      shareOutfit: async () => {
+        await flushNow();
+        return (await creatorApi.outfitCode()) ?? { ok: false };
+      },
+      useOutfitCode: async (code) => {
+        await flushNow();
+        const result = (await creatorApi.outfitUse(code)) ?? { ok: false };
+        if (result.ok && result.appearance) {
+          const appearance = result.appearance;
+          setState(
+            (current) =>
+              current && { ...current, appearance, limits: result.limits ?? current.limits, error: null },
+          );
+        }
+        return result;
+      },
     }),
-    [flush],
+    [flush, flushNow],
   );
 
   const value = useMemo(() => ({ state, actions }), [state, actions]);

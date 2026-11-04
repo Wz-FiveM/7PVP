@@ -78,3 +78,18 @@ export interface CreatorApplyResult {
   /** renvoyée quand le sexe a changé (apparence par défaut du nouveau modèle) */
   appearance?: Appearance;
 }
+
+/** Réponse du callback `creatorOutfitCode` : code de la tenue affichée */
+export interface OutfitCodeResult {
+  ok: boolean;
+  code?: string;
+  message?: string;
+}
+
+/** Réponse du callback `creatorOutfitUse` : apparence avec la tenue du code, pas encore enregistrée */
+export interface OutfitUseResult {
+  ok: boolean;
+  message?: string;
+  appearance?: Appearance;
+  limits?: CreatorLimits;
+}

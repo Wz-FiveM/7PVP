@@ -2,6 +2,7 @@ import { useT } from '../../../i18n';
 import { useCreator } from '../../../store/CreatorProvider';
 import type { DrawableValue } from '../../../types/appearance';
 import { DrawableControl } from '../controls/DrawableControl';
+import { OutfitCodePanel } from '../controls/OutfitCodePanel';
 
 export function OutfitSection() {
   const t = useT();
@@ -16,6 +17,7 @@ export function OutfitSection() {
 
   return (
     <>
+      <OutfitCodePanel />
       {schema.components.map((entry) => (
         <DrawableControl
           key={entry.key}

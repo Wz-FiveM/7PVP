@@ -213,6 +213,80 @@ function AppearanceSchema.describe()
     }
 end
 
+-- ---------------------------------------------------------------------------
+-- Tenue seule (vêtements et accessoires), pour les codes de tenue
+-- ---------------------------------------------------------------------------
+
+---Tenue d'une apparence validée en texte stable, toujours le même pour la même tenue :
+---« male|top=15.0;undershirt=15.0;...|hat=-1.0;glasses=-1.0 » (modèle.variante par élément).
+---@param data table apparence validée
+---@return string
+function AppearanceSchema.outfitSignature(data)
+    local components, props = {}, {}
+    for i, component in ipairs(AppearanceSchema.COMPONENTS) do
+        local value = data.components[component.key]
+        components[i] = ('%s=%d.%d'):format(component.key, value.drawable, value.texture)
+    end
+    for i, prop in ipairs(AppearanceSchema.PROPS) do
+        local value = data.props[prop.key]
+        props[i] = ('%s=%d.%d'):format(prop.key, value.drawable, value.texture)
+    end
+    return ('%s|%s|%s'):format(data.sex, table.concat(components, ';'), table.concat(props, ';'))
+end
+
+---Relit une tenue écrite par outfitSignature. Un élément inconnu est ignoré, un élément absent
+---(ajouté au schéma depuis) n'est pas renvoyé : la tenue du joueur le garde.
+---@param signature string
+---@return { sex: string, components: table, props: table }|nil
+function AppearanceSchema.parseOutfit(signature)
+    if type(signature) ~= 'string' then return nil end
+    local sex, componentsText, propsText = signature:match('^(%a+)|([^|]*)|([^|]*)$')
+    if not sex or not AppearanceSchema.MODELS[sex] then return nil end
+
+    return {
+        sex = sex,
+        components = AppearanceSchema.parseOutfitPart(componentsText, AppearanceSchema.COMPONENTS, 0),
+        props = AppearanceSchema.parseOutfitPart(propsText, AppearanceSchema.PROPS, -1),
+    }
+end
+
+---@param text string « clé=modèle.variante » séparés par des points-virgules
+---@param list table[] AppearanceSchema.COMPONENTS ou PROPS
+---@param minDrawable integer -1 pour les accessoires (aucun)
+---@return table<string, { drawable: integer, texture: integer }>
+function AppearanceSchema.parseOutfitPart(text, list, minDrawable)
+    local clamp = AppearanceSchema.clamp
+    local values, result = {}, {}
+    for key, drawable, texture in text:gmatch('(%w+)=(%-?%d+)%.(%d+)') do
+        values[key] = { drawable = drawable, texture = texture }
+    end
+    for _, entry in ipairs(list) do
+        local value = values[entry.key]
+        if value then
+            result[entry.key] = {
+                drawable = clamp(value.drawable, minDrawable, 1023, true),
+                texture = clamp(value.texture, 0, 63, true),
+            }
+        end
+    end
+    return result
+end
+
+---Copie de l'apparence avec la tenue donnée par-dessus (visage, cheveux et sexe inchangés).
+---@param data table apparence validée
+---@param outfit { components: table, props: table }
+---@return table
+function AppearanceSchema.withOutfit(data, outfit)
+    local result = AppearanceSchema.copy(data)
+    for key, value in pairs(outfit.components) do
+        if result.components[key] then result.components[key] = { drawable = value.drawable, texture = value.texture } end
+    end
+    for key, value in pairs(outfit.props) do
+        if result.props[key] then result.props[key] = { drawable = value.drawable, texture = value.texture } end
+    end
+    return result
+end
+
 ---@param data table
 ---@return table copie profonde
 function AppearanceSchema.copy(data)

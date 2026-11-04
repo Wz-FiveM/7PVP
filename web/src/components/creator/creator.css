@@ -233,3 +233,33 @@
   text-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.9);
   transform: translateX(-50%);
 }
+
+/* Code de tenue ----------------------------------------------------------------- */
+
+.outfit-code__row {
+  display: flex;
+  gap: 0.5rem;
+}
+.outfit-code__grow {
+  flex: 1;
+}
+.outfit-code__field {
+  flex: 1;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.outfit-code__field::placeholder {
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--brume);
+}
+.outfit-code__field--code {
+  color: var(--signal);
+}
+.outfit-code__error {
+  color: var(--hazard);
+}
+.outfit-code__ok {
+  color: var(--toxine);
+}

@@ -57,6 +57,12 @@ function Creator.init()
         Creator.cancel()
         cb({})
     end)
+    RegisterNUICallback('creatorOutfitCode', function(_, cb)
+        cb(Creator.shareOutfit())
+    end)
+    RegisterNUICallback('creatorOutfitUse', function(data, cb)
+        cb(Creator.useOutfitCode(data.code))
+    end)
 end
 
 -- ---------------------------------------------------------------------------
@@ -219,6 +225,49 @@ end
 function Creator.rotate(delta)
     local ped = PlayerPedId()
     SetEntityHeading(ped, (GetEntityHeading(ped) + delta) % 360.0)
+end
+
+-- ---------------------------------------------------------------------------
+-- Codes de tenue (server/modules/appearance/outfit_code_service.lua)
+-- ---------------------------------------------------------------------------
+
+---Code de la tenue affichée, à partager (le même pour la même tenue).
+---@return { ok: boolean, code?: string, message?: string }
+function Creator.shareOutfit()
+    if not Creator.active then return { ok = false } end
+    return Callback.await(Events.callbacks.outfitCodeCreate, Creator.current)
+        or { ok = false, message = Locale.t('Le serveur ne répond pas.') }
+end
+
+---Met la tenue d'un code sur le personnage affiché, sans l'enregistrer : le joueur garde
+---son visage, l'essaie puis enregistre ou annule comme pour toute modification.
+---@param code any
+---@return { ok: boolean, message?: string, appearance?: table, limits?: table }
+function Creator.useOutfitCode(code)
+    if not Creator.active then return { ok = false } end
+    local result = Callback.await(Events.callbacks.outfitCodeUse, code)
+    if not result or not result.ok or not result.outfit then
+        return { ok = false, message = result and result.message or Locale.t('Le serveur ne répond pas.') }
+    end
+
+    local outfit = result.outfit
+    if outfit.sex ~= Creator.current.sex then
+        return {
+            ok = false,
+            message = outfit.sex == 'female' and Locale.t('Cette tenue est faite pour un personnage féminin.')
+                or Locale.t('Cette tenue est faite pour un personnage masculin.'),
+        }
+    end
+
+    local appearance = AppearanceSchema.withOutfit(Creator.current, outfit)
+    Appearance.apply(PlayerPedId(), appearance)
+    Creator.current = appearance
+    return {
+        ok = true,
+        message = Locale.t('Tenue essayée : enregistre pour la garder.'),
+        appearance = appearance,
+        limits = Appearance.getLimits(PlayerPedId(), appearance),
+    }
 end
 
 -- ---------------------------------------------------------------------------
