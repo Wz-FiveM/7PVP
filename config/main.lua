@@ -385,7 +385,7 @@ Config.ZombieTypes = {
     -- Boss du donjon : jamais tiré au sort, sa vie vient de Config.Dungeon.boss
     dungeonBoss = { label = 'Mastodonte', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
     -- Mini boss de fin de horde : jamais tiré au sort, sa vie vient de Config.Hordes.boss
-    hordeBoss = { label = 'Abomination', weight = 0, health = 1.0, damage = 3.0, speed = 2.0 },
+    hordeBoss = { label = 'Abomination', weight = 0, health = 1.0, damage = 4.0, speed = 2.0 },
     -- Humains armés (zone de la prison) : jamais tirés au sort ailleurs, la zone donne leurs poids (npc.types).
     -- Ils tirent avec l'IA de GTA, mais leurs balles ne blessent pas : chaque tir qui a sa cible en vue est
     -- validé par le serveur, qui tire la touche. weapon : arme portée ; range : portée de tir (m) ;
@@ -486,9 +486,9 @@ Config.Hordes = {
     boss = {
         type = 'hordeBoss', -- entrée de Config.ZombieTypes
         model = 'u_m_y_juggernaut_01',
-        health = 3000,
-        healthPerPlayer = 1500, -- par joueur en plus du premier dans la zone
-        duration = 180, -- secondes pour le tuer
+        health = 9000, -- x3 le 2026-11-04 (tombait trop vite pour ce qu'il rapporte)
+        healthPerPlayer = 4500, -- par joueur en plus du premier dans la zone
+        duration = 240, -- secondes pour le tuer
         loot = 'hordeBoss', -- table de config/loot.lua, sur son corps (onglet admin Butin)
         lootRolls = 1,
         reward = { money = 800, xp = 300 }, -- en plus de celle de la horde
