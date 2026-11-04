@@ -196,6 +196,7 @@ client_scripts {
     'client/modules/nui/nui.lua',
     'client/modules/nui/help_notify.lua',
     'client/modules/anticheat/heartbeat.lua',
+    'client/modules/anticheat/protection_report.lua',
     'client/modules/dui/dui_labels.lua',
     'client/modules/ped/ped_utils.lua',
     'client/modules/ped/fall.lua',

@@ -93,6 +93,9 @@ function AntiCheatService.init()
     RegisterNetEvent(Events.server.heartbeat, function()
         AntiCheatService.heartbeats[source] = os.time()
     end)
+    RegisterNetEvent(Events.server.protectionReport, function(report)
+        AntiCheatService.onProtectionReport(source, report)
+    end)
     AddEventHandler(Events.internal.playerLoaded, function(playerSource)
         AntiCheatService.loadedAt[playerSource] = os.time()
         AntiCheatService.grace(playerSource)
@@ -170,6 +173,7 @@ function AntiCheatService.forget(source)
         AntiCheatService.allowedVehicles, AntiCheatService.createdVehicles, AntiCheatService.invincibleSince,
         AntiCheatService.heldWeapons, AntiCheatService.immunity, AntiCheatService.aimSamples,
         AntiCheatService.streaks, AntiCheatService.vehicleAt, AntiCheatService.damageHits,
+        AntiCheatService.reportAskedAt, AntiCheatService.reportPending,
     }) do
         map[source] = nil
     end
@@ -471,7 +475,41 @@ function AntiCheatService.trackImmunity(sender, victim, ped)
     if state.hits >= Config.AntiCheat.immunityHits then
         AntiCheatService.immunity[victim] = nil
         AntiCheatService.flag(victim, 'immunity', ('%d touches encaissées sans perdre de vie (vie + armure : %d)'):format(state.hits, life))
+        if Config.AntiCheat.hitJournal then AntiCheatService.requestProtectionReport(victim) end
     end
+end
+
+-- TEMPORAIRE (Config.AntiCheat.hitJournal) : état de protection demandé au client d'un joueur intouchable,
+-- au plus une fois par REPORT_INTERVAL ms et par joueur (voir client/modules/anticheat/protection_report.lua)
+AntiCheatService.REPORT_INTERVAL = 30000
+AntiCheatService.reportAskedAt = {} -- [source] = GetGameTimer() de la dernière demande
+AntiCheatService.reportPending = {} -- [source] = true tant que la réponse n'est pas arrivée
+
+---@param source integer
+function AntiCheatService.requestProtectionReport(source)
+    local now = GetGameTimer()
+    local asked = AntiCheatService.reportAskedAt[source]
+    if asked and now - asked < AntiCheatService.REPORT_INTERVAL then return end
+    AntiCheatService.reportAskedAt[source] = now
+    AntiCheatService.reportPending[source] = true
+    TriggerClientEvent(Events.client.protectionReport, source)
+end
+
+---@param source integer
+---@param report table
+function AntiCheatService.onProtectionReport(source, report)
+    -- Seulement en réponse à une demande : un client ne remplit pas le journal de lui-même
+    if not AntiCheatService.reportPending[source] or type(report) ~= 'table' then return end
+    AntiCheatService.reportPending[source] = nil
+
+    local parts = {}
+    for _, key in ipairs({ 'mode', 'activity', 'zone', 'protected', 'godmode', 'noclip', 'spectating', 'creator',
+        'downed', 'fall', 'pveWorld', 'group', 'relation', 'playerInvincible', 'canBeDamaged', 'proofs',
+        'health', 'maxHealth', 'armor', 'effects', 'vehicle' }) do
+        parts[#parts + 1] = ('%s=%s'):format(key, tostring(report[key]):sub(1, 80))
+    end
+    Logger.info('[touche] protection de %s (ID %d), invincible pour le serveur %s : %s',
+        GetPlayerName(source) or '?', source, tostring(GetPlayerInvincible(source)), table.concat(parts, ', '))
 end
 
 ---Écart entre là où regarde la caméra du joueur et une cible.

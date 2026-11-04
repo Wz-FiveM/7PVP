@@ -6,6 +6,7 @@ local Nui = PVP.use('Nui')
 local Zones = PVP.use('Zones')
 local PvpPositions = PVP.use('PvpPositions')
 local Effects = PVP.use('Effects')
+local Creator = PVP.use('Creator')
 local Events = PVP.use('Events')
 local Locale = PVP.use('Locale')
 
@@ -142,9 +143,18 @@ function Zone.safeLoop()
             Zone.applySafeRestrictions()
             Wait(0)
         else
+            Zone.clearStuckInvincibility()
             Wait(250)
         end
     end
+end
+
+---Hors zone safe et hors mode passif, en PvP, rien ne doit laisser le personnage invincible : une invincibilité
+---restée d'ailleurs (créateur, changement de personnage...) rendait des joueurs intouchables pour les autres.
+function Zone.clearStuckInvincibility()
+    if not State.inPvp() or not State.isAlive() or State.activity or Creator.active then return end
+    if State.godmode or State.noclip or State.spectating then return end
+    SetEntityInvincible(PlayerPedId(), false)
 end
 
 function Zone.applySafeRestrictions()
