@@ -10,6 +10,10 @@ import { TacticalEndScreen } from './TacticalEndScreen';
 import { TacticalHud } from './TacticalHud';
 import { TacticalLineup } from './TacticalLineup';
 import { TacticalMenu } from './TacticalMenu';
+import '@fontsource/saira-extra-condensed/latin-500.css';
+import '@fontsource/saira-extra-condensed/latin-600.css';
+import '@fontsource/saira-extra-condensed/latin-700.css';
+import '@fontsource/saira-extra-condensed/latin-800.css';
 import './tactical.css';
 
 const KILLFEED_SECONDS = 6;
