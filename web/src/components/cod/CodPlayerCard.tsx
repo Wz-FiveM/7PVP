@@ -1,8 +1,16 @@
-import type { CodPlayerCardData } from '../../types/cod';
+import type { CodCardAsset, CodPlayerCardData } from '../../types/cod';
 import { prestigeUrl } from './CodParts';
 import './codPlayerCard.css';
 
-export const bannerUrl = (id: string) => `./cod/banners/${id}.svg`;
+/** Bannières en image (format = 'webp' dans config/cod_player_cards.lua) ; les autres restent en SVG */
+const bannerFormats = new Map<string, string>();
+export const setBannerFormats = (banners: CodCardAsset[]) => {
+  bannerFormats.clear();
+  for (const banner of banners) {
+    if (banner.format) bannerFormats.set(banner.id, banner.format);
+  }
+};
+export const bannerUrl = (id: string) => `./cod/banners/${id}.${bannerFormats.get(id) ?? 'svg'}`;
 export const emblemUrl = (id: string) => `./cod/emblems/${id}.svg`;
 
 interface CodPlayerCardProps {

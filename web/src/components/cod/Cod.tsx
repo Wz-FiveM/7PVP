@@ -15,6 +15,7 @@ import { CodLoadingScreen } from './CodLoadingScreen';
 import { CodLoadoutSelect } from './CodLoadoutSelect';
 import { CodMenu } from './CodMenu';
 import { CodPauseMenu } from './CodPauseMenu';
+import { setBannerFormats } from './CodPlayerCard';
 import { CodWzShop } from './CodWarzoneHud';
 import './cod.css';
 
@@ -44,7 +45,10 @@ export function Cod({ visible }: { visible: boolean }) {
         setMenuOpen(message.data.open);
         if (message.data.open) setEnd(null);
         if (message.data.profile) setProfile(message.data.profile);
-        if (message.data.catalog) setCatalog(message.data.catalog);
+        if (message.data.catalog) {
+          setBannerFormats(message.data.catalog.banners);
+          setCatalog(message.data.catalog);
+        }
         return;
       case 'codQueue':
         return setQueue(message.data.count > 0 ? message.data : null);

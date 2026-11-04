@@ -43,6 +43,8 @@ export interface CodCardAsset {
   rank: number;
   /** niveau de Prestige requis */
   prestige?: number;
+  /** extension de l'image d'une bannière quand ce n'est pas un SVG (« webp », « png ») */
+  format?: string;
 }
 /** Personnage à porter (config/cod_operators.lua) */
 export interface CodOperatorEntry {
