@@ -1,37 +1,44 @@
-/* Mode Sabotage : thème propre au mode, sobre façon jeu tactique (la D.A 7PVP ne s'applique pas ici).
-   Fonds sombres unis, blanc cassé, bleu pour ton équipe, orange pour l'adversaire,
-   cadres fins à coins nets, ni lueur ni grille, typo étroite et haute (Saira Extra Condensed).
+/* Mode Sabotage : D.A propre au mode (la D.A 7PVP ne s'applique pas ici).
+   Le décor vient de la scène derrière (lobby GTA) ; panneaux sombres plats à bord fin, coins droits,
+   violet du mode pour le bouton Jouer et la sélection, bleu pour ton équipe, rouge corail pour l'adversaire,
+   titres très étroits (Saira Extra Condensed), libellés en grotesque (Barlow).
    Règles NUI : ni blur ni filter, tailles en rem. */
 
 .tac {
   /* Les variables de la D.A sont redéfinies ici : tout ce qui est dans le mode prend le thème */
-  --nuit: #0c1013;
-  --carbone: #10151a;
-  --acier: #182027;
-  --acier-hi: #202a33;
-  --trait: rgba(233, 236, 239, 0.14);
-  --brume: #8a949c;
-  --brume-hi: #b9c1c7;
-  --os: #e9ecef;
-  --signal: #4aa8ff;
-  --abri: #4aa8ff;
-  --hazard: #ff7a3d;
-  --armure: #8fb4d9;
-  --panneau: rgba(20, 26, 31, 0.9);
-  --panneau-clair: rgba(34, 42, 50, 0.6);
+  --nuit: #0d1117;
+  --carbone: #121822;
+  --acier: #18202b;
+  --acier-hi: #222c3a;
+  --trait: rgba(255, 255, 255, 0.18);
+  --brume: #8b95a3;
+  --brume-hi: #c3cad3;
+  --os: #f4f5f7;
+  --signal: #9a8fff;
+  --abri: #3ec3f2;
+  --hazard: #ff5f57;
+  --armure: #9ab8ff;
+  --panneau: rgba(14, 18, 24, 0.86);
+  --panneau-clair: rgba(34, 44, 58, 0.7);
   --ombre-texte: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.8);
   --font-display: 'Saira Extra Condensed', 'Barlow Condensed', sans-serif;
 
-  --tac-friend: #4aa8ff;
-  --tac-enemy: #ff7a3d;
-  --tac-ice: #e9ecef;
-  --tac-line: rgba(233, 236, 239, 0.14);
-  --tac-line-soft: rgba(233, 236, 239, 0.06);
-  --tac-panel: rgba(21, 27, 32, 0.94);
+  --tac-friend: #3ec3f2;
+  --tac-enemy: #ff5f57;
+  --tac-ice: #f4f5f7;
+  --tac-line: rgba(255, 255, 255, 0.12);
+  --tac-line-soft: rgba(255, 255, 255, 0.06);
+  --tac-panel: rgba(14, 18, 24, 0.86);
   --tac-glow: 0 0 0 transparent;
   --tac-glow-enemy: 0 0 0 transparent;
   --tac-cut: 0rem;
-  --tac-bg: linear-gradient(180deg, #141a1f 0%, #0c1013 100%);
+  --tac-accent: #6c5cff;
+  --tac-accent-hi: #8174ff;
+  --tac-accent-soft: rgba(108, 92, 255, 0.3);
+  --tac-bg:
+    radial-gradient(ellipse at 75% 20%, rgba(108, 92, 255, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 90%, rgba(62, 195, 242, 0.1) 0%, transparent 50%),
+    linear-gradient(160deg, #1b2130 0%, #0f141c 55%, #0a0d12 100%);
   position: absolute;
   inset: 0;
   color: var(--os);
@@ -48,8 +55,10 @@
   letter-spacing: 0.03em;
 }
 .tac .label {
+  font-family: var(--font-body);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .tac-friend {
   color: var(--tac-friend);
@@ -60,9 +69,8 @@
   text-shadow: var(--tac-glow-enemy);
 }
 
-/* Cadres fins à coins coupés ----------------------------------------------
-   Le fond de l'élément fait la ligne (--frame-line), un calque 1 px plus petit fait le fond
-   (--frame-fill) : la ligne suit aussi les diagonales. */
+/* Cadres fins ----------------------------------------------------------
+   Fond --frame-fill, contour intérieur --frame-line (outline, sans effet sur la mise en page). */
 
 .tac-card,
 .tac-buy__panel,
@@ -93,9 +101,10 @@
   --frame-fill: linear-gradient(var(--tac-panel), var(--tac-panel));
   position: relative;
   isolation: isolate;
-  background: var(--frame-line);
+  background: var(--frame-fill);
   border: none;
-  clip-path: polygon(var(--tac-cut) 0, 100% 0, 100% calc(100% - var(--tac-cut)), calc(100% - var(--tac-cut)) 100%, 0 100%, 0 var(--tac-cut));
+  outline: 0.0625rem solid var(--frame-line);
+  outline-offset: -0.0625rem;
 }
 .tac-card::before,
 .tac-buy__panel::before,
@@ -122,13 +131,7 @@
 .tac-outside::before,
 .tac-division::before,
 .tac-banner-card__art::before {
-  content: '';
-  position: absolute;
-  inset: 0.0625rem;
-  z-index: -1;
-  background: var(--frame-fill), var(--frame-base, #141a1f);
-  box-shadow: inherit;
-  clip-path: polygon(var(--tac-cut) 0, 100% 0, 100% calc(100% - var(--tac-cut)), calc(100% - var(--tac-cut)) 100%, 0 100%, 0 var(--tac-cut));
+  content: none;
 }
 /* Petits éléments : coin plus petit */
 .tac-division,
@@ -150,10 +153,10 @@
 
 /* Rôles et divisions ------------------------------------------------------ */
 
-.tac-role--scout { --role-color: #7fd47a; --role-glow: rgba(127, 212, 122, 0.16); }
-.tac-role--smoker { --role-color: #a594f0; --role-glow: rgba(165, 148, 240, 0.16); }
-.tac-role--warden { --role-color: #e6c25a; --role-glow: rgba(230, 194, 90, 0.16); }
-.tac-role--medic { --role-color: #6aa9e8; --role-glow: rgba(106, 169, 232, 0.16); }
+.tac-role--scout { --role-color: #7fd47a; --role-glow: rgba(127, 212, 122, 0.3); }
+.tac-role--smoker { --role-color: #a594f0; --role-glow: rgba(165, 148, 240, 0.3); }
+.tac-role--warden { --role-color: #e6c25a; --role-glow: rgba(230, 194, 90, 0.3); }
+.tac-role--medic { --role-color: #6aa9e8; --role-glow: rgba(106, 169, 232, 0.3); }
 
 .tac-role-badge {
   display: inline-flex;
@@ -184,7 +187,7 @@
 
 .tac-division {
   --frame-line: var(--division, var(--brume));
-  --frame-fill: linear-gradient(rgba(12, 16, 19, 0.92), rgba(12, 16, 19, 0.92));
+  --frame-fill: linear-gradient(rgba(10, 13, 18, 0.92), rgba(10, 13, 18, 0.92));
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -204,20 +207,20 @@
 .tac-division--0 { --division: #d0915e; }
 .tac-division--1 { --division: #c3d2e6; }
 .tac-division--2 { --division: #ffd166; }
-.tac-division--3 { --division: #4aa8ff; }
+.tac-division--3 { --division: #3ec3f2; }
 .tac-division--4 { --division: #9fd8ff; }
-.tac-division--5 { --division: #ff7a3d; }
+.tac-division--5 { --division: #ff5f57; }
 
 /* Boutons communs --------------------------------------------------------- */
 
 .tac-play__start {
-  --frame-line: var(--os);
-  --frame-fill: linear-gradient(var(--os), var(--os));
+  --frame-line: var(--tac-accent);
+  --frame-fill: linear-gradient(var(--tac-accent), var(--tac-accent));
   --tac-cut: 0rem;
   min-width: 20rem;
   height: 4.25rem;
   padding: 0 2.5rem;
-  color: var(--nuit);
+  color: #ffffff;
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 800;
@@ -226,7 +229,7 @@
   cursor: pointer;
 }
 .tac-play__start:hover:not(:disabled) {
-  --frame-fill: linear-gradient(#ffffff, #ffffff);
+  --frame-fill: linear-gradient(var(--tac-accent-hi), var(--tac-accent-hi));
 }
 .tac-play__start--on {
   --frame-line: var(--hazard);
@@ -234,16 +237,16 @@
   color: var(--os);
 }
 .tac-play__start--on:hover:not(:disabled) {
-  --frame-fill: linear-gradient(#ff9563, #ff9563);
+  --frame-fill: linear-gradient(#ff7a73, #ff7a73);
 }
 .tac-play__start:disabled {
   --frame-line: var(--brume);
-  --frame-fill: linear-gradient(rgba(140, 150, 158, 0.3), rgba(140, 150, 158, 0.3));
+  --frame-fill: linear-gradient(rgba(139, 149, 163, 0.3), rgba(139, 149, 163, 0.3));
   color: var(--brume-hi);
   cursor: default;
 }
 .tac-play__side-button {
-  --frame-fill: linear-gradient(rgba(26, 33, 39, 0.9), rgba(26, 33, 39, 0.9));
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.8), rgba(14, 18, 24, 0.8));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -252,16 +255,16 @@
   height: 3rem;
   padding: 0 1.5rem;
   color: var(--os);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
 }
 .tac-play__side-button:hover {
-  --frame-line: var(--signal);
-  --frame-fill: linear-gradient(rgba(38, 48, 58, 0.95), rgba(38, 48, 58, 0.95));
+  --frame-line: var(--os);
+  --frame-fill: linear-gradient(rgba(34, 44, 58, 0.9), rgba(34, 44, 58, 0.9));
 }
 .tac-play__side-icon {
   width: 1.25rem;
@@ -283,7 +286,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--tac-bg);
+  background: linear-gradient(0deg, rgba(10, 13, 18, 0.92) 0%, rgba(10, 13, 18, 0) 50%), linear-gradient(90deg, rgba(10, 13, 18, 0.85) 0%, rgba(10, 13, 18, 0.35) 40%, rgba(10, 13, 18, 0.35) 70%, rgba(10, 13, 18, 0.7) 100%), radial-gradient(ellipse at 60% 30%, rgba(108, 92, 255, 0.16) 0%, transparent 60%);
 }
 .tac-menu__bar {
   display: grid;
@@ -291,8 +294,8 @@
   align-items: stretch;
   height: 4.5rem;
   padding: 0 2.5rem;
-  background: rgba(12, 16, 19, 0.92);
-  border-bottom: 0.0625rem solid var(--tac-line);
+  background: linear-gradient(180deg, rgba(10, 13, 18, 0.85), rgba(10, 13, 18, 0.45));
+  border-bottom: none;
 }
 .tac-menu__back {
   display: flex;
@@ -313,9 +316,11 @@
 }
 .tac-menu__crumb {
   color: var(--os);
-  font-size: 1.625rem;
-  letter-spacing: 0.08em;
+  font-size: 1.125rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
+  font-family: var(--font-body);
+  font-weight: 700;
 }
 .tac-menu__tabs {
   display: flex;
@@ -326,10 +331,10 @@
   background: none;
   border: none;
   color: var(--brume);
-  font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -342,15 +347,17 @@
   box-shadow: inset 0 -0.125rem 0 var(--os);
 }
 .tac-menu__tab--main {
-  min-width: 15rem;
+  min-width: 19rem;
   margin: 0 1rem;
-  background: rgba(233, 236, 239, 0.06);
-  font-size: 2.25rem;
-  clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 2.5rem;
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 12% 100%);
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
 }
 .tac-menu__tab--main.tac-menu__tab--on {
-  background: var(--os);
-  color: var(--nuit);
+  background: var(--tac-accent);
+  color: #ffffff;
   box-shadow: none;
 }
 .tac-menu__me {
@@ -360,10 +367,10 @@
   gap: 0.875rem;
 }
 .tac-menu__me-name {
-  font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-family: var(--font-body);
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 /* Menu du mode : Jouer ---------------------------------------------------- */
@@ -471,7 +478,7 @@
 }
 .tac-banner-card__art {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(180deg, var(--role-glow, rgba(233, 236, 239, 0.05)) 0%, transparent 70%);
+  --frame-fill: linear-gradient(180deg, var(--role-glow, rgba(255, 255, 255, 0.05)) 0%, transparent 70%), linear-gradient(rgba(14, 18, 24, 0.88), rgba(14, 18, 24, 0.88));
   --tac-cut: 0rem;
   flex: 1;
   display: flex;
@@ -548,10 +555,11 @@
   height: 27rem;
 }
 .tac-banner-card--me .tac-banner-card__art {
-  --frame-line: var(--os);
+  --frame-line: var(--tac-accent-hi);
 }
 .tac-banner-card--me .tac-banner-card__plate {
-  background: var(--signal);
+  background: var(--tac-accent);
+  color: #ffffff;
 }
 .tac-banner-card--me .tac-banner-card__icon {
   width: 6.5rem;
@@ -562,15 +570,16 @@
   flex-basis: 11rem;
   align-items: center;
   justify-content: center;
-  border: 0.0625rem dashed rgba(74, 168, 255, 0.2);
-  background: repeating-linear-gradient(135deg, rgba(74, 168, 255, 0.035) 0 0.375rem, transparent 0.375rem 0.875rem);
+  border: 0.0625rem dashed rgba(108, 92, 255, 0.2);
+  background: repeating-linear-gradient(135deg, rgba(108, 92, 255, 0.035) 0 0.375rem, transparent 0.375rem 0.875rem);
 }
 .tac-banner-card__slot {
   color: var(--brume);
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 /* Menu du mode : Rôles ---------------------------------------------------- */
@@ -642,7 +651,7 @@
   margin-top: 1.5rem;
 }
 .tac-roles-view__tab {
-  --frame-fill: linear-gradient(rgba(26, 33, 39, 0.9), rgba(26, 33, 39, 0.9));
+  --frame-fill: linear-gradient(rgba(20, 26, 34, 0.9), rgba(20, 26, 34, 0.9));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -657,7 +666,7 @@
 }
 .tac-roles-view__tab--on {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(rgba(34, 42, 50, 0.95), rgba(34, 42, 50, 0.95));
+  --frame-fill: linear-gradient(rgba(34, 44, 58, 0.95), rgba(34, 44, 58, 0.95));
   color: var(--role-color);
   box-shadow: inset 0 0.1875rem 0 var(--role-color);
 }
@@ -739,7 +748,7 @@
   border-top: 0.0625rem solid var(--tac-line-soft);
 }
 .tac-role-tile {
-  --frame-fill: linear-gradient(rgba(26, 33, 39, 0.9), rgba(26, 33, 39, 0.9));
+  --frame-fill: linear-gradient(rgba(20, 26, 34, 0.9), rgba(20, 26, 34, 0.9));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -760,14 +769,14 @@
   color: var(--role-color);
 }
 .tac-role-tile__name {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 .tac-role-tile--viewed {
-  --frame-line: var(--role-color);
+  --frame-line: var(--os);
   --frame-fill: linear-gradient(var(--acier-hi), var(--acier-hi));
   color: var(--os);
   box-shadow: inset 0 -0.1875rem 0 var(--role-color);
@@ -806,10 +815,10 @@
 .tac-table th {
   padding: 0.375rem 0.5rem;
   text-align: left;
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--brume);
   border-bottom: 0.0625rem solid var(--tac-line);
@@ -819,7 +828,7 @@
   border-bottom: 0.0625rem solid var(--tac-line-soft);
 }
 .tac-table__me td {
-  background: rgba(74, 168, 255, 0.1);
+  background: rgba(108, 92, 255, 0.1);
 }
 .tac-table__dead td {
   opacity: 0.4;
@@ -852,7 +861,7 @@
   text-align: center;
 }
 .tac-lineup__map h1 {
-  font-size: 8.5rem;
+  font-size: 9.5rem;
   line-height: 0.85;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -916,7 +925,7 @@
 }
 .tac-lineup__team--enemy .tac-lineup__portrait {
   border-right: none;
-  border-left: 0.0625rem solid rgba(255, 122, 61, 0.15);
+  border-left: 0.0625rem solid rgba(255, 95, 87, 0.15);
 }
 .tac-lineup__icon {
   width: 2.25rem;
@@ -928,10 +937,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 .tac-lineup__strip {
   flex: 1;
@@ -961,14 +970,14 @@
   justify-content: center;
   width: 7rem;
   height: 7rem;
-  background: rgba(20, 26, 31, 0.9);
-  border: 0.0625rem solid var(--trait);
+  background: var(--tac-accent);
+  border: none;
   transform: rotate(45deg);
 }
 .tac-lineup__versus span {
   transform: rotate(-45deg);
   font-size: 3.75rem;
-  color: var(--tac-ice);
+  color: #ffffff;
   text-shadow: var(--tac-glow);
 }
 @keyframes tac-slide {
@@ -986,16 +995,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(12, 16, 19, 0.72);
+  background: linear-gradient(0deg, rgba(10, 13, 18, 0.75), rgba(10, 13, 18, 0.45));
   pointer-events: auto;
 }
 .tac-buy__panel {
-  --frame-fill: linear-gradient(#151b20, #151b20);
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.9), rgba(14, 18, 24, 0.9));
   --tac-cut: 0rem;
   width: min(112rem, 96vw);
   max-height: 94vh;
   display: flex;
   flex-direction: column;
+  --frame-line: rgba(255, 255, 255, 0.1);
 }
 .tac-buy__head {
   display: flex;
@@ -1021,7 +1031,7 @@
 .tac-buy__timer .disp {
   font-size: 2.25rem;
   line-height: 1;
-  color: var(--signal);
+  color: var(--os);
 }
 .tac-buy__body {
   display: grid;
@@ -1034,7 +1044,7 @@
 .tac-buy__category {
   padding-bottom: 0.25rem;
   border-bottom: 0.0625rem solid var(--tac-line-soft);
-  color: var(--brume);
+  color: var(--brume-hi);
 }
 .tac-buy__team {
   display: flex;
@@ -1043,7 +1053,7 @@
 }
 .tac-buy__mate {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(rgba(26, 33, 39, 0.92), rgba(26, 33, 39, 0.92));
+  --frame-fill: linear-gradient(rgba(20, 26, 34, 0.92), rgba(20, 26, 34, 0.92));
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
@@ -1052,8 +1062,8 @@
   box-shadow: inset 0.1875rem 0 0 var(--tac-friend);
 }
 .tac-buy__mate--me {
-  --frame-line: var(--trait);
-  --frame-fill: linear-gradient(var(--acier-hi), var(--acier-hi));
+  --frame-line: var(--tac-accent-hi);
+  --frame-fill: linear-gradient(rgba(76, 64, 190, 0.4), rgba(76, 64, 190, 0.4));
 }
 .tac-buy__mate--dead {
   opacity: 0.45;
@@ -1067,10 +1077,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 .tac-buy__mate-money {
   font-size: 1.75rem;
@@ -1117,7 +1127,7 @@
 }
 .tac-item {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(var(--acier), var(--acier));
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.82), rgba(14, 18, 24, 0.82));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1129,15 +1139,15 @@
   cursor: pointer;
 }
 .tac-item:hover:not(:disabled) {
-  --frame-line: var(--os);
-  --frame-fill: linear-gradient(var(--acier-hi), var(--acier-hi));
+  --frame-line: rgba(255, 255, 255, 0.5);
+  --frame-fill: linear-gradient(rgba(34, 44, 58, 0.92), rgba(34, 44, 58, 0.92));
 }
 .tac-item:disabled {
   cursor: default;
 }
 .tac-item--owned {
-  --frame-line: var(--signal);
-  --frame-fill: linear-gradient(rgba(30, 52, 74, 0.98), rgba(30, 52, 74, 0.98));
+  --frame-line: var(--tac-accent-hi);
+  --frame-fill: linear-gradient(rgba(76, 64, 190, 0.55), rgba(76, 64, 190, 0.55));
 }
 .tac-item--locked {
   opacity: 0.35;
@@ -1150,7 +1160,7 @@
   color: var(--signal);
 }
 .tac-item--owned .tac-item__price {
-  color: var(--tac-ice);
+  color: #ffffff;
 }
 .tac-item__image {
   width: 100%;
@@ -1158,11 +1168,12 @@
   object-fit: contain;
 }
 .tac-item__name {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   line-height: 1.1;
+  text-transform: uppercase;
 }
 .tac-item__armor {
   font-size: 2.25rem;
@@ -1181,7 +1192,7 @@
 }
 .tac-ability-tile {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(var(--acier), var(--acier));
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.82), rgba(14, 18, 24, 0.82));
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   align-items: center;
@@ -1192,13 +1203,13 @@
   --frame-line: var(--trait);
 }
 .tac-ability-tile--ult {
-  --frame-fill: linear-gradient(var(--acier), var(--acier));
-  box-shadow: inset 0.1875rem 0 0 var(--signal);
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.82), rgba(14, 18, 24, 0.82));
+  box-shadow: inset 0.1875rem 0 0 var(--tac-accent);
 }
 .tac-ability-tile__icon {
   width: 1.75rem;
   height: 1.75rem;
-  color: var(--signal);
+  color: var(--os);
 }
 .tac-ability-tile__text {
   display: flex;
@@ -1207,9 +1218,10 @@
   min-width: 0;
 }
 .tac-ability-tile__text strong {
-  font-family: var(--font-display);
-  font-size: 1.1875rem;
-  letter-spacing: 0.04em;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .tac-ability-tile__actions {
   display: flex;
@@ -1221,14 +1233,14 @@
 }
 .tac-buy__detail {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(var(--acier), var(--acier));
+  --frame-fill: linear-gradient(rgba(24, 32, 43, 0.92), rgba(24, 32, 43, 0.92));
   --tac-cut: 0rem;
   align-self: start;
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
   padding: 1rem;
-  box-shadow: inset 0.1875rem 0 0 var(--signal);
+  box-shadow: inset 0.1875rem 0 0 var(--tac-accent);
 }
 .tac-buy__detail-name {
   font-size: 2.5rem;
@@ -1353,11 +1365,11 @@
   color: var(--hazard);
   text-shadow: var(--tac-glow-enemy);
 }
-.tac-top__clock--bomb::before {
+.tac-top__clock--bomb {
   animation: tac-pulse 1s ease-in-out infinite;
 }
 @keyframes tac-pulse {
-  50% { background: rgba(120, 50, 20, 0.92); }
+  50% { background: rgba(130, 30, 30, 0.92); }
 }
 .tac-roster {
   display: flex;
@@ -1385,7 +1397,7 @@
   height: 1.375rem;
 }
 .tac-roster__face--dead {
-  --frame-line: rgba(140, 150, 158, 0.25) !important;
+  --frame-line: rgba(139, 149, 163, 0.25) !important;
   opacity: 0.4;
   color: var(--brume);
   box-shadow: none !important;
@@ -1466,10 +1478,10 @@
   align-items: center;
   gap: 0.625rem;
   padding: 0.1875rem 0.875rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: 1.1875rem;
-  letter-spacing: 0.03em;
+  font-size: 0.9375rem;
+  letter-spacing: 0.05em;
 }
 .tac-kill__weapon {
   color: var(--brume-hi);
@@ -1535,7 +1547,7 @@
 .tac-action__bar {
   width: 100%;
   height: 0.375rem;
-  background: rgba(74, 168, 255, 0.15);
+  background: rgba(108, 92, 255, 0.15);
 }
 .tac-action__bar div {
   height: 100%;
@@ -1545,7 +1557,7 @@
 
 .tac-outside {
   --frame-line: var(--hazard);
-  --frame-fill: linear-gradient(rgba(170, 66, 28, 0.9), rgba(170, 66, 28, 0.9));
+  --frame-fill: linear-gradient(rgba(180, 48, 44, 0.9), rgba(180, 48, 44, 0.9));
   position: absolute;
   top: 40%;
   left: 50%;
@@ -1569,7 +1581,7 @@
   align-items: center;
   gap: 0.25rem;
   padding: 1.25rem 0;
-  background: linear-gradient(90deg, transparent, rgba(20, 26, 31, 0.88) 25%, rgba(20, 26, 31, 0.88) 75%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(14, 18, 24, 0.88) 25%, rgba(14, 18, 24, 0.88) 75%, transparent);
   border-top: 0.0625rem solid var(--tac-line-soft);
   border-bottom: 0.0625rem solid var(--tac-line-soft);
   animation: tac-in 0.25s ease-out;
@@ -1604,7 +1616,7 @@
 }
 .tac-report__killer {
   padding: 0.75rem 1rem;
-  background: rgba(255, 122, 61, 0.12);
+  background: rgba(255, 95, 87, 0.12);
 }
 .tac-report__killer .label {
   color: var(--tac-enemy);
@@ -1626,7 +1638,7 @@
 }
 .tac-report__table {
   padding: 0.75rem 1rem 0.25rem;
-  border-top: 0.0625rem solid rgba(255, 122, 61, 0.22);
+  border-top: 0.0625rem solid rgba(255, 95, 87, 0.22);
 }
 .tac-report__columns,
 .tac-report__row {
@@ -1646,7 +1658,7 @@
   border-top: 0.0625rem solid var(--tac-line-soft);
 }
 .tac-report__row--killer {
-  background: rgba(255, 122, 61, 0.1);
+  background: rgba(255, 95, 87, 0.1);
 }
 .tac-report__value {
   display: flex;
@@ -1673,9 +1685,10 @@
   justify-content: center;
   gap: 0.5rem;
   min-width: 0;
-  font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
   font-weight: 600;
+  letter-spacing: 0.05em;
 }
 .tac-report__foot {
   padding: 0.5rem 1rem 0.75rem;
@@ -1697,7 +1710,7 @@
   gap: 0.5rem;
 }
 .tac-ability {
-  --frame-line: rgba(140, 150, 158, 0.3);
+  --frame-line: rgba(139, 149, 163, 0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1705,7 +1718,7 @@
   min-width: 5.5rem;
   padding: 0.5rem 0.625rem;
   opacity: 0.6;
-  box-shadow: inset 0 -0.1875rem 0 rgba(233, 236, 239, 0.15);
+  box-shadow: inset 0 -0.1875rem 0 rgba(255, 255, 255, 0.15);
 }
 .tac-ability--ready {
   --frame-line: var(--tac-line);
@@ -1725,10 +1738,11 @@
   color: var(--signal);
 }
 .tac-ability__name {
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 .tac-ability__count {
   font-size: 0.875rem;
@@ -1782,7 +1796,7 @@
 
 .tac-end {
   --end-color: var(--os);
-  --end-glow: rgba(233, 236, 239, 0.45);
+  --end-glow: rgba(255, 255, 255, 0.45);
   position: absolute;
   inset: 0;
   display: flex;
@@ -1794,12 +1808,12 @@
   overflow: hidden;
 }
 .tac-end--won {
-  --end-color: var(--tac-friend);
-  --end-glow: rgba(74, 168, 255, 0.6);
+  --end-color: var(--os);
+  --end-glow: rgba(108, 92, 255, 0.6);
 }
 .tac-end--lost {
   --end-color: var(--tac-enemy);
-  --end-glow: rgba(255, 122, 61, 0.6);
+  --end-glow: rgba(255, 95, 87, 0.6);
 }
 .tac-end__word {
   position: absolute;
@@ -1849,7 +1863,7 @@
 }
 .tac-end-card {
   --frame-line: var(--tac-line);
-  --frame-fill: linear-gradient(rgba(20, 26, 31, 0.92), rgba(20, 26, 31, 0.92));
+  --frame-fill: linear-gradient(rgba(14, 18, 24, 0.92), rgba(14, 18, 24, 0.92));
   --tac-cut: 0rem;
   display: flex;
   flex-direction: column;
@@ -1904,8 +1918,8 @@
   text-shadow: var(--tac-glow);
 }
 .tac-end-card--mvp {
-  --frame-line: var(--os);
-  --frame-fill: linear-gradient(var(--acier-hi), var(--acier-hi));
+  --frame-line: var(--tac-accent-hi);
+  --frame-fill: linear-gradient(rgba(46, 40, 110, 0.85), rgba(46, 40, 110, 0.85));
 }
 .tac-end-card__mvp {
   position: absolute;
@@ -1914,8 +1928,8 @@
   z-index: 1;
   transform: translateX(-50%);
   padding: 0 0.875rem;
-  background: var(--os);
-  color: var(--nuit);
+  background: var(--tac-accent);
+  color: #ffffff;
   font-size: 1.375rem;
   letter-spacing: 0.2em;
 }
@@ -1923,14 +1937,14 @@
   position: relative;
   width: min(70rem, 100%);
   margin: auto 0;
-  background: rgba(20, 26, 31, 0.9);
+  background: rgba(14, 18, 24, 0.9);
   border: none;
 }
 .tac-end__mvp-tag {
   margin-left: 0.5rem;
   padding: 0 0.375rem;
-  background: var(--tac-ice);
-  color: var(--nuit);
+  background: var(--tac-accent);
+  color: #ffffff;
   font-size: 0.6875rem;
   font-weight: 700;
 }
@@ -1971,4 +1985,15 @@
 }
 .tac-end__timer {
   font-size: 0.8125rem;
+}
+
+/* Éléments choisis : bord plus épais */
+.tac-item--owned::before,
+.tac-role-tile--viewed::before,
+.tac-buy__mate--me::before,
+.tac-end-card--mvp::before,
+.tac-lineup__row--me::before,
+.tac-banner-card--me .tac-banner-card__art {
+  outline-width: 0.125rem;
+  outline-offset: -0.125rem;
 }
