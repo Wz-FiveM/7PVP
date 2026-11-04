@@ -19,7 +19,8 @@ Config.AntiCheat = {
         damage = { label = 'Dégâts anormaux', action = 'log', strikes = 3 },
         damageModifier = { label = 'Multiplicateur de dégâts', action = 'log', strikes = 3 },
         -- L'explosion est toujours annulée : l'expulsion suffit. Le 03/11, 4 joueurs ont été bannis à tort
-        -- (voir explosionSharedTime)
+        -- (voir explosionSharedTime) ; les 03/11 et 04/11, des bombes collantes d'admins relayées par des joueurs
+        -- (voir AntiCheatService.explosionCulprit)
         explosion = { label = 'Explosion interdite', action = 'kick', strikes = 3 },
         entity = { label = 'Véhicule créé en PvP', action = 'kick', strikes = 3 },
         health = { label = 'Vie / armure au-dessus du maximum', action = 'kick', strikes = 3 },

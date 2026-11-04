@@ -571,11 +571,41 @@ function AntiCheatService.onExplosion(sender, data)
         vector3(tonumber(data.posX) or 0.0, tonumber(data.posY) or 0.0, tonumber(data.posZ) or 0.0))
     local player = AntiCheatService.watched(sender, true)
     if not player or AntiCheatService.explosionAllowed(player, explosionType) then return end
+    local culprit = AntiCheatService.explosionCulprit(data.ownerNetId)
+    if culprit and culprit ~= sender and AntiCheatService.culpritAllowed(culprit, explosionType) then return end
 
     CancelEvent()
+    report.culprit = culprit ~= sender and culprit or nil
     SetTimeout(Config.AntiCheat.explosionSharedTime, function()
         AntiCheatService.judgeExplosion(report)
     end)
+end
+
+---Joueur à qui le jeu attribue l'explosion (`ownerNetId` : son personnage). Ce n'est pas toujours celui qui
+---l'envoie : une bombe collée sur un zombie ou un véhicule explose chez le joueur qui pilote ce zombie ou ce
+---véhicule. Les 03/11 et 04/11, des admins ont collé leurs bombes sur des zombies de horde, et les joueurs
+---qui pilotaient ces zombies ont été bannis à leur place.
+---@param ownerNetId any
+---@return integer? source du joueur, nil si l'explosion n'est attribuée à aucun personnage de joueur
+function AntiCheatService.explosionCulprit(ownerNetId)
+    local netId = tonumber(ownerNetId)
+    if not netId or netId <= 0 then return nil end
+    local entity = NetworkGetEntityFromNetworkId(netId)
+    if not entity or entity == 0 or not DoesEntityExist(entity) then return nil end
+    for _, id in ipairs(GetPlayers()) do
+        if GetPlayerPed(id) == entity then return tonumber(id) end
+    end
+    return nil
+end
+
+---Le lanceur a droit à cette explosion : admin, joueur hors du PvP, ou arme possédée (ou lancée il y a peu).
+---@param culprit integer
+---@param explosionType integer
+---@return boolean
+function AntiCheatService.culpritAllowed(culprit, explosionType)
+    if not PlayerService.get(culprit) then return false end
+    local player = AntiCheatService.watched(culprit, true)
+    return not player or AntiCheatService.explosionAllowed(player, explosionType)
 end
 
 ---@param sender integer
@@ -614,6 +644,8 @@ function AntiCheatService.judgeExplosion(report)
         return
     end
     if not PlayerService.get(report.source) then return end
+    local thrower = report.culprit and PlayerService.get(report.culprit)
+    if thrower then where = ('%s, attribuée à %s'):format(where, thrower.name or report.culprit) end
     AntiCheatService.flag(report.source, 'explosion', ('explosion de type %d (%s)'):format(report.type, where))
 end
 
