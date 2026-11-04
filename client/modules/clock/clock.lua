@@ -1,5 +1,5 @@
 ---Applique l'heure commune du jeu (shared/modules/clock.lua) et l'affiche dans le HUD.
----Le mode Call of Duty et le donjon imposent à la place leur heure et leur météo.
+---Le mode Seven of Duty et le donjon imposent à la place leur heure et leur météo.
 ---@class ClockClientModule
 local ClockClient = PVP.define('ClockClient')
 local Clock = PVP.use('Clock')

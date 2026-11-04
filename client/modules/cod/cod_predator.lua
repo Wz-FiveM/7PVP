@@ -1,4 +1,4 @@
----Missile Predator du mode Call of Duty : piloté depuis la tablette (CodTablet), vu du dessus, jusqu'à l'impact.
+---Missile Predator du mode Seven of Duty : piloté depuis la tablette (CodTablet), vu du dessus, jusqu'à l'impact.
 ---Le point visé est toujours au centre de l'image : la caméra regarde droit vers le sol et la souris la déplace à
 ---l'horizontale, sans la faire tourner. Le client annonce l'impact, le serveur applique les dégâts (cod_streaks.lua).
 ---Aucune entité réseau : le pilote envoie sa position et chaque autre client affiche sa copie locale du missile.

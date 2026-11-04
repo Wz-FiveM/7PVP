@@ -1,12 +1,12 @@
--- Sabotage : mode tactique en manches (choisi au lobby), à part du PvP et de Call of Duty.
+-- Sabotage : mode tactique en manches (choisi au lobby), à part du PvP et de Seven of Duty.
 --  1. Le joueur choisit son rôle et lance une recherche depuis le menu du mode.
 --  2. Dès `minPlayers` joueurs, la partie se lance après `queueDelay` secondes (tout de suite à `maxPlayers`).
 --  3. Deux équipes, une seule vie par manche. Les attaquants posent la charge sur un site, les défenseurs
 --     l'empêchent ou la désamorcent. Changement de camp après `swapAfter` manches, premier à `roundsToWin`.
 --  4. Chaque manche commence par `buyTime` secondes d'achat (touche B) dans sa zone de départ.
 --     Survivre garde ses armes pour la manche suivante.
--- Cartes : celles de Call of Duty qui ont leurs apparitions et deux sites (panneau admin F10, onglet Positions,
--- section Call of Duty), sauf `excludedMaps`. Les apparitions alpha et bravo sont les deux camps.
+-- Cartes : celles de Seven of Duty qui ont leurs apparitions et deux sites (panneau admin F10, onglet Positions,
+-- section Seven of Duty), sauf `excludedMaps`. Les apparitions alpha et bravo sont les deux camps.
 -- Profils (classement, statistiques) : table pvp_tactical_profiles. Rien ne touche à l'inventaire du PvP.
 Config.Tactical = {
     bucket = 9, -- bucket du mode à l'arrivée (voir Config.Lobby.Modes)
@@ -17,7 +17,7 @@ Config.Tactical = {
     minPlayers = 4, -- 2 contre 2
     maxPlayers = 10, -- 5 contre 5
     queueDelay = 20, -- secondes d'attente une fois `minPlayers` atteint, pour laisser venir les autres
-    excludedMaps = { nuketown = true }, -- cartes de Call of Duty jamais jouées ici
+    excludedMaps = { nuketown = true }, -- cartes de Seven of Duty jamais jouées ici
 
     roundsToWin = 7,
     swapAfter = 6, -- manches avant le changement de camp

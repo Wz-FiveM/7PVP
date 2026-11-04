@@ -688,7 +688,7 @@ function AntiCheatService.judgeExplosion(report)
 end
 
 ---Véhicule créé par un joueur en PvP (le mode n'en donne pas : seuls les admins peuvent) ou au lobby
----(rien n'y crée de véhicule en réseau). Le Freeroam et Call of Duty créent les leurs, ils ne sont pas contrôlés.
+---(rien n'y crée de véhicule en réseau). Le Freeroam et Seven of Duty créent les leurs, ils ne sont pas contrôlés.
 ---Les PNJ ne sont pas contrôlés ici : le personnage d'un joueur est lui aussi créé comme un PNJ
 ---à chaque réapparition, le bloquer casserait le jeu.
 ---Seuls les véhicules créés par un script comptent comme triche : ceux que GTA fait apparaître

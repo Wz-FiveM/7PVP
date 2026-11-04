@@ -116,7 +116,7 @@ export type NuiMessage =
   | { action: 'gungameKill'; data: GungameKillData }
   | { action: 'gungameOutside'; data: { outside: boolean } }
   | { action: 'gungameEnd'; data: GungameEndData }
-  /** Call of Duty : menu du mode, file et vote, écran de chargement, HUD de partie, résultats */
+  /** Seven of Duty : menu du mode, file et vote, écran de chargement, HUD de partie, résultats */
   | { action: 'codMenu'; data: { open: boolean; profile?: CodProfile; catalog?: CodCatalog } }
   | { action: 'codQueue'; data: CodQueueData }
   | { action: 'codWz'; data: CodWzState }

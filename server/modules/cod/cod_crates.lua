@@ -1,4 +1,4 @@
----Colis des séries du mode Call of Duty (Config.Cod.crates) : ils tombent en parachute et s'ouvrent sur place,
+---Colis des séries du mode Seven of Duty (Config.Cod.crates) : ils tombent en parachute et s'ouvrent sur place,
 ---plus vite pour celui qui les a appelés, plus lentement pour les autres, ennemis compris. Chacun contient une
 ---série tirée au sort. Le serveur tire le contenu et vérifie la distance et le temps d'ouverture.
 ---@class CodCratesModule

@@ -1,4 +1,4 @@
----Mode Call of Duty : menu (classes, recherche de partie), parties en équipes ou chacun pour soi,
+---Mode Seven of Duty : menu (classes, recherche de partie), parties en équipes ou chacun pour soi,
 ---progression propre. Rien ne touche à l'inventaire du PvP. Voir server/modules/cod/ et config/cod.lua.
 ---@class CodModeModule
 local CodMode = PVP.define('CodMode')

@@ -1,4 +1,4 @@
--- Call of Duty : défis du jour et de la semaine, les mêmes pour tous les joueurs (tirés au sort par période).
+-- Seven of Duty : défis du jour et de la semaine, les mêmes pour tous les joueurs (tirés au sort par période).
 -- Le jour change à minuit UTC, la semaine le lundi à minuit UTC. La progression repart de zéro à chaque nouvelle période.
 --   stat   : ce qui est compté (kills, headshots, assists, objective, matches, wins, multikills, knife, streaks)
 --   target : nombre à atteindre ; xp : gain dès qu'il est atteint (compte dans le bonus d'XP /codxp)

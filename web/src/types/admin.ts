@@ -258,7 +258,7 @@ export type FreeroamSetting = {
   modified: boolean;
   /** nom court, dans le menu de l'onglet « Positions » */
   short?: string;
-  /** carte Call of Duty (id) : ses listes de points sont regroupées sous elle */
+  /** carte Seven of Duty (id) : ses listes de points sont regroupées sous elle */
   map?: string;
   /** points nécessaires pour que la carte soit proposée au vote */
   min?: number;
@@ -278,7 +278,7 @@ export type FreeroamSetting = {
   | { kind: 'zones'; category: false; value: PvpZone[] }
 );
 
-/** Carte Call of Duty (server/modules/cod/cod_map_service.lua) */
+/** Carte Seven of Duty (server/modules/cod/cod_map_service.lua) */
 export interface CodMapData {
   id: string;
   label: string;

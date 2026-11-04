@@ -1,4 +1,4 @@
--- Call of Duty : mode de jeu à part entière (choisi au lobby), façon multijoueur de CoD.
+-- Seven of Duty : mode de jeu à part entière (choisi au lobby), façon multijoueur de CoD.
 --  1. Le joueur compose ses classes et lance une recherche depuis le menu du mode.
 --  2. Dès `minPlayers` joueurs dans une liste de jeu, un vote de carte de `queueDelay` secondes
 --     commence. Une partie en cours qui a de la place (sauf Recherche & Destruction) se rejoint directement.
@@ -481,7 +481,7 @@ Config.Cod = {
     },
 }
 
--- Points de chaque carte, modifiables depuis le panneau admin (F10, onglet Freeroam, section Call of Duty) :
+-- Points de chaque carte, modifiables depuis le panneau admin (F10, onglet Freeroam, section Seven of Duty) :
 --   alpha, bravo : apparitions de chaque camp (cap = direction du regard), aussi réutilisées en réapparition
 --   flags        : drapeaux de la Domination (A, B, C dans l'ordre)
 --   sites        : sites de bombe de Recherche & Destruction (A, B dans l'ordre)

@@ -1,4 +1,4 @@
----Listes de jeu Warzone du mode Call of Duty : Battle Royale et Résurgence (config/cod_warzone.lua).
+---Listes de jeu Warzone du mode Seven of Duty : Battle Royale et Résurgence (config/cod_warzone.lua).
 ---Une partie reste une CodMatch ; ce module en fournit les règles (voir CodRules) : escouades, avion, zone qui rétrécit,
 ---butin, argent, stations d'achat, goulag, réapparitions. Le serveur valide chaque ramassage et chaque achat.
 ---@class CodWarzoneInventory

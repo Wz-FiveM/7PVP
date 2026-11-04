@@ -106,7 +106,7 @@ function Classes.updateModifiers()
     local wanted = class and ('%s:%s:%s:%s'):format(class.id, inPve, group, frenzy) or false
     if wanted == Classes.applied then return end
     Classes.applied = wanted
-    -- En Call of Duty, ces réglages appartiennent aux atouts du mode
+    -- En Seven of Duty, ces réglages appartiennent aux atouts du mode
     if State.mode == 'cod' then return end
 
     local player = PlayerId()

@@ -1,4 +1,4 @@
--- Call of Duty : accessoires et camouflages des armes principales et secondaires.
+-- Seven of Duty : accessoires et camouflages des armes principales et secondaires.
 -- Chaque arme progresse avec ses propres kills (pvp_cod_profiles.weapon_progress). Cette progression reste après un Prestige.
 -- Les choix sont gardés dans chaque classe, par arme : changer d'arme dans une classe retire ses accessoires et son camouflage.
 Config.CodGunsmith = {

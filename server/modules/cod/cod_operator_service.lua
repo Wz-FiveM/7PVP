@@ -1,4 +1,4 @@
----Personnages du mode Call of Duty (config/cod_operators.lua) : accessibles avec le VIP, ou achetés pour toujours
+---Personnages du mode Seven of Duty (config/cod_operators.lua) : accessibles avec le VIP, ou achetés pour toujours
 ---en points boutique. Les achats ont leur table : un paiement ne dépend pas de la sauvegarde du profil.
 ---Le choix reste enregistré si le VIP expire : le joueur le retrouve en le renouvelant.
 ---@class CodOperatorServiceModule

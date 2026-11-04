@@ -1,4 +1,4 @@
--- Call of Duty : listes de jeu Warzone (Battle Royale et Résurgence), avec les rangs, les défis et les classes du mode.
+-- Seven of Duty : listes de jeu Warzone (Battle Royale et Résurgence), avec les rangs, les défis et les classes du mode.
 --   br         : une seule vie. Première mort : duel au goulag pour revenir. Ensuite, seul un coéquipier peut te racheter.
 --   resurgence : petite carte, réapparition en parachute tant qu'un coéquipier est en vie. Escouade entière à terre : éliminée.
 -- Les points d'intérêt ne donnent qu'une zone : le butin et les véhicules se calent sur la route la plus proche, côté client.

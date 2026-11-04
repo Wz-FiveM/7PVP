@@ -1,4 +1,4 @@
----Unités des séries du mode Call of Duty (Config.Cod.units) : tourelle, hélicoptères, Harrier, et ceux que le
+---Unités des séries du mode Seven of Duty (Config.Cod.units) : tourelle, hélicoptères, Harrier, et ceux que le
 ---joueur pilote depuis sa tablette (hélico mitrailleur, AC-130). Aucune entité réseau : chaque client affiche sa
 ---copie locale et calcule sa position (client/modules/cod/cod_units.lua). Le serveur ne sait pas tester une
 ---ligne de vue : le client du propriétaire choisit la cible, le serveur vérifie et applique les dégâts.

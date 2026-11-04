@@ -81,7 +81,7 @@ function TacticalService.openMenu(player)
     if TacticalService.queued[player.source] then TacticalService.sendQueue() end
 end
 
----@return table[] cartes de Call of Duty jouables ici (apparitions et deux sites)
+---@return table[] cartes de Seven of Duty jouables ici (apparitions et deux sites)
 function TacticalService.playableMaps()
     local maps = {}
     for _, map in ipairs(Config.Cod.maps) do

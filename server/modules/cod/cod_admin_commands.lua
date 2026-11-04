@@ -1,4 +1,4 @@
----Commandes admin du mode Call of Duty, pour tester les séries et les déblocages.
+---Commandes admin du mode Seven of Duty, pour tester les séries et les déblocages.
 ---    /codserie                     → ses séries choisies
 ---    /codserie predator 12         → une série, pour le joueur 12
 ---    /codserie toutes              → toutes les séries
@@ -94,7 +94,7 @@ function CodAdminCommands.giveStreaks(source, args)
     end
     local match = CodService.matchOf(target)
     if not match or not match.stats[target] then
-        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans une partie Call of Duty.'), 'error')
+        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans une partie Seven of Duty.'), 'error')
     end
     local streaks = CodAdminCommands.streaksFor(args[1], target)
     if not streaks or #streaks == 0 then
@@ -118,7 +118,7 @@ function CodAdminCommands.giveRanks(source, args)
         return CodAdminCommands.reply(source, Locale.t('Utilisation : /codniveau <nombre> [id du joueur]'), 'error')
     end
     if not CodProfileService.profiles[target] then
-        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans le mode Call of Duty.'), 'error')
+        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans le mode Seven of Duty.'), 'error')
     end
 
     local before, after = CodProfileService.addRanks(target, amount)
@@ -165,7 +165,7 @@ function CodAdminCommands.setWeapon(source, args)
         return CodAdminCommands.reply(source, Locale.t('Utilisation : /codarme <arme | toutes> <kills> <tirs à la tête> [id du joueur]'), 'error')
     end
     if not CodProfileService.profiles[target] then
-        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans le mode Call of Duty.'), 'error')
+        return CodAdminCommands.reply(source, Locale.t('Ce joueur n\'est pas dans le mode Seven of Duty.'), 'error')
     end
 
     CodProfileService.setWeaponProgress(target, not all and args[1] or nil, kills, headshots)

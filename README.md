@@ -99,9 +99,9 @@ Voix intégrée à FiveM, sans ressource en plus (`config/voice.lua`, `server/mo
 | Où | Qui t'entend |
 |---|---|
 | PvP, Freeroam, Mêlée générale, Course aux armes | Les joueurs à proximité |
-| Parties Call of Duty en équipes | Ton équipe seulement, à toute distance |
+| Parties Seven of Duty en équipes | Ton équipe seulement, à toute distance |
 | Battle Royale, Résurgence | Ton escouade à toute distance, les autres joueurs à proximité |
-| Lobby, menu Call of Duty | Personne |
+| Lobby, menu Seven of Duty | Personne |
 
 `voice_useNativeAudio` est activé par la ressource, sauf si `server.cfg` choisit un autre mode audio : aucune ligne à ajouter.
 
@@ -129,7 +129,7 @@ Directement sur le VPS : `bash /opt/7pvp/server-data/resources/7PVP/tools/update
 | `Alt` (maintenu) | Menu d'interaction : curseur, la cible survolée est entourée, clic pour ouvrir son menu. Toi (ID, niveau, équipe), un joueur (inviter, exclure, prime, échanger), un butin (fouiller), un PNJ (parler), un véhicule (monter) |
 | `1` à `7` | Raccourcis : sortir / ranger une arme, utiliser un soin |
 | `E` | Ramasser un sac de butin / fouiller un corps de zombie ou un largage |
-| `G` | Compétence de classe (PvP) ; en Call of Duty, utiliser une série |
+| `G` | Compétence de classe (PvP) ; en Seven of Duty, utiliser une série |
 | `/inviter ID` | Inviter un joueur dans son groupe (`/accepter`, `/refuser`, `/quittergroupe`) |
 | `/trade ID` | Proposer un échange (sans ID : le joueur le plus proche) ; `/trade accepter`, `/trade refuser`, `/trade annuler` |
 | `T` | Chat du mode en cours (`/commande` pour exécuter une commande, ↑/↓ pour l'historique) |
@@ -177,7 +177,7 @@ Sur Tebex, dans chaque paquet, ajouter la commande (avec « joueur en ligne requ
 
 ### VIP (Tebex)
 
-Statut à durée limitée (`pvp_vip`, historique dans `pvp_vip_log`), qui court aussi hors ligne ; chaque ajout s'ajoute aux jours restants et part dans le salon Discord admin. Il donne accès à tous les personnages du mode Call of Duty. Réglages : `config/vip.lua`.
+Statut à durée limitée (`pvp_vip`, historique dans `pvp_vip_log`), qui court aussi hors ligne ; chaque ajout s'ajoute aux jours restants et part dans le salon Discord admin. Il donne accès à tous les personnages du mode Seven of Duty. Réglages : `config/vip.lua`.
 
 ```
 addvip <id | license:xxxx> <jours> [référence]   ajoute des jours (même hors ligne) ; une référence déjà créditée est ignorée
@@ -188,7 +188,7 @@ vip <id | license:xxxx>                          affiche la date de fin
 Sur Tebex, dans chaque paquet, ajouter la commande (avec « joueur en ligne requis ») :
 `addvip {sid} 30 {transaction}` — et pour les remboursements / rétrofacturations : `removevip {sid}`.
 
-### Personnages du mode Call of Duty
+### Personnages du mode Seven of Duty
 
 Modèles de ped additionnels, ouverts aux VIP ou achetés pour toujours en points boutique (`pvp_cod_operators_owned`), montrés sur le personnage du menu (onglet Personnages). Catalogue et prix : `config/cod_operators.lua`. Les fichiers des modèles vivent dans la ressource à part `7PVP_operators`, hors de ce dépôt : un modèle absent s'affiche « Bientôt disponible », sans pouvoir être acheté ni porté.
 
@@ -226,11 +226,11 @@ Chaque alerte est écrite dans la console et dans le salon Discord « sanctions 
 │   ├── shop.lua                Boutique
 │   ├── loot.lua                Tables de butin des PNJ
 │   ├── locale.lua              Langues disponibles
-│   ├── cod.lua                 Mode Call of Duty : listes de jeu, armes, atouts, séries, rangs, cartes
-│   ├── cod_gunsmith.lua        Mode Call of Duty : niveaux d'armes, accessoires et camouflages
-│   ├── cod_challenges.lua      Mode Call of Duty : défis du jour et de la semaine
-│   ├── cod_warzone.lua         Mode Call of Duty : Battle Royale et Résurgence (zone, butin, goulag, stations d'achat)
-│   ├── cod_player_cards.lua    Mode Call of Duty : bannières, emblèmes et tag des cartes de joueur
+│   ├── cod.lua                 Mode Seven of Duty : listes de jeu, armes, atouts, séries, rangs, cartes
+│   ├── cod_gunsmith.lua        Mode Seven of Duty : niveaux d'armes, accessoires et camouflages
+│   ├── cod_challenges.lua      Mode Seven of Duty : défis du jour et de la semaine
+│   ├── cod_warzone.lua         Mode Seven of Duty : Battle Royale et Résurgence (zone, butin, goulag, stations d'achat)
+│   ├── cod_player_cards.lua    Mode Seven of Duty : bannières, emblèmes et tag des cartes de joueur
 │   └── zones.lua               Zones safe / PvE
 ├── locales/                    Traductions (en.json, es.json... : texte français -> traduction)
 ├── tools/locales.js            Vérifie et fusionne les traductions
@@ -371,7 +371,7 @@ npm run build   # compile dans web/build/ (chargé par FiveM)
 
 ### Écran de chargement
 
-Deuxième page React (`web/loading.html`, code dans `src/loading/`), déclarée en `loadscreen` dans le fxmanifest. Il reste affiché jusqu'au lobby ou au créateur (`loadscreen_manual_shutdown`). Il reprend la DA du mode Call of Duty : une carte tactique générée (`src/loading/terrain.ts`) où le trajet et les drapeaux A, B, C suivent la progression envoyée par FiveM (`TacticalMap.tsx`), le texte tapé de début de mission (`Briefing.tsx`), des astuces (`src/loading/tips.ts`) et le pseudo / nombre de joueurs transmis par le serveur à la connexion (`server/modules/connection`). En dev : `http://localhost:5173/loading.html` (progression simulée).
+Deuxième page React (`web/loading.html`, code dans `src/loading/`), déclarée en `loadscreen` dans le fxmanifest. Il reste affiché jusqu'au lobby ou au créateur (`loadscreen_manual_shutdown`). Il reprend la DA du mode Seven of Duty : une carte tactique générée (`src/loading/terrain.ts`) où le trajet et les drapeaux A, B, C suivent la progression envoyée par FiveM (`TacticalMap.tsx`), le texte tapé de début de mission (`Briefing.tsx`), des astuces (`src/loading/tips.ts`) et le pseudo / nombre de joueurs transmis par le serveur à la connexion (`server/modules/connection`). En dev : `http://localhost:5173/loading.html` (progression simulée).
 
 ### Panneau « DEV NUI » (npm run dev)
 

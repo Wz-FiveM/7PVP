@@ -47,7 +47,7 @@ export function HitFeedback({ mode }: { mode: string | null }) {
     const now = Date.now();
 
     setMarker({ id, kind });
-    // Call of Duty : le tir à la tête a son propre son, même quand il tue
+    // Seven of Duty : le tir à la tête a son propre son, même quand il tue
     playHitSound(mode === 'cod' && hit.headshot ? 'cod_head' : kind);
     window.setTimeout(() => setMarker((current) => (current?.id === id ? null : current)), MARKER_DURATION);
 

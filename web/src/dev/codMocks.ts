@@ -1,6 +1,6 @@
 import type { CodBoardEntry, CodCardAsset, CodCatalog, CodClass, CodOperatorEntry, CodPlayerCardData, CodProfile } from '../types/cod';
 
-/** Données factices du mode Call of Duty (npm run dev uniquement), extraites de config/cod.lua et cod_player_cards.lua. */
+/** Données factices du mode Seven of Duty (npm run dev uniquement), extraites de config/cod.lua et cod_player_cards.lua. */
 const prestigeAssets: CodCardAsset[] = Array.from({ length: 10 }, (_, index) => ({
   id: `prestige${index + 1}`, label: `Prestige ${index + 1}`, rank: 1, prestige: index + 1,
 }));
@@ -124,14 +124,14 @@ export const mockCodCatalog: CodCatalog = {
   emblems,
   tagLength: 4,
   operators: [
-    ['ghost_desert', 'Ghost Desert', 'Call of Duty', 1000, 'oliver8979', true],
-    ['ghost_nightwar', 'Ghost NightWar', 'Call of Duty', 1200, 'Lee_Costumes', true],
-    ['price_mw4', 'John Price', 'Call of Duty', 1200, 'YourWelshRaptor', true],
-    ['venerated', 'Venerated US Army', 'Call of Duty', 1000, 'YourWelshRaptor', true],
-    ['horangi', 'Horangi', 'Call of Duty', 1000, 'oliver8979', true],
-    ['nikto', 'Nikto Dark Side', 'Call of Duty', 1000, 'kritbualad', true],
-    ['templar', 'Templar', 'Call of Duty', 1000, 'kritbualad', true],
-    ['witch_warden', 'Witch Warden', 'Call of Duty', 1000, 'oliver8979', false],
+    ['ghost_desert', 'Ghost Desert', 'Seven of Duty', 1000, 'oliver8979', true],
+    ['ghost_nightwar', 'Ghost NightWar', 'Seven of Duty', 1200, 'Lee_Costumes', true],
+    ['price_mw4', 'John Price', 'Seven of Duty', 1200, 'YourWelshRaptor', true],
+    ['venerated', 'Venerated US Army', 'Seven of Duty', 1000, 'YourWelshRaptor', true],
+    ['horangi', 'Horangi', 'Seven of Duty', 1000, 'oliver8979', true],
+    ['nikto', 'Nikto Dark Side', 'Seven of Duty', 1000, 'kritbualad', true],
+    ['templar', 'Templar', 'Seven of Duty', 1000, 'kritbualad', true],
+    ['witch_warden', 'Witch Warden', 'Seven of Duty', 1000, 'oliver8979', false],
     ['spiderman', 'Spider-Man', 'Marvel', 1500, 'zio321', true],
     ['ultron', 'Ultron', 'Marvel', 1500, 'zio321', true],
     ['black_knight', 'Black Knight', 'Fortnite', 1200, 'kazuya4x4', true],

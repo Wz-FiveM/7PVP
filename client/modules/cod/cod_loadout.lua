@@ -1,4 +1,4 @@
----Écran de choix de classe à l'arrivée dans une partie du mode Call of Duty, après l'écran de chargement : vue aérienne
+---Écran de choix de classe à l'arrivée dans une partie du mode Seven of Duty, après l'écran de chargement : vue aérienne
 ---de la carte, le personnage attend caché. Le serveur le place au déploiement (CodMatch:deploy), comme à une réapparition.
 ---@class CodLoadoutModule
 local CodLoadout = PVP.define('CodLoadout')

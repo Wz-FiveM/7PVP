@@ -1,4 +1,4 @@
----Effets du mode Call of Duty : atouts, drone, carte coupée, explosions des séries, avions, EMP, frappe nucléaire, bombe.
+---Effets du mode Seven of Duty : atouts, drone, carte coupée, explosions des séries, avions, EMP, frappe nucléaire, bombe.
 ---Les dégâts des séries sont calculés par le serveur (voir server/modules/cod/cod_streaks.lua) :
 ---le client ne fait que les appliquer à son personnage et afficher l'effet.
 ---@class CodEffectsModule

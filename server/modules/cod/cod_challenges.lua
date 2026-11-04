@@ -1,4 +1,4 @@
----Défis du mode Call of Duty (config/cod_challenges.lua) : ceux de la période sont les mêmes pour tous, sans table à part.
+---Défis du mode Seven of Duty (config/cod_challenges.lua) : ceux de la période sont les mêmes pour tous, sans table à part.
 ---La progression vit dans le profil (pvp_cod_profiles.challenges) et repart de zéro quand la période change.
 ---@class CodChallengeState
 ---@field period integer

@@ -1,4 +1,4 @@
----Une partie du mode Call of Duty : joueurs, équipes, apparitions, kills, XP, fin de partie.
+---Une partie du mode Seven of Duty : joueurs, équipes, apparitions, kills, XP, fin de partie.
 ---Le serveur décide de tout (tirs autorisés, kills, scores, réapparitions) ; les règles propres à
 ---chaque liste de jeu (Match à mort, Domination...) sont dans CodRules, les séries dans CodStreaks.
 ---@class CodPlayerStats
@@ -528,7 +528,7 @@ function CodMatch:resolveKiller(source, killerId)
         return victim.strikeBy, true
     end
     if announced and AntiCheatService.watched(source) then
-        AntiCheatService.flag(source, 'kill', ('Call of Duty, tueur annoncé : ID %d'):format(killerId))
+        AntiCheatService.flag(source, 'kill', ('Seven of Duty, tueur annoncé : ID %d'):format(killerId))
     end
     return nil, false
 end

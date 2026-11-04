@@ -6,7 +6,7 @@
  *  - sans aucun fichier, son synthétisé avec Web Audio : claquement sec et métallique (bruit filtré + « tic »),
  *    tintement brillant sur la tête, impact mat sur l'armure, coup sourd et grave sur un kill.
  *
- * cod_head (tir à la tête en mode Call of Duty) n'utilise jamais hitmarker.mp3 : il doit rester différent des autres touches.
+ * cod_head (tir à la tête en mode Seven of Duty) n'utilise jamais hitmarker.mp3 : il doit rester différent des autres touches.
  */
 export type HitSoundKind = 'body' | 'armor' | 'head' | 'kill' | 'cod_head';
 

@@ -1,4 +1,4 @@
----Unités des séries du mode Call of Duty (Config.Cod.units), côté client. Chaque client affiche sa propre copie,
+---Unités des séries du mode Seven of Duty (Config.Cod.units), côté client. Chaque client affiche sa propre copie,
 ---sans entité réseau, et calcule sa position à partir des données du serveur (server/modules/cod/cod_units.lua).
 ---Le client du propriétaire cherche les cibles en vue (le serveur ne sait pas tester une ligne de vue) ;
 ---celui d'un ennemi signale ses tirs qui touchent l'unité.

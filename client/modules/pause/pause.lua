@@ -184,7 +184,7 @@ function Pause.openGameMenu()
     if State.mode == 'freeroam' then Freeroam.setMenu(true) end
 end
 
----Call of Duty : quitte la partie, retour au menu du mode.
+---Seven of Duty : quitte la partie, retour au menu du mode.
 function Pause.leaveCodMatch()
     CreateThread(function()
         Callback.await(Events.callbacks.codLeaveMatch)

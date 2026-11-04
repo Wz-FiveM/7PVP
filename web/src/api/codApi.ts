@@ -1,7 +1,7 @@
 import { fetchNui } from './nui';
 import type { CodActionResult, CodClass, CodLeaderboardRow, CodPartyLobby, CodPlayerCardChoice, CodProfile, CodWeaponMods } from '../types/cod';
 
-/** Mode Call of Duty (voir client/modules/cod/cod.lua). Le serveur valide chaque choix. */
+/** Mode Seven of Duty (voir client/modules/cod/cod.lua). Le serveur valide chaque choix. */
 export const codApi = {
   /** lance ou annule la recherche de partie */
   queue: (playlist: string) => fetchNui<CodActionResult>('codQueue', { playlist }, { ok: true }),

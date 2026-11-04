@@ -1,4 +1,4 @@
----Kill cam du mode Call of Duty : la victime revoit le kill par les yeux du tueur. GTA ne sait pas rejouer une scène
+---Kill cam du mode Seven of Duty : la victime revoit le kill par les yeux du tueur. GTA ne sait pas rejouer une scène
 ---en pleine partie : chaque client enregistre donc ses dernières secondes, le tueur envoie les siennes à la victime
 ---(server/modules/cod/cod_match.lua) et celle-ci les rejoue avec des copies locales des deux personnages, sans
 ---entité réseau, pendant que la vraie partie continue et que les vrais joueurs sont masqués sur son écran.
@@ -73,7 +73,7 @@ function CodKillcam.init()
         local session = CodKillcam.session
         if session and session.shown and not session.final then session.skipped = true end
     end, false)
-    RegisterKeyMapping('pvp_cod_killcam_skip', Locale.t('Call of Duty : passer la kill cam'), 'keyboard', Config.Cod.killcam.skipKey)
+    RegisterKeyMapping('pvp_cod_killcam_skip', Locale.t('Seven of Duty : passer la kill cam'), 'keyboard', Config.Cod.killcam.skipKey)
 end
 
 ---@return boolean

@@ -1,4 +1,4 @@
----Tablette des séries pilotées du mode Call of Duty (missile Predator, hélico mitrailleur, AC-130) : le personnage
+---Tablette des séries pilotées du mode Seven of Duty (missile Predator, hélico mitrailleur, AC-130) : le personnage
 ---range son arme et la sort, l'écran monte (HUD) puis l'image passe à une caméra. Le personnage reste sur place,
 ---vulnérable : sa mort met fin à la séance.
 ---@class CodTabletModule

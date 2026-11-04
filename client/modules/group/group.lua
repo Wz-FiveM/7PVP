@@ -21,7 +21,7 @@ Group.blips = {}
 Group.state = {}
 ---@type table<integer, integer> place de l'équipe -> groupe de relations du personnage
 Group.relationGroups = {}
-Group.firePed = 0 -- personnage sur lequel le groupe de relations est appliqué, 0 = réglé par Call of Duty
+Group.firePed = 0 -- personnage sur lequel le groupe de relations est appliqué, 0 = réglé par Seven of Duty
 Group.fireRelation = false -- groupe de relations appliqué, false = celui de tous les joueurs
 
 function Group.init()
@@ -150,7 +150,7 @@ end
 ---tous restent dans le même groupe). Le serveur annule aussi ces touches, mais une touche annulée seule
 ---abîme la cible chez le tireur alors qu'elle reste en vie chez elle : il la voit tomber ou disparaître.
 function Group.updateFire()
-    -- En Call of Duty et en Sabotage, seules les équipes de la partie comptent (Cod.applyTeam)
+    -- En Seven of Duty et en Sabotage, seules les équipes de la partie comptent (Cod.applyTeam)
     if State.mode == 'cod' or State.mode == 'tactical' then
         if Group.firePed ~= 0 then
             Group.applyFire(false, false)

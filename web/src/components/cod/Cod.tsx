@@ -19,7 +19,7 @@ import { setBannerFormats } from './CodPlayerCard';
 import { CodWzShop } from './CodWarzoneHud';
 import './cod.css';
 
-/** Mode Call of Duty : menu du mode, écran de chargement, HUD de partie, menu pause, sélecteur de classe, résultats. */
+/** Mode Seven of Duty : menu du mode, écran de chargement, HUD de partie, menu pause, sélecteur de classe, résultats. */
 export function Cod({ visible }: { visible: boolean }) {
   useT();
   const { state, actions } = useGame();

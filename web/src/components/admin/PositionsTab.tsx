@@ -5,7 +5,7 @@ import { useGame } from '../../store/GameContext';
 import type { CodMapData, CvcArenaSpawns, FreeroamAdminData, FreeroamPlace, FreeroamSetting, MapPoint, PvpZone } from '../../types/admin';
 import { RowButtons } from './FreeroamTab';
 
-/** Rayon proposé pour une nouvelle carte Call of Duty (mètres), bornes de server/modules/cod/cod_map_service.lua */
+/** Rayon proposé pour une nouvelle carte Seven of Duty (mètres), bornes de server/modules/cod/cod_map_service.lua */
 const DEFAULT_RADIUS = 80;
 const MIN_RADIUS = 20;
 const MAX_RADIUS = 500;
@@ -143,7 +143,7 @@ export function PositionsTab() {
             ))}
           </Fragment>
         ))}
-        <span className="label admin-pos__nav-title">{t('Call of Duty')}</span>
+        <span className="label admin-pos__nav-title">{t('Seven of Duty')}</span>
         {codMaps.map((entry) => {
           const mapLists = cod.filter((list) => list.map === entry.id);
           const note = missingLists(mapLists).length > 0 ? t('Incomplète') : entry.enabled ? null : t('Hors vote');
@@ -213,7 +213,7 @@ interface MapFormProps {
   onDeleted?: () => Promise<void>;
 }
 
-/** Nom, lieu, rayon et présence au vote d'une carte Call of Duty ; création et suppression. */
+/** Nom, lieu, rayon et présence au vote d'une carte Seven of Duty ; création et suppression. */
 function MapForm({ map, lists, onSaved, onCancel, onDeleted }: MapFormProps) {
   useT();
   const { actions } = useGame();
@@ -313,7 +313,7 @@ function MapForm({ map, lists, onSaved, onCancel, onDeleted }: MapFormProps) {
 interface SettingPanelProps {
   setting: FreeroamSetting;
   draft: FreeroamSetting;
-  /** listes de la même carte Call of Duty (onglets) */
+  /** listes de la même carte Seven of Duty (onglets) */
   lists: FreeroamSetting[];
   drafts: Record<string, FreeroamSetting>;
   onSelect: (name: string) => void;

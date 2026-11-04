@@ -1,4 +1,4 @@
----Escouades du mode Call of Duty : jouer entre amis. Le chef invite, lance la recherche pour tout le monde ou une partie
+---Escouades du mode Seven of Duty : jouer entre amis. Le chef invite, lance la recherche pour tout le monde ou une partie
 ---privée ; en partie, l'escouade reste dans le même camp. Une escouade n'existe qu'en mémoire.
 ---@class CodPartyData
 ---@field id integer

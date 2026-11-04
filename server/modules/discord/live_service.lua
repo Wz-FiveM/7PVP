@@ -28,7 +28,7 @@ local Logger = PVP.use('Logger')
 LiveService.TOKEN_CONVAR = 'live_token'
 LiveService.TOP = 15 -- joueurs par classement
 LiveService.MATCH_TOP = 3 -- meilleurs joueurs affichés par partie
-LiveService.RESULT_TOP = 5 -- joueurs gardés par résultat de partie Call of Duty
+LiveService.RESULT_TOP = 5 -- joueurs gardés par résultat de partie Seven of Duty
 LiveService.MAX_RESULTS = 20 -- résultats gardés en mémoire
 LiveService.BOARDS_CACHE = 30 -- secondes
 LiveService.TIME_STEP = 15 -- secondes : arrondi des heures de fin, pour ne pas déclencher une mise à jour Discord à chaque lecture
@@ -350,7 +350,7 @@ function LiveService.pushResult(build)
     if #LiveService.results > LiveService.MAX_RESULTS then table.remove(LiveService.results, 1) end
 end
 
----Fin d'une partie Call of Duty.
+---Fin d'une partie Seven of Duty.
 ---@param match table CodMatch
 ---@param winner string|integer|nil
 ---@param board table[]

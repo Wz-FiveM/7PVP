@@ -20,7 +20,7 @@ function InventoryService.init()
     Callback.register(Events.callbacks.unlockStash, InventoryService.unlockStash)
 end
 
----L'inventaire n'existe qu'en PvP : ses objets ne servent pas en Call of Duty ni en Freeroam.
+---L'inventaire n'existe qu'en PvP : ses objets ne servent pas en Seven of Duty ni en Freeroam.
 ---@param source integer
 ---@return PvpPlayer|nil
 function InventoryService.getActivePlayer(source)

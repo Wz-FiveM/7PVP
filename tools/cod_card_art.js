@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Dessins des cartes de joueur du mode Call of Duty : écrit web/public/cod/banners/<id>.svg et
+// Dessins des cartes de joueur du mode Seven of Duty : écrit web/public/cod/banners/<id>.svg et
 // web/public/cod/emblems/<id>.svg. La liste (nom, rang requis) est dans config/cod_player_cards.lua.
 //
 //   node tools/cod_card_art.js

@@ -1,5 +1,5 @@
 /**
- * Son de minigun des unités du mode Call of Duty (tourelle, hélicoptères, Harrier, hélico mitrailleur, 25 mm de l'AC-130) :
+ * Son de minigun des unités du mode Seven of Duty (tourelle, hélicoptères, Harrier, hélico mitrailleur, 25 mm de l'AC-130) :
  * web/public/sounds/minigun.mp3. Les balles de ces unités n'ont pas de tireur et le jeu ne leur donne pas toujours de son.
  * Chaque unité qui tire fait tourner sa boucle : chaque tir la prolonge, elle s'arrête quand les tirs cessent.
  */

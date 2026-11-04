@@ -1,4 +1,4 @@
----Personnages du mode Call of Duty (server/modules/cod/cod_operator_service.lua) : le serveur valide l'accès, le client
+---Personnages du mode Seven of Duty (server/modules/cod/cod_operator_service.lua) : le serveur valide l'accès, le client
 ---porte le modèle et le montre dans le menu. Un modèle absent de la ressource 7PVP_operators n'est jamais chargé.
 ---@class CodOperatorsModule
 local CodOperators = PVP.define('CodOperators')

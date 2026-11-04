@@ -1,4 +1,4 @@
-/** Mode Call of Duty (server/modules/cod/, config/cod.lua) */
+/** Mode Seven of Duty (server/modules/cod/, config/cod.lua) */
 
 export interface CodCatalogEntry {
   id: string;

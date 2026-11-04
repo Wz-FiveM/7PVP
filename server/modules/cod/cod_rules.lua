@@ -1,4 +1,4 @@
----Règles de chaque liste de jeu du mode Call of Duty. Chaque règle définit :
+---Règles de chaque liste de jeu du mode Seven of Duty. Chaque règle définit :
 ---    setup(match)                    état propre à la règle, au lancement
 ---    objectives(match)               positions envoyées aux clients (drapeaux, sites)
 ---    describe(match)                 état de l'objectif, envoyé chaque seconde

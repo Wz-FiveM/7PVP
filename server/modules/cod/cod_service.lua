@@ -1,4 +1,4 @@
----Mode Call of Duty : recherche de partie (une file par liste de jeu, vote de carte), parties en
+---Mode Seven of Duty : recherche de partie (une file par liste de jeu, vote de carte), parties en
 ---cours, actions du menu et événements envoyés par les clients.
 ---@class CodQueue
 ---@field players integer[] joueurs en attente

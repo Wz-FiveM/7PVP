@@ -1,4 +1,4 @@
----Séries d'éliminations du mode Call of Duty (Config.Cod.streaks) : gagnées en enchaînant les kills,
+---Séries d'éliminations du mode Seven of Duty (Config.Cod.streaks) : gagnées en enchaînant les kills,
 ---utilisées avec une touche. Le serveur garde la main : il calcule les relevés du drone et applique
 ---lui-même tous les dégâts (les clients n'en font que l'effet visuel).
 ---Les unités (tourelle, hélicoptères, AC-130) sont dans CodUnits, les colis dans CodCrates.

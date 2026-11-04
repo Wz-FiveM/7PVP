@@ -1,4 +1,4 @@
----Écran de chargement à l'arrivée dans une partie du mode Call of Duty : la carte vue en jeu, de haut et du côté
+---Écran de chargement à l'arrivée dans une partie du mode Seven of Duty : la carte vue en jeu, de haut et du côté
 ---du joueur, sous le titre, une astuce et le pourcentage (NUI). Le personnage rejoint son point de départ en dessous.
 ---@class CodLoadingModule
 local CodLoading = PVP.define('CodLoading')

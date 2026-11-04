@@ -1,4 +1,4 @@
----Mode Call of Duty côté client (server/modules/cod/) : menu du mode, placement aux apparitions, classe
+---Mode Seven of Duty côté client (server/modules/cod/) : menu du mode, placement aux apparitions, classe
 ---(armes et atouts), santé qui remonte, limite de la zone de combat, signalement de sa mort, HUD.
 ---Le serveur décide des kills, des scores et de la fin de partie. Les touches qu'il annule désynchronisent
 ---les joueurs : la protection d'apparition et le tir allié sont donc d'abord bloqués ici, côté jeu.
@@ -184,27 +184,27 @@ function Cod.init()
     RegisterCommand('pvp_cod_streak', function()
         Cod.useStreak()
     end, false)
-    RegisterKeyMapping('pvp_cod_streak', Locale.t('Call of Duty : utiliser une série'), 'keyboard', Config.Cod.streakKey)
+    RegisterKeyMapping('pvp_cod_streak', Locale.t('Seven of Duty : utiliser une série'), 'keyboard', Config.Cod.streakKey)
     RegisterCommand('pvp_cod_class', function()
         Cod.setPicker(not Cod.pickerOpen)
     end, false)
-    RegisterKeyMapping('pvp_cod_class', Locale.t('Call of Duty : changer de classe'), 'keyboard', Config.Cod.classKey)
+    RegisterKeyMapping('pvp_cod_class', Locale.t('Seven of Duty : changer de classe'), 'keyboard', Config.Cod.classKey)
     RegisterCommand('pvp_cod_primary', function()
         Cod.selectWeapon('primary')
     end, false)
-    RegisterKeyMapping('pvp_cod_primary', Locale.t('Call of Duty : arme principale'), 'keyboard', Config.Cod.primaryKey)
+    RegisterKeyMapping('pvp_cod_primary', Locale.t('Seven of Duty : arme principale'), 'keyboard', Config.Cod.primaryKey)
     RegisterCommand('pvp_cod_secondary', function()
         Cod.selectWeapon('secondary')
     end, false)
-    RegisterKeyMapping('pvp_cod_secondary', Locale.t('Call of Duty : arme secondaire'), 'keyboard', Config.Cod.secondaryKey)
+    RegisterKeyMapping('pvp_cod_secondary', Locale.t('Seven of Duty : arme secondaire'), 'keyboard', Config.Cod.secondaryKey)
     RegisterCommand('pvp_cod_equipment', function()
         Cod.selectWeapon('equipment')
     end, false)
-    RegisterKeyMapping('pvp_cod_equipment', Locale.t('Call of Duty : équipement'), 'keyboard', Config.Cod.equipmentKey)
+    RegisterKeyMapping('pvp_cod_equipment', Locale.t('Seven of Duty : équipement'), 'keyboard', Config.Cod.equipmentKey)
     RegisterCommand('pvp_cod_tactical', function()
         Cod.selectWeapon('tactical')
     end, false)
-    RegisterKeyMapping('pvp_cod_tactical', Locale.t('Call of Duty : équipement tactique'), 'keyboard', Config.Cod.tacticalKey)
+    RegisterKeyMapping('pvp_cod_tactical', Locale.t('Seven of Duty : équipement tactique'), 'keyboard', Config.Cod.tacticalKey)
 
     RegisterNUICallback('codQueue', function(data, cb)
         cb(Callback.await(Events.callbacks.codQueue, data.playlist) or { ok = false })
@@ -273,7 +273,7 @@ function Cod.exclusive(task)
         Cod.busy = true
         local ok, message = pcall(task)
         Cod.busy = false
-        if not ok then print(('[7PVP] Call of Duty : %s'):format(message)) end
+        if not ok then print(('[7PVP] Seven of Duty : %s'):format(message)) end
     end)
 end
 

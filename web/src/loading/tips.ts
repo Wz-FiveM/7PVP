@@ -9,7 +9,7 @@ export const TIPS: string[] = [
   'Chaque conteneur a une limite de poids. Un sac trop lourd ne ramasse plus rien.',
   'Un sac de butin disparaît au bout de 5 minutes : ne traîne pas.',
   'Retour au lobby possible depuis une zone safe : menu (Tab) ou /lobby.',
-  // Mode Call of Duty (mêmes textes que Config.Cod.loadingTips)
+  // Mode Seven of Duty (mêmes textes que Config.Cod.loadingTips)
   'La santé remonte toute seule après quelques secondes sans dégâts.',
   'Tu peux changer de classe en pleine partie : elle s\'applique à ta prochaine apparition.',
   'En Domination, plus vous êtes nombreux sur un drapeau, plus vite il est capturé.',

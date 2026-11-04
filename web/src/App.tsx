@@ -117,7 +117,7 @@ export function App() {
       >
         <WeaponCustom onOpenChange={setCustomizing} />
       </UiGuard>
-      {/* En Call of Duty, le mode a son propre menu pause (voir Cod) */}
+      {/* En Seven of Duty, le mode a son propre menu pause (voir Cod) */}
       {!creating && !inLobby && state.pause.open && state.pause.info?.mode !== 'cod' && (
         <UiGuard name="pause" onCrash={actions.closePause}><PauseMenu /></UiGuard>
       )}

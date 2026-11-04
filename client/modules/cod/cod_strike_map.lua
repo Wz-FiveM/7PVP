@@ -1,4 +1,4 @@
----Choix du point d'un bombardement du mode Call of Duty : vue du dessus depuis la tablette (CodTablet), le point visé
+---Choix du point d'un bombardement du mode Seven of Duty : vue du dessus depuis la tablette (CodTablet), le point visé
 ---est au centre de l'image. Rien n'est lancé avant la confirmation : annuler (ou mourir) garde la série.
 ---@class CodStrikeMapModule
 local CodStrikeMap = PVP.define('CodStrikeMap')

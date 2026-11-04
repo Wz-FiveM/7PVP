@@ -1,4 +1,4 @@
--- Carte de joueur du mode Call of Duty : bannière, emblème et tag de clan, vus au kill, à la mort et au salon.
+-- Carte de joueur du mode Seven of Duty : bannière, emblème et tag de clan, vus au kill, à la mort et au salon.
 -- rank = rang requis. Les dessins sont web/public/cod/banners/<id>.svg et emblems/<id>.svg (tools/cod_card_art.js).
 -- Bannière en image : poser web/public/cod/banners/<id>.webp (ratio 5:1, sans perte) et ajouter format = 'webp'
 -- à sa ligne, par exemple { id = 'storm', label = 'Orage', rank = 20, format = 'webp' }. Les prompts sont dans

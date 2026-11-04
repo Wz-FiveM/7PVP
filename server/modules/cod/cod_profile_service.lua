@@ -1,4 +1,4 @@
----Progression du mode Call of Duty (Config.Cod) : rang, statistiques, classes et séries de chaque joueur.
+---Progression du mode Seven of Duty (Config.Cod) : rang, statistiques, classes et séries de chaque joueur.
 ---Les profils vivent à part de pvp_players : rien ici ne touche à l'inventaire ni à l'argent du PvP.
 ---Le serveur valide chaque choix du joueur (arme débloquée, atout du bon niveau...).
 ---@class CodClass

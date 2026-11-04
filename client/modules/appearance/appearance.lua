@@ -11,7 +11,7 @@ Appearance.palettes = nil
 Appearance.MODEL_TIMEOUT = 30000
 -- À chaque image : un tir encaissé avant la correction ferait repartir le modèle féminin sous ses 100 PV
 Appearance.HEALTH_CHECK_INTERVAL = 0
----@type integer|nil modèle porté à la place du personnage du joueur (mode Call of Duty)
+---@type integer|nil modèle porté à la place du personnage du joueur (mode Seven of Duty)
 Appearance.forcedModel = nil
 ---@type table<integer, boolean> modèles qui acceptent une apparence
 Appearance.customizable = {}

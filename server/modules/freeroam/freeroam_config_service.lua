@@ -48,7 +48,7 @@ FreeroamConfigService.KINDS = {
 --  category : chaque véhicule a une catégorie (onglets du menu Freeroam)
 --  sync     : lu par les clients (renvoyé à tous à chaque changement)
 --  short    : nom court, dans le menu de l'onglet « Positions »
---  map      : carte Call of Duty (id), sous laquelle la liste est rangée ; min : points nécessaires
+--  map      : carte Seven of Duty (id), sous laquelle la liste est rangée ; min : points nécessaires
 --  empty    : la liste peut rester vide
 --  point    : nom d'un point de la liste (« Drapeau 1 ») ; letters : numérotés A, B, C
 --  flat     : points sans direction (vector3)
@@ -216,7 +216,7 @@ FreeroamConfigService.SETTINGS = {
     },
 }
 
--- Call of Duty : les points de chaque carte (voir CodMapService), dans leur propre section du panneau.
+-- Seven of Duty : les points de chaque carte (voir CodMapService), dans leur propre section du panneau.
 -- min : points qu'il faut au moins pour que la carte soit proposée au vote
 FreeroamConfigService.COD_LISTS = {
     { key = 'alpha', label = 'Départs 1', point = 'Apparition', min = 2, hint = 'Apparitions du premier camp, dans ta direction. Les deux camps réapparaissent ensuite sur tous les points, le plus loin possible des ennemis ; la zone de combat est un cercle autour de leur milieu.' },
@@ -261,7 +261,7 @@ end
 function FreeroamConfigService.load()
     MySQL.query.await(FreeroamConfigService.SCHEMA)
     local rows = MySQL.query.await('SELECT name, data FROM pvp_freeroam_settings') or {}
-    -- Les cartes Call of Duty d'abord : les points des cartes créées en jeu sont des réglages
+    -- Les cartes Seven of Duty d'abord : les points des cartes créées en jeu sont des réglages
     for _, row in ipairs(rows) do
         if row.name == CodMapService.ROW then CodMapService.apply(row.data) end
     end
@@ -328,7 +328,7 @@ function FreeroamConfigService.sendSynced(target, only)
     end
 end
 
--- Cartes Call of Duty ----------------------------------------------------------------------
+-- Cartes Seven of Duty ----------------------------------------------------------------------
 
 ---Ajoute les listes de points d'une carte. Une carte d'origine remise repart des valeurs de config/cod.lua.
 ---@param map table entrée de Config.Cod.maps
@@ -556,7 +556,7 @@ function FreeroamConfigService.point(point)
 end
 
 ---@param data any
----@param setting? table `empty` : la liste peut rester vide (carte Call of Duty en cours de création)
+---@param setting? table `empty` : la liste peut rester vide (carte Seven of Duty en cours de création)
 ---@return table[]|nil
 function FreeroamConfigService.validatePoints(data, setting)
     if type(data) ~= 'table' then return nil end

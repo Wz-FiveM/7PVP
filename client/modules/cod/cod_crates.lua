@@ -1,4 +1,4 @@
----Colis des séries du mode Call of Duty, côté client : copie locale qui tombe en parachute, repère sur la carte,
+---Colis des séries du mode Seven of Duty, côté client : copie locale qui tombe en parachute, repère sur la carte,
 ---touche maintenue pour l'ouvrir. Le serveur vérifie la distance et le temps, et tire le contenu au sort.
 ---@class CodCratesModule
 local CodCrates = PVP.define('CodCrates')

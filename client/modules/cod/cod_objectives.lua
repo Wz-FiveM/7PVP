@@ -1,4 +1,4 @@
----Objectifs du mode Call of Duty : drapeaux de la Domination, zone du Point stratégique, sites de bombe de Recherche
+---Objectifs du mode Seven of Duty : drapeaux de la Domination, zone du Point stratégique, sites de bombe de Recherche
 ---& Destruction, plaques de l'Élimination confirmée. Marqueurs et repères sur la carte, touche maintenue pour poser ou
 ---désamorcer (le serveur vérifie le rôle, la distance et compte le temps).
 ---@class CodObjectivesModule

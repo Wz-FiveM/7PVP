@@ -28,7 +28,7 @@ Config.Lobby.Modes = {
     },
     {
         id = 'cod',
-        label = 'Call of Duty',
+        label = 'Seven of Duty',
         tagline = 'Multijoueur',
         description = 'Parties rapides en équipes sur des cartes fermées : classes à composer, rangs à monter, séries d\'éliminations.',
         bucket = Config.Cod.bucket,

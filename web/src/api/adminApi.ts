@@ -108,7 +108,7 @@ export const adminApi = {
   freeroamReset: (name: string) =>
     fetchNui<AdminActionResult>('adminFreeroamReset', { name }, { ok: true, message: 'Réglage remis par défaut (simulé)' }),
 
-  /** Cartes Call of Duty de l'onglet « Positions » : création sans `id`, modification avec */
+  /** Cartes Seven of Duty de l'onglet « Positions » : création sans `id`, modification avec */
   codMapSave: (map: Omit<CodMapData, 'id' | 'custom'> & { id?: string }) =>
     fetchNui<AdminActionResult & { id?: string }>('adminCodMapSave', map, { ok: true, id: map.id ?? 'map1', message: 'Carte enregistrée (simulé)' }),
 

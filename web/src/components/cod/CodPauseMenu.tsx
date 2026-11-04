@@ -28,7 +28,7 @@ export function CodPauseMenu({ hud, live, profile, catalog, onProfile }: CodPaus
   const info = state.pause.info;
   const [tab, setTab] = useState<Tab>('game');
   const tabs: { id: Tab; label: string; subtitle: string }[] = [
-    { id: 'game', label: t('Partie'), subtitle: hud ? `${t(hud.map.label)} · ${t(hud.map.place)}` : 'Call of Duty' },
+    { id: 'game', label: t('Partie'), subtitle: hud ? `${t(hud.map.label)} · ${t(hud.map.place)}` : 'Seven of Duty' },
   ];
   if (profile && catalog) {
     tabs.push(

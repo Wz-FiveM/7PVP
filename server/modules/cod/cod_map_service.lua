@@ -1,4 +1,4 @@
----Cartes Call of Duty modifiables en jeu (panneau admin F10, onglet « Positions ») : création, nom,
+---Cartes Seven of Duty modifiables en jeu (panneau admin F10, onglet « Positions ») : création, nom,
 ---lieu, rayon, présence au vote, suppression. Les points de chaque carte sont des réglages de
 ---FreeroamConfigService ; la liste des cartes tient dans une ligne de pvp_freeroam_settings.
 ---Une carte n'est proposée au vote que si elle a assez de points (COD_LISTS, `min`).
@@ -172,7 +172,7 @@ function CodMapService.saveCallback(source, data)
     end
 
     CodMapService.save(source)
-    FreeroamConfigService.log(source, ('carte Call of Duty « %s » enregistrée'):format(map.label))
+    FreeroamConfigService.log(source, ('carte Seven of Duty « %s » enregistrée'):format(map.label))
     return { ok = true, id = map.id, message = Locale.t('Carte « %s » enregistrée.', map.label) }
 end
 
@@ -185,7 +185,7 @@ function CodMapService.deleteCallback(source, id)
 
     CodMapService.remove(map)
     CodMapService.save(source)
-    FreeroamConfigService.log(source, ('carte Call of Duty « %s » supprimée'):format(map.label))
+    FreeroamConfigService.log(source, ('carte Seven of Duty « %s » supprimée'):format(map.label))
     return { ok = true, message = Locale.t('Carte « %s » supprimée.', map.label) }
 end
 
@@ -203,6 +203,6 @@ function CodMapService.restoreCallback(source, id)
     FreeroamConfigService.addCodMap(map)
 
     CodMapService.save(source)
-    FreeroamConfigService.log(source, ('carte Call of Duty « %s » remise'):format(map.label))
+    FreeroamConfigService.log(source, ('carte Seven of Duty « %s » remise'):format(map.label))
     return { ok = true, id = id, message = Locale.t('Carte « %s » remise.', map.label) }
 end
