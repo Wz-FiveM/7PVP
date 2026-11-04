@@ -60,9 +60,6 @@ Config.Dungeon = {
         explosion = { type = 23, damage = 2.0, shake = 1.0 }, -- 23 : bouteille de gaz, non bloquée par l'anticheat
     },
     barrels = {
-        vector3(932.4, 5641.4, -117.1),
-        vector3(930.7, 5642.4, -117.3),
-        vector3(910.0, 5651.4, -119.8),
         vector3(887.7, 5648.3, -122.3),
         vector3(846.0, 5669.6, -127.2),
         vector3(843.7, 5669.4, -127.4),
@@ -94,7 +91,7 @@ Config.Dungeon = {
         type = 'pve',
         label = 'Donjon',
         modes = {},
-        coords = vector3(955.9, 5646.3, -114.5),
+        coords = vector3(896.59, 5652.95, -123.66),
         radius = 140.0,
         npc = {
             health = 300,
@@ -106,12 +103,13 @@ Config.Dungeon = {
     -- Parcours par défaut. À ajuster en jeu dans F10 > Positions.
     steps = {
         {
-            id = 'tunnel_1', type = 'kill', count = 10, label = 'Tunnel : entrée', warp = true, heading = 82.5,
+            -- Entrée relevée en jeu (/interieur) dans le tronçon int_tun_30d_R d'origine 868.23, 5659.31, -123.68
+            id = 'tunnel_1', type = 'kill', count = 10, label = 'Tunnel : entrée', warp = true, heading = 77.3,
             objective = 'Tue tous les zombies', hint = 'Tire sur les bonbonnes pour les faire sauter.',
-            coords = vector3(955.9, 5646.3, -114.5), radius = 30.0,
+            coords = vector3(896.59, 5652.95, -123.66), radius = 30.0,
             spawns = {
-                vector4(918.4, 5643.3, -118.7, 262.5), vector4(905.2, 5651.3, -120.3, 262.5),
-                vector4(890.7, 5649.5, -122.0, 262.5), vector4(882.1, 5656.2, -123.1, 262.5),
+                vector4(873.6, 5659.9, -124.5, 255.0), vector4(859.1, 5663.8, -126.0, 255.0),
+                vector4(844.6, 5667.7, -127.5, 255.0), vector4(830.1, 5671.6, -128.9, 255.0),
             },
         },
         {

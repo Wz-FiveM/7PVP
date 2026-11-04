@@ -71,7 +71,10 @@ function Dev.interiorReport()
         end
     end
     local found, ground, covered = PedUtils.findFloor(coords.x, coords.y, coords.z)
-    lines[#lines + 1] = ('sol : trouvé %s, z %.2f, sous un plafond %s'):format(tostring(found), ground, tostring(covered))
+    lines[#lines + 1] = ('sol : trouvé %s, z %.2f, dans une pièce %s'):format(tostring(found), ground, tostring(covered))
+    local ix, iy, iz = PedUtils.findIndoorFloor(coords.x, coords.y, coords.z)
+    lines[#lines + 1] = ix and ('sol d\'intérieur le plus proche : %.2f, %.2f, %.2f'):format(ix, iy, iz)
+        or 'aucun sol d\'intérieur à moins de 15 m'
     local active, total = 0, 0
     for _, name in ipairs(Config.Ipls.load) do
         if name:find('x17dlc_int_placement', 1, true) then

@@ -11,6 +11,10 @@ PedUtils.SPOT_SNAP = 25.0
 PedUtils.FLOOR_DEPTH = 40.0 -- sous un point souterrain, sol cherché jusque-là s'il a un plafond au-dessus
 PedUtils.FLOORS = 8 -- surfaces traversées au plus (toits des intérieurs) pour le trouver
 PedUtils.CEILING_HEIGHT = 30.0
+-- Autour d'un point souterrain hors des pièces : distances (m), directions par cercle, hauteurs de départ
+PedUtils.NEARBY_RADII = { 0, 2, 4, 6, 9, 12, 15 }
+PedUtils.NEARBY_DIRECTIONS = 8
+PedUtils.NEARBY_RISES = { 0.0, 6.0 }
 
 ---Server id du joueur qui a tué `ped`, ou nil (PNJ, chute, suicide...).
 ---@param ped integer
@@ -83,14 +87,16 @@ function PedUtils.findSpot(x, y, z)
     local interior = PedUtils.waitInterior(wanted)
     for _ = 1, PedUtils.SPOT_ATTEMPTS do
         RequestCollisionAtCoord(x, y, z)
-        local found, ground, covered = PedUtils.findFloor(x, y, z)
-        if found then
-            if covered and z - ground > PedUtils.SPOT_DROP then
-                -- Dans la console F8 : de quoi baisser le point
-                print(('[sol] %.1f, %.1f, %.1f : sol de l\'intérieur %.1f m plus bas (z %.1f)'):format(x, y, z, z - ground, ground))
+        local fx, fy, floor = PedUtils.findIndoorFloor(x, y, z)
+        if fx then
+            if #(vector3(fx, fy, floor) - wanted) > PedUtils.SPOT_DROP then
+                -- Dans la console F8 : de quoi corriger le point
+                print(('[sol] %.1f, %.1f, %.1f : intérieur trouvé en %.2f, %.2f, %.2f'):format(x, y, z, fx, fy, floor))
             end
-            return x, y, ground, true
+            return fx, fy, floor, true
         end
+        local found, ground = PedUtils.findFloor(x, y, z)
+        if found then return x, y, ground, true end
         local safe, point = GetSafeCoordForPed(x, y, z, true, 16)
         if safe and #(point - wanted) <= PedUtils.SPOT_SNAP then return point.x, point.y, point.z, true end
         Wait(PedUtils.SPOT_WAIT)
@@ -124,13 +130,37 @@ function PedUtils.findFloor(x, y, z)
     return false, z, false
 end
 
----Debout sur ce sol, on est dans une pièce d'un intérieur. Sur son toit ou sous lui, on est hors de
----ses pièces. Pour un intérieur dont le jeu ne donne pas les pièces, on cherche un plafond.
+---Un point mal placé peut tomber juste à côté du tube d'un tunnel, ou un peu sous son sol : on cherche
+---autour de lui, du plus près au plus loin, un sol qui est dans une pièce d'un intérieur.
+---@param x number
+---@param y number
+---@param z number
+---@return number|nil x
+---@return number|nil y
+---@return number|nil ground
+function PedUtils.findIndoorFloor(x, y, z)
+    for _, radius in ipairs(PedUtils.NEARBY_RADII) do
+        local turns = radius == 0 and 1 or PedUtils.NEARBY_DIRECTIONS
+        for turn = 1, turns do
+            local angle = (turn - 1) / turns * math.pi * 2
+            local px, py = x + math.cos(angle) * radius, y + math.sin(angle) * radius
+            for _, rise in ipairs(PedUtils.NEARBY_RISES) do
+                local found, ground, covered = PedUtils.findFloor(px, py, z + rise)
+                if found and covered then return px, py, ground end
+            end
+        end
+    end
+    return nil
+end
+
+---Debout sur ce sol, on est dans une pièce d'un intérieur. Sur son toit, sous lui ou à côté, on est
+---hors de ses pièces. Pour un intérieur dont le jeu ne donne pas les pièces, on cherche un plafond.
 ---@return boolean
 function PedUtils.isIndoors(x, y, ground)
     local coords = vector3(x, y, ground + 1.0)
     local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
-    if interior ~= 0 and (GetInteriorRoomCount(interior) or 0) >= 2 then
+    if interior == 0 then return false end
+    if (GetInteriorRoomCount(interior) or 0) >= 2 then
         return PedUtils.roomIndexAt(interior, coords) ~= nil
     end
     return PedUtils.hasCeiling(x, y, ground)

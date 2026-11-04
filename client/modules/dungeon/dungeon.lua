@@ -226,10 +226,13 @@ function Dungeon.createProp(key)
     if Dungeon.props[key] ~= prop or not HasModelLoaded(model) then return end
 
     local coords = prop.data.coords
-    -- Le point peut être au-dessus du toit du tunnel : l'objet est posé dans le tunnel, sous lui
-    local found, ground, covered = PedUtils.findFloor(coords.x, coords.y, coords.z)
-    local z = (found and covered) and ground + Dungeon.FLOOR_OFFSET or coords.z
-    prop.entity = CreateObject(model, coords.x, coords.y, z, false, false, false)
+    -- Le point peut être sur le toit du tunnel ou à côté : l'objet est posé dans le tunnel, au plus près
+    local x, y, ground = PedUtils.findIndoorFloor(coords.x, coords.y, coords.z)
+    if x then
+        prop.entity = CreateObject(model, x, y, ground + Dungeon.FLOOR_OFFSET, false, false, false)
+    else
+        prop.entity = CreateObject(model, coords.x, coords.y, coords.z, false, false, false)
+    end
     SetEntityHeading(prop.entity, coords.w)
     FreezeEntityPosition(prop.entity, true)
     -- Une bonbonne du jeu saute toute seule : ici, c'est le serveur qui décide, pour toute la salle
@@ -374,9 +377,10 @@ function Dungeon.settlePed(ped)
     state:set('dungeonSettled', true, true)
 
     local pos = GetEntityCoords(ped)
-    -- Apparu sur le toit du tunnel : descendu dans le tunnel
-    local found, ground, covered = PedUtils.findFloor(pos.x, pos.y, pos.z)
-    if found and covered then pos = vector3(pos.x, pos.y, ground + Dungeon.FLOOR_OFFSET) end
+    -- Apparu sur le toit du tunnel ou à côté : ramené dans le tunnel, au plus près
+    local x, y, ground = PedUtils.findIndoorFloor(pos.x, pos.y, pos.z)
+    local covered = x ~= nil
+    if covered then pos = vector3(x, y, ground + Dungeon.FLOOR_OFFSET) end
     local safe, point = GetSafeCoordForPed(pos.x, pos.y, pos.z, true, 16)
     if not safe or #(point - pos) > Dungeon.SNAP_DISTANCE or math.abs(point.z - pos.z) > Dungeon.SNAP_HEIGHT then
         if covered then
