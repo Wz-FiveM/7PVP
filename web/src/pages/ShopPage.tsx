@@ -38,7 +38,7 @@ export function ShopPage() {
   /** Achète directement s'il n'y a qu'un lot possible (le serveur explique un refus), sinon demande la quantité. */
   const startBuy = (entry: ShopEntry, index: number) => {
     if (maxLots(entry) > 1) setBuying(index);
-    else actions.buy(index, 1);
+    else actions.buy(index, 1, entry.item);
   };
 
   return (
@@ -81,7 +81,7 @@ export function ShopPage() {
           price={pending.price}
           max={maxLots(pending)}
           onConfirm={(lots) => {
-            actions.buy(buying, lots);
+            actions.buy(buying, lots, pending.item);
             closeBuying();
           }}
           onCancel={closeBuying}

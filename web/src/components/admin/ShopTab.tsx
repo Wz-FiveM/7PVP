@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { t, useLanguage, useT } from '../../i18n';
 import { useGame } from '../../store/GameContext';
-import type { ShopAdminData, ShopAdminItem } from '../../types/admin';
+import type { ShopAdminData, ShopAdminItem, ShopEntryDraft } from '../../types/admin';
 import { formatMoney } from '../../utils/format';
 
 /** Groupes de la liste, dans l'ordre de la page Boutique */
@@ -18,7 +18,10 @@ type Draft = Record<string, number>;
 
 const toDraft = (items: ShopAdminItem[]): Draft => Object.fromEntries(items.map((item) => [item.name, item.price]));
 
-/** Prix de l'armurier, par lot vendu : enregistrés en base, appliqués tout de suite aux joueurs. */
+const EMPTY_ENTRY: ShopEntryDraft = { item: '', count: 1, price: 0, level: 1 };
+
+/** Prix de l'armurier, par lot vendu : enregistrés en base, appliqués tout de suite aux joueurs.
+ *  On y ajoute aussi des objets que la boutique ne vendait pas (et on les retire). */
 export function ShopTab() {
   useT();
   const language = useLanguage();
@@ -28,6 +31,9 @@ export function ShopTab() {
   const [search, setSearch] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState<ShopEntryDraft>(EMPTY_ENTRY);
+  /** Objet ajouté dont on confirme le retrait */
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const result = await adminApi.shop();
@@ -56,11 +62,25 @@ export function ShopTab() {
     return (data?.items ?? []).filter((item) => !query || t(item.label).toLowerCase().includes(query));
   }, [data, search, language]);
 
+  /** Objets qu'on peut ajouter, par groupe de la page Boutique */
+  const addableGroups = useMemo(
+    () =>
+      SECTIONS.map((section) => ({
+        ...section,
+        items: (data?.addable ?? [])
+          .filter((item) => item.type === section.type)
+          .sort((a, b) => t(a.label).localeCompare(t(b.label))),
+      })).filter((section) => section.items.length > 0),
+    [data, language],
+  );
+
   if (!data) return <p className="muted">{t('Chargement des prix…')}</p>;
 
   const maxPrice = data.maxPrice;
-  const setPrice = (name: string, value: string) =>
-    setDraft({ ...draft, [name]: Math.min(maxPrice, Math.max(0, Math.floor(Number(value) || 0))) });
+  const limits = data.limits;
+  const addedCount = data.items.filter((item) => item.custom).length;
+  const clamp = (value: string, min: number, max: number) => Math.min(max, Math.max(min, Math.floor(Number(value) || 0)));
+  const setPrice = (name: string, value: string) => setDraft({ ...draft, [name]: clamp(value, 0, maxPrice) });
   /** Multiplie les prix des objets affichés (ceux de la recherche) */
   const scale = (factor: number) => {
     const next = { ...draft };
@@ -84,12 +104,91 @@ export function ShopTab() {
     if (report(await adminApi.shopReset())) await load();
     setBusy(false);
   };
+  const canAdd = adding.item !== '' && adding.price >= 1 && adding.count >= 1 && addedCount < limits.maxAdded;
+  const add = async () => {
+    setBusy(true);
+    if (report(await adminApi.shopAdd(adding))) {
+      setAdding(EMPTY_ENTRY);
+      await load();
+    }
+    setBusy(false);
+  };
+  const remove = async (name: string) => {
+    if (confirmRemove !== name) return setConfirmRemove(name);
+    setConfirmRemove(null);
+    setBusy(true);
+    if (report(await adminApi.shopRemove(name))) await load();
+    setBusy(false);
+  };
 
   return (
     <div className="admin-loot">
       <p className="muted admin-loot__used">
         {t('Prix du lot affiché, appliqué tout de suite à tous les joueurs. La reprise du receleur suit ce prix, sauf si elle est fixée dans l\'onglet Revente : en rouge, elle permet de gagner de l\'argent sans limite en achetant puis revendant.')}
       </p>
+
+      <section className="admin-shop__add">
+        <span className="label">
+          {t('Ajouter un objet')}
+          <span className="mono muted"> {addedCount}/{limits.maxAdded}</span>
+        </span>
+        <div className="admin-shop__add-head mono">
+          <span>{t('OBJET')}</span>
+          <span>{t('QTÉ')}</span>
+          <span>{t('NIV.')}</span>
+          <span>{t('PRIX $')}</span>
+          <span />
+        </div>
+        <div className="admin-shop__add-row">
+          <select
+            className="admin-input"
+            value={adding.item}
+            aria-label={t('Objet à ajouter')}
+            onChange={(event) => setAdding({ ...adding, item: event.target.value })}
+          >
+            <option value="">{t('Choisir un objet…')}</option>
+            {addableGroups.map((group) => (
+              <optgroup key={group.type} label={t(group.label)}>
+                {group.items.map((item) => (
+                  <option key={item.name} value={item.name}>{t(item.label)}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <input
+            className="admin-input"
+            type="number"
+            min={1}
+            max={limits.maxCount}
+            value={adding.count}
+            aria-label={t('Quantité reçue')}
+            onChange={(event) => setAdding({ ...adding, count: clamp(event.target.value, 1, limits.maxCount) })}
+          />
+          <input
+            className="admin-input"
+            type="number"
+            min={1}
+            max={limits.maxLevel}
+            value={adding.level}
+            aria-label={t('Niveau minimum')}
+            onChange={(event) => setAdding({ ...adding, level: clamp(event.target.value, 1, limits.maxLevel) })}
+          />
+          <input
+            className="admin-input"
+            type="number"
+            min={1}
+            max={maxPrice}
+            value={adding.price || ''}
+            placeholder="0"
+            aria-label={t('Prix du lot')}
+            onChange={(event) => setAdding({ ...adding, price: clamp(event.target.value, 0, maxPrice) })}
+          />
+          <button className="btn btn--small btn--primary" disabled={!canAdd || busy} onClick={add}>
+            {t('Ajouter')}
+          </button>
+        </div>
+      </section>
+
       <div className="admin-loot__money">
         <input
           className="admin-input"
@@ -124,10 +223,24 @@ export function ShopTab() {
                 return (
                   <li key={item.name} className={risky ? 'admin-resale__row admin-resale__row--risky' : 'admin-resale__row'}>
                     <span className="admin-resale__name">
+                      {item.custom && (
+                        <button
+                          className={confirmRemove === item.name ? 'admin-shop__remove admin-shop__remove--confirm' : 'admin-shop__remove'}
+                          disabled={busy}
+                          title={t('Retirer de la boutique')}
+                          aria-label={t('Retirer {item} de la boutique', { item: label })}
+                          onClick={() => remove(item.name)}
+                          onBlur={() => setConfirmRemove(null)}
+                        >
+                          {confirmRemove === item.name ? t('Retirer ?') : '×'}
+                        </button>
+                      )}
                       {label}
+                      {item.level > 1 && <span className="mono muted"> {t('NIV. {level}', { level: item.level })}</span>}
+                      {item.custom && <span className="mono admin-loot__modified"> {t('AJOUTÉ')}</span>}
                       {price !== item.price && <span className="mono admin-loot__modified"> {t('MODIFIÉ')}</span>}
                     </span>
-                    <span className="mono muted">{formatMoney(item.default)}</span>
+                    <span className="mono muted">{item.custom ? '—' : formatMoney(item.default)}</span>
                     <span className="mono muted">{formatMoney(item.resale)}</span>
                     <input
                       className="admin-input"

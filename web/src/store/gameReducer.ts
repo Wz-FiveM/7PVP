@@ -1,4 +1,5 @@
 import type {
+  ShopEntry,
   CaseDefinition,
   CaseSpin,
   ChatCommand,
@@ -103,7 +104,7 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'init'; payload: InitPayload }
-  | { type: 'shop/prices'; prices: Record<string, number> }
+  | { type: 'shop/prices'; shop: ShopEntry[] }
   | { type: 'items/weights'; weights: Record<string, number> }
   | { type: 'cases'; cases: CaseDefinition[]; items: Record<string, ItemDefinition> }
   | { type: 'sync'; player: PlayerState }
@@ -222,7 +223,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         config: {
           ...state.config,
-          shop: state.config.shop.map((entry) => ({ ...entry, price: action.prices[entry.item] ?? entry.price })),
+          shop: Array.isArray(action.shop) ? action.shop : state.config.shop,
         },
       };
     case 'items/weights':

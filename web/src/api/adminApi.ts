@@ -14,6 +14,7 @@ import type {
   MapPoint,
   ResaleAdminData,
   ShopAdminData,
+  ShopEntryDraft,
   WeightAdminData,
 } from '../types/admin';
 
@@ -45,6 +46,14 @@ export const adminApi = {
 
   shopReset: () =>
     fetchNui<AdminActionResult>('adminShopReset', {}, { ok: true, message: 'Prix remis par défaut (simulé)' }),
+
+  /** Objet de Config.Items que la boutique ne vendait pas */
+  shopAdd: (entry: ShopEntryDraft) =>
+    fetchNui<AdminActionResult>('adminShopAdd', { entry }, { ok: true, message: 'Objet ajouté (simulé)' }),
+
+  /** Seulement les objets ajoutés depuis le panneau */
+  shopRemove: (item: string) =>
+    fetchNui<AdminActionResult>('adminShopRemove', { item }, { ok: true, message: 'Objet retiré (simulé)' }),
 
   /** Onglet « Poids » : poids de chaque objet */
   weights: () => fetchNui<WeightAdminData>('adminWeights', {}, mockWeightsAdmin),

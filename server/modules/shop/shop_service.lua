@@ -1,6 +1,8 @@
 ---Achats à l'armurier (Config.Shop).
 ---Les prix se modifient en jeu (panneau admin F10, onglet « Boutique ») : ils s'appliquent tout de
 ---suite et ceux qui diffèrent de la valeur par défaut sont enregistrés en base (pvp_shop_prices).
+---Le même onglet ajoute à la boutique des objets de Config.Items qu'elle ne vend pas (pvp_shop_items) :
+---ils s'affichent après ceux de config/shop.lua et se retirent depuis le panneau.
 ---@class ShopServiceModule
 local ShopService = PVP.define('ShopService')
 local PlayerService = PVP.use('PlayerService')
@@ -19,12 +21,28 @@ local CaseConfigService = PVP.use('CaseConfigService')
 
 -- Prix cités dans le journal d'une modification
 ShopService.LOG_LIMIT = 5
+-- Objets ajoutés depuis le panneau
+ShopService.MAX_ADDED = 100
+ShopService.MAX_COUNT = 1000
+ShopService.MAX_LEVEL = 100
+-- Types affichés par la page Boutique : les autres (argent, matériaux, caisses...) ne s'ajoutent pas
+ShopService.ADDABLE_TYPES = { weapon = true, ammo = true, attachment = true, consumable = true, vehicle = true }
 
 ShopService.SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_shop_prices (
     item VARCHAR(64) NOT NULL,
     price INT UNSIGNED NOT NULL,
     updated_by VARCHAR(64) NOT NULL DEFAULT '',
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (item)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]]
+
+ShopService.ITEMS_SCHEMA = [[CREATE TABLE IF NOT EXISTS pvp_shop_items (
+    item VARCHAR(64) NOT NULL,
+    count INT UNSIGNED NOT NULL,
+    price INT UNSIGNED NOT NULL,
+    level SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    updated_by VARCHAR(64) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (item)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4]]
 
@@ -43,10 +61,12 @@ function ShopService.init()
     Callback.register(Events.callbacks.adminShop, ShopService.getCallback)
     Callback.register(Events.callbacks.adminShopSave, ShopService.saveCallback)
     Callback.register(Events.callbacks.adminShopReset, ShopService.resetCallback)
+    Callback.register(Events.callbacks.adminShopAdd, ShopService.addCallback)
+    Callback.register(Events.callbacks.adminShopRemove, ShopService.removeCallback)
 
-    -- Les clients lisent les prix dans leur config (page Boutique)
+    -- Les clients lisent la boutique dans leur config (page Boutique)
     AddEventHandler(Events.internal.playerLoaded, function(playerSource)
-        ShopService.sendPrices(playerSource)
+        ShopService.sendShop(playerSource)
     end)
 
     CreateThread(ShopService.load)
@@ -56,14 +76,26 @@ end
 ---par défaut dépend de ceux de la boutique.
 function ShopService.load()
     MySQL.query.await(ShopService.SCHEMA)
+    MySQL.query.await(ShopService.ITEMS_SCHEMA)
     local rows = MySQL.query.await('SELECT item, price FROM pvp_shop_prices') or {}
     for _, row in ipairs(rows) do
         local price = ShopService.validPrice(row.item, row.price)
         if price then ShopService.entries[row.item].price = price end
     end
-    if #rows > 0 then
-        Logger.info('[boutique] %d prix chargé(s) depuis la base', #rows)
-        ShopService.sendPrices(-1)
+    local added = MySQL.query.await('SELECT item, count, price, level FROM pvp_shop_items ORDER BY created_at, item') or {}
+    local loaded = 0
+    for _, row in ipairs(added) do
+        local entry = ShopService.validEntry(row)
+        if entry then
+            ShopService.append(entry)
+            loaded = loaded + 1
+        else
+            Logger.warn('[boutique] objet ajouté ignoré : %s (inconnu, déjà vendu ou invalide)', tostring(row.item))
+        end
+    end
+    if #rows > 0 or loaded > 0 then
+        Logger.info('[boutique] %d prix et %d objet(s) ajouté(s) chargés depuis la base', #rows, loaded)
+        ShopService.sendShop(-1)
     end
     -- Les caisses créées depuis le panneau sont des objets repris par le receleur
     CaseConfigService.awaitLoaded()
@@ -81,23 +113,68 @@ function ShopService.validPrice(name, value)
     return math.min(Config.ShopMaxPrice, price)
 end
 
+---Les lignes de la boutique dans son ordre : les clients remplacent leur Config.Shop (l'achat se fait
+---par index, les objets ajoutés ou retirés le décalent).
 ---@param target integer joueur, -1 = tout le monde
-function ShopService.sendPrices(target)
-    local prices = {}
-    for name, entry in pairs(ShopService.entries) do prices[name] = entry.price end
-    TriggerClientEvent(Events.client.shopPrices, target, prices)
+function ShopService.sendShop(target)
+    local shop = {}
+    for i, entry in ipairs(Config.Shop) do
+        shop[i] = { item = entry.item, count = entry.count, price = entry.price, level = entry.level }
+    end
+    TriggerClientEvent(Events.client.shopPrices, target, shop)
+end
+
+---@param data any { item, count, price, level? } (panneau ou base)
+---@return table|nil ligne de boutique, nil si l'objet est inconnu, déjà vendu ou hors des bornes
+function ShopService.validEntry(data)
+    if type(data) ~= 'table' or type(data.item) ~= 'string' then return nil end
+    local item = Config.Items[data.item]
+    if not item or not ShopService.ADDABLE_TYPES[item.type] or ShopService.entries[data.item] then return nil end
+    local count, price = Utils.toCount(data.count), Utils.toCount(data.price)
+    local level = data.level == nil and 1 or Utils.toCount(data.level)
+    if count < 1 or count > ShopService.MAX_COUNT or price < 1 or level < 1 or level > ShopService.MAX_LEVEL then
+        return nil
+    end
+    return {
+        item = data.item,
+        count = count,
+        price = math.min(Config.ShopMaxPrice, price),
+        level = level > 1 and level or nil,
+        custom = true,
+    }
+end
+
+---@param entry table ligne validée par ShopService.validEntry
+function ShopService.append(entry)
+    Config.Shop[#Config.Shop + 1] = entry
+    ShopService.entries[entry.item] = entry
+    ShopService.defaults[entry.item] = entry.price
+end
+
+---@return integer
+function ShopService.addedCount()
+    local count = 0
+    for _, entry in ipairs(Config.Shop) do
+        if entry.custom then count = count + 1 end
+    end
+    return count
 end
 
 ---@param source integer
 ---@param index integer index (1-based) dans Config.Shop
 ---@param quantity? integer nombre de lots (1 par défaut)
+---@param item? string objet vu par le joueur à cet index
 ---@return { ok: boolean, message: string }
-function ShopService.buy(source, index, quantity)
+function ShopService.buy(source, index, quantity, item)
     local player = PlayerService.get(source)
     local entry = Config.Shop[tonumber(index)]
     local lots = Utils.toCount(quantity or 1)
     if not player or player.dead or not entry or lots < 1 or lots > Config.ShopMaxQuantity then
         return { ok = false, message = Locale.t('Achat impossible.') }
+    end
+    -- Un objet a été ajouté ou retiré depuis le panneau pendant que la page était ouverte
+    if item ~= nil and item ~= entry.item then
+        return { ok = false, message = Locale.t('La boutique a changé, réessaie.') }
     end
     if not SafeNpcs.isNear(player:getCoords(), 'shop', Config.SafeNpcs.useDistance + 2.0) then
         return { ok = false, message = SafeNpcs.hint('shop') }
@@ -149,9 +226,27 @@ function ShopService.getCallback(source)
             default = ShopService.defaults[entry.item],
             resale = (ResaleService.prices[entry.item] or 0) * entry.count,
             resaleFollows = ResaleService.followsShop(entry.item),
+            level = entry.level or 1,
+            custom = entry.custom == true,
         }
     end
-    return { ok = true, items = items, maxPrice = Config.ShopMaxPrice }
+
+    -- Objets qu'on peut ajouter : ceux que la page Boutique sait afficher et qu'elle ne vend pas encore
+    local addable = {}
+    for name, item in pairs(Config.Items) do
+        if ShopService.ADDABLE_TYPES[item.type] and not ShopService.entries[name] then
+            addable[#addable + 1] = { name = name, label = item.label, type = item.type }
+        end
+    end
+    table.sort(addable, function(a, b) return a.label < b.label end)
+
+    return {
+        ok = true,
+        items = items,
+        addable = addable,
+        maxPrice = Config.ShopMaxPrice,
+        limits = { maxAdded = ShopService.MAX_ADDED, maxCount = ShopService.MAX_COUNT, maxLevel = ShopService.MAX_LEVEL },
+    }
 end
 
 ---@param source integer
@@ -189,16 +284,66 @@ function ShopService.resetCallback(source)
     return { ok = true, message = Locale.t('Prix de la boutique remis par défaut.') }
 end
 
+---@param source integer
+---@param data any { item, count, price, level }
+function ShopService.addCallback(source, data)
+    if not ShopService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
+    if type(data) == 'table' and type(data.item) == 'string' and ShopService.entries[data.item] then
+        return { ok = false, message = Locale.t('Cet objet est déjà vendu.') }
+    end
+    if ShopService.addedCount() >= ShopService.MAX_ADDED then
+        return { ok = false, message = Locale.t('Pas plus de %d objets ajoutés.', ShopService.MAX_ADDED) }
+    end
+    local entry = ShopService.validEntry(data)
+    if not entry then return { ok = false, message = Locale.t('Données invalides.') } end
+
+    ShopService.append(entry)
+    MySQL.insert(
+        'INSERT INTO pvp_shop_items (item, count, price, level, updated_by) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE count = VALUES(count), price = VALUES(price), level = VALUES(level), updated_by = VALUES(updated_by)',
+        { entry.item, entry.count, entry.price, entry.level or 1, GetPlayerName(source) or '' }
+    )
+    ShopService.applied()
+    ShopService.log(source, ('ajout de %s x%d à $%d, niveau %d'):format(Items.label(entry.item), entry.count, entry.price, entry.level or 1))
+    return { ok = true, message = Locale.t('Ajouté à la boutique : %s', Items.label(entry.item)) }
+end
+
+---@param source integer
+---@param name any objet ajouté depuis le panneau (ceux de config/shop.lua ne se retirent pas)
+function ShopService.removeCallback(source, name)
+    if not ShopService.allowed(source) then return { ok = false, message = Locale.t('Accès refusé.') } end
+    local entry = type(name) == 'string' and ShopService.entries[name]
+    if not entry or not entry.custom then return { ok = false, message = Locale.t('Données invalides.') } end
+
+    for i, line in ipairs(Config.Shop) do
+        if line == entry then
+            table.remove(Config.Shop, i)
+            break
+        end
+    end
+    ShopService.entries[name] = nil
+    ShopService.defaults[name] = nil
+    MySQL.update('DELETE FROM pvp_shop_items WHERE item = ?', { name })
+    ShopService.applied()
+    ShopService.log(source, ('retrait de %s'):format(Items.label(name)))
+    return { ok = true, message = Locale.t('Retiré de la boutique : %s', Items.label(name)) }
+end
+
 ---Prix changés : le receleur suit, et les joueurs voient les nouveaux prix sans rouvrir la page.
 function ShopService.applied()
     ResaleService.refreshDefaults()
-    ShopService.sendPrices(-1)
+    ShopService.sendShop(-1)
 end
 
 ---@param source integer
 ---@param name string
 ---@param price integer
 function ShopService.store(source, name, price)
+    -- Objet ajouté : son prix est gardé avec lui, il n'a pas d'autre valeur par défaut
+    if ShopService.entries[name].custom then
+        ShopService.defaults[name] = price
+        MySQL.update('UPDATE pvp_shop_items SET price = ?, updated_by = ? WHERE item = ?', { price, GetPlayerName(source) or '', name })
+        return
+    end
     if price == ShopService.defaults[name] then
         MySQL.update('DELETE FROM pvp_shop_prices WHERE item = ?', { name })
         return

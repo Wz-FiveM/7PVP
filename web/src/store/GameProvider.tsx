@@ -79,7 +79,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         case 'killfeed':
           return pushKill(message.data);
         case 'shopPrices':
-          return dispatch({ type: 'shop/prices', prices: message.data });
+          return dispatch({ type: 'shop/prices', shop: message.data });
         case 'itemWeights':
           return dispatch({ type: 'items/weights', weights: message.data });
         case 'cases':
@@ -222,7 +222,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
         gameApi.close();
       },
-      buy: (index, quantity) => run(gameApi.buy(index, quantity)),
+      buy: (index, quantity, item) => run(gameApi.buy(index, quantity, item)),
       buyCase: (id) => run(gameApi.caseBuy(id)),
       openCase: async (id, withPoints = false) => {
         const definition = configRef.current.cases?.find((c) => c.id === id);

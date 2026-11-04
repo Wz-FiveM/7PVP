@@ -58,7 +58,7 @@ function Nui.init()
     end)
 
     RegisterNUICallback('buy', function(data, cb)
-        cb(Callback.await(Events.callbacks.buy, data.index, data.quantity) or { ok = false })
+        cb(Callback.await(Events.callbacks.buy, data.index, data.quantity, data.item) or { ok = false })
     end)
 
     -- Caisses : achat chez l'armurier, ouverture n'importe où hors combat (tirage côté serveur)
@@ -198,12 +198,12 @@ function Nui.init()
         Nui.send('killfeed', entry)
     end)
 
-    -- Prix de la boutique (voir ShopService) : Config.Shop est aussi relu si la page n'est pas encore prête
-    RegisterNetEvent(Events.client.shopPrices, function(prices)
-        for _, entry in ipairs(Config.Shop) do
-            entry.price = prices[entry.item] or entry.price
-        end
-        Nui.send('shopPrices', prices)
+    -- Lignes de la boutique avec leurs prix (voir ShopService, objets ajoutés depuis le panneau compris) :
+    -- Config.Shop est aussi relu si la page n'est pas encore prête
+    RegisterNetEvent(Events.client.shopPrices, function(shop)
+        if type(shop) ~= 'table' then return end
+        Config.Shop = shop
+        Nui.send('shopPrices', shop)
     end)
 
     -- Poids des objets modifiés par un admin (voir WeightService) : sacs et coffres pèsent juste

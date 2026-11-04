@@ -14,8 +14,10 @@ export const gameApi = {
   /** Langue de l'interface et des messages (gardée côté Lua, qui renvoie « locale ») */
   setLanguage: (lang: string) => fetchNui<ActionResult>('setLanguage', { lang }, { ok: true }),
 
-  /** `index` est 1-based, comme Config.Shop côté Lua ; `quantity` : nombre de lots */
-  buy: (index: number, quantity: number) => fetchNui<ActionResult>('buy', { index, quantity }, MOCK_OK),
+  /** `index` est 1-based, comme Config.Shop côté Lua ; `quantity` : nombre de lots ; `item` : objet vu à cet
+   *  index (le serveur refuse si la boutique a changé entre-temps) */
+  buy: (index: number, quantity: number, item?: string) =>
+    fetchNui<ActionResult>('buy', { index, quantity, item }, MOCK_OK),
 
   caseBuy: (id: string) => fetchNui<ActionResult>('caseBuy', { id }, MOCK_OK),
 

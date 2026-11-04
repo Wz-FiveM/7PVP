@@ -122,13 +122,34 @@ export interface ShopAdminItem {
   resale: number;
   /** la reprise dépend du prix de la boutique (pas fixée dans l'onglet Revente) */
   resaleFollows: boolean;
+  /** niveau minimum */
+  level: number;
+  /** ajouté depuis le panneau (pas dans config/shop.lua) : peut être retiré */
+  custom: boolean;
+}
+
+/** Objet que la boutique ne vend pas encore */
+export interface ShopAddableItem {
+  name: string;
+  label: string;
+  type: string;
+}
+
+/** Objet ajouté depuis le panneau */
+export interface ShopEntryDraft {
+  item: string;
+  count: number;
+  price: number;
+  level: number;
 }
 
 export interface ShopAdminData {
   ok: boolean;
   message?: string;
   items: ShopAdminItem[];
+  addable: ShopAddableItem[];
   maxPrice: number;
+  limits: { maxAdded: number; maxCount: number; maxLevel: number };
 }
 
 /** Objet de l'onglet Poids (server/modules/inventory/weight_service.lua) */

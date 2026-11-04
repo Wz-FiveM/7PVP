@@ -837,14 +837,22 @@ export const mockResaleAdmin: ResaleAdminData = {
 export const mockShopAdmin: ShopAdminData = {
   ok: true,
   maxPrice: 10000000,
+  limits: { maxAdded: 100, maxCount: 1000, maxLevel: 100 },
+  addable: [
+    { name: 'weapon_rpg', label: 'Lance-roquettes', type: 'weapon' },
+    { name: 'weapon_minigun', label: 'Minigun', type: 'weapon' },
+    { name: 'att_suppressor', label: 'Silencieux', type: 'attachment' },
+    { name: 'vehicle_panto', label: 'Panto', type: 'vehicle' },
+  ],
   items: [
-    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', count: 1, price: 400, default: 400, resale: 450, resaleFollows: false },
-    { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon', count: 1, price: 6000, default: 5500, resale: 3000, resaleFollows: true },
-    { name: 'mag_9mm', label: 'Munitions de pistolet', type: 'ammo', count: 48, price: 80, default: 80, resale: 48, resaleFollows: true },
-    { name: 'mag_556', label: 'Munitions de fusil', type: 'ammo', count: 60, price: 250, default: 250, resale: 120, resaleFollows: true },
-    { name: 'att_scope', label: 'Lunette', type: 'attachment', count: 1, price: 1500, default: 1500, resale: 750, resaleFollows: true },
-    { name: 'medkit', label: 'Trousse de soins', type: 'consumable', count: 1, price: 350, default: 350, resale: 175, resaleFollows: true },
-    { name: 'vehicle_faggio', label: 'Faggio', type: 'vehicle', count: 1, price: 600, default: 600, resale: 300, resaleFollows: true },
+    { name: 'weapon_pistol', label: 'Pistolet', type: 'weapon', count: 1, price: 400, default: 400, resale: 450, resaleFollows: false, custom: false, level: 1 },
+    { name: 'weapon_carbinerifle', label: 'Carabine', type: 'weapon', count: 1, price: 6000, default: 5500, resale: 3000, resaleFollows: true, custom: false, level: 1 },
+    { name: 'mag_9mm', label: 'Munitions de pistolet', type: 'ammo', count: 48, price: 80, default: 80, resale: 48, resaleFollows: true, custom: false, level: 1 },
+    { name: 'mag_556', label: 'Munitions de fusil', type: 'ammo', count: 60, price: 250, default: 250, resale: 120, resaleFollows: true, custom: false, level: 1 },
+    { name: 'att_scope', label: 'Lunette', type: 'attachment', count: 1, price: 1500, default: 1500, resale: 750, resaleFollows: true, custom: false, level: 1 },
+    { name: 'medkit', label: 'Trousse de soins', type: 'consumable', count: 1, price: 350, default: 350, resale: 175, resaleFollows: true, custom: false, level: 1 },
+    { name: 'vehicle_faggio', label: 'Faggio', type: 'vehicle', count: 1, price: 600, default: 600, resale: 300, resaleFollows: true, custom: false, level: 1 },
+    { name: 'weapon_hominglauncher', label: 'Lance-missiles guidé', type: 'weapon', count: 1, price: 45000, default: 45000, resale: 22500, resaleFollows: true, custom: true, level: 20 },
   ],
 };
 
