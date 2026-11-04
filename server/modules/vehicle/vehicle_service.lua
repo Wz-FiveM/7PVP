@@ -180,7 +180,7 @@ function VehicleService.waitEntity(netId)
     end
 end
 
----Range le véhicule dans lequel le joueur est assis (touche K). N'importe quel véhicule sorti
+---Range le véhicule dans lequel le joueur est assis (touche K), passagers compris (ils se retrouvent à pied). N'importe quel véhicule sorti
 ---d'un objet, le sien ou celui d'un autre : l'objet va à celui qui range, le propriétaire est prévenu.
 ---@param source integer
 function VehicleService.storeCallback(source)
@@ -206,9 +206,6 @@ function VehicleService.storeCallback(source)
     end
     if #GetEntityVelocity(entity) * 3.6 >= Config.VehicleOptions.storeMaxSpeed then
         return { ok = false, message = Locale.t('Arrête le véhicule pour le ranger (moins de %d km/h).', Config.VehicleOptions.storeMaxSpeed) }
-    end
-    if VehicleService.hasOtherOccupant(entity, ped) then
-        return { ok = false, message = Locale.t('Quelqu\'un est encore à bord.') }
     end
 
     local label = Locale.t(Items.label(VehicleService.active[ownerSource].item))
@@ -265,17 +262,6 @@ end
 ---@return boolean
 function VehicleService.isDestroyed(entity)
     return GetEntityHealth(entity) <= 0 or GetVehicleEngineHealth(entity) <= -3999.0
-end
-
----@param entity integer
----@param ped integer
----@return boolean
-function VehicleService.hasOtherOccupant(entity, ped)
-    for seat = -1, 6 do
-        local occupant = GetPedInVehicleSeat(entity, seat)
-        if occupant ~= 0 and occupant ~= ped then return true end
-    end
-    return false
 end
 
 ---Rend l'objet : dans le sac, sinon le conteneur protégé, sinon un coffre.
