@@ -92,6 +92,7 @@ Config.ChatCommands = {
 
     { name = 'tpm', description = 'Aller au marqueur de la carte', admin = true },
     { name = 'coords', description = 'Copier ta position (vector4)', admin = true },
+    { name = 'interieur', description = 'Diagnostic de l\'intérieur où tu es', admin = true },
     {
         name = 'heure',
         description = 'Régler l\'heure du jeu',

@@ -102,7 +102,7 @@ function PedUtils.findSpot(x, y, z)
 end
 
 ---Sous terre, le premier sol sous un point peut être le dessus d'un intérieur (son toit) : on descend
----jusqu'au premier sol qui a un plafond au-dessus de lui. Sans plafond nulle part, le premier sol pas
+---jusqu'au premier sol qui est dans une pièce de l'intérieur. Sans pièce nulle part, le premier sol pas
 ---trop bas fait l'affaire.
 ---@param x number
 ---@param y number
@@ -117,11 +117,23 @@ function PedUtils.findFloor(x, y, z)
         local found, ground = GetGroundZFor_3dCoord(x, y, start, false)
         if not found or z - ground > PedUtils.FLOOR_DEPTH then break end
         first = first or ground
-        if PedUtils.hasCeiling(x, y, ground) then return true, ground, true end
+        if PedUtils.isIndoors(x, y, ground) then return true, ground, true end
         start = ground - 0.5
     end
     if first and z - first <= PedUtils.SPOT_DROP then return true, first, false end
     return false, z, false
+end
+
+---Debout sur ce sol, on est dans une pièce d'un intérieur. Sur son toit ou sous lui, on est hors de
+---ses pièces. Pour un intérieur dont le jeu ne donne pas les pièces, on cherche un plafond.
+---@return boolean
+function PedUtils.isIndoors(x, y, ground)
+    local coords = vector3(x, y, ground + 1.0)
+    local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
+    if interior ~= 0 and (GetInteriorRoomCount(interior) or 0) >= 2 then
+        return PedUtils.roomIndexAt(interior, coords) ~= nil
+    end
+    return PedUtils.hasCeiling(x, y, ground)
 end
 
 ---@return boolean une surface du décor au-dessus de ce sol
@@ -146,11 +158,13 @@ end
 
 ---Le jeu ne met une entité dans un intérieur que lorsqu'elle y entre par une ouverture : posée
 ---directement dedans, elle reste « dehors », sur le sol de l'intérieur mais sans qu'il s'affiche
----(et sans être vue de ceux qui y sont). On lui donne la pièce où elle se trouve.
+---(et sans être vue de ceux qui y sont). On lui donne la pièce où elle se trouve, seulement si elle
+---n'en a pas et qu'une pièce la contient vraiment : une mauvaise pièce cacherait tout l'intérieur.
 ---@param entity integer
 ---@param viewport? boolean aussi la caméra du joueur (pour son propre personnage)
 ---@return boolean placée dans une pièce
 function PedUtils.enterRoom(entity, viewport)
+    if GetRoomKeyFromEntity(entity) ~= 0 then return false end
     local coords = GetEntityCoords(entity)
     local interior = GetInteriorAtCoords(coords.x, coords.y, coords.z)
     if interior == 0 then return false end
@@ -163,36 +177,45 @@ end
 
 ---@param interior integer
 ---@param coords vector3
----@return integer|nil clé de la pièce qui contient `coords` (sinon la plus proche), nil si l'intérieur n'en a pas
+---@return integer|nil clé de la pièce qui contient `coords`, nil si aucune
 function PedUtils.roomAt(interior, coords)
+    local index = PedUtils.roomIndexAt(interior, coords)
+    return index and GetHashKey(GetInteriorRoomName(interior, index)) or nil
+end
+
+---Le sens de la rotation rendue par le jeu n'est pas vérifié : les deux sont essayés.
+---@param interior integer
+---@param coords vector3
+---@return integer|nil numéro de la pièce qui contient `coords`
+function PedUtils.roomIndexAt(interior, coords)
     local count = GetInteriorRoomCount(interior)
     if not count or count < 2 then return nil end
-    local point = PedUtils.toInterior(interior, coords)
-    local best, bestDistance = nil, math.huge
-    -- La pièce 0 est « limbo », le dehors
-    for index = 1, count - 1 do
-        local minX, minY, minZ, maxX, maxY, maxZ = GetInteriorRoomExtents(interior, index)
-        local center = vector3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2)
-        local inside = point.x >= minX and point.x <= maxX and point.y >= minY and point.y <= maxY
-            and point.z >= minZ and point.z <= maxZ
-        local distance = inside and -1 or #(point - center)
-        if distance < bestDistance then
-            best, bestDistance = index, distance
+    for _, inverse in ipairs({ true, false }) do
+        local point = PedUtils.toInterior(interior, coords, inverse)
+        -- La pièce 0 est « limbo », le dehors
+        for index = 1, count - 1 do
+            local minX, minY, minZ, maxX, maxY, maxZ = GetInteriorRoomExtents(interior, index)
+            if point.x >= minX and point.x <= maxX and point.y >= minY and point.y <= maxY
+                and point.z >= minZ and point.z <= maxZ then
+                return index
+            end
         end
     end
-    return best and GetHashKey(GetInteriorRoomName(interior, best)) or nil
+    return nil
 end
 
 ---Les dimensions des pièces sont données dans le repère de l'intérieur.
 ---@param interior integer
 ---@param coords vector3
+---@param inverse boolean rotation inverse (quaternion conjugué)
 ---@return vector3
-function PedUtils.toInterior(interior, coords)
+function PedUtils.toInterior(interior, coords, inverse)
     local px, py, pz = GetInteriorPosition(interior)
     local qx, qy, qz, qw = GetInteriorRotation(interior)
     local v = coords - vector3(px, py, pz)
-    -- Rotation inverse (quaternion conjugué) : v + 2w(q × v) + 2q × (q × v), avec q = -(qx, qy, qz)
-    local q = vector3(-qx, -qy, -qz)
+    -- v + 2w(q × v) + 2q × (q × v)
+    local sign = inverse and -1.0 or 1.0
+    local q = vector3(qx * sign, qy * sign, qz * sign)
     local t = PedUtils.cross(q, v) * 2.0
     return v + t * qw + PedUtils.cross(q, t)
 end
