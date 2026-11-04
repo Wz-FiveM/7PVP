@@ -20,7 +20,6 @@ local AirdropService = PVP.define('AirdropService')
 local LootService = PVP.use('LootService')
 local ModeRegistry = PVP.use('ModeRegistry')
 local ChatService = PVP.use('ChatService')
-local Utils = PVP.use('Utils')
 local PlayerService = PVP.use('PlayerService')
 local GroupService = PVP.use('GroupService')
 local ControlService = PVP.use('ControlService')
@@ -35,6 +34,22 @@ AirdropService.CAPTURE_EPSILON = 1e-6
 ---@type table<integer, Airdrop>
 AirdropService.drops = {}
 AirdropService.nextId = 0
+---@type integer|nil index dans Config.Airdrops.locations du dernier point tiré au sort
+AirdropService.lastLocation = nil
+
+---Point de chute au hasard parmi Config.Airdrops.locations, jamais le même que le précédent.
+---@return vector3
+function AirdropService.pickLocation()
+    local locations = Config.Airdrops.locations
+    local index = math.random(#locations)
+    if #locations > 1 and index == AirdropService.lastLocation then
+        -- Tirage parmi les autres points : on saute le précédent
+        index = math.random(#locations - 1)
+        if index >= AirdropService.lastLocation then index = index + 1 end
+    end
+    AirdropService.lastLocation = index
+    return locations[index]
+end
 
 function AirdropService.init()
     -- Les joueurs qui arrivent voient les largages déjà en cours
@@ -67,7 +82,7 @@ function AirdropService.spawn(coords)
     local releaseAt = now + math.ceil(plane.approach / plane.speed)
     local drop = {
         id = AirdropService.nextId,
-        coords = coords or Utils.pick(Config.Airdrops.locations),
+        coords = coords or AirdropService.pickLocation(),
         heading = math.random(0, 359) + 0.0,
         releaseAt = releaseAt,
         landAt = releaseAt + Config.Airdrops.fallTime,
