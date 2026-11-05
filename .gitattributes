@@ -1,2 +1,5 @@
 # Scripts lancés sur le VPS (Linux)
 *.sh text eol=lf
+
+# Cartes de GTA (binaires)
+*.ymap binary
