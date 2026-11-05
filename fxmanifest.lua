@@ -46,6 +46,7 @@ shared_scripts {
     'config/boards.lua',
     'config/npcs.lua',
     'config/safe_decor.lua',
+    'config/safe_decor_props.lua',
     'config/market.lua',
     'config/resale.lua',
     'config/reports.lua',
