@@ -2,7 +2,10 @@
 -- (armurerie, atelier d'armes, garage de casse, coffre, vestiaire, atelier, poste du recruteur,
 -- étals, planque du receleur, campement de James), habillé de végétation selon la zone : pots,
 -- jardinières et bancs en ville (Legion, aéroport), cactus, herbes sèches et rochers à Sandy,
--- fougères, buissons, souches et bois coupé à Paleto.
+-- fougères, buissons, souches et bois coupé à Paleto, et du feuillage au sol (herbes, trèfle,
+-- fougères basses) en couronne autour des stands. Plantes et feuillage n'ont pas de collision.
+-- Le placement garde un chemin à pied court entre chaque point d'apparition et chaque PNJ, et
+-- entre PNJ voisins (les objets qui le coupaient ont été retirés), et la voie du mécanicien libre.
 --
 -- Les stands ont été composés avec CodeWalker d'après le relevé de la carte de GTA (sol, plafonds,
 -- murs et objets autour de chaque PNJ). Les objets sont dans config/safe_decor_props.lua (généré) ;

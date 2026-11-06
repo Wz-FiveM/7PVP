@@ -94,6 +94,8 @@ function SafeDecor.build(zoneId)
                 FreezeEntityPosition(object, true)
                 SetEntityInvincible(object, true)
                 SetEntityCanBeDamaged(object, false)
+                -- plantes et feuillage : on passe au travers, à pied comme en véhicule
+                if p[6] then SetEntityCollision(object, false, false) end
                 built.objects[#built.objects + 1] = object
             end
             count = count + 1
