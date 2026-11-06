@@ -48,6 +48,32 @@ function Hits.init()
         Nui.send('combat', { seconds = tonumber(seconds) or 0 })
     end)
     CreateThread(Hits.trackLoop)
+    CreateThread(Hits.criticalLoop)
+end
+
+-- ---------------------------------------------------------------------------
+-- Tirs à la tête
+-- ---------------------------------------------------------------------------
+
+-- En PvP, une balle dans la tête fait les dégâts d'une balle dans le corps (pas de mort d'un coup).
+-- Les dégâts sont appliqués par le client de la victime : chacun règle son propre ped.
+-- Le ped change au respawn et au changement de modèle, d'où la vérification régulière.
+Hits.CRITICAL_INTERVAL = 500
+Hits.criticalPed = nil
+Hits.criticalHits = nil
+
+function Hits.criticalLoop()
+    while true do
+        Hits.syncCriticalHits()
+        Wait(Hits.CRITICAL_INTERVAL)
+    end
+end
+
+function Hits.syncCriticalHits()
+    local ped, wanted = PlayerPedId(), not State.inPvp()
+    if ped == Hits.criticalPed and wanted == Hits.criticalHits then return end
+    Hits.criticalPed, Hits.criticalHits = ped, wanted
+    SetPedSuffersCriticalHits(ped, wanted)
 end
 
 -- ---------------------------------------------------------------------------
