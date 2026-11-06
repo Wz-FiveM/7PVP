@@ -1,6 +1,8 @@
 -- Décor des zones safe du mode PvP : un coin aménagé autour de chaque PNJ de service
 -- (armurerie, atelier d'armes, garage de casse, coffre, vestiaire, atelier, poste du recruteur,
--- étals, planque du receleur, campement de James).
+-- étals, planque du receleur, campement de James), habillé de végétation selon la zone : pots,
+-- jardinières et bancs en ville (Legion, aéroport), cactus, herbes sèches et rochers à Sandy,
+-- fougères, buissons, souches et bois coupé à Paleto.
 --
 -- Les stands ont été composés avec CodeWalker d'après le relevé de la carte de GTA (sol, plafonds,
 -- murs et objets autour de chaque PNJ). Les objets sont dans config/safe_decor_props.lua (généré) ;
