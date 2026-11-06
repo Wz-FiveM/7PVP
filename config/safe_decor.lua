@@ -6,6 +6,8 @@
 -- fougères basses) en couronne autour des stands. Plantes et feuillage n'ont pas de collision.
 -- Le placement garde un chemin à pied court entre chaque point d'apparition et chaque PNJ, et
 -- entre PNJ voisins (les objets qui le coupaient ont été retirés), et la voie du mécanicien libre.
+-- Une grille de chantier marque le bord de chaque zone, avec des ouvertures sur les routes et les
+-- chemins piétons de GTA et au moins tous les 24 m ; pas de grille dans un bâtiment ni en pente.
 --
 -- Les stands ont été composés avec CodeWalker d'après le relevé de la carte de GTA (sol, plafonds,
 -- murs et objets autour de chaque PNJ). Les objets sont dans config/safe_decor_props.lua (généré) ;
